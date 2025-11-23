@@ -3,24 +3,167 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Home from "./pages/Home";
+import Photo from "./pages/Photo";
+import Favourite from "./pages/Favourite";
+import Account from "./pages/Account";
+import ProductDetail from "./pages/ProductDetail";
+import PhotoDetail from "./pages/PhotoDetail";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
+import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ProductsManage from "./pages/admin/ProductsManage";
+import ProductNew from "./pages/admin/ProductNew";
+import PhotosManage from "./pages/admin/PhotosManage";
+import PhotoNew from "./pages/admin/PhotoNew";
+import OrdersManage from "./pages/admin/OrdersManage";
+import UsersManage from "./pages/admin/UsersManage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/signup" element={<Signup />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Home />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/photo"
+                element={
+                  <ProtectedRoute>
+                    <Photo />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/favourite"
+                element={
+                  <ProtectedRoute>
+                    <Favourite />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
+                    <Account />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/product/:id"
+                element={
+                  <ProtectedRoute>
+                    <ProductDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/photo/:id"
+                element={
+                  <ProtectedRoute>
+                    <PhotoDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/terms"
+                element={
+                  <ProtectedRoute>
+                    <Terms />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/contact"
+                element={
+                  <ProtectedRoute>
+                    <Contact />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute>
+                    <ProductsManage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products/new"
+                element={
+                  <ProtectedRoute>
+                    <ProductNew />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/photos"
+                element={
+                  <ProtectedRoute>
+                    <PhotosManage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/photos/new"
+                element={
+                  <ProtectedRoute>
+                    <PhotoNew />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute>
+                    <OrdersManage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute>
+                    <UsersManage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
