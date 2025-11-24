@@ -53,24 +53,24 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          photo_id: string
+          photo_id: number
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
-          photo_id: string
+          photo_id: number
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
-          photo_id?: string
+          photo_id?: number
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "favourite_photos_photo_id_fkey"
+            foreignKeyName: "favourite_photos_new_photo_id_fkey"
             columns: ["photo_id"]
             isOneToOne: false
             referencedRelation: "photos"
@@ -164,7 +164,7 @@ export type Database = {
           created_at: string | null
           file_size: number
           file_url: string
-          id: string
+          id: number
           preview_image: string | null
         }
         Insert: {
@@ -173,7 +173,7 @@ export type Database = {
           created_at?: string | null
           file_size: number
           file_url: string
-          id?: string
+          id?: number
           preview_image?: string | null
         }
         Update: {
@@ -182,7 +182,7 @@ export type Database = {
           created_at?: string | null
           file_size?: number
           file_url?: string
-          id?: string
+          id?: number
           preview_image?: string | null
         }
         Relationships: []

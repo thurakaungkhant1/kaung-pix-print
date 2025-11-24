@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Photo {
-  id: string;
+  id: number;
   client_name: string;
   file_url: string;
   file_size: number;
@@ -56,7 +56,7 @@ const PhotosManage = () => {
     }
   };
 
-  const deletePhoto = async (id: string) => {
+  const deletePhoto = async (id: number) => {
     if (!confirm("Are you sure you want to delete this photo?")) return;
 
     const { error } = await supabase.from("photos").delete().eq("id", id);

@@ -16,7 +16,7 @@ interface Product {
 }
 
 interface Photo {
-  id: string;
+  id: number;
   client_name: string;
   file_size: number;
   preview_image: string | null;
