@@ -105,7 +105,6 @@ const Home = () => {
     <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
         <h1 className="text-2xl font-bold text-center">Kaung Computer</h1>
-        <p className="text-center text-sm opacity-90">Photography & Printing</p>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4">
