@@ -17,6 +17,7 @@ import PhotoDetail from "./pages/PhotoDetail";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Exchange from "./pages/Exchange";
+import Cart from "./pages/Cart";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -191,6 +192,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Exchange />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cart"
+                element={
+                  <ProtectedRoute>
+                    <Cart />
                   </ProtectedRoute>
                 }
               />
