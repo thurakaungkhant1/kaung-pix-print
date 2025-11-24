@@ -7,13 +7,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award, ShoppingBag, Package } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award, ShoppingBag, Package, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import SpinnerWheel from "@/components/SpinnerWheel";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import PinVerificationDialog from "@/components/PinVerificationDialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 interface Profile {
   name: string;
@@ -81,6 +84,10 @@ const Account = () => {
   const [showConfirmDownloadPin, setShowConfirmDownloadPin] = useState(false);
   const [isSettingPin, setIsSettingPin] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [profileSectionOpen, setProfileSectionOpen] = useState(false);
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [pinVerified, setPinVerified] = useState(false);
+  const [showForgetPinDialog, setShowForgetPinDialog] = useState(false);
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -314,6 +321,14 @@ const Account = () => {
       setNewPassword("");
       setConfirmPassword("");
     }
+  };
+
+  const handleViewPasswordVerified = () => {
+    setPinVerified(true);
+    toast({
+      title: "PIN Verified",
+      description: "You can now view password information and change your password",
+    });
   };
 
   const handlePinSetup = async () => {
@@ -599,119 +614,179 @@ const Account = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <User className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-medium">{profile?.name || "Loading..."}</p>
-              </div>
-            </div>
-            <Separator />
-            <div className="flex items-center gap-3">
-              <Phone className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Phone Number</p>
-                <p className="font-medium">{profile?.phone_number || "Loading..."}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <Collapsible open={profileSectionOpen} onOpenChange={setProfileSectionOpen}>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Profile Information
+                  </div>
+                  {profileSectionOpen ? (
+                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-6">
+                {/* Profile Details */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <User className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Name</p>
+                      <p className="font-medium">{profile?.name || "Loading..."}</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Phone Number</p>
+                      <p className="font-medium">{profile?.phone_number || "Loading..."}</p>
+                    </div>
+                  </div>
+                </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Change Password
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="current-password">Current Password</Label>
-              <div className="relative">
-                <Input
-                  id="current-password"
-                  type={showCurrentPassword ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showCurrentPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                <Separator className="my-6" />
+
+                {/* Password Management Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Lock className="h-5 w-5" />
+                      Password Management
+                    </h3>
+                  </div>
+
+                  {/* View Password Status Button */}
+                  {!pinVerified ? (
+                    <div className="space-y-3">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setShowPinDialog(true)}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Current Password
+                      </Button>
+                      <div className="flex items-center justify-center">
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="text-xs text-muted-foreground"
+                          onClick={() => setShowForgetPinDialog(true)}
+                        >
+                          <HelpCircle className="mr-1 h-3 w-3" />
+                          Forgot PIN Number?
+                        </Button>
+                      </div>
+                    </div>
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <div className="space-y-4">
+                      {/* Password Status Display */}
+                      <div className="bg-muted/50 border rounded-lg p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Current Password:</span>
+                          <span className="font-mono">••••••••</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground italic">
+                          For security reasons, your actual password cannot be displayed. You can change it below.
+                        </p>
+                      </div>
+
+                      {/* Change Password Form */}
+                      <div className="space-y-4 pt-2">
+                        <h4 className="font-medium text-sm">Change Password</h4>
+                        <div className="space-y-2">
+                          <Label htmlFor="current-password">Current Password</Label>
+                          <div className="relative">
+                            <Input
+                              id="current-password"
+                              type={showCurrentPassword ? "text" : "password"}
+                              value={currentPassword}
+                              onChange={(e) => setCurrentPassword(e.target.value)}
+                              placeholder="Enter current password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showCurrentPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password">New Password</Label>
+                          <div className="relative">
+                            <Input
+                              id="new-password"
+                              type={showNewPassword ? "text" : "password"}
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="Enter new password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showNewPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Must have 8+ characters, 1 capital letter, 1 number, 1 symbol
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-password">Confirm New Password</Label>
+                          <div className="relative">
+                            <Input
+                              id="confirm-password"
+                              type={showConfirmPassword ? "text" : "password"}
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Confirm new password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={handlePasswordChange}
+                          disabled={isChangingPassword}
+                          className="w-full"
+                        >
+                          {isChangingPassword ? "Changing..." : "Change Password"}
+                        </Button>
+                      </div>
+                    </div>
                   )}
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-              <div className="relative">
-                <Input
-                  id="new-password"
-                  type={showNewPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showNewPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Must have 8+ characters, 1 capital letter, 1 number, 1 symbol
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm New Password</Label>
-              <div className="relative">
-                <Input
-                  id="confirm-password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-            <Button
-              onClick={handlePasswordChange}
-              disabled={isChangingPassword}
-              className="w-full"
-            >
-              {isChangingPassword ? "Changing..." : "Change Password"}
-            </Button>
-          </CardContent>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
 
         <Card>
@@ -869,6 +944,52 @@ const Account = () => {
           loadLeaderboard();
         }}
       />
+
+      {/* PIN Verification Dialog for Viewing Password */}
+      <PinVerificationDialog
+        open={showPinDialog}
+        onOpenChange={setShowPinDialog}
+        onVerified={handleViewPasswordVerified}
+        storedPin={profile?.download_pin || null}
+      />
+
+      {/* Forget PIN Dialog */}
+      <AlertDialog open={showForgetPinDialog} onOpenChange={setShowForgetPinDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <HelpCircle className="h-5 w-5 text-primary" />
+              Forgot Your PIN?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <p>
+                If you've forgotten your 6-digit PIN number, please contact our admin support team for assistance.
+              </p>
+              <div className="bg-muted rounded-lg p-4 space-y-2">
+                <h4 className="font-semibold text-foreground">Contact Admin Support:</h4>
+                <div className="space-y-1 text-sm">
+                  <p className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-primary" />
+                    <span className="text-foreground">Email: support@example.com</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-primary" />
+                    <span className="text-foreground">Phone: +1 (555) 123-4567</span>
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs italic">
+                Our support team will verify your identity and help you reset your PIN securely.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowForgetPinDialog(false)}>
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNav />
     </div>
