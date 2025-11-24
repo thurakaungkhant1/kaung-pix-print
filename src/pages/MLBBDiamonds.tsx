@@ -227,7 +227,10 @@ const MLBBDiamonds = () => {
                 Special MLBB Diamond Offers!
               </h2>
               <p className="text-sm text-muted-foreground">
-                Top up your Mobile Legends account with the best diamond packages at competitive prices.
+                Diamond ဝယ်ယူသူများအနေဖြင့် စိန်ဝယ်ပြီးပါက Admin ကို ဆက်သွယ်ပေးပါ၊ ဝယ်ယူအားပေးလို့ ကျေးဇူးပါခင်ဗျာ။
+              </p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                created by Thura Kaung Khant
               </p>
             </div>
 
