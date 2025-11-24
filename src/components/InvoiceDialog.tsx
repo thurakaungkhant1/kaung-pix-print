@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -5,15 +6,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, X } from "lucide-react";
+import { CheckCircle2, X, Download } from "lucide-react";
 import { format } from "date-fns";
+import html2canvas from "html2canvas";
+import { useToast } from "@/hooks/use-toast";
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image_url: string;
-  points_value: number;
+interface OrderItem {
+  product: {
+    id: number;
+    name: string;
+    price: number;
+    image_url: string;
+    points_value: number;
+  };
+  quantity: number;
 }
 
 interface InvoiceDialogProps {
@@ -21,8 +27,7 @@ interface InvoiceDialogProps {
   onClose: () => void;
   orderId: string;
   orderDate: string;
-  product: Product;
-  quantity: number;
+  items: OrderItem[];
   phoneNumber: string;
   deliveryAddress: string;
   paymentMethod: string;
@@ -35,22 +40,67 @@ const InvoiceDialog = ({
   onClose,
   orderId,
   orderDate,
-  product,
-  quantity,
+  items,
   phoneNumber,
   deliveryAddress,
   paymentMethod,
   totalPrice,
   pointsEarned,
 }: InvoiceDialogProps) => {
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+  const { toast } = useToast();
+
   const formatPaymentMethod = (method: string) => {
     if (method === "cod") return "Cash on Delivery";
     return method.toUpperCase();
   };
 
+  const downloadInvoiceAsImage = async () => {
+    if (!invoiceRef.current) return;
+    
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(invoiceRef.current, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        logging: false,
+        useCORS: true,
+      });
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `invoice-${orderId.slice(0, 8)}.jpg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          toast({
+            title: "Success",
+            description: "Invoice downloaded successfully",
+          });
+        }
+      }, "image/jpeg", 0.95);
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to download invoice",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <div ref={invoiceRef} className="bg-background">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">Order Invoice</DialogTitle>
@@ -104,26 +154,28 @@ const InvoiceDialog = ({
 
           {/* Order Items */}
           <div className="space-y-2">
-            <h4 className="font-semibold text-sm">Order Details</h4>
+            <h4 className="font-semibold text-sm">Order Details ({items.length} {items.length === 1 ? "item" : "items"})</h4>
             <div className="border rounded-lg overflow-hidden">
-              <div className="flex gap-3 p-4 bg-muted/30">
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{product.name}</p>
-                  <div className="flex justify-between items-center mt-2 text-xs">
-                    <span className="text-muted-foreground">
-                      Ks {product.price.toFixed(2)} × {quantity}
-                    </span>
-                    <span className="font-bold">
-                      Ks {(product.price * quantity).toFixed(2)}
-                    </span>
+              {items.map((item, index) => (
+                <div key={index} className={`flex gap-3 p-4 ${index > 0 ? "border-t" : ""} bg-muted/30`}>
+                  <img
+                    src={item.product.image_url}
+                    alt={item.product.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{item.product.name}</p>
+                    <div className="flex justify-between items-center mt-2 text-xs">
+                      <span className="text-muted-foreground">
+                        Ks {item.product.price.toFixed(2)} × {item.quantity}
+                      </span>
+                      <span className="font-bold">
+                        Ks {(item.product.price * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -161,10 +213,23 @@ const InvoiceDialog = ({
             </p>
           </div>
 
-          {/* Close Button */}
-          <Button onClick={onClose} className="w-full" size="lg">
-            Close Invoice
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              onClick={downloadInvoiceAsImage} 
+              variant="outline" 
+              className="flex-1" 
+              size="lg"
+              disabled={downloading}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {downloading ? "Downloading..." : "Download JPG"}
+            </Button>
+            <Button onClick={onClose} className="flex-1" size="lg">
+              Close
+            </Button>
+          </div>
+        </div>
         </div>
       </DialogContent>
     </Dialog>

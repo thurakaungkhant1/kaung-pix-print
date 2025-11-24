@@ -16,19 +16,22 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from "lucide-react";
 import InvoiceDialog from "./InvoiceDialog";
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image_url: string;
-  points_value: number;
+interface CartItem {
+  id: string;
+  quantity: number;
+  products: {
+    id: number;
+    name: string;
+    price: number;
+    image_url: string;
+    points_value: number;
+  };
 }
 
 interface CheckoutDialogProps {
   open: boolean;
   onClose: () => void;
-  product: Product;
-  quantity: number;
+  cartItems: CartItem[];
   userId: string;
   onSuccess: () => void;
 }
@@ -36,8 +39,7 @@ interface CheckoutDialogProps {
 const CheckoutDialog = ({
   open,
   onClose,
-  product,
-  quantity,
+  cartItems,
   userId,
   onSuccess,
 }: CheckoutDialogProps) => {
@@ -55,8 +57,14 @@ const CheckoutDialog = ({
   } | null>(null);
   const { toast } = useToast();
 
-  const totalPrice = product.price * quantity;
-  const pointsToEarn = product.points_value * quantity;
+  const totalPrice = cartItems.reduce(
+    (sum, item) => sum + item.products.price * item.quantity,
+    0
+  );
+  const pointsToEarn = cartItems.reduce(
+    (sum, item) => sum + item.products.points_value * item.quantity,
+    0
+  );
 
   const handleNext = () => {
     if (step === 1) {
@@ -123,26 +131,27 @@ const CheckoutDialog = ({
       paymentProofUrl = urlData.publicUrl;
     }
 
-    // Create order
-    const { data: orderResult, error } = await supabase
+    // Create orders for all cart items
+    const orderInserts = cartItems.map(item => ({
+      user_id: userId,
+      product_id: item.products.id,
+      quantity: item.quantity,
+      price: item.products.price * item.quantity,
+      phone_number: phoneNumber,
+      delivery_address: deliveryAddress,
+      payment_method: paymentMethod,
+      payment_proof_url: paymentProofUrl,
+      status: "pending",
+    }));
+
+    const { data: orderResults, error } = await supabase
       .from("orders")
-      .insert({
-        user_id: userId,
-        product_id: product.id,
-        quantity,
-        price: totalPrice,
-        phone_number: phoneNumber,
-        delivery_address: deliveryAddress,
-        payment_method: paymentMethod,
-        payment_proof_url: paymentProofUrl,
-        status: "pending",
-      })
-      .select()
-      .single();
+      .insert(orderInserts)
+      .select();
 
     setSubmitting(false);
 
-    if (error || !orderResult) {
+    if (error || !orderResults || orderResults.length === 0) {
       toast({
         title: "Error",
         description: "Failed to place order",
@@ -151,10 +160,10 @@ const CheckoutDialog = ({
       return;
     }
 
-    // Store order data and show invoice
+    // Use the first order's data for the invoice display
     setOrderData({
-      orderId: orderResult.id,
-      orderDate: orderResult.created_at || new Date().toISOString(),
+      orderId: orderResults[0].id,
+      orderDate: orderResults[0].created_at || new Date().toISOString(),
     });
     setShowInvoice(true);
   };
@@ -189,16 +198,29 @@ const CheckoutDialog = ({
         {/* Step 1: Order Details */}
         {step === 1 && (
           <div className="space-y-4">
-            <div className="flex gap-4 p-4 bg-muted rounded-lg">
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className="w-16 h-16 object-cover rounded"
-              />
-              <div className="flex-1">
-                <h3 className="font-semibold">{product.name}</h3>
-                <p className="text-sm text-muted-foreground">Qty: {quantity}</p>
-                <p className="text-primary font-bold">Ks {totalPrice.toFixed(2)}</p>
+            <div className="space-y-3 p-4 bg-muted rounded-lg max-h-64 overflow-y-auto">
+              <h4 className="font-semibold text-sm">Order Items ({cartItems.length})</h4>
+              {cartItems.map((item, index) => (
+                <div key={index} className={`flex gap-3 ${index > 0 ? "pt-3 border-t" : ""}`}>
+                  <img
+                    src={item.products.image_url}
+                    alt={item.products.name}
+                    className="w-12 h-12 object-cover rounded"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm">{item.products.name}</h3>
+                    <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                    <p className="text-primary font-bold text-sm">
+                      Ks {(item.products.price * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div className="pt-3 border-t">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Total:</span>
+                  <span className="text-lg font-bold text-primary">Ks {totalPrice.toFixed(2)}</span>
+                </div>
               </div>
             </div>
 
@@ -315,17 +337,30 @@ const CheckoutDialog = ({
             <div className="p-4 bg-muted rounded-lg space-y-3">
               <h3 className="font-semibold">Order Summary</h3>
               
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm max-h-48 overflow-y-auto">
+                {cartItems.map((item, index) => (
+                  <div key={index} className={`${index > 0 ? "pt-2 border-t" : ""}`}>
+                    <div className="flex justify-between">
+                      <span className="font-medium">{item.products.name}</span>
+                      <span className="text-muted-foreground">×{item.quantity}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>Ks {item.products.price.toFixed(2)} each</span>
+                      <span className="font-semibold text-foreground">
+                        Ks {(item.products.price * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-3 border-t space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Product:</span>
-                  <span className="font-medium">{product.name}</span>
+                  <span className="text-muted-foreground">Total Items:</span>
+                  <span className="font-medium">{cartItems.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Quantity:</span>
-                  <span className="font-medium">{quantity}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Price:</span>
+                  <span className="text-muted-foreground">Grand Total:</span>
                   <span className="font-bold text-primary">Ks {totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
@@ -372,8 +407,10 @@ const CheckoutDialog = ({
           onClose={handleInvoiceClose}
           orderId={orderData.orderId}
           orderDate={orderData.orderDate}
-          product={product}
-          quantity={quantity}
+          items={cartItems.map(item => ({
+            product: item.products,
+            quantity: item.quantity,
+          }))}
           phoneNumber={phoneNumber}
           deliveryAddress={deliveryAddress}
           paymentMethod={paymentMethod}
