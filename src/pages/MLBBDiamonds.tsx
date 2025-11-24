@@ -312,48 +312,60 @@ const MLBBDiamonds = () => {
                 <p className="text-muted-foreground">No diamond packages available yet</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="space-y-3">
                 {products.map((product) => (
                   <Card
                     key={product.id}
                     className="overflow-hidden hover:shadow-lg transition-shadow"
                   >
-                    <div className="relative aspect-square bg-muted">
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavourite(product.id);
-                        }}
-                        className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
-                      >
-                        <Heart
-                          className={`h-4 w-4 ${
-                            favourites.has(product.id)
-                              ? "fill-primary text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </button>
-                    </div>
-                    <CardContent className="p-3">
-                      <h3 className="font-semibold text-sm line-clamp-2 mb-1">
-                        {product.name}
-                      </h3>
-                      <p className="text-primary font-bold text-lg mb-2">
-                        ${product.price.toFixed(2)}
-                      </p>
-                      <Button
-                        onClick={() => handleBuyClick(product)}
-                        className="w-full"
-                        size="sm"
-                      >
-                        Buy Now
-                      </Button>
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        <div className="relative h-24 w-24 flex-shrink-0 bg-muted rounded">
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full object-cover rounded"
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavourite(product.id);
+                            }}
+                            className="absolute -top-1 -right-1 p-1.5 bg-background rounded-full hover:bg-background/90 transition-colors shadow-md"
+                          >
+                            <Heart
+                              className={`h-3.5 w-3.5 ${
+                                favourites.has(product.id)
+                                  ? "fill-primary text-primary"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <h3 className="font-semibold text-base mb-1">
+                              {product.name}
+                            </h3>
+                            {product.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {product.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-primary font-bold text-xl">
+                              ${product.price.toFixed(2)}
+                            </p>
+                            <Button
+                              onClick={() => handleBuyClick(product)}
+                              size="sm"
+                            >
+                              Buy Now
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
