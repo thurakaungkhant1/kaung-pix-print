@@ -16,12 +16,13 @@ interface Product {
   description: string | null;
   price: number;
   image_url: string;
+  points_value: number;
 }
 
 const ProductsManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "" });
+  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0 });
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -67,12 +68,13 @@ const ProductsManage = () => {
       description: product.description || "",
       price: product.price,
       image_url: product.image_url,
+      points_value: product.points_value,
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditForm({ name: "", description: "", price: 0, image_url: "" });
+    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0 });
   };
 
   const saveEdit = async () => {
@@ -167,6 +169,15 @@ const ProductsManage = () => {
                     onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })}
                   />
                 </div>
+                <div>
+                  <Label>Points Value</Label>
+                  <Input
+                    type="number"
+                    value={editForm.points_value}
+                    onChange={(e) => setEditForm({ ...editForm, points_value: parseInt(e.target.value) || 0 })}
+                    min="0"
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Button onClick={saveEdit} className="flex-1">
                     <Save className="mr-2 h-4 w-4" />
@@ -190,6 +201,7 @@ const ProductsManage = () => {
                     <h3 className="font-bold">{product.name}</h3>
                     <p className="text-sm text-muted-foreground">{product.description}</p>
                     <p className="text-primary font-bold mt-2">${product.price.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Points: {product.points_value}</p>
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button

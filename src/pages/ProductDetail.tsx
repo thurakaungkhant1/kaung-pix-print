@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Heart, Minus, Plus, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import CheckoutDialog from "@/components/CheckoutDialog";
 
 interface Product {
   id: string;
@@ -13,6 +14,7 @@ interface Product {
   price: number;
   image_url: string;
   description: string | null;
+  points_value: number;
 }
 
 const ProductDetail = () => {
@@ -21,6 +23,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isFavourite, setIsFavourite] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -79,7 +82,7 @@ const ProductDetail = () => {
     setIsFavourite(!isFavourite);
   };
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = () => {
     if (!user) {
       toast({
         title: "Login required",
@@ -90,53 +93,12 @@ const ProductDetail = () => {
       return;
     }
 
-    if (!product) return;
+    setCheckoutOpen(true);
+  };
 
-    const { error } = await supabase.from("orders").insert({
-      user_id: user.id,
-      product_id: product.id,
-      quantity,
-      price: product.price * quantity,
-    });
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to place order",
-        variant: "destructive",
-      });
-    } else {
-      // Award points for purchase (10 points per product)
-      const pointsEarned = quantity * 10;
-
-      // Get current points
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("points")
-        .eq("id", user.id)
-        .single();
-
-      if (profile) {
-        // Update points
-        await supabase
-          .from("profiles")
-          .update({ points: profile.points + pointsEarned })
-          .eq("id", user.id);
-
-        // Add transaction record
-        await supabase.from("point_transactions").insert({
-          user_id: user.id,
-          amount: pointsEarned,
-          transaction_type: "purchase",
-          description: `Earned ${pointsEarned} points from purchasing ${product.name}`,
-        });
-      }
-
-      toast({
-        title: "Success",
-        description: `Order placed! You earned ${pointsEarned} points!`,
-      });
-    }
+  const handleCheckoutSuccess = () => {
+    // Reload product to ensure fresh data
+    loadProduct();
   };
 
   if (!product) {
@@ -197,6 +159,15 @@ const ProductDetail = () => {
               </div>
             )}
 
+            <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+              <p className="text-sm font-semibold text-green-800 dark:text-green-200">
+                🎁 Earn {product.points_value} points per item!
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                Total: {product.points_value * quantity} points for {quantity} item(s)
+              </p>
+            </div>
+
             <div>
               <h3 className="font-semibold mb-2">Quantity</h3>
               <div className="flex items-center gap-4">
@@ -224,6 +195,17 @@ const ProductDetail = () => {
             </Button>
           </CardFooter>
         </Card>
+
+        {user && product && (
+          <CheckoutDialog
+            open={checkoutOpen}
+            onClose={() => setCheckoutOpen(false)}
+            product={product}
+            quantity={quantity}
+            userId={user.id}
+            onSuccess={handleCheckoutSuccess}
+          />
+        )}
       </div>
     </div>
   );

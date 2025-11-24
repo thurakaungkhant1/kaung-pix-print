@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award, ShoppingBag, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -50,6 +50,15 @@ interface LeaderboardUser {
   points: number;
 }
 
+interface Order {
+  id: string;
+  quantity: number;
+  price: number;
+  status: string;
+  created_at: string;
+  products: { name: string; image_url: string };
+}
+
 const Account = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -71,6 +80,7 @@ const Account = () => {
   const [showDownloadPin, setShowDownloadPin] = useState(false);
   const [showConfirmDownloadPin, setShowConfirmDownloadPin] = useState(false);
   const [isSettingPin, setIsSettingPin] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -84,6 +94,7 @@ const Account = () => {
       loadWithdrawals();
       loadWithdrawalSettings();
       loadLeaderboard();
+      loadOrders();
     }
   }, [user]);
 
@@ -166,6 +177,23 @@ const Account = () => {
 
     if (data) {
       setWithdrawals(data);
+    }
+  };
+
+  const loadOrders = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        products:product_id(name, image_url)
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (data) {
+      setOrders(data as any);
     }
   };
 
@@ -526,6 +554,49 @@ const Account = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Order History */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingBag className="h-5 w-5" />
+              Purchase History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {orders.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No orders yet</p>
+            ) : (
+              orders.map((order) => (
+                <div key={order.id} className="flex gap-3 p-3 border rounded-lg">
+                  <img
+                    src={order.products.image_url}
+                    alt={order.products.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <h4 className="font-semibold text-sm">{order.products.name}</h4>
+                    <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
+                    <p className="text-sm font-bold text-primary">${order.price.toFixed(2)}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </p>
+                      <Badge variant={
+                        order.status === "finished" ? "default" :
+                        order.status === "approved" ? "secondary" :
+                        order.status === "cancelled" ? "destructive" :
+                        "outline"
+                      }>
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

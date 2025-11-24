@@ -75,7 +75,11 @@ export type Database = {
       orders: {
         Row: {
           created_at: string | null
+          delivery_address: string
           id: string
+          payment_method: string
+          payment_proof_url: string | null
+          phone_number: string
           price: number
           product_id: string
           quantity: number
@@ -84,7 +88,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          delivery_address?: string
           id?: string
+          payment_method?: string
+          payment_proof_url?: string | null
+          phone_number?: string
           price: number
           product_id: string
           quantity?: number
@@ -93,7 +101,11 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          delivery_address?: string
           id?: string
+          payment_method?: string
+          payment_proof_url?: string | null
+          phone_number?: string
           price?: number
           product_id?: string
           quantity?: number
@@ -198,6 +210,7 @@ export type Database = {
           id: string
           image_url: string
           name: string
+          points_value: number
           price: number
         }
         Insert: {
@@ -206,6 +219,7 @@ export type Database = {
           id?: string
           image_url: string
           name: string
+          points_value?: number
           price: number
         }
         Update: {
@@ -214,6 +228,7 @@ export type Database = {
           id?: string
           image_url?: string
           name?: string
+          points_value?: number
           price?: number
         }
         Relationships: []
