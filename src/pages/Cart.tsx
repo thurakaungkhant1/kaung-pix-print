@@ -8,6 +8,7 @@ import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import PointsDisplay from "@/components/PointsDisplay";
+import CheckoutDialog from "@/components/CheckoutDialog";
 
 interface CartItem {
   id: string;
@@ -25,6 +26,8 @@ interface CartItem {
 const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [currentCheckoutIndex, setCurrentCheckoutIndex] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -98,6 +101,35 @@ const Cart = () => {
     (sum, item) => sum + item.products.points_value * item.quantity,
     0
   );
+
+  const handleCheckout = () => {
+    if (cartItems.length === 0) return;
+    setCurrentCheckoutIndex(0);
+    setCheckoutOpen(true);
+  };
+
+  const handleCheckoutSuccess = async () => {
+    const currentItem = cartItems[currentCheckoutIndex];
+    
+    // Remove the current item from cart after successful checkout
+    await supabase
+      .from("cart_items")
+      .delete()
+      .eq("id", currentItem.id);
+    
+    // Move to next item or finish
+    if (currentCheckoutIndex < cartItems.length - 1) {
+      setCurrentCheckoutIndex(currentCheckoutIndex + 1);
+    } else {
+      // All items processed
+      setCheckoutOpen(false);
+      toast({
+        title: "Success",
+        description: "All orders have been placed successfully!",
+      });
+      loadCart();
+    }
+  };
 
   if (loading) {
     return (
@@ -226,7 +258,11 @@ const Cart = () => {
                     <span className="text-primary">${totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
-                <Button className="w-full" size="lg">
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={handleCheckout}
+                >
                   Proceed to Checkout
                 </Button>
               </CardContent>
@@ -236,6 +272,23 @@ const Cart = () => {
       </div>
 
       <BottomNav />
+
+      {cartItems.length > 0 && (
+        <CheckoutDialog
+          open={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          product={{
+            id: cartItems[currentCheckoutIndex]?.products.id,
+            name: cartItems[currentCheckoutIndex]?.products.name,
+            price: cartItems[currentCheckoutIndex]?.products.price,
+            image_url: cartItems[currentCheckoutIndex]?.products.image_url,
+            points_value: cartItems[currentCheckoutIndex]?.products.points_value,
+          }}
+          quantity={cartItems[currentCheckoutIndex]?.quantity || 1}
+          userId={user?.id || ""}
+          onSuccess={handleCheckoutSuccess}
+        />
+      )}
     </div>
   );
 };
