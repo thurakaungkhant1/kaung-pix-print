@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import CheckoutDialog from "@/components/CheckoutDialog";
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   price: number;
   image_url: string;
@@ -33,10 +33,15 @@ const ProductDetail = () => {
   }, [id, user]);
 
   const loadProduct = async () => {
+    if (!id) return;
+    
+    const productId = parseInt(id);
+    if (isNaN(productId)) return;
+
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .eq("id", id)
+      .eq("id", productId)
       .single();
 
     if (!error && data) {
@@ -47,17 +52,25 @@ const ProductDetail = () => {
   const checkFavourite = async () => {
     if (!user || !id) return;
 
+    const productId = parseInt(id);
+    if (isNaN(productId)) return;
+
     const { data } = await supabase
       .from("favourite_products")
       .select("id")
       .eq("user_id", user.id)
-      .eq("product_id", id)
+      .eq("product_id", productId)
       .maybeSingle();
 
     setIsFavourite(!!data);
   };
 
   const toggleFavourite = async () => {
+    if (!user || !id) return;
+
+    const productId = parseInt(id);
+    if (isNaN(productId)) return;
+
     if (!user) {
       toast({
         title: "Login required",
@@ -72,11 +85,11 @@ const ProductDetail = () => {
         .from("favourite_products")
         .delete()
         .eq("user_id", user.id)
-        .eq("product_id", id);
+        .eq("product_id", productId);
     } else {
       await supabase
         .from("favourite_products")
-        .insert({ user_id: user.id, product_id: id });
+        .insert({ user_id: user.id, product_id: productId });
     }
 
     setIsFavourite(!isFavourite);

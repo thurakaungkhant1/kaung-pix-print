@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from "lucide-react";
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   price: number;
   image_url: string;

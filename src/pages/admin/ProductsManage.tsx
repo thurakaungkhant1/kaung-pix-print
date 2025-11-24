@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   description: string | null;
   price: number;
@@ -21,7 +21,7 @@ interface Product {
 
 const ProductsManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0 });
   const { user } = useAuth();
   const { toast } = useToast();
@@ -99,7 +99,7 @@ const ProductsManage = () => {
     }
   };
 
-  const deleteProduct = async (id: string) => {
+  const deleteProduct = async (id: number) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
 
     const { error } = await supabase.from("products").delete().eq("id", id);

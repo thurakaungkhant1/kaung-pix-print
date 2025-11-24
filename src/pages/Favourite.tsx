@@ -9,7 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import PointsDisplay from "@/components/PointsDisplay";
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   price: number;
   image_url: string;
