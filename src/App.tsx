@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import LoadingScreen from "@/components/LoadingScreen";
 import Home from "./pages/Home";
 import Photo from "./pages/Photo";
 import Favourite from "./pages/Favourite";
@@ -27,8 +29,15 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => {
+  const [showLoading, setShowLoading] = useState(true);
+
+  if (showLoading) {
+    return <LoadingScreen onLoadComplete={() => setShowLoading(false)} />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <TooltipProvider>
         <Toaster />
@@ -165,6 +174,7 @@ const App = () => (
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
