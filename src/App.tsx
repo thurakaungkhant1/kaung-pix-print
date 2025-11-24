@@ -14,6 +14,7 @@ import Favourite from "./pages/Favourite";
 import Account from "./pages/Account";
 import ProductDetail from "./pages/ProductDetail";
 import PhotoDetail from "./pages/PhotoDetail";
+import CategoryProducts from "./pages/CategoryProducts";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Exchange from "./pages/Exchange";
@@ -96,6 +97,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <PhotoDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/category/:category"
+                element={
+                  <ProtectedRoute>
+                    <CategoryProducts />
                   </ProtectedRoute>
                 }
               />

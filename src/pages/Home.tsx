@@ -14,10 +14,16 @@ interface Product {
   price: number;
   image_url: string;
   description: string | null;
+  category: string;
+}
+
+interface CategoryGroup {
+  category: string;
+  products: Product[];
 }
 
 const Home = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([]);
   const [favourites, setFavourites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -36,7 +42,23 @@ const Home = () => {
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      setProducts(data);
+      // Group products by category
+      const grouped = data.reduce((acc: { [key: string]: Product[] }, product) => {
+        const category = product.category || "General";
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(product);
+        return acc;
+      }, {});
+
+      // Convert to array format
+      const groups: CategoryGroup[] = Object.entries(grouped).map(([category, products]) => ({
+        category,
+        products,
+      }));
+
+      setCategoryGroups(groups);
     }
     setLoading(false);
   };
@@ -114,49 +136,65 @@ const Home = () => {
         </div>
       </header>
 
-      <div className="max-w-screen-xl mx-auto p-4">
-        {products.length === 0 ? (
+      <div className="max-w-screen-xl mx-auto p-4 space-y-8">
+        {categoryGroups.length === 0 ? (
           <div className="text-center py-12">
             <ShoppingCart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No products available yet</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
-            {products.map((product) => (
-              <Card
-                key={product.id}
-                className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => navigate(`/product/${product.id}`)}
-              >
-                <div className="relative aspect-square bg-muted">
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavourite(product.id);
-                    }}
-                    className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
-                  >
-                    <Heart
-                      className={`h-4 w-4 ${
-                        favourites.has(product.id)
-                          ? "fill-primary text-primary"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  </button>
+          categoryGroups.map((group) => (
+            <div key={group.category} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">{group.category}</h2>
+                <button
+                  onClick={() => navigate(`/category/${encodeURIComponent(group.category)}`)}
+                  className="text-primary text-sm font-medium hover:underline"
+                >
+                  View All
+                </button>
+              </div>
+              
+              <div className="overflow-x-auto scrollbar-hide">
+                <div className="flex gap-4 pb-2">
+                  {group.products.slice(0, 6).map((product) => (
+                    <Card
+                      key={product.id}
+                      className="flex-shrink-0 w-40 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    >
+                      <div className="relative aspect-square bg-muted">
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavourite(product.id);
+                          }}
+                          className="absolute top-2 right-2 p-1.5 bg-background/80 rounded-full hover:bg-background transition-colors"
+                        >
+                          <Heart
+                            className={`h-3.5 w-3.5 ${
+                              favourites.has(product.id)
+                                ? "fill-primary text-primary"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      <CardContent className="p-2">
+                        <h3 className="font-semibold text-xs truncate">{product.name}</h3>
+                        <p className="text-primary font-bold text-sm">${product.price.toFixed(2)}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <CardContent className="p-3">
-                  <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                  <p className="text-primary font-bold">${product.price.toFixed(2)}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
 
