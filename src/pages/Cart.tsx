@@ -27,7 +27,6 @@ const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [currentCheckoutIndex, setCurrentCheckoutIndex] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -104,31 +103,23 @@ const Cart = () => {
 
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
-    setCurrentCheckoutIndex(0);
     setCheckoutOpen(true);
   };
 
   const handleCheckoutSuccess = async () => {
-    const currentItem = cartItems[currentCheckoutIndex];
+    // Remove all items from cart after successful checkout
+    const deletePromises = cartItems.map(item =>
+      supabase.from("cart_items").delete().eq("id", item.id)
+    );
     
-    // Remove the current item from cart after successful checkout
-    await supabase
-      .from("cart_items")
-      .delete()
-      .eq("id", currentItem.id);
+    await Promise.all(deletePromises);
     
-    // Move to next item or finish
-    if (currentCheckoutIndex < cartItems.length - 1) {
-      setCurrentCheckoutIndex(currentCheckoutIndex + 1);
-    } else {
-      // All items processed
-      setCheckoutOpen(false);
-      toast({
-        title: "Success",
-        description: "All orders have been placed successfully!",
-      });
-      loadCart();
-    }
+    setCheckoutOpen(false);
+    toast({
+      title: "Success",
+      description: "All orders have been placed successfully!",
+    });
+    loadCart();
   };
 
   if (loading) {
@@ -301,14 +292,7 @@ const Cart = () => {
         <CheckoutDialog
           open={checkoutOpen}
           onClose={() => setCheckoutOpen(false)}
-          product={{
-            id: cartItems[currentCheckoutIndex]?.products.id,
-            name: cartItems[currentCheckoutIndex]?.products.name,
-            price: cartItems[currentCheckoutIndex]?.products.price,
-            image_url: cartItems[currentCheckoutIndex]?.products.image_url,
-            points_value: cartItems[currentCheckoutIndex]?.products.points_value,
-          }}
-          quantity={cartItems[currentCheckoutIndex]?.quantity || 1}
+          cartItems={cartItems}
           userId={user?.id || ""}
           onSuccess={handleCheckoutSuccess}
         />

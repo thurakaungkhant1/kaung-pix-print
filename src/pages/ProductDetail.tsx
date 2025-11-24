@@ -294,8 +294,11 @@ const ProductDetail = () => {
           <CheckoutDialog
             open={checkoutOpen}
             onClose={() => setCheckoutOpen(false)}
-            product={product}
-            quantity={quantity}
+            cartItems={[{
+              id: 'temp-' + product.id,
+              quantity: quantity,
+              products: product,
+            }]}
             userId={user.id}
             onSuccess={handleCheckoutSuccess}
           />
