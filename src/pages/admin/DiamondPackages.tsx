@@ -164,7 +164,7 @@ const DiamondPackages = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          ${pkg.price.toFixed(2)}
+                          {pkg.price.toLocaleString()} Ks
                         </Badge>
                       </TableCell>
                       <TableCell>

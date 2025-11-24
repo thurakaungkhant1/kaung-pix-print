@@ -138,18 +138,21 @@ const DiamondPackageForm = () => {
               </div>
 
               <div>
-                <Label htmlFor="price">Price (USD) *</Label>
+                <Label htmlFor="price">Price (Kyat) *</Label>
                 <Input
                   id="price"
                   type="number"
-                  step="0.01"
-                  placeholder="9.99"
+                  step="1"
+                  placeholder="8379"
                   value={formData.price}
                   onChange={(e) =>
                     setFormData({ ...formData, price: e.target.value })
                   }
                   required
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Enter price in Myanmar Kyat (Ks)
+                </p>
               </div>
 
               <div>
