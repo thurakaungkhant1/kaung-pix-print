@@ -731,93 +731,98 @@ const Account = () => {
                     </Button>
                   </div>
                 </div>
+
+                <Separator className="my-6" />
+
+                {/* Download PIN Protection Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Shield className="h-5 w-5" />
+                      Download PIN Protection
+                    </h3>
+                  </div>
+
+                  {profile?.download_pin && (
+                    <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                      <p className="text-sm text-green-800 dark:text-green-200">
+                        ✓ Download PIN is set. You'll need to enter it when downloading photos.
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="download-pin">
+                      {profile?.download_pin ? "Change Download PIN" : "Set Download PIN"}
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="download-pin"
+                        type={showDownloadPin ? "text" : "password"}
+                        value={downloadPin}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+                          setDownloadPin(value);
+                        }}
+                        placeholder="Enter 6-digit PIN"
+                        maxLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowDownloadPin(!showDownloadPin)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showDownloadPin ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Must be exactly 6 digits (numbers only)
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-download-pin">Confirm Download PIN</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirm-download-pin"
+                        type={showConfirmDownloadPin ? "text" : "password"}
+                        value={confirmDownloadPin}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+                          setConfirmDownloadPin(value);
+                        }}
+                        placeholder="Confirm 6-digit PIN"
+                        maxLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmDownloadPin(!showConfirmDownloadPin)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirmDownloadPin ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    onClick={handlePinSetup}
+                    disabled={isSettingPin}
+                    className="w-full"
+                  >
+                    {isSettingPin ? "Setting..." : profile?.download_pin ? "Change PIN" : "Set PIN"}
+                  </Button>
+                </div>
               </CardContent>
             </CollapsibleContent>
           </Collapsible>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Download PIN Protection
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {profile?.download_pin && (
-              <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-4">
-                <p className="text-sm text-green-800 dark:text-green-200">
-                  ✓ Download PIN is set. You'll need to enter it when downloading photos.
-                </p>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="download-pin">
-                {profile?.download_pin ? "Change Download PIN" : "Set Download PIN"}
-              </Label>
-              <div className="relative">
-                <Input
-                  id="download-pin"
-                  type={showDownloadPin ? "text" : "password"}
-                  value={downloadPin}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setDownloadPin(value);
-                  }}
-                  placeholder="Enter 6-digit PIN"
-                  maxLength={6}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowDownloadPin(!showDownloadPin)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showDownloadPin ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Must be exactly 6 digits (numbers only)
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-download-pin">Confirm Download PIN</Label>
-              <div className="relative">
-                <Input
-                  id="confirm-download-pin"
-                  type={showConfirmDownloadPin ? "text" : "password"}
-                  value={confirmDownloadPin}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setConfirmDownloadPin(value);
-                  }}
-                  placeholder="Confirm 6-digit PIN"
-                  maxLength={6}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmDownloadPin(!showConfirmDownloadPin)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showConfirmDownloadPin ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-            <Button
-              onClick={handlePinSetup}
-              disabled={isSettingPin}
-              className="w-full"
-            >
-              {isSettingPin ? "Setting..." : profile?.download_pin ? "Change PIN" : "Set PIN"}
-            </Button>
-          </CardContent>
         </Card>
 
         <Card>
