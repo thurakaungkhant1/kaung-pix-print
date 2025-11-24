@@ -51,13 +51,14 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
 
     setSpinning(true);
 
-    // Generate random points between 1-50
-    const pointsWon = Math.floor(Math.random() * 50) + 1;
+    // Fixed points award
+    const pointsWon = 15;
 
-    // Calculate rotation (multiple full spins + landing position)
+    // Calculate rotation (multiple full spins + random landing position for visual effect)
     const baseRotation = 360 * 5; // 5 full spins
-    const segmentAngle = 360 / 50; // 50 segments
-    const targetAngle = (50 - pointsWon) * segmentAngle; // Reverse for clockwise
+    const randomSegment = Math.floor(Math.random() * 50) + 1;
+    const segmentAngle = 360 / 50;
+    const targetAngle = (50 - randomSegment) * segmentAngle;
     const finalRotation = rotation + baseRotation + targetAngle;
 
     setRotation(finalRotation);
@@ -107,15 +108,19 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
           .eq("id", user.id);
       }
 
-      toast({
-        title: "Congratulations! 🎉",
-        description: `You won ${pointsWon} points!`,
-      });
-
       onPointsWon(pointsWon);
       setCanSpin(false);
       setSpinning(false);
       setLastSpinDate(today);
+      
+      // Show confirmation dialog
+      setTimeout(() => {
+        toast({
+          title: "Congratulations! 🎉",
+          description: `You have been awarded ${pointsWon} points!`,
+          duration: 5000,
+        });
+      }, 100);
     }, 4000);
   };
 
@@ -183,7 +188,7 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
             {canSpin ? (
               <>
                 <p className="text-sm text-muted-foreground">
-                  Spin the wheel to win 1-50 points!
+                  Spin the wheel to win 15 points daily!
                 </p>
                 <Button
                   onClick={handleSpin}

@@ -290,6 +290,36 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_settings: {
+        Row: {
+          created_at: string | null
+          enabled: boolean
+          exchange_rate: number
+          id: string
+          minimum_points: number
+          terms_conditions: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean
+          exchange_rate?: number
+          id?: string
+          minimum_points?: number
+          terms_conditions?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean
+          exchange_rate?: number
+          id?: string
+          minimum_points?: number
+          terms_conditions?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

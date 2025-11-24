@@ -36,6 +36,13 @@ interface Withdrawal {
   created_at: string;
 }
 
+interface WithdrawalSettings {
+  minimum_points: number;
+  exchange_rate: number;
+  terms_conditions: string | null;
+  enabled: boolean;
+}
+
 const Account = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -50,6 +57,7 @@ const Account = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -61,8 +69,23 @@ const Account = () => {
       checkAdmin();
       loadTransactions();
       loadWithdrawals();
+      loadWithdrawalSettings();
     }
   }, [user]);
+
+  const loadWithdrawalSettings = async () => {
+    const { data } = await supabase
+      .from("withdrawal_settings")
+      .select("*")
+      .eq("enabled", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      setWithdrawalSettings(data);
+    }
+  };
 
   const loadProfile = async () => {
     if (!user) return;
@@ -121,12 +144,21 @@ const Account = () => {
   };
 
   const handleWithdraw = async () => {
-    if (!user || !profile) return;
+    if (!user || !profile || !withdrawalSettings) return;
 
-    if (profile.points < 1000) {
+    if (!withdrawalSettings.enabled) {
+      toast({
+        title: "Withdrawals disabled",
+        description: "Withdrawals are currently disabled by the administrator",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (profile.points < withdrawalSettings.minimum_points) {
       toast({
         title: "Insufficient points",
-        description: "You need at least 1,000 points to withdraw",
+        description: `You need at least ${withdrawalSettings.minimum_points.toLocaleString()} points to withdraw`,
         variant: "destructive",
       });
       return;
@@ -263,7 +295,7 @@ const Account = () => {
               <Button
                 variant="default"
                 className="w-full"
-                disabled={!profile || profile.points < 1000 || withdrawing}
+                disabled={!profile || !withdrawalSettings || profile.points < (withdrawalSettings?.minimum_points || 1000) || withdrawing || !withdrawalSettings?.enabled}
                 onClick={handleWithdraw}
               >
                 <TrendingUp className="mr-2 h-4 w-4" />
@@ -271,10 +303,24 @@ const Account = () => {
               </Button>
             </div>
             
-            {profile && profile.points < 1000 && (
-              <p className="text-xs text-center text-muted-foreground">
-                Minimum 1,000 points required to withdraw
-              </p>
+            {withdrawalSettings && (
+              <div className="space-y-2">
+                {profile && profile.points < withdrawalSettings.minimum_points && (
+                  <p className="text-xs text-center text-muted-foreground">
+                    Minimum {withdrawalSettings.minimum_points.toLocaleString()} points required to withdraw
+                  </p>
+                )}
+                {withdrawalSettings.exchange_rate !== 1.0 && (
+                  <p className="text-xs text-center text-muted-foreground">
+                    Exchange rate: {withdrawalSettings.exchange_rate} per point
+                  </p>
+                )}
+                {withdrawalSettings.terms_conditions && (
+                  <p className="text-xs text-center text-muted-foreground italic">
+                    {withdrawalSettings.terms_conditions}
+                  </p>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>

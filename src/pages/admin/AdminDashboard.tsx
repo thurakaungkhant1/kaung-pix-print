@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Image, ShoppingCart, Users, Plus, ArrowLeft } from "lucide-react";
+import { Package, Image, ShoppingCart, Users, Plus, ArrowLeft, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const AdminDashboard = () => {
@@ -157,6 +157,22 @@ const AdminDashboard = () => {
             </Button>
           </TabsContent>
         </Tabs>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>System Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => navigate("/admin/withdrawal-settings")}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Withdrawal Settings
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
