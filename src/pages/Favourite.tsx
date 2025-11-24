@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, FileArchive } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
-import PointsDisplay from "@/components/PointsDisplay";
+import CartHeader from "@/components/CartHeader";
 
 interface Product {
   id: number;
@@ -74,7 +74,7 @@ const Favourite = () => {
           <div className="flex-1" />
           <h1 className="text-2xl font-bold">Kaung Computer</h1>
           <div className="flex-1 flex justify-end">
-            <PointsDisplay />
+            <CartHeader />
           </div>
         </div>
       </header>

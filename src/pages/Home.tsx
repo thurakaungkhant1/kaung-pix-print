@@ -6,7 +6,7 @@ import { Heart, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
-import PointsDisplay from "@/components/PointsDisplay";
+import CartHeader from "@/components/CartHeader";
 
 interface Product {
   id: number;
@@ -109,7 +109,7 @@ const Home = () => {
           <div className="flex-1" />
           <h1 className="text-2xl font-bold">Kaung Computer</h1>
           <div className="flex-1 flex justify-end">
-            <PointsDisplay />
+            <CartHeader />
           </div>
         </div>
       </header>
