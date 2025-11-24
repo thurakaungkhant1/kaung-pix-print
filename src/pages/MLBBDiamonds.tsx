@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Diamond, ArrowLeft, History, Copy, CheckCircle2, Loader2 } from "lucide-react";
+import { Diamond, ArrowLeft, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { z } from "zod";
+
 import {
   Dialog,
   DialogContent,
@@ -54,10 +54,6 @@ const MLBBDiamonds = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
-  const [gameName, setGameName] = useState("");
-  const [verifying, setVerifying] = useState(false);
-  const [verificationError, setVerificationError] = useState("");
-  const [isVerified, setIsVerified] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -118,106 +114,14 @@ const MLBBDiamonds = () => {
     setShowPurchaseDialog(true);
     setGameId("");
     setServerId("");
-    setGameName("");
-    setIsVerified(false);
-    setVerificationError("");
   };
 
-  const verifyGameAccount = async () => {
-    // Clear previous errors and verification state
-    setVerificationError("");
-    setGameName("");
-    setIsVerified(false);
-
-    // Validate inputs
-    const playerIdSchema = z.string()
-      .trim()
-      .min(3, "Player ID must be at least 3 characters")
-      .max(20, "Player ID must be less than 20 characters")
-      .regex(/^[a-zA-Z0-9]+$/, "Player ID must contain only letters and numbers");
-    
-    const serverIdSchema = z.string()
-      .trim()
-      .min(1, "Server ID is required")
-      .regex(/^[0-9]+$/, "Server ID must be numeric");
-
-    try {
-      playerIdSchema.parse(gameId);
-      serverIdSchema.parse(serverId);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const errorMessage = error.issues[0].message;
-        setVerificationError(errorMessage);
-        toast({
-          title: "Validation error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    setVerifying(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-mlbb-player', {
-        body: {
-          player_id: gameId.trim(),
-          server_id: serverId.trim(),
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      if (data.found) {
-        setGameName(data.player_name);
-        setIsVerified(true);
-        toast({
-          title: "Account verified ✓",
-          description: `Player found: ${data.player_name}`,
-        });
-      } else {
-        setVerificationError(`No player found for ID ${gameId}`);
-        toast({
-          title: "Player not found",
-          description: `No player found for ID ${gameId}. Please check your Player ID and Server ID.`,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Verification error:", error);
-      setVerificationError("Verification failed. Please try again later.");
-      toast({
-        title: "Verification failed",
-        description: error instanceof Error ? error.message : "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const copyPlayerName = () => {
-    if (gameName) {
-      navigator.clipboard.writeText(gameName);
-      toast({
-        title: "Copied!",
-        description: "Player name copied to clipboard",
-      });
-    }
-  };
 
   const handlePurchase = async () => {
-    if (!selectedProduct || !user || !gameName || !isVerified) {
+    if (!selectedProduct || !user || !gameId || !serverId) {
       toast({
         title: "Error",
-        description: "Please verify your game account first",
+        description: "Please enter your Player ID and Server ID",
         variant: "destructive",
       });
       return;
@@ -232,7 +136,7 @@ const MLBBDiamonds = () => {
       price: selectedProduct.price,
       game_id: gameId,
       server_id: serverId,
-      game_name: gameName,
+      game_name: "",
       status: "pending",
       payment_method: "pending",
       delivery_address: "",
@@ -434,15 +338,9 @@ const MLBBDiamonds = () => {
                   id="gameId"
                   placeholder="123456789"
                   value={gameId}
-                  onChange={(e) => {
-                    setGameId(e.target.value);
-                    setIsVerified(false);
-                    setVerificationError("");
-                  }}
-                  disabled={verifying}
+                  onChange={(e) => setGameId(e.target.value)}
                   aria-label="Player ID"
                   aria-required="true"
-                  className={verificationError ? "border-destructive" : ""}
                 />
               </div>
               <div>
@@ -451,70 +349,13 @@ const MLBBDiamonds = () => {
                   id="serverId"
                   placeholder="1234"
                   value={serverId}
-                  onChange={(e) => {
-                    setServerId(e.target.value);
-                    setIsVerified(false);
-                    setVerificationError("");
-                  }}
-                  disabled={verifying}
+                  onChange={(e) => setServerId(e.target.value)}
                   aria-label="Server ID"
                   aria-required="true"
-                  className={verificationError ? "border-destructive" : ""}
                 />
               </div>
             </div>
             
-            {verificationError && (
-              <div className="p-3 bg-destructive/10 border border-destructive rounded">
-                <p className="text-sm text-destructive" role="alert">{verificationError}</p>
-              </div>
-            )}
-
-            <Button
-              onClick={verifyGameAccount}
-              disabled={verifying || !gameId || !serverId || isVerified}
-              variant={isVerified ? "secondary" : "outline"}
-              className="w-full"
-              aria-label="Verify game account"
-            >
-              {verifying ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Verifying...
-                </>
-              ) : isVerified ? (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Verified
-                </>
-              ) : (
-                "Verify Account"
-              )}
-            </Button>
-
-            {isVerified && gameName && (
-              <div className="p-4 bg-accent/10 border border-accent rounded-lg">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle2 className="h-4 w-4 text-accent" />
-                      <p className="text-sm font-medium text-accent">Verified ✓</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-1">Player Name:</p>
-                    <p className="text-lg font-bold">{gameName}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={copyPlayerName}
-                    aria-label="Copy player name"
-                    className="flex-shrink-0"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
             {selectedProduct && (
               <div className="p-3 bg-muted rounded">
                 <div className="flex justify-between mb-2">
@@ -534,7 +375,7 @@ const MLBBDiamonds = () => {
             </Button>
             <Button
               onClick={handlePurchase}
-              disabled={purchasing || !isVerified || !gameName}
+              disabled={purchasing || !gameId || !serverId}
             >
               {purchasing ? "Processing..." : "Confirm Purchase"}
             </Button>
