@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Gem, ArrowLeft, History } from "lucide-react";
+import { Gem, ArrowLeft, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -47,7 +47,6 @@ interface Order {
 
 const MLBBDiamonds = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [favourites, setFavourites] = useState<Set<number>>(new Set());
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
@@ -64,7 +63,6 @@ const MLBBDiamonds = () => {
   useEffect(() => {
     loadProducts();
     if (user) {
-      loadFavourites();
       loadOrders();
     }
   }, [user]);
@@ -100,52 +98,6 @@ const MLBBDiamonds = () => {
 
     if (!error && data) {
       setOrders(data as Order[]);
-    }
-  };
-
-  const loadFavourites = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("favourite_products")
-      .select("product_id")
-      .eq("user_id", user.id);
-
-    if (data) {
-      setFavourites(new Set(data.map((f) => f.product_id)));
-    }
-  };
-
-  const toggleFavourite = async (productId: number) => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to add favourites",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const isFav = favourites.has(productId);
-
-    if (isFav) {
-      await supabase
-        .from("favourite_products")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("product_id", productId);
-
-      setFavourites((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(productId);
-        return newSet;
-      });
-    } else {
-      await supabase
-        .from("favourite_products")
-        .insert({ user_id: user.id, product_id: productId });
-
-      setFavourites((prev) => new Set(prev).add(productId));
     }
   };
 
@@ -320,27 +272,12 @@ const MLBBDiamonds = () => {
                   >
                     <CardContent className="p-4">
                       <div className="flex gap-4">
-                        <div className="relative h-24 w-24 flex-shrink-0 bg-muted rounded">
+                        <div className="h-24 w-24 flex-shrink-0 bg-muted rounded">
                           <img
                             src={product.image_url}
                             alt={product.name}
                             className="w-full h-full object-cover rounded"
                           />
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavourite(product.id);
-                            }}
-                            className="absolute -top-1 -right-1 p-1.5 bg-background rounded-full hover:bg-background/90 transition-colors shadow-md"
-                          >
-                            <Heart
-                              className={`h-3.5 w-3.5 ${
-                                favourites.has(product.id)
-                                  ? "fill-primary text-primary"
-                                  : "text-muted-foreground"
-                              }`}
-                            />
-                          </button>
                         </div>
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
