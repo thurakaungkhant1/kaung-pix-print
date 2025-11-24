@@ -265,7 +265,7 @@ const MLBBDiamonds = () => {
                           </div>
                           <div className="flex items-center justify-between mt-2">
                             <p className="text-primary font-bold text-xl">
-                              ${product.price.toFixed(2)}
+                              {(product.price * 2100).toLocaleString()} MMK
                             </p>
                             <Button
                               onClick={() => handleBuyClick(product)}
@@ -308,7 +308,7 @@ const MLBBDiamonds = () => {
                           <div className="text-sm text-muted-foreground space-y-1">
                             <p>Game ID: {order.game_id} ({order.server_id})</p>
                             <p>Game Name: {order.game_name}</p>
-                            <p>Price: ${order.price.toFixed(2)}</p>
+                            <p>Price: {(order.price * 2100).toLocaleString()} MMK</p>
                             <p>Date: {new Date(order.created_at).toLocaleDateString()}</p>
                           </div>
                         </div>
@@ -364,7 +364,7 @@ const MLBBDiamonds = () => {
                 </div>
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total:</span>
-                  <span className="text-primary">${selectedProduct.price.toFixed(2)}</span>
+                  <span className="text-primary">{(selectedProduct.price * 2100).toLocaleString()} MMK</span>
                 </div>
               </div>
             )}
