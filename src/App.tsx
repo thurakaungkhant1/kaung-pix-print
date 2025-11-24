@@ -25,6 +25,7 @@ import PhotosManage from "./pages/admin/PhotosManage";
 import PhotoNew from "./pages/admin/PhotoNew";
 import OrdersManage from "./pages/admin/OrdersManage";
 import UsersManage from "./pages/admin/UsersManage";
+import WithdrawalSettings from "./pages/admin/WithdrawalSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -164,6 +165,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <UsersManage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/withdrawal-settings"
+                element={
+                  <ProtectedRoute>
+                    <WithdrawalSettings />
                   </ProtectedRoute>
                 }
               />
