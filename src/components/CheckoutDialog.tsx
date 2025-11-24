@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from "lucide-react";
+import InvoiceDialog from "./InvoiceDialog";
 
 interface Product {
   id: number;
@@ -47,6 +48,11 @@ const CheckoutDialog = ({
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [orderData, setOrderData] = useState<{
+    orderId: string;
+    orderDate: string;
+  } | null>(null);
   const { toast } = useToast();
 
   const totalPrice = product.price * quantity;
@@ -118,21 +124,25 @@ const CheckoutDialog = ({
     }
 
     // Create order
-    const { error } = await supabase.from("orders").insert({
-      user_id: userId,
-      product_id: product.id,
-      quantity,
-      price: totalPrice,
-      phone_number: phoneNumber,
-      delivery_address: deliveryAddress,
-      payment_method: paymentMethod,
-      payment_proof_url: paymentProofUrl,
-      status: "pending",
-    });
+    const { data: orderResult, error } = await supabase
+      .from("orders")
+      .insert({
+        user_id: userId,
+        product_id: product.id,
+        quantity,
+        price: totalPrice,
+        phone_number: phoneNumber,
+        delivery_address: deliveryAddress,
+        payment_method: paymentMethod,
+        payment_proof_url: paymentProofUrl,
+        status: "pending",
+      })
+      .select()
+      .single();
 
     setSubmitting(false);
 
-    if (error) {
+    if (error || !orderResult) {
       toast({
         title: "Error",
         description: "Failed to place order",
@@ -141,14 +151,12 @@ const CheckoutDialog = ({
       return;
     }
 
-    toast({
-      title: "Order Placed Successfully!",
-      description: `Your order is being processed. You'll earn ${pointsToEarn} points when your order is completed!`,
+    // Store order data and show invoice
+    setOrderData({
+      orderId: orderResult.id,
+      orderDate: orderResult.created_at || new Date().toISOString(),
     });
-
-    onSuccess();
-    onClose();
-    resetForm();
+    setShowInvoice(true);
   };
 
   const resetForm = () => {
@@ -157,11 +165,20 @@ const CheckoutDialog = ({
     setDeliveryAddress("");
     setPaymentMethod("cod");
     setPaymentProof(null);
+    setOrderData(null);
+  };
+
+  const handleInvoiceClose = () => {
+    setShowInvoice(false);
+    onSuccess();
+    onClose();
+    resetForm();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+    <>
+      <Dialog open={open && !showInvoice} onOpenChange={onClose}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Checkout - Step {step} of 3</DialogTitle>
           <DialogDescription>
@@ -181,7 +198,7 @@ const CheckoutDialog = ({
               <div className="flex-1">
                 <h3 className="font-semibold">{product.name}</h3>
                 <p className="text-sm text-muted-foreground">Qty: {quantity}</p>
-                <p className="text-primary font-bold">${totalPrice.toFixed(2)}</p>
+                <p className="text-primary font-bold">Ks {totalPrice.toFixed(2)}</p>
               </div>
             </div>
 
@@ -253,7 +270,7 @@ const CheckoutDialog = ({
                 <div className="p-4 bg-muted rounded-lg">
                   <p className="text-sm font-semibold">Payment Information</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Please transfer ${totalPrice.toFixed(2)} to our {paymentMethod.toUpperCase()} account
+                    Please transfer Ks {totalPrice.toFixed(2)} to our {paymentMethod.toUpperCase()} account
                   </p>
                   <p className="text-sm font-mono mt-2">Account: 09XXXXXXXXX</p>
                 </div>
@@ -309,7 +326,7 @@ const CheckoutDialog = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Price:</span>
-                  <span className="font-bold text-primary">${totalPrice.toFixed(2)}</span>
+                  <span className="font-bold text-primary">Ks {totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Points to Earn:</span>
@@ -346,8 +363,25 @@ const CheckoutDialog = ({
             </div>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {orderData && (
+        <InvoiceDialog
+          open={showInvoice}
+          onClose={handleInvoiceClose}
+          orderId={orderData.orderId}
+          orderDate={orderData.orderDate}
+          product={product}
+          quantity={quantity}
+          phoneNumber={phoneNumber}
+          deliveryAddress={deliveryAddress}
+          paymentMethod={paymentMethod}
+          totalPrice={totalPrice}
+          pointsEarned={pointsToEarn}
+        />
+      )}
+    </>
   );
 };
 
