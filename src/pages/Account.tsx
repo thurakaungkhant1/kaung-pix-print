@@ -7,13 +7,14 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award, ShoppingBag, Package, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award, ShoppingBag, Package, ChevronDown, ChevronUp, HelpCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import SpinnerWheel from "@/components/SpinnerWheel";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import PinVerificationDialog from "@/components/PinVerificationDialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
@@ -88,6 +89,7 @@ const Account = () => {
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [pinVerified, setPinVerified] = useState(false);
   const [showForgetPinDialog, setShowForgetPinDialog] = useState(false);
+  const [userPassword, setUserPassword] = useState<string | null>(null);
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -323,11 +325,21 @@ const Account = () => {
     }
   };
 
-  const handleViewPasswordVerified = () => {
+  const handleViewPasswordVerified = async () => {
     setPinVerified(true);
+    
+    // In secure authentication systems, passwords are hashed and cannot be retrieved
+    // We'll fetch the user's email which they use to login
+    if (user) {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser?.email) {
+        setUserPassword(authUser.email); // Store email as reference
+      }
+    }
+    
     toast({
-      title: "PIN Verified",
-      description: "You can now view password information and change your password",
+      title: "Identity Verified",
+      description: "You can now view your account information and change your password",
     });
   };
 
@@ -671,7 +683,7 @@ const Account = () => {
                         onClick={() => setShowPinDialog(true)}
                       >
                         <Eye className="mr-2 h-4 w-4" />
-                        View Current Password
+                        View Password
                       </Button>
                       <div className="flex items-center justify-center">
                         <Button
@@ -687,15 +699,25 @@ const Account = () => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/* Password Status Display */}
-                      <div className="bg-muted/50 border rounded-lg p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Current Password:</span>
-                          <span className="font-mono">••••••••</span>
+                      {/* Password Information Display */}
+                      <div className="bg-muted/50 border rounded-lg p-4 space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Login Email:</span>
+                            <span className="text-sm">{userPassword || 'Loading...'}</span>
+                          </div>
+                          <Separator />
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Password:</span>
+                            <span className="font-mono text-muted-foreground">••••••••</span>
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground italic">
-                          For security reasons, your actual password cannot be displayed. You can change it below.
-                        </p>
+                        <Alert className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20">
+                          <AlertCircle className="h-4 w-4 text-orange-600" />
+                          <AlertDescription className="text-xs text-orange-800 dark:text-orange-200">
+                            <strong>Security Notice:</strong> For your protection, passwords are encrypted and cannot be displayed. Authentication systems hash passwords making them unrecoverable. You can change your password below if needed.
+                          </AlertDescription>
+                        </Alert>
                       </div>
 
                       {/* Change Password Form */}
@@ -951,6 +973,7 @@ const Account = () => {
         onOpenChange={setShowPinDialog}
         onVerified={handleViewPasswordVerified}
         storedPin={profile?.download_pin || null}
+        mode="password"
       />
 
       {/* Forget PIN Dialog */}
