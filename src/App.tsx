@@ -25,6 +25,8 @@ import Signup from "./pages/auth/Signup";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ProductsManage from "./pages/admin/ProductsManage";
 import ProductNew from "./pages/admin/ProductNew";
+import DiamondPackages from "./pages/admin/DiamondPackages";
+import DiamondPackageForm from "./pages/admin/DiamondPackageForm";
 import PhotosManage from "./pages/admin/PhotosManage";
 import PhotoNew from "./pages/admin/PhotoNew";
 import OrdersManage from "./pages/admin/OrdersManage";
@@ -154,6 +156,30 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ProductNew />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/diamond-packages"
+                element={
+                  <ProtectedRoute>
+                    <DiamondPackages />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/diamond-packages/new"
+                element={
+                  <ProtectedRoute>
+                    <DiamondPackageForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/diamond-packages/edit/:id"
+                element={
+                  <ProtectedRoute>
+                    <DiamondPackageForm />
                   </ProtectedRoute>
                 }
               />
