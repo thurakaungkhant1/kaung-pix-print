@@ -186,6 +186,7 @@ export type Database = {
           points_withdrawn: number
           status: string
           user_id: string
+          withdrawal_item_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -193,6 +194,7 @@ export type Database = {
           points_withdrawn: number
           status?: string
           user_id: string
+          withdrawal_item_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -200,8 +202,17 @@ export type Database = {
           points_withdrawn?: number
           status?: string
           user_id?: string
+          withdrawal_item_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "point_withdrawals_withdrawal_item_id_fkey"
+            columns: ["withdrawal_item_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -305,6 +316,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      withdrawal_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          points_required: number
+          updated_at: string
+          value_amount: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          points_required: number
+          updated_at?: string
+          value_amount: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          points_required?: number
+          updated_at?: string
+          value_amount?: number
         }
         Relationships: []
       }

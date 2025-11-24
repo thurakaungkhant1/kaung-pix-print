@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award, ShoppingBag, Package, ChevronDown, ChevronUp } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award, ShoppingBag, Package, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -407,32 +407,17 @@ const Account = () => {
               <Button
                 variant="default"
                 className="w-full"
-                disabled={!profile || !withdrawalSettings || profile.points < (withdrawalSettings?.minimum_points || 1000) || withdrawing || !withdrawalSettings?.enabled}
-                onClick={handleWithdraw}
+                onClick={() => navigate("/exchange")}
               >
-                <TrendingUp className="mr-2 h-4 w-4" />
-                {withdrawing ? "Processing..." : "Withdraw"}
+                <Coins className="mr-2 h-4 w-4" />
+                Exchange
               </Button>
             </div>
             
-            {withdrawalSettings && (
-              <div className="space-y-2">
-                {profile && profile.points < withdrawalSettings.minimum_points && (
-                  <p className="text-xs text-center text-muted-foreground">
-                    Minimum {withdrawalSettings.minimum_points.toLocaleString()} points required to withdraw
-                  </p>
-                )}
-                {withdrawalSettings.exchange_rate !== 1.0 && (
-                  <p className="text-xs text-center text-muted-foreground">
-                    Exchange rate: {withdrawalSettings.exchange_rate} per point
-                  </p>
-                )}
-                {withdrawalSettings.terms_conditions && (
-                  <p className="text-xs text-center text-muted-foreground italic">
-                    {withdrawalSettings.terms_conditions}
-                  </p>
-                )}
-              </div>
+            {withdrawalSettings && profile && profile.points < withdrawalSettings.minimum_points && (
+              <p className="text-xs text-center text-muted-foreground">
+                View exchange options! Minimum {withdrawalSettings.minimum_points.toLocaleString()} points required to exchange.
+              </p>
             )}
           </CardContent>
         </Card>

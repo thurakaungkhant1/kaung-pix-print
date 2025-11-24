@@ -16,6 +16,7 @@ import ProductDetail from "./pages/ProductDetail";
 import PhotoDetail from "./pages/PhotoDetail";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
+import Exchange from "./pages/Exchange";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -26,6 +27,7 @@ import PhotoNew from "./pages/admin/PhotoNew";
 import OrdersManage from "./pages/admin/OrdersManage";
 import UsersManage from "./pages/admin/UsersManage";
 import WithdrawalSettings from "./pages/admin/WithdrawalSettings";
+import WithdrawalItemsManage from "./pages/admin/WithdrawalItemsManage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -173,6 +175,22 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <WithdrawalSettings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/withdrawal-items"
+                element={
+                  <ProtectedRoute>
+                    <WithdrawalItemsManage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/exchange"
+                element={
+                  <ProtectedRoute>
+                    <Exchange />
                   </ProtectedRoute>
                 }
               />
