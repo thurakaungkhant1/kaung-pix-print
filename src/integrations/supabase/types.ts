@@ -47,24 +47,24 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          product_id: string
+          product_id: number
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
-          product_id: string
+          product_id: number
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
-          product_id?: string
+          product_id?: number
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "favourite_products_product_id_fkey"
+            foreignKeyName: "favourite_products_new_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -81,7 +81,7 @@ export type Database = {
           payment_proof_url: string | null
           phone_number: string
           price: number
-          product_id: string
+          product_id: number
           quantity: number
           status: string
           user_id: string
@@ -94,7 +94,7 @@ export type Database = {
           payment_proof_url?: string | null
           phone_number?: string
           price: number
-          product_id: string
+          product_id: number
           quantity?: number
           status?: string
           user_id: string
@@ -107,14 +107,14 @@ export type Database = {
           payment_proof_url?: string | null
           phone_number?: string
           price?: number
-          product_id?: string
+          product_id?: number
           quantity?: number
           status?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "orders_product_id_fkey"
+            foreignKeyName: "orders_new_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -218,7 +218,7 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
-          id: string
+          id: number
           image_url: string
           name: string
           points_value: number
@@ -227,7 +227,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
-          id?: string
+          id?: number
           image_url: string
           name: string
           points_value?: number
@@ -236,7 +236,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
-          id?: string
+          id?: number
           image_url?: string
           name?: string
           points_value?: number

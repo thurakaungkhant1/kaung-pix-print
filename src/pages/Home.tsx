@@ -9,7 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import PointsDisplay from "@/components/PointsDisplay";
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   price: number;
   image_url: string;
@@ -18,7 +18,7 @@ interface Product {
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [favourites, setFavourites] = useState<Set<string>>(new Set());
+  const [favourites, setFavourites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -54,7 +54,7 @@ const Home = () => {
     }
   };
 
-  const toggleFavourite = async (productId: string) => {
+  const toggleFavourite = async (productId: number) => {
     if (!user) {
       toast({
         title: "Login required",
