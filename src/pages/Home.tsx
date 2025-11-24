@@ -143,7 +143,7 @@ const Home = () => {
             <p className="text-muted-foreground">No products available yet</p>
           </div>
         ) : (
-          categoryGroups.map((group) => (
+          categoryGroups.slice(0, 3).map((group) => (
             <div key={group.category} className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">{group.category}</h2>
