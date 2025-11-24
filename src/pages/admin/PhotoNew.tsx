@@ -13,6 +13,7 @@ const PhotoNew = () => {
   const [fileUrl, setFileUrl] = useState("");
   const [fileSize, setFileSize] = useState("");
   const [previewImage, setPreviewImage] = useState("");
+  const [category, setCategory] = useState("General");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const PhotoNew = () => {
       file_url: fileUrl,
       file_size: parseInt(fileSize),
       preview_image: previewImage || null,
+      category: category,
     });
 
     if (error) {
@@ -105,6 +107,17 @@ const PhotoNew = () => {
                   value={previewImage}
                   onChange={(e) => setPreviewImage(e.target.value)}
                   placeholder="https://example.com/preview.jpg"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="category">Category *</Label>
+                <Input
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="e.g., Wedding, Birthday, Event"
+                  required
                 />
               </div>
 

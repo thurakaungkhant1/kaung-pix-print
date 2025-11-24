@@ -112,6 +112,7 @@ export type Database = {
       }
       photos: {
         Row: {
+          category: string | null
           client_name: string
           created_at: string | null
           file_size: number
@@ -120,6 +121,7 @@ export type Database = {
           preview_image: string | null
         }
         Insert: {
+          category?: string | null
           client_name: string
           created_at?: string | null
           file_size: number
@@ -128,6 +130,7 @@ export type Database = {
           preview_image?: string | null
         }
         Update: {
+          category?: string | null
           client_name?: string
           created_at?: string | null
           file_size?: number

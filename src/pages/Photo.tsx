@@ -13,12 +13,15 @@ interface Photo {
   file_url: string;
   file_size: number;
   preview_image: string | null;
+  category: string;
 }
 
 const Photo = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [favourites, setFavourites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [categories, setCategories] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -36,6 +39,12 @@ const Photo = () => {
 
     if (!error && data) {
       setPhotos(data);
+      
+      // Extract unique categories
+      const uniqueCategories = Array.from(
+        new Set(data.map((photo) => photo.category || "General"))
+      );
+      setCategories(["All", ...uniqueCategories.sort()]);
     }
     setLoading(false);
   };
@@ -107,21 +116,46 @@ const Photo = () => {
     );
   }
 
+  const filteredPhotos =
+    selectedCategory === "All"
+      ? photos
+      : photos.filter((photo) => photo.category === selectedCategory);
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
         <h1 className="text-2xl font-bold text-center">Kaung Computer</h1>
       </header>
 
-      <div className="max-w-screen-xl mx-auto p-4">
-        {photos.length === 0 ? (
+      <div className="max-w-screen-xl mx-auto p-4 space-y-4">
+        {/* Category Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                selectedCategory === category
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+        {filteredPhotos.length === 0 ? (
           <div className="text-center py-12">
             <FileArchive className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No photos available yet</p>
+            <p className="text-muted-foreground">
+              {selectedCategory === "All"
+                ? "No photos available yet"
+                : `No photos in ${selectedCategory} category`}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {photos.map((photo) => (
+            {filteredPhotos.map((photo) => (
               <Card
                 key={photo.id}
                 className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
@@ -154,6 +188,11 @@ const Photo = () => {
                   </button>
                 </div>
                 <CardContent className="p-3">
+                  <div className="mb-1">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      {photo.category || "General"}
+                    </span>
+                  </div>
                   <h3 className="font-semibold text-sm truncate">{photo.client_name}</h3>
                   <p className="text-xs text-muted-foreground">
                     {formatFileSize(photo.file_size)}
