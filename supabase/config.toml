@@ -1,1 +1,10 @@
 project_id = "ojoenxchuzqonpixomkl"
+
+[functions.profiles-get-me]
+verify_jwt = true
+
+[functions.profiles-update-me]
+verify_jwt = true
+
+[functions.profiles-update-points]
+verify_jwt = true
