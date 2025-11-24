@@ -192,6 +192,7 @@ const Account = () => {
         products:product_id(name, image_url)
       `)
       .eq("user_id", user.id)
+      .is("game_id", null)
       .order("created_at", { ascending: false });
 
     if (data) {
