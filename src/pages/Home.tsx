@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart, Gem } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
+import { Button } from "@/components/ui/button";
 
 interface Product {
   id: number;
@@ -128,7 +129,16 @@ const Home = () => {
     <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
         <div className="flex items-center justify-between">
-          <div className="flex-1" />
+          <div className="flex-1">
+            <Button
+              onClick={() => navigate("/mlbb-diamonds")}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-3 py-1 rounded-full flex items-center gap-1.5 text-xs shadow-lg"
+            >
+              <Gem className="h-4 w-4" />
+              <span className="hidden sm:inline">Buy ML Diamonds</span>
+              <span className="sm:hidden">MLBB</span>
+            </Button>
+          </div>
           <h1 className="text-2xl font-bold">Kaung Computer</h1>
           <div className="flex-1 flex justify-end">
             <CartHeader />

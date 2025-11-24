@@ -15,6 +15,7 @@ import Account from "./pages/Account";
 import ProductDetail from "./pages/ProductDetail";
 import PhotoDetail from "./pages/PhotoDetail";
 import CategoryProducts from "./pages/CategoryProducts";
+import MLBBDiamonds from "./pages/MLBBDiamonds";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Exchange from "./pages/Exchange";
@@ -105,6 +106,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <CategoryProducts />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mlbb-diamonds"
+                element={
+                  <ProtectedRoute>
+                    <MLBBDiamonds />
                   </ProtectedRoute>
                 }
               />
