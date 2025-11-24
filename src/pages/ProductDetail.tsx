@@ -106,9 +106,35 @@ const ProductDetail = () => {
         variant: "destructive",
       });
     } else {
+      // Award points for purchase (10 points per product)
+      const pointsEarned = quantity * 10;
+
+      // Get current points
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("points")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        // Update points
+        await supabase
+          .from("profiles")
+          .update({ points: profile.points + pointsEarned })
+          .eq("id", user.id);
+
+        // Add transaction record
+        await supabase.from("point_transactions").insert({
+          user_id: user.id,
+          amount: pointsEarned,
+          transaction_type: "purchase",
+          description: `Earned ${pointsEarned} points from purchasing ${product.name}`,
+        });
+      }
+
       toast({
         title: "Success",
-        description: "Order placed successfully!",
+        description: `Order placed! You earned ${pointsEarned} points!`,
       });
     }
   };

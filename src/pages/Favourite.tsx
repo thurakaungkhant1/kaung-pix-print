@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, FileArchive } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import PointsDisplay from "@/components/PointsDisplay";
 
 interface Product {
   id: string;
@@ -69,7 +70,13 @@ const Favourite = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
-        <h1 className="text-2xl font-bold text-center">Kaung Computer</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex-1" />
+          <h1 className="text-2xl font-bold">Kaung Computer</h1>
+          <div className="flex-1 flex justify-end">
+            <PointsDisplay />
+          </div>
+        </div>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4">

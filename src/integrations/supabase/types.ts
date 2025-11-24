@@ -140,6 +140,57 @@ export type Database = {
         }
         Relationships: []
       }
+      point_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      point_withdrawals: {
+        Row: {
+          created_at: string | null
+          id: string
+          points_withdrawn: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          points_withdrawn: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          points_withdrawn?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string | null
@@ -191,6 +242,30 @@ export type Database = {
           name?: string
           phone_number?: string
           points?: number
+        }
+        Relationships: []
+      }
+      spinner_spins: {
+        Row: {
+          created_at: string | null
+          id: string
+          points_won: number
+          spin_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          points_won: number
+          spin_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          points_won?: number
+          spin_date?: string
+          user_id?: string
         }
         Relationships: []
       }
