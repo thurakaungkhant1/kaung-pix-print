@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, TrendingUp, Trophy, Medal, Award } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +43,12 @@ interface WithdrawalSettings {
   enabled: boolean;
 }
 
+interface LeaderboardUser {
+  id: string;
+  name: string;
+  points: number;
+}
+
 const Account = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -58,6 +64,7 @@ const Account = () => {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -70,6 +77,7 @@ const Account = () => {
       loadTransactions();
       loadWithdrawals();
       loadWithdrawalSettings();
+      loadLeaderboard();
     }
   }, [user]);
 
@@ -84,6 +92,18 @@ const Account = () => {
 
     if (data) {
       setWithdrawalSettings(data);
+    }
+  };
+
+  const loadLeaderboard = async () => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, name, points")
+      .order("points", { ascending: false })
+      .limit(10);
+
+    if (data) {
+      setLeaderboard(data);
     }
   };
 
@@ -321,6 +341,66 @@ const Account = () => {
                   </p>
                 )}
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Leaderboard */}
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-6 w-6 text-primary" />
+              Top Earners
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {leaderboard.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No data yet</p>
+            ) : (
+              leaderboard.map((leaderUser, index) => {
+                const isCurrentUser = user?.id === leaderUser.id;
+                const rank = index + 1;
+                
+                return (
+                  <div 
+                    key={leaderUser.id} 
+                    className={`flex items-center gap-3 p-3 rounded-lg ${
+                      isCurrentUser 
+                        ? "bg-primary/20 border-2 border-primary" 
+                        : "bg-background/50 border border-border"
+                    }`}
+                  >
+                    <div className="flex-shrink-0 w-8 text-center">
+                      {rank === 1 && <Trophy className="h-6 w-6 text-yellow-500 mx-auto" />}
+                      {rank === 2 && <Medal className="h-6 w-6 text-gray-400 mx-auto" />}
+                      {rank === 3 && <Award className="h-6 w-6 text-orange-600 mx-auto" />}
+                      {rank > 3 && (
+                        <span className="text-lg font-bold text-muted-foreground">
+                          {rank}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-semibold truncate ${
+                        isCurrentUser ? "text-primary" : ""
+                      }`}>
+                        {leaderUser.name}
+                        {isCurrentUser && (
+                          <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+                            You
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Coins className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-bold text-primary">
+                        {leaderUser.points.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </CardContent>
         </Card>
@@ -569,6 +649,7 @@ const Account = () => {
         onPointsWon={() => {
           loadProfile();
           loadTransactions();
+          loadLeaderboard();
         }}
       />
 
