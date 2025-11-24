@@ -3,10 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Minus, Plus, ArrowLeft } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Heart, Minus, Plus, ArrowLeft, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import CheckoutDialog from "@/components/CheckoutDialog";
+import ReviewSection from "@/components/ReviewSection";
 
 interface Product {
   id: number;
@@ -114,6 +116,70 @@ const ProductDetail = () => {
     loadProduct();
   };
 
+  const handleAddToCart = async () => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please login to add items to cart",
+        variant: "destructive",
+      });
+      navigate("/auth/login");
+      return;
+    }
+
+    if (!product) return;
+
+    // Check if item already in cart
+    const { data: existing } = await supabase
+      .from("cart_items")
+      .select("id, quantity")
+      .eq("user_id", user.id)
+      .eq("product_id", product.id)
+      .maybeSingle();
+
+    if (existing) {
+      // Update quantity
+      const { error } = await supabase
+        .from("cart_items")
+        .update({ quantity: existing.quantity + quantity })
+        .eq("id", existing.id);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update cart",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      // Add new item
+      const { error } = await supabase
+        .from("cart_items")
+        .insert({
+          user_id: user.id,
+          product_id: product.id,
+          quantity,
+        });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to add to cart",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    toast({
+      title: "Added to Cart",
+      description: `${quantity} ${product.name} added to your cart`,
+    });
+
+    setQuantity(1);
+  };
+
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -133,7 +199,7 @@ const ProductDetail = () => {
         </div>
       </header>
 
-      <div className="max-w-screen-xl mx-auto p-4">
+      <div className="max-w-screen-xl mx-auto p-4 space-y-6">
         <Card className="overflow-hidden">
           <div className="aspect-square bg-muted">
             <img
@@ -202,12 +268,26 @@ const ProductDetail = () => {
               </div>
             </div>
           </CardContent>
-          <CardFooter>
-            <Button className="w-full" size="lg" onClick={handleBuyNow}>
-              Buy Now - ${(product.price * quantity).toFixed(2)}
+          <CardFooter className="flex gap-2">
+            <Button variant="outline" size="lg" className="flex-1" onClick={handleAddToCart}>
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Add to Cart
+            </Button>
+            <Button className="flex-1" size="lg" onClick={handleBuyNow}>
+              Buy Now
             </Button>
           </CardFooter>
         </Card>
+
+        {/* Product Reviews Section */}
+        <Tabs defaultValue="reviews" className="w-full">
+          <TabsList className="grid w-full grid-cols-1">
+            <TabsTrigger value="reviews">Reviews & Ratings</TabsTrigger>
+          </TabsList>
+          <TabsContent value="reviews" className="mt-4">
+            <ReviewSection productId={product.id} />
+          </TabsContent>
+        </Tabs>
 
         {user && product && (
           <CheckoutDialog
