@@ -15,6 +15,7 @@ const ProductNew = () => {
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [pointsValue, setPointsValue] = useState("");
+  const [category, setCategory] = useState("General");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const ProductNew = () => {
       price: parseFloat(price),
       image_url: imageUrl,
       points_value: parseInt(pointsValue) || 0,
+      category,
     });
 
     if (error) {
@@ -120,6 +122,17 @@ const ProductNew = () => {
                   placeholder="Points awarded per product"
                   required
                   min="0"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="category">Category *</Label>
+                <Input
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="e.g., Electronics, Books, Apparel"
+                  required
                 />
               </div>
 

@@ -17,12 +17,13 @@ interface Product {
   price: number;
   image_url: string;
   points_value: number;
+  category: string;
 }
 
 const ProductsManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0 });
+  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General" });
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -69,12 +70,13 @@ const ProductsManage = () => {
       price: product.price,
       image_url: product.image_url,
       points_value: product.points_value,
+      category: product.category,
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0 });
+    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General" });
   };
 
   const saveEdit = async () => {
@@ -178,6 +180,13 @@ const ProductsManage = () => {
                     min="0"
                   />
                 </div>
+                <div>
+                  <Label>Category</Label>
+                  <Input
+                    value={editForm.category}
+                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Button onClick={saveEdit} className="flex-1">
                     <Save className="mr-2 h-4 w-4" />
@@ -202,6 +211,7 @@ const ProductsManage = () => {
                     <p className="text-sm text-muted-foreground">{product.description}</p>
                     <p className="text-primary font-bold mt-2">${product.price.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground mt-1">Points: {product.points_value}</p>
+                    <p className="text-xs text-muted-foreground">Category: {product.category}</p>
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button
