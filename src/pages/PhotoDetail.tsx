@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Heart, Download, ArrowLeft, FileArchive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import PinVerificationDialog from "@/components/PinVerificationDialog";
 
 interface Photo {
   id: string;
@@ -20,13 +21,32 @@ const PhotoDetail = () => {
   const navigate = useNavigate();
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [isFavourite, setIsFavourite] = useState(false);
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [userPin, setUserPin] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     loadPhoto();
-    if (user) checkFavourite();
+    if (user) {
+      checkFavourite();
+      loadUserPin();
+    }
   }, [id, user]);
+
+  const loadUserPin = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("profiles")
+      .select("download_pin")
+      .eq("id", user.id)
+      .single();
+
+    if (data) {
+      setUserPin(data.download_pin);
+    }
+  };
 
   const loadPhoto = async () => {
     const { data, error } = await supabase
@@ -79,6 +99,11 @@ const PhotoDetail = () => {
   };
 
   const handleDownload = () => {
+    // Show PIN dialog instead of downloading directly
+    setShowPinDialog(true);
+  };
+
+  const handlePinVerified = () => {
     if (photo?.file_url) {
       window.open(photo.file_url, "_blank");
       toast({
@@ -161,6 +186,13 @@ const PhotoDetail = () => {
           </CardFooter>
         </Card>
       </div>
+
+      <PinVerificationDialog
+        open={showPinDialog}
+        onOpenChange={setShowPinDialog}
+        onVerified={handlePinVerified}
+        storedPin={userPin}
+      />
     </div>
   );
 };

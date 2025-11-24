@@ -221,6 +221,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
+          download_pin: string | null
           email: string | null
           id: string
           name: string
@@ -229,6 +230,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          download_pin?: string | null
           email?: string | null
           id: string
           name: string
@@ -237,6 +239,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          download_pin?: string | null
           email?: string | null
           id?: string
           name?: string
