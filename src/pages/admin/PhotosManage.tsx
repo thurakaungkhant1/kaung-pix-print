@@ -13,6 +13,7 @@ interface Photo {
   file_url: string;
   file_size: number;
   preview_image: string | null;
+  category: string;
 }
 
 const PhotosManage = () => {
@@ -113,6 +114,11 @@ const PhotosManage = () => {
                   )}
                 </div>
                 <div className="flex-1">
+                  <div className="mb-1">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      {photo.category || "General"}
+                    </span>
+                  </div>
                   <h3 className="font-bold">{photo.client_name}</h3>
                   <p className="text-sm text-muted-foreground">
                     {formatFileSize(photo.file_size)}
