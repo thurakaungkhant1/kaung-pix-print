@@ -11,7 +11,7 @@ import BottomNav from "@/components/BottomNav";
 import PointsDisplay from "@/components/PointsDisplay";
 
 interface WithdrawalItem {
-  id: string;
+  id: number;
   name: string;
   description: string | null;
   points_required: number;
@@ -34,7 +34,7 @@ const Exchange = () => {
   const [withdrawalItems, setWithdrawalItems] = useState<WithdrawalItem[]>([]);
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (user) {

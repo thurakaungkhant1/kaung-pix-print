@@ -221,7 +221,7 @@ export type Database = {
           points_withdrawn: number
           status: string
           user_id: string
-          withdrawal_item_id: string | null
+          withdrawal_item_id: number | null
         }
         Insert: {
           created_at?: string | null
@@ -229,7 +229,7 @@ export type Database = {
           points_withdrawn: number
           status?: string
           user_id: string
-          withdrawal_item_id?: string | null
+          withdrawal_item_id?: number | null
         }
         Update: {
           created_at?: string | null
@@ -237,11 +237,11 @@ export type Database = {
           points_withdrawn?: number
           status?: string
           user_id?: string
-          withdrawal_item_id?: string | null
+          withdrawal_item_id?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "point_withdrawals_withdrawal_item_id_fkey"
+            foreignKeyName: "point_withdrawals_new_withdrawal_item_id_fkey"
             columns: ["withdrawal_item_id"]
             isOneToOne: false
             referencedRelation: "withdrawal_items"
@@ -393,7 +393,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
-          id: string
+          id: number
           image_url: string | null
           is_active: boolean
           name: string
@@ -404,7 +404,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
-          id?: string
+          id?: number
           image_url?: string | null
           is_active?: boolean
           name: string
@@ -415,7 +415,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
-          id?: string
+          id?: number
           image_url?: string | null
           is_active?: boolean
           name?: string
