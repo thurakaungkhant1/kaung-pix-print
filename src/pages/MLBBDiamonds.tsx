@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Gem, ArrowLeft, History, Copy, CheckCircle2, Loader2 } from "lucide-react";
+import { Diamond, ArrowLeft, History, Copy, CheckCircle2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -296,7 +296,7 @@ const MLBBDiamonds = () => {
               <ArrowLeft className="h-6 w-6" />
             </Button>
             <div className="flex items-center gap-2">
-              <Gem className="h-6 w-6" />
+              <Diamond className="h-6 w-6" />
               <h1 className="text-xl sm:text-2xl font-bold">MLBB Diamonds</h1>
             </div>
           </div>
@@ -307,7 +307,7 @@ const MLBBDiamonds = () => {
         <Tabs defaultValue="packages" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="packages">
-              <Gem className="h-4 w-4 mr-2" />
+              <Diamond className="h-4 w-4 mr-2" />
               Packages
             </TabsTrigger>
             <TabsTrigger value="orders">
@@ -319,7 +319,7 @@ const MLBBDiamonds = () => {
           <TabsContent value="packages">
             <div className="mb-6 p-4 bg-accent/10 border border-accent rounded-lg">
               <h2 className="text-lg font-bold text-accent mb-2 flex items-center gap-2">
-                <Gem className="h-5 w-5" />
+                <Diamond className="h-5 w-5" />
                 Special MLBB Diamond Offers!
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -329,7 +329,7 @@ const MLBBDiamonds = () => {
 
             {products.length === 0 ? (
               <div className="text-center py-12">
-                <Gem className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <Diamond className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No diamond packages available yet</p>
               </div>
             ) : (
