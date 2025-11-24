@@ -10,9 +10,10 @@ interface PinVerificationDialogProps {
   onOpenChange: (open: boolean) => void;
   onVerified: () => void;
   storedPin: string | null;
+  mode?: 'download' | 'password';
 }
 
-const PinVerificationDialog = ({ open, onOpenChange, onVerified, storedPin }: PinVerificationDialogProps) => {
+const PinVerificationDialog = ({ open, onOpenChange, onVerified, storedPin, mode = 'download' }: PinVerificationDialogProps) => {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -59,10 +60,12 @@ const PinVerificationDialog = ({ open, onOpenChange, onVerified, storedPin }: Pi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            PIN Verification Required
+            {mode === 'password' ? 'Verify Your Identity' : 'PIN Verification Required'}
           </DialogTitle>
           <DialogDescription>
-            Enter your 6-digit PIN to download this photo
+            {mode === 'password' 
+              ? 'Enter your 6-digit PIN to view password' 
+              : 'Enter your 6-digit PIN to download this photo'}
           </DialogDescription>
         </DialogHeader>
 
@@ -117,7 +120,7 @@ const PinVerificationDialog = ({ open, onOpenChange, onVerified, storedPin }: Pi
               onClick={handleVerify}
               disabled={pin.length !== 6 || isVerifying || !storedPin}
             >
-              {isVerifying ? "Verifying..." : "Verify & Download"}
+              {isVerifying ? "Verifying..." : "OK"}
             </Button>
           </div>
         </div>
