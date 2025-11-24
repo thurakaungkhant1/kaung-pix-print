@@ -111,6 +111,8 @@ export type Database = {
         Row: {
           created_at: string | null
           delivery_address: string
+          game_id: string | null
+          game_name: string | null
           id: string
           payment_method: string
           payment_proof_url: string | null
@@ -118,12 +120,15 @@ export type Database = {
           price: number
           product_id: number
           quantity: number
+          server_id: string | null
           status: string
           user_id: string
         }
         Insert: {
           created_at?: string | null
           delivery_address?: string
+          game_id?: string | null
+          game_name?: string | null
           id?: string
           payment_method?: string
           payment_proof_url?: string | null
@@ -131,12 +136,15 @@ export type Database = {
           price: number
           product_id: number
           quantity?: number
+          server_id?: string | null
           status?: string
           user_id: string
         }
         Update: {
           created_at?: string | null
           delivery_address?: string
+          game_id?: string | null
+          game_name?: string | null
           id?: string
           payment_method?: string
           payment_proof_url?: string | null
@@ -144,6 +152,7 @@ export type Database = {
           price?: number
           product_id?: number
           quantity?: number
+          server_id?: string | null
           status?: string
           user_id?: string
         }
