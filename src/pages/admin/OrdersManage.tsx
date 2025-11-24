@@ -21,8 +21,12 @@ interface Order {
   price: number;
   status: string;
   created_at: string;
+  phone_number: string;
+  delivery_address: string;
+  payment_method: string;
+  payment_proof_url: string | null;
   profiles: { name: string; phone_number: string };
-  products: { name: string; image_url: string };
+  products: { name: string; image_url: string; points_value: number };
 }
 
 const OrdersManage = () => {
@@ -60,7 +64,7 @@ const OrdersManage = () => {
       .select(`
         *,
         profiles:user_id(name, phone_number),
-        products:product_id(name, image_url)
+        products:product_id(name, image_url, points_value)
       `)
       .order("created_at", { ascending: false });
 
@@ -92,9 +96,9 @@ const OrdersManage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
+      case "finished":
         return "bg-green-500";
-      case "processing":
+      case "approved":
         return "bg-blue-500";
       case "cancelled":
         return "bg-red-500";
@@ -124,17 +128,37 @@ const OrdersManage = () => {
                   alt={order.products.name}
                   className="w-20 h-20 object-cover rounded"
                 />
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-3">
                   <div>
                     <h3 className="font-bold">{order.products.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Customer: {order.profiles.name} ({order.profiles.phone_number})
+                      Customer: {order.profiles.name}
                     </p>
                   </div>
+                  
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Phone:</strong> {order.phone_number}</p>
+                    <p><strong>Address:</strong> {order.delivery_address}</p>
+                    <p><strong>Payment:</strong> {order.payment_method.toUpperCase()}</p>
+                    {order.payment_proof_url && (
+                      <a
+                        href={order.payment_proof_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        View Payment Proof
+                      </a>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-4 text-sm">
                     <span>Qty: {order.quantity}</span>
                     <span className="font-bold text-primary">
                       ${order.price.toFixed(2)}
+                    </span>
+                    <span className="text-green-600">
+                      {order.products.points_value * order.quantity} pts
                     </span>
                     <Badge className={getStatusColor(order.status)}>
                       {order.status}
@@ -152,11 +176,17 @@ const OrdersManage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="processing">Processing</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="finished">Finished</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {order.status === "finished" && (
+                    <p className="text-xs text-green-600 font-semibold">
+                      ✓ Points awarded to customer
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>

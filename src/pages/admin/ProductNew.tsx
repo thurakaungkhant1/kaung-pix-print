@@ -14,6 +14,7 @@ const ProductNew = () => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [pointsValue, setPointsValue] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const ProductNew = () => {
       description,
       price: parseFloat(price),
       image_url: imageUrl,
+      points_value: parseInt(pointsValue) || 0,
     });
 
     if (error) {
@@ -105,6 +107,19 @@ const ProductNew = () => {
                   onChange={(e) => setImageUrl(e.target.value)}
                   placeholder="https://example.com/image.jpg"
                   required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="pointsValue">Points Value *</Label>
+                <Input
+                  id="pointsValue"
+                  type="number"
+                  value={pointsValue}
+                  onChange={(e) => setPointsValue(e.target.value)}
+                  placeholder="Points awarded per product"
+                  required
+                  min="0"
                 />
               </div>
 
