@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table";
 
 interface WithdrawalItem {
-  id: string;
+  id: number;
   name: string;
   description: string | null;
   points_required: number;
@@ -184,7 +184,7 @@ const WithdrawalItemsManage = () => {
     loadItems();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this withdrawal item?")) {
       return;
     }
