@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Home, Image, Heart, User, Settings, ShoppingCart } from "lucide-react";
+import { Home, Image, Heart, User, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,36 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 const BottomNav = () => {
   const { user } = useAuth();
-  const [cartCount, setCartCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (user) {
       checkAdmin();
-      loadCartCount();
-      
-      // Subscribe to cart changes
-      const channel = supabase
-        .channel("cart-changes")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "cart_items",
-            filter: `user_id=eq.${user.id}`,
-          },
-          () => {
-            loadCartCount();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    } else {
-      setCartCount(0);
     }
   }, [user]);
 
@@ -53,22 +28,10 @@ const BottomNav = () => {
     setIsAdmin(!!data);
   };
 
-  const loadCartCount = async () => {
-    if (!user) return;
-
-    const { count } = await supabase
-      .from("cart_items")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id);
-
-    setCartCount(count || 0);
-  };
-
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/photo", icon: Image, label: "Photo" },
     { to: "/favourite", icon: Heart, label: "Favourite" },
-    { to: "/cart", icon: ShoppingCart, label: "Cart", badge: cartCount },
     { 
       to: isAdmin ? "/admin" : "/account", 
       icon: isAdmin ? Settings : User, 
@@ -89,14 +52,7 @@ const BottomNav = () => {
             >
               {({ isActive }) => (
                 <>
-                  <div className="relative">
-                    <item.icon className={cn("h-5 w-5 mb-1", isActive && "stroke-[2.5]")} />
-                    {item.badge && item.badge > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                        {item.badge > 9 ? "9+" : item.badge}
-                      </span>
-                    )}
-                  </div>
+                  <item.icon className={cn("h-5 w-5 mb-1", isActive && "stroke-[2.5]")} />
                   <span className="text-xs">{item.label}</span>
                 </>
               )}

@@ -177,7 +177,8 @@ const ProductDetail = () => {
       description: `${quantity} ${product.name} added to your cart`,
     });
 
-    setQuantity(1);
+    // Navigate to cart page
+    navigate("/cart");
   };
 
   if (!product) {
