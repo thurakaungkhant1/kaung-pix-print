@@ -1,12 +1,13 @@
-import { ArrowLeft, Phone, Mail, MapPin } from "lucide-react";
+import { ArrowLeft, Phone, Mail, MapPin, Send, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import BottomNav from "@/components/BottomNav";
 
 const Contact = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate(-1)}>
@@ -22,62 +23,89 @@ const Contact = () => {
             <CardTitle>Get in Touch</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
+            {/* Phone */}
+            <a 
+              href="tel:09694577177"
+              className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent transition-colors group"
+            >
+              <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
                 <Phone className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Phone</h3>
-                <p className="text-muted-foreground">+95 9 123 456 789</p>
+                <p className="text-muted-foreground group-hover:text-primary transition-colors">
+                  09694577177
+                </p>
               </div>
-            </div>
+            </a>
 
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
+            {/* Email */}
+            <a 
+              href="mailto:thurakaungk@gmail.com"
+              className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent transition-colors group"
+            >
+              <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
                 <Mail className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Email</h3>
-                <p className="text-muted-foreground">info@kaungcomputer.com</p>
+                <p className="text-muted-foreground group-hover:text-primary transition-colors">
+                  thurakaungk@gmail.com
+                </p>
               </div>
-            </div>
+            </a>
 
-            <div className="flex items-start gap-4">
+            {/* Address */}
+            <div className="flex items-start gap-4 p-3 rounded-lg">
               <div className="p-3 bg-primary/10 rounded-lg">
                 <MapPin className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Address</h3>
                 <p className="text-muted-foreground">
-                  Main Street, Yangon, Myanmar
+                  လက်ပံတန်းြမို့နယ်၊ နတ်ဖန်ကွင်းကျေးရွာ
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Business Hours</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Monday - Friday</span>
-                <span className="font-medium">9:00 AM - 6:00 PM</span>
+            {/* Telegram */}
+            <a 
+              href="https://t.me/thurakaungkhant1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent transition-colors group"
+            >
+              <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <Send className="h-5 w-5 text-primary" />
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Saturday</span>
-                <span className="font-medium">9:00 AM - 4:00 PM</span>
+              <div>
+                <h3 className="font-semibold mb-1">Telegram</h3>
+                <p className="text-muted-foreground group-hover:text-primary transition-colors">
+                  @thurakaungkhant1
+                </p>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Sunday</span>
-                <span className="font-medium">Closed</span>
+            </a>
+
+            {/* Viber */}
+            <a 
+              href="viber://chat?number=+959694577177"
+              className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent transition-colors group"
+            >
+              <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <MessageCircle className="h-5 w-5 text-primary" />
               </div>
-            </div>
+              <div>
+                <h3 className="font-semibold mb-1">Viber</h3>
+                <p className="text-muted-foreground group-hover:text-primary transition-colors">
+                  +959694577177
+                </p>
+              </div>
+            </a>
           </CardContent>
         </Card>
       </div>
+
+      <BottomNav />
     </div>
   );
 };
