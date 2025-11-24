@@ -182,7 +182,7 @@ const Cart = () => {
                         {item.products.name}
                       </h3>
                       <p className="text-primary font-bold mt-1">
-                        ${item.products.price.toFixed(2)}
+                        Ks {item.products.price.toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {item.products.points_value} points per item
@@ -228,7 +228,7 @@ const Cart = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-bold">
-                        ${(item.products.price * item.quantity).toFixed(2)}
+                        Ks {(item.products.price * item.quantity).toFixed(2)}
                       </p>
                       <p className="text-xs text-green-600">
                         +{item.products.points_value * item.quantity} pts
@@ -241,29 +241,53 @@ const Cart = () => {
 
             {/* Cart Summary */}
             <Card className="sticky bottom-20">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal:</span>
-                  <span className="font-semibold">${totalPrice.toFixed(2)}</span>
+              <CardContent className="p-4 space-y-4">
+                <h3 className="font-bold text-lg">Order Summary</h3>
+                
+                {/* Itemized List */}
+                <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3 bg-muted/30">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="space-y-1">
+                      <div className="flex justify-between items-start text-sm">
+                        <span className="font-medium flex-1">{item.products.name}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Ks {item.products.price.toFixed(2)} × {item.quantity}</span>
+                        <span className="font-semibold text-foreground">
+                          Ks {(item.products.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                      {item !== cartItems[cartItems.length - 1] && (
+                        <div className="border-b pt-1" />
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Points to Earn:</span>
-                  <span className="font-semibold text-green-600">
-                    {totalPoints} points
+
+                {/* Points Summary */}
+                <div className="flex justify-between text-sm bg-green-50 dark:bg-green-950/20 p-2 rounded">
+                  <span className="text-muted-foreground">Total Points to Earn:</span>
+                  <span className="font-bold text-green-600 dark:text-green-400">
+                    +{totalPoints} pts
                   </span>
                 </div>
+
+                {/* Grand Total */}
                 <div className="border-t pt-3">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total:</span>
-                    <span className="text-primary">${totalPrice.toFixed(2)}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold">Grand Total:</span>
+                    <span className="text-2xl font-bold text-primary">
+                      Ks {totalPrice.toFixed(2)}
+                    </span>
                   </div>
                 </div>
+
                 <Button 
                   className="w-full" 
                   size="lg"
                   onClick={handleCheckout}
                 >
-                  Proceed to Checkout
+                  Proceed to Checkout ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})
                 </Button>
               </CardContent>
             </Card>
