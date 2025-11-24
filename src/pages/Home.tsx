@@ -40,6 +40,7 @@ const Home = () => {
     const { data, error } = await supabase
       .from("products")
       .select("*")
+      .neq("category", "MLBB Diamonds")
       .order("created_at", { ascending: false });
 
     if (!error && data) {
