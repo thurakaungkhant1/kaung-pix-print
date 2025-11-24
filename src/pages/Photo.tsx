@@ -9,7 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import PointsDisplay from "@/components/PointsDisplay";
 
 interface Photo {
-  id: string;
+  id: number;
   client_name: string;
   file_url: string;
   file_size: number;
@@ -19,7 +19,7 @@ interface Photo {
 
 const Photo = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [favourites, setFavourites] = useState<Set<string>>(new Set());
+  const [favourites, setFavourites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [categories, setCategories] = useState<string[]>([]);
@@ -63,7 +63,7 @@ const Photo = () => {
     }
   };
 
-  const toggleFavourite = async (photoId: string) => {
+  const toggleFavourite = async (photoId: number) => {
     if (!user) {
       toast({
         title: "Login required",

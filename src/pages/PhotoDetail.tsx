@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import PinVerificationDialog from "@/components/PinVerificationDialog";
 
 interface Photo {
-  id: string;
+  id: number;
   client_name: string;
   file_url: string;
   file_size: number;
@@ -49,10 +49,11 @@ const PhotoDetail = () => {
   };
 
   const loadPhoto = async () => {
+    const photoId = parseInt(id!);
     const { data, error } = await supabase
       .from("photos")
       .select("*")
-      .eq("id", id)
+      .eq("id", photoId)
       .single();
 
     if (!error && data) {
@@ -63,11 +64,12 @@ const PhotoDetail = () => {
   const checkFavourite = async () => {
     if (!user || !id) return;
 
+    const photoId = parseInt(id);
     const { data } = await supabase
       .from("favourite_photos")
       .select("id")
       .eq("user_id", user.id)
-      .eq("photo_id", id)
+      .eq("photo_id", photoId)
       .maybeSingle();
 
     setIsFavourite(!!data);
@@ -83,16 +85,17 @@ const PhotoDetail = () => {
       return;
     }
 
+    const photoId = parseInt(id!);
     if (isFavourite) {
       await supabase
         .from("favourite_photos")
         .delete()
         .eq("user_id", user.id)
-        .eq("photo_id", id);
+        .eq("photo_id", photoId);
     } else {
       await supabase
         .from("favourite_photos")
-        .insert({ user_id: user.id, photo_id: id });
+        .insert({ user_id: user.id, photo_id: photoId });
     }
 
     setIsFavourite(!isFavourite);
