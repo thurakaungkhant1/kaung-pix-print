@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Gift } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface SpinnerWheelProps {
   open: boolean;
@@ -19,6 +20,7 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
   const [lastSpinDate, setLastSpinDate] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (open && user) {
@@ -217,6 +219,17 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
                 <p className="text-xs text-muted-foreground">
                   Next spin available in: {getTimeUntilNextSpin()}
                 </p>
+                <Button
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate("/");
+                  }}
+                  className="w-full mt-4"
+                  size="lg"
+                  variant="default"
+                >
+                  Show More Point
+                </Button>
               </>
             )}
           </div>
