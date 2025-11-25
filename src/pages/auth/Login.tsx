@@ -8,52 +8,45 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import logoImage from "@/assets/diamond-white-bg.png";
-
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const {
+        error
+      } = await supabase.auth.signInWithPassword({
         email: `${phoneNumber}@kaungcomputer.app`,
-        password,
+        password
       });
-
       if (error) throw error;
-
       toast({
         title: "Success",
-        description: "Logged in successfully",
+        description: "Logged in successfully"
       });
       navigate("/");
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to login",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <img 
-              src={logoImage} 
-              alt="Kaung Computer Logo" 
-              className="h-20 w-20 object-contain"
-            />
+            <img alt="Kaung Computer Logo" src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" className="h-20 w-20 object-contain shadow-xl" />
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Kaung Computer
@@ -64,24 +57,11 @@ const Login = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="09123456789"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                required
-              />
+              <Input id="phone" type="tel" placeholder="09123456789" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
@@ -91,11 +71,7 @@ const Login = () => {
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               Don't have an account?{" "}
-              <button
-                type="button"
-                onClick={() => navigate("/auth/signup")}
-                className="text-primary hover:underline"
-              >
+              <button type="button" onClick={() => navigate("/auth/signup")} className="text-primary hover:underline">
                 Sign up
               </button>
             </p>
@@ -105,8 +81,6 @@ const Login = () => {
           </CardFooter>
         </form>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default Login;
