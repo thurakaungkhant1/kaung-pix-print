@@ -136,18 +136,10 @@ const Home = () => {
               className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-3 py-1 rounded-full flex items-center gap-1.5 text-xs shadow-lg"
             >
               <Gem className="h-4 w-4" />
-              <span className="hidden sm:inline">Buy ML Diamonds</span>
-              <span className="sm:hidden">MLBB</span>
+              <span>ML</span>
             </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <img 
-              src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" 
-              alt="Logo" 
-              className="h-8 w-8 object-contain"
-            />
-            <h1 className="text-2xl font-bold">Kaung Computer</h1>
-          </div>
+          <h1 className="text-2xl font-bold">Kaung Computer</h1>
           <div className="flex-1 flex justify-end">
             <CartHeader />
           </div>
