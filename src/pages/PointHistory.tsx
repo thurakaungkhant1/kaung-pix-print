@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, History, ShoppingBag } from "lucide-react";
+import { ArrowLeft, History, ShoppingBag, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
@@ -15,6 +15,13 @@ interface Transaction {
   created_at: string;
 }
 
+interface Withdrawal {
+  id: string;
+  points_withdrawn: number;
+  status: string;
+  created_at: string;
+  withdrawal_items: { name: string; value_amount: number } | null;
+}
 
 interface Order {
   id: string;
@@ -27,6 +34,7 @@ interface Order {
 
 const PointHistory = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -34,6 +42,7 @@ const PointHistory = () => {
   useEffect(() => {
     if (user) {
       loadTransactions();
+      loadWithdrawals();
       loadOrders();
     }
   }, [user]);
@@ -52,6 +61,22 @@ const PointHistory = () => {
     }
   };
 
+  const loadWithdrawals = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("point_withdrawals")
+      .select(`
+        *,
+        withdrawal_items:withdrawal_item_id(name, value_amount)
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (data) {
+      setWithdrawals(data as any);
+    }
+  };
 
   const loadOrders = async () => {
     if (!user) return;
@@ -106,6 +131,47 @@ const PointHistory = () => {
                   <p className={`text-sm font-bold ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
                     {transaction.amount > 0 ? "+" : ""}{transaction.amount}
                   </p>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Withdrawal History */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Withdrawal History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {withdrawals.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No withdrawals yet</p>
+            ) : (
+              withdrawals.map((withdrawal) => (
+                <div key={withdrawal.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1 space-y-1">
+                    <h4 className="font-semibold text-sm">
+                      {withdrawal.withdrawal_items?.name || "Point Withdrawal"}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {withdrawal.points_withdrawn.toLocaleString()} points
+                      {withdrawal.withdrawal_items && ` → $${withdrawal.withdrawal_items.value_amount}`}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(withdrawal.created_at).toLocaleDateString()}
+                      </p>
+                      <Badge variant={
+                        withdrawal.status === "approved" ? "default" :
+                        withdrawal.status === "rejected" ? "destructive" :
+                        "outline"
+                      }>
+                        {withdrawal.status}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               ))
             )}
