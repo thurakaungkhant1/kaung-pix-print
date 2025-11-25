@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Trophy, Medal, Award, Coins } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
+import { getRelativeTimeString } from "@/lib/timeUtils";
 import BottomNav from "@/components/BottomNav";
 
 interface LeaderboardUser {
@@ -16,8 +17,18 @@ interface LeaderboardUser {
 const TopEarners = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const { user } = useAuth();
-  const { isUserOnline } = useOnlineUsers();
+  const { isUserOnline, getUserLastActive } = useOnlineUsers();
   const navigate = useNavigate();
+
+  // Update relative time display every minute
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     loadLeaderboard();
@@ -61,6 +72,7 @@ const TopEarners = () => {
               leaderboard.map((leaderUser, index) => {
                 const isCurrentUser = user?.id === leaderUser.id;
                 const isOnline = isUserOnline(leaderUser.id);
+                const lastActive = getUserLastActive(leaderUser.id);
                 const rank = index + 1;
                 
                 return (
@@ -94,14 +106,18 @@ const TopEarners = () => {
                             </span>
                           )}
                         </p>
-                        {isOnline && (
+                        {isOnline ? (
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                             <span className="text-xs text-green-600 dark:text-green-400 font-medium">
                               Active Now
                             </span>
                           </div>
-                        )}
+                        ) : lastActive ? (
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                            {getRelativeTimeString(lastActive)}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
