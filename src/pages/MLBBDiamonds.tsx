@@ -199,10 +199,7 @@ const MLBBDiamonds = () => {
             >
               <ArrowLeft className="h-6 w-6" />
             </Button>
-            <div className="flex items-center gap-2">
-              <Diamond className="h-6 w-6" />
-              <h1 className="text-xl sm:text-2xl font-bold">MLBB Diamonds</h1>
-            </div>
+            <h1 className="text-2xl font-bold">💎</h1>
           </div>
         </div>
       </header>
