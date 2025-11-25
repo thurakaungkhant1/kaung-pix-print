@@ -198,7 +198,7 @@ const Home = () => {
                       </div>
                       <CardContent className="p-2">
                         <h3 className="font-semibold text-xs truncate">{product.name}</h3>
-                        <p className="text-primary font-bold text-sm">${product.price.toFixed(2)}</p>
+                        <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} MMK</p>
                       </CardContent>
                     </Card>
                   ))}

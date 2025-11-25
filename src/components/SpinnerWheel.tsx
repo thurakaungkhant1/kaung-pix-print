@@ -51,15 +51,15 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
 
     setSpinning(true);
 
-    // Fixed points award
-    const pointsWon = 15;
-
     // Calculate rotation (multiple full spins + random landing position for visual effect)
     const baseRotation = 360 * 5; // 5 full spins
-    const randomSegment = Math.floor(Math.random() * 50) + 1;
-    const segmentAngle = 360 / 50;
-    const targetAngle = (50 - randomSegment) * segmentAngle;
+    const randomSegment = Math.floor(Math.random() * 15) + 1;
+    const segmentAngle = 360 / 15;
+    const targetAngle = (15 - randomSegment) * segmentAngle;
     const finalRotation = rotation + baseRotation + targetAngle;
+
+    // Award points only for segments 1-5
+    const pointsWon = randomSegment >= 1 && randomSegment <= 5 ? 15 : 0;
 
     setRotation(finalRotation);
 
@@ -86,26 +86,28 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
         return;
       }
 
-      // Add transaction
-      await supabase.from("point_transactions").insert({
-        user_id: user.id,
-        amount: pointsWon,
-        transaction_type: "spin",
-        description: `Won ${pointsWon} points from daily spinner`,
-      });
+      // Add transaction and update points only if points were won
+      if (pointsWon > 0) {
+        await supabase.from("point_transactions").insert({
+          user_id: user.id,
+          amount: pointsWon,
+          transaction_type: "spin",
+          description: `Won ${pointsWon} points from daily spinner`,
+        });
 
-      // Update user points
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("points")
-        .eq("id", user.id)
-        .single();
-
-      if (profile) {
-        await supabase
+        // Update user points
+        const { data: profile } = await supabase
           .from("profiles")
-          .update({ points: profile.points + pointsWon })
-          .eq("id", user.id);
+          .select("points")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          await supabase
+            .from("profiles")
+            .update({ points: profile.points + pointsWon })
+            .eq("id", user.id);
+        }
       }
 
       onPointsWon(pointsWon);
@@ -115,11 +117,19 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
       
       // Show confirmation dialog
       setTimeout(() => {
-        toast({
-          title: "Congratulations! 🎉",
-          description: `You have been awarded ${pointsWon} points!`,
-          duration: 5000,
-        });
+        if (pointsWon > 0) {
+          toast({
+            title: "Congratulations! 🎉",
+            description: `You have been awarded ${pointsWon} points!`,
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Better luck tomorrow!",
+            description: "You didn't win points this time. Try again tomorrow!",
+            duration: 5000,
+          });
+        }
       }, 100);
     }, 4000);
   };
@@ -156,16 +166,16 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
                 className="w-full h-full rounded-full border-8 border-primary relative overflow-hidden transition-transform duration-[4000ms] ease-out"
                 style={{
                   transform: `rotate(${rotation}deg)`,
-                  background: "conic-gradient(from 0deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 50%, hsl(var(--primary)) 100%)",
+                  background: "conic-gradient(from 0deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 20%, hsl(var(--primary)) 40%, hsl(var(--primary-glow)) 60%, hsl(var(--primary)) 80%, hsl(var(--primary-glow)) 100%)",
                 }}
               >
                 {/* Segments */}
-                {Array.from({ length: 50 }).map((_, i) => (
+                {Array.from({ length: 15 }).map((_, i) => (
                   <div
                     key={i}
-                    className="absolute top-1/2 left-1/2 origin-top-left text-xs text-primary-foreground font-bold"
+                    className="absolute top-1/2 left-1/2 origin-top-left text-sm text-primary-foreground font-bold"
                     style={{
-                      transform: `rotate(${i * (360 / 50)}deg) translateX(6rem)`,
+                      transform: `rotate(${i * (360 / 15)}deg) translateX(5.5rem)`,
                       width: "2rem",
                     }}
                   >
@@ -188,7 +198,7 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
             {canSpin ? (
               <>
                 <p className="text-sm text-muted-foreground">
-                  Spin the wheel to win 15 points daily!
+                  Spin the wheel daily! Land on segments 1-5 to win 15 points!
                 </p>
                 <Button
                   onClick={handleSpin}

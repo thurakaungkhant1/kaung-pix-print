@@ -134,7 +134,7 @@ const PointHistory = () => {
                   <div className="flex-1 space-y-1">
                     <h4 className="font-semibold text-sm">{order.products.name}</h4>
                     <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
-                    <p className="text-sm font-bold text-primary">${order.price.toFixed(2)}</p>
+                    <p className="text-sm font-bold text-primary">{order.price.toLocaleString()} MMK</p>
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString()}

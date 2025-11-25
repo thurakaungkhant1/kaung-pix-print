@@ -209,7 +209,7 @@ const ProductsManage = () => {
                   <div className="flex-1">
                     <h3 className="font-bold">{product.name}</h3>
                     <p className="text-sm text-muted-foreground">{product.description}</p>
-                    <p className="text-primary font-bold mt-2">${product.price.toFixed(2)}</p>
+                    <p className="text-primary font-bold mt-2">{product.price.toLocaleString()} MMK</p>
                     <p className="text-xs text-muted-foreground mt-1">Points: {product.points_value}</p>
                     <p className="text-xs text-muted-foreground">Category: {product.category}</p>
                   </div>

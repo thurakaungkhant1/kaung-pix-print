@@ -211,7 +211,7 @@ const CheckoutDialog = ({
                     <h3 className="font-semibold text-sm">{item.products.name}</h3>
                     <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                     <p className="text-primary font-bold text-sm">
-                      Ks {(item.products.price * item.quantity).toFixed(2)}
+                      {(item.products.price * item.quantity).toLocaleString()} MMK
                     </p>
                   </div>
                 </div>
@@ -219,7 +219,7 @@ const CheckoutDialog = ({
               <div className="pt-3 border-t">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Total:</span>
-                  <span className="text-lg font-bold text-primary">Ks {totalPrice.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-primary">{totalPrice.toLocaleString()} MMK</span>
                 </div>
               </div>
             </div>
@@ -292,7 +292,7 @@ const CheckoutDialog = ({
                 <div className="p-4 bg-muted rounded-lg">
                   <p className="text-sm font-semibold">Payment Information</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Please transfer Ks {totalPrice.toFixed(2)} to our {paymentMethod.toUpperCase()} account
+                    Please transfer {totalPrice.toLocaleString()} MMK to our {paymentMethod.toUpperCase()} account
                   </p>
                   <p className="text-sm font-mono mt-2">Account: 09XXXXXXXXX</p>
                 </div>
@@ -345,9 +345,9 @@ const CheckoutDialog = ({
                       <span className="text-muted-foreground">×{item.quantity}</span>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                      <span>Ks {item.products.price.toFixed(2)} each</span>
+                      <span>{item.products.price.toLocaleString()} MMK each</span>
                       <span className="font-semibold text-foreground">
-                        Ks {(item.products.price * item.quantity).toFixed(2)}
+                        {(item.products.price * item.quantity).toLocaleString()} MMK
                       </span>
                     </div>
                   </div>
@@ -361,7 +361,7 @@ const CheckoutDialog = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Grand Total:</span>
-                  <span className="font-bold text-primary">Ks {totalPrice.toFixed(2)}</span>
+                  <span className="font-bold text-primary">{totalPrice.toLocaleString()} MMK</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Points to Earn:</span>
