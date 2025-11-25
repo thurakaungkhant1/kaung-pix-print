@@ -140,7 +140,14 @@ const Home = () => {
               <span className="sm:hidden">MLBB</span>
             </Button>
           </div>
-          <h1 className="text-2xl font-bold">Kaung Computer</h1>
+          <div className="flex items-center gap-2">
+            <img 
+              src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" 
+              alt="Logo" 
+              className="h-8 w-8 object-contain"
+            />
+            <h1 className="text-2xl font-bold">Kaung Computer</h1>
+          </div>
           <div className="flex-1 flex justify-end">
             <CartHeader />
           </div>
