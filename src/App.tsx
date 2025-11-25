@@ -6,11 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
-import { DownloadProgressProvider } from "@/contexts/DownloadProgressContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LoadingScreen from "@/components/LoadingScreen";
-import DownloadProgressBar from "@/components/DownloadProgressBar";
 import Home from "./pages/Home";
 import Photo from "./pages/Photo";
 import Favourite from "./pages/Favourite";
@@ -58,9 +56,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <OnlineUsersProvider>
-              <DownloadProgressProvider>
-                <DownloadProgressBar />
-                <Routes>
+              <Routes>
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/signup" element={<Signup />} />
               <Route
@@ -273,7 +269,6 @@ const App = () => {
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
-              </DownloadProgressProvider>
             </OnlineUsersProvider>
           </AuthProvider>
         </BrowserRouter>
