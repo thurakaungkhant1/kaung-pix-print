@@ -15,6 +15,7 @@ import BottomNav from "@/components/BottomNav";
 import SpinnerWheel from "@/components/SpinnerWheel";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import ReferralSection from "@/components/ReferralSection";
 
 interface Profile {
   name: string;
@@ -280,6 +281,9 @@ const Account = () => {
             </p>
           </CardContent>
         </Card>
+
+        {/* Referral Section */}
+        <ReferralSection />
 
         <Card>
           <Collapsible open={profileSectionOpen} onOpenChange={setProfileSectionOpen}>
