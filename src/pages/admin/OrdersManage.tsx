@@ -155,7 +155,7 @@ const OrdersManage = () => {
                   <div className="flex items-center gap-4 text-sm">
                     <span>Qty: {order.quantity}</span>
                     <span className="font-bold text-primary">
-                      ${order.price.toFixed(2)}
+                      {order.price.toLocaleString()} MMK
                     </span>
                     <span className="text-green-600">
                       {order.products.points_value * order.quantity} pts

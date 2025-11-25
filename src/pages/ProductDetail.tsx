@@ -214,7 +214,7 @@ const ProductDetail = () => {
               <div className="flex-1">
                 <CardTitle className="text-2xl">{product.name}</CardTitle>
                 <CardDescription className="text-xl font-bold text-primary mt-2">
-                  ${product.price.toFixed(2)}
+                  {product.price.toLocaleString()} MMK
                 </CardDescription>
               </div>
               <Button

@@ -173,7 +173,7 @@ const Cart = () => {
                         {item.products.name}
                       </h3>
                       <p className="text-primary font-bold mt-1">
-                        Ks {item.products.price.toFixed(2)}
+                        {item.products.price.toLocaleString()} MMK
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {item.products.points_value} points per item
@@ -219,7 +219,7 @@ const Cart = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-bold">
-                        Ks {(item.products.price * item.quantity).toFixed(2)}
+                        {(item.products.price * item.quantity).toLocaleString()} MMK
                       </p>
                       <p className="text-xs text-green-600">
                         +{item.products.points_value * item.quantity} pts
@@ -243,9 +243,9 @@ const Cart = () => {
                         <span className="font-medium flex-1">{item.products.name}</span>
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Ks {item.products.price.toFixed(2)} × {item.quantity}</span>
+                        <span>{item.products.price.toLocaleString()} MMK × {item.quantity}</span>
                         <span className="font-semibold text-foreground">
-                          Ks {(item.products.price * item.quantity).toFixed(2)}
+                          {(item.products.price * item.quantity).toLocaleString()} MMK
                         </span>
                       </div>
                       {item !== cartItems[cartItems.length - 1] && (
@@ -268,7 +268,7 @@ const Cart = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold">Grand Total:</span>
                     <span className="text-2xl font-bold text-primary">
-                      Ks {totalPrice.toFixed(2)}
+                      {totalPrice.toLocaleString()} MMK
                     </span>
                   </div>
                 </div>

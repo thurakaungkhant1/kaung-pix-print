@@ -157,7 +157,7 @@ const CategoryProducts = () => {
                 </div>
                 <CardContent className="p-3">
                   <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                  <p className="text-primary font-bold">${product.price.toFixed(2)}</p>
+                  <p className="text-primary font-bold">{product.price.toLocaleString()} MMK</p>
                 </CardContent>
               </Card>
             ))}
