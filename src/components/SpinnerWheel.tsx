@@ -60,14 +60,28 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
     const targetAngle = (15 - randomSegment) * segmentAngle;
     const finalRotation = rotation + baseRotation + targetAngle;
 
-    // Award points only for segments 1-5
-    const pointsWon = randomSegment >= 1 && randomSegment <= 5 ? 15 : 0;
-
     setRotation(finalRotation);
 
     // Wait for animation to complete
     setTimeout(async () => {
       const today = new Date().toISOString().split("T")[0];
+
+      // Check how many points already earned from spins today
+      const { data: todaySpins } = await supabase
+        .from("spinner_spins")
+        .select("points_won")
+        .eq("user_id", user.id)
+        .eq("spin_date", today);
+
+      const todaySpinPoints = todaySpins?.reduce((sum, spin) => sum + spin.points_won, 0) || 0;
+      
+      // Calculate points to award - max 5 per day total from spins
+      const maxDailySpinPoints = 5;
+      const remainingPoints = Math.max(0, maxDailySpinPoints - todaySpinPoints);
+      
+      // Determine if this spin wins (segments 1-5)
+      const isWinningSegment = randomSegment >= 1 && randomSegment <= 5;
+      const pointsWon = isWinningSegment ? Math.min(remainingPoints, 5) : 0;
 
       // Record spin
       const { error: spinError } = await supabase
@@ -123,6 +137,12 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
           toast({
             title: "Congratulations! 🎉",
             description: `You have been awarded ${pointsWon} points!`,
+            duration: 5000,
+          });
+        } else if (isWinningSegment && remainingPoints === 0) {
+          toast({
+            title: "Daily Limit Reached",
+            description: "You've already earned the maximum 5 points from spins today. Try again tomorrow!",
             duration: 5000,
           });
         } else {
