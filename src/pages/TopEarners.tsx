@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Trophy, Medal, Award, Coins } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
 import BottomNav from "@/components/BottomNav";
 
 interface LeaderboardUser {
@@ -15,6 +16,7 @@ interface LeaderboardUser {
 const TopEarners = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const { user } = useAuth();
+  const { isUserOnline } = useOnlineUsers();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,6 +60,7 @@ const TopEarners = () => {
             ) : (
               leaderboard.map((leaderUser, index) => {
                 const isCurrentUser = user?.id === leaderUser.id;
+                const isOnline = isUserOnline(leaderUser.id);
                 const rank = index + 1;
                 
                 return (
@@ -80,16 +83,26 @@ const TopEarners = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-semibold truncate ${
-                        isCurrentUser ? "text-primary" : ""
-                      }`}>
-                        {leaderUser.name}
-                        {isCurrentUser && (
-                          <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-                            You
-                          </span>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-sm font-semibold truncate ${
+                          isCurrentUser ? "text-primary" : ""
+                        }`}>
+                          {leaderUser.name}
+                          {isCurrentUser && (
+                            <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+                              You
+                            </span>
+                          )}
+                        </p>
+                        {isOnline && (
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                              Active Now
+                            </span>
+                          </div>
                         )}
-                      </p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <Coins className="h-4 w-4 text-primary" />
