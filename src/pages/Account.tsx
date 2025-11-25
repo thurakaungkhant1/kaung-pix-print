@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, History, Trophy, ChevronDown, ChevronUp } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -233,7 +233,7 @@ const Account = () => {
               <p className="text-sm text-muted-foreground mt-2">Total Points</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 className="w-full"
@@ -249,14 +249,6 @@ const Account = () => {
               >
                 <Coins className="mr-2 h-4 w-4" />
                 Exchange
-              </Button>
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={() => navigate("/point-history")}
-              >
-                <History className="mr-2 h-4 w-4" />
-                History
               </Button>
             </div>
             
@@ -325,6 +317,18 @@ const Account = () => {
                       <p className="font-medium">{profile?.phone_number || "Loading..."}</p>
                     </div>
                   </div>
+                  <Separator />
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => navigate("/point-history")}
+                  >
+                    <History className="mr-2 h-5 w-5 text-muted-foreground" />
+                    <div className="text-left">
+                      <p className="text-sm text-muted-foreground">History</p>
+                      <p className="font-medium">View point & purchase history</p>
+                    </div>
+                  </Button>
                 </div>
 
                 <Separator className="my-6" />
