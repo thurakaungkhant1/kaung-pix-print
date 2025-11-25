@@ -23,6 +23,8 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Exchange from "./pages/Exchange";
 import Cart from "./pages/Cart";
+import PointHistory from "./pages/PointHistory";
+import TopEarners from "./pages/TopEarners";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -250,6 +252,22 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Cart />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/point-history"
+                element={
+                  <ProtectedRoute>
+                    <PointHistory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/top-earners"
+                element={
+                  <ProtectedRoute>
+                    <TopEarners />
                   </ProtectedRoute>
                 }
               />
