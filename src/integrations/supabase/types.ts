@@ -335,6 +335,8 @@ export type Database = {
           name: string
           phone_number: string
           points: number
+          referral_code: string | null
+          referred_by: string | null
         }
         Insert: {
           created_at?: string | null
@@ -344,6 +346,8 @@ export type Database = {
           name: string
           phone_number: string
           points?: number
+          referral_code?: string | null
+          referred_by?: string | null
         }
         Update: {
           created_at?: string | null
@@ -353,8 +357,18 @@ export type Database = {
           name?: string
           phone_number?: string
           points?: number
+          referral_code?: string | null
+          referred_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       spinner_spins: {
         Row: {
@@ -472,6 +486,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
       get_daily_points_earned: {
         Args: { exclude_spin?: boolean; user_id_param: string }
         Returns: number

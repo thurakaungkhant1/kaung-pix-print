@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,13 +9,23 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 const Signup = () => {
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Pre-fill referral code from URL if present
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode.toUpperCase());
+    }
+  }, [searchParams]);
 
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 8) return "Password must be at least 8 characters";
@@ -59,6 +69,7 @@ const Signup = () => {
           data: {
             name,
             phone_number: phoneNumber,
+            referral_code: referralCode || null,
           },
         },
       });
@@ -136,6 +147,19 @@ const Signup = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+              <Input
+                id="referralCode"
+                type="text"
+                placeholder="Enter referral code"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+              />
+              <p className="text-xs text-muted-foreground">
+                Have a referral code? Get bonus points!
+              </p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
