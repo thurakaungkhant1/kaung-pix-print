@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Heart, Download, ArrowLeft, FileArchive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDownloadProgress } from "@/contexts/DownloadProgressContext";
 import PinVerificationDialog from "@/components/PinVerificationDialog";
 
 interface Photo {
@@ -25,6 +26,7 @@ const PhotoDetail = () => {
   const [userPin, setUserPin] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { startDownload, updateProgress, finishDownload } = useDownloadProgress();
 
   useEffect(() => {
     loadPhoto();
@@ -106,21 +108,65 @@ const PhotoDetail = () => {
     setShowPinDialog(true);
   };
 
-  const handlePinVerified = () => {
-    if (photo?.file_url) {
-      window.open(photo.file_url, "_blank");
+  const handlePinVerified = async () => {
+    if (!photo?.file_url) return;
+
+    try {
+      startDownload(photo.client_name);
+
+      const response = await fetch(photo.file_url);
+      if (!response.ok) throw new Error("Download failed");
+
+      const contentLength = response.headers.get("content-length");
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader available");
+
+      const chunks: BlobPart[] = [];
+      let receivedLength = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        receivedLength += value.length;
+
+        if (total > 0) {
+          const progress = (receivedLength / total) * 100;
+          updateProgress(progress);
+        }
+      }
+
+      const blob = new Blob(chunks);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${photo.client_name}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      finishDownload();
+
       toast({
-        title: "Download started",
-        description: "Your photos are being downloaded",
+        title: "Download complete",
+        description: "Your photos have been downloaded successfully",
+      });
+    } catch (error) {
+      finishDownload();
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading your photos",
+        variant: "destructive",
       });
     }
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
   };
 
   if (!photo) {

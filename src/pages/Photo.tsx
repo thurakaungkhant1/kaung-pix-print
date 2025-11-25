@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, FileArchive } from "lucide-react";
+import { Heart, FileArchive, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
 import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 
@@ -26,6 +27,7 @@ const Photo = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { onlineCount } = useOnlineUsers();
 
   useEffect(() => {
     loadPhotos();
@@ -97,10 +99,7 @@ const Photo = () => {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
   };
 
   if (loading) {
@@ -127,9 +126,12 @@ const Photo = () => {
     <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
         <div className="flex items-center justify-between">
-          <div className="flex-1" />
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            <span className="text-sm font-semibold">{onlineCount} Online</span>
+          </div>
           <h1 className="text-2xl font-bold">Kaung Computer</h1>
-          <div className="flex-1 flex justify-end">
+          <div className="flex justify-end">
             <CartHeader />
           </div>
         </div>
