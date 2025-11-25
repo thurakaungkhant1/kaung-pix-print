@@ -25,7 +25,7 @@ const PhotoNew = () => {
     const { error } = await supabase.from("photos").insert({
       client_name: clientName,
       file_url: fileUrl,
-      file_size: parseInt(fileSize),
+      file_size: parseInt(fileSize) * 1024 * 1024, // Convert MB to bytes
       preview_image: previewImage || null,
       category: category,
     });
@@ -88,13 +88,13 @@ const PhotoNew = () => {
               </div>
 
               <div>
-                <Label htmlFor="fileSize">File Size (bytes) *</Label>
+                <Label htmlFor="fileSize">File Size (MB) *</Label>
                 <Input
                   id="fileSize"
                   type="number"
                   value={fileSize}
                   onChange={(e) => setFileSize(e.target.value)}
-                  placeholder="e.g., 10485760 for 10MB"
+                  placeholder="e.g., 5"
                   required
                 />
               </div>
