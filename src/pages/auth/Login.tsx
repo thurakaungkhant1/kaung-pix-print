@@ -46,7 +46,7 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <img alt="Kaung Computer Logo" src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" className="h-20 w-20 object-contain shadow-xl" />
+            <img alt="Kaung Computer Logo" src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" className="h-20 w-20 object-contain shadow-sm border-slate-950" />
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Kaung Computer
