@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, History, ShoppingBag, TrendingUp } from "lucide-react";
+import { ArrowLeft, History, ShoppingBag } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
@@ -15,12 +15,6 @@ interface Transaction {
   created_at: string;
 }
 
-interface Withdrawal {
-  id: string;
-  points_withdrawn: number;
-  status: string;
-  created_at: string;
-}
 
 interface Order {
   id: string;
@@ -33,7 +27,6 @@ interface Order {
 
 const PointHistory = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -41,7 +34,6 @@ const PointHistory = () => {
   useEffect(() => {
     if (user) {
       loadTransactions();
-      loadWithdrawals();
       loadOrders();
     }
   }, [user]);
@@ -60,19 +52,6 @@ const PointHistory = () => {
     }
   };
 
-  const loadWithdrawals = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("point_withdrawals")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (data) {
-      setWithdrawals(data);
-    }
-  };
 
   const loadOrders = async () => {
     if (!user) return;
@@ -132,37 +111,6 @@ const PointHistory = () => {
             )}
           </CardContent>
         </Card>
-
-        {/* Withdrawal Status */}
-        {withdrawals.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Withdrawal Requests
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {withdrawals.map((withdrawal) => (
-                <div key={withdrawal.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{withdrawal.points_withdrawn.toLocaleString()} points</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(withdrawal.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Badge variant={
-                    withdrawal.status === "completed" ? "default" :
-                    withdrawal.status === "rejected" ? "destructive" :
-                    "secondary"
-                  }>
-                    {withdrawal.status}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
 
         {/* Purchase History */}
         <Card>
