@@ -282,6 +282,44 @@ const Account = () => {
           </CardContent>
         </Card>
 
+        {/* History Links */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-6 w-6" />
+              History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/point-history")}
+            >
+              <History className="mr-2 h-5 w-5 text-muted-foreground" />
+              <span>Point History</span>
+            </Button>
+            <Separator />
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/point-history")}
+            >
+              <History className="mr-2 h-5 w-5 text-muted-foreground" />
+              <span>Order History</span>
+            </Button>
+            <Separator />
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/point-history")}
+            >
+              <History className="mr-2 h-5 w-5 text-muted-foreground" />
+              <span>Redeem/Withdrawal History</span>
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Referral Section */}
         <ReferralSection />
 
@@ -321,18 +359,6 @@ const Account = () => {
                       <p className="font-medium">{profile?.phone_number || "Loading..."}</p>
                     </div>
                   </div>
-                  <Separator />
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => navigate("/point-history")}
-                  >
-                    <History className="mr-2 h-5 w-5 text-muted-foreground" />
-                    <div className="text-left">
-                      <p className="text-sm text-muted-foreground">History</p>
-                      <p className="font-medium">View point & purchase history</p>
-                    </div>
-                  </Button>
                 </div>
 
                 <Separator className="my-6" />

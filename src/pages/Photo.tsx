@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, FileArchive, Users } from "lucide-react";
+import { Heart, FileArchive, Users, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
 import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
+import { Input } from "@/components/ui/input";
+import { addWatermark } from "@/lib/watermarkUtils";
 
 interface Photo {
   id: number;
@@ -24,6 +26,8 @@ const Photo = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [categories, setCategories] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [watermarkedImages, setWatermarkedImages] = useState<Map<number, string>>(new Map());
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -33,6 +37,20 @@ const Photo = () => {
     loadPhotos();
     if (user) loadFavourites();
   }, [user]);
+
+  useEffect(() => {
+    // Apply watermark to loaded photos
+    photos.forEach(async (photo) => {
+      if (photo.preview_image && !watermarkedImages.has(photo.id)) {
+        try {
+          const watermarked = await addWatermark(photo.preview_image);
+          setWatermarkedImages((prev) => new Map(prev).set(photo.id, watermarked));
+        } catch (error) {
+          console.error("Failed to add watermark:", error);
+        }
+      }
+    });
+  }, [photos]);
 
   const loadPhotos = async () => {
     const { data, error } = await supabase
@@ -99,6 +117,7 @@ const Photo = () => {
   };
 
   const formatFileSize = (bytes: number) => {
+    if (!bytes || bytes === 0) return "N/A";
     return (bytes / (1024 * 1024)).toFixed(2) + " MB";
   };
 
@@ -117,15 +136,17 @@ const Photo = () => {
     );
   }
 
-  const filteredPhotos =
-    selectedCategory === "All"
-      ? photos
-      : photos.filter((photo) => photo.category === selectedCategory);
+  const filteredPhotos = photos
+    .filter((photo) => {
+      const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
+      const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5" />
             <span className="text-sm font-semibold">{onlineCount} Online</span>
@@ -134,6 +155,16 @@ const Photo = () => {
           <div className="flex justify-end">
             <CartHeader />
           </div>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
+          <Input
+            type="text"
+            placeholder="Search photos..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
+          />
         </div>
       </header>
 
@@ -174,7 +205,7 @@ const Photo = () => {
                 <div className="relative aspect-square bg-muted flex items-center justify-center">
                   {photo.preview_image ? (
                     <img
-                      src={photo.preview_image}
+                      src={watermarkedImages.get(photo.id) || photo.preview_image}
                       alt={photo.client_name}
                       className="w-full h-full object-cover"
                     />
