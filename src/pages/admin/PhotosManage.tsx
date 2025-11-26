@@ -14,6 +14,7 @@ interface Photo {
   file_size: number;
   preview_image: string | null;
   category: string;
+  shooting_date: string | null;
 }
 
 const PhotosManage = () => {
@@ -121,6 +122,11 @@ const PhotosManage = () => {
                   <p className="text-sm text-muted-foreground">
                     {formatFileSize(photo.file_size)}
                   </p>
+                  {photo.shooting_date && (
+                    <p className="text-xs text-muted-foreground">
+                      Date: {new Date(photo.shooting_date).toLocaleDateString()}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground truncate">{photo.file_url}</p>
                 </div>
                 <Button

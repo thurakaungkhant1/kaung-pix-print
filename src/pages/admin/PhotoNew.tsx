@@ -14,6 +14,7 @@ const PhotoNew = () => {
   const [fileSize, setFileSize] = useState("");
   const [previewImage, setPreviewImage] = useState("");
   const [category, setCategory] = useState("General");
+  const [shootingDate, setShootingDate] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const PhotoNew = () => {
       file_size: parseInt(fileSize) * 1024 * 1024, // Convert MB to bytes
       preview_image: previewImage || null,
       category: category,
+      shooting_date: shootingDate || null,
     });
 
     if (error) {
@@ -118,6 +120,16 @@ const PhotoNew = () => {
                   onChange={(e) => setCategory(e.target.value)}
                   placeholder="e.g., Wedding, Birthday, Event"
                   required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="shootingDate">Photo Shooting Date (optional)</Label>
+                <Input
+                  id="shootingDate"
+                  type="date"
+                  value={shootingDate}
+                  onChange={(e) => setShootingDate(e.target.value)}
                 />
               </div>
 
