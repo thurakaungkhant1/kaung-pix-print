@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, ShoppingCart, Gem } from "lucide-react";
+import { Heart, ShoppingCart, Gem, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Product {
   id: number;
@@ -27,6 +28,7 @@ const Home = () => {
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([]);
   const [favourites, setFavourites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -129,7 +131,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex-1">
             <Button
               onClick={() => navigate("/mlbb-diamonds")}
@@ -144,6 +146,16 @@ const Home = () => {
             <CartHeader />
           </div>
         </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
+          <Input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
+          />
+        </div>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-8">
@@ -153,21 +165,28 @@ const Home = () => {
             <p className="text-muted-foreground">No products available yet</p>
           </div>
         ) : (
-          categoryGroups.slice(0, 3).map((group) => (
-            <div key={group.category} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">{group.category}</h2>
-                <button
-                  onClick={() => navigate(`/category/${encodeURIComponent(group.category)}`)}
-                  className="text-primary text-sm font-medium hover:underline"
-                >
-                  View All
-                </button>
-              </div>
-              
-              <div className="overflow-x-auto scrollbar-hide">
-                <div className="flex gap-4 pb-2">
-                  {group.products.slice(0, 6).map((product) => (
+          categoryGroups.slice(0, 3).map((group) => {
+            const filteredProducts = group.products.filter((product) =>
+              product.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            
+            if (filteredProducts.length === 0 && searchQuery) return null;
+            
+            return (
+              <div key={group.category} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold">{group.category}</h2>
+                  <button
+                    onClick={() => navigate(`/category/${encodeURIComponent(group.category)}`)}
+                    className="text-primary text-sm font-medium hover:underline"
+                  >
+                    View All
+                  </button>
+                </div>
+                
+                <div className="overflow-x-auto scrollbar-hide">
+                  <div className="flex gap-4 pb-2">
+                    {filteredProducts.slice(0, 6).map((product) => (
                     <Card
                       key={product.id}
                       className="flex-shrink-0 w-40 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
@@ -200,11 +219,12 @@ const Home = () => {
                         <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} MMK</p>
                       </CardContent>
                     </Card>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
