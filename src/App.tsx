@@ -13,6 +13,7 @@ import Home from "./pages/Home";
 import Photo from "./pages/Photo";
 import Favourite from "./pages/Favourite";
 import Account from "./pages/Account";
+import AIChat from "./pages/AIChat";
 import ProductDetail from "./pages/ProductDetail";
 import PhotoDetail from "./pages/PhotoDetail";
 import CategoryProducts from "./pages/CategoryProducts";
@@ -88,6 +89,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Account />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ai-chat"
+                element={
+                  <ProtectedRoute>
+                    <AIChat />
                   </ProtectedRoute>
                 }
               />

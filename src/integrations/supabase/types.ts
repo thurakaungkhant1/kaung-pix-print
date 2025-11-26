@@ -175,6 +175,7 @@ export type Database = {
           file_url: string
           id: number
           preview_image: string | null
+          shooting_date: string | null
         }
         Insert: {
           category?: string | null
@@ -184,6 +185,7 @@ export type Database = {
           file_url: string
           id?: number
           preview_image?: string | null
+          shooting_date?: string | null
         }
         Update: {
           category?: string | null
@@ -193,6 +195,7 @@ export type Database = {
           file_url?: string
           id?: number
           preview_image?: string | null
+          shooting_date?: string | null
         }
         Relationships: []
       }

@@ -1,5 +1,8 @@
 project_id = "ojoenxchuzqonpixomkl"
 
+[functions.ai-chat]
+verify_jwt = true
+
 [functions.profiles-get-me]
 verify_jwt = true
 

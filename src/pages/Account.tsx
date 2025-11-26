@@ -216,7 +216,21 @@ const Account = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
-        <h1 className="text-2xl font-bold text-center">Account</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Account</h1>
+          <div className="flex items-center gap-3">
+            {theme === "dark" ? (
+              <Moon className="h-5 w-5" />
+            ) : (
+              <Sun className="h-5 w-5" />
+            )}
+            <Switch
+              id="header-theme-switch"
+              checked={theme === "dark"}
+              onCheckedChange={toggleTheme}
+            />
+          </div>
+        </div>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-4">
@@ -548,28 +562,14 @@ const Account = () => {
           </Collapsible>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Appearance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {theme === "dark" ? (
-                  <Moon className="h-5 w-5" />
-                ) : (
-                  <Sun className="h-5 w-5" />
-                )}
-                <Label htmlFor="theme-switch">Dark Mode</Label>
-              </div>
-              <Switch
-                id="theme-switch"
-                checked={theme === "dark"}
-                onCheckedChange={toggleTheme}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          onClick={() => navigate("/ai-chat")}
+        >
+          <Mail className="mr-2 h-5 w-5" />
+          AI Assistant
+        </Button>
 
         {isAdmin && (
           <Button

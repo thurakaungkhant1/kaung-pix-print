@@ -3,10 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Download, ArrowLeft, FileArchive } from "lucide-react";
+import { Heart, Download, ArrowLeft, FileArchive, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import PinVerificationDialog from "@/components/PinVerificationDialog";
+import { addWatermark } from "@/lib/watermarkUtils";
 
 interface Photo {
   id: number;
@@ -14,12 +15,14 @@ interface Photo {
   file_url: string;
   file_size: number;
   preview_image: string | null;
+  shooting_date: string | null;
 }
 
 const PhotoDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [photo, setPhoto] = useState<Photo | null>(null);
+  const [watermarkedImage, setWatermarkedImage] = useState<string | null>(null);
   const [isFavourite, setIsFavourite] = useState(false);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [userPin, setUserPin] = useState<string | null>(null);
@@ -58,6 +61,17 @@ const PhotoDetail = () => {
 
     if (!error && data) {
       setPhoto(data);
+      
+      // Apply watermark to preview image
+      if (data.preview_image) {
+        try {
+          const watermarked = await addWatermark(data.preview_image);
+          setWatermarkedImage(watermarked);
+        } catch (error) {
+          console.error("Failed to add watermark:", error);
+          setWatermarkedImage(data.preview_image);
+        }
+      }
     }
   };
 
@@ -144,7 +158,13 @@ const PhotoDetail = () => {
       <div className="max-w-screen-xl mx-auto p-4">
         <Card className="overflow-hidden">
           <div className="aspect-square bg-muted flex items-center justify-center">
-            {photo.preview_image ? (
+            {watermarkedImage ? (
+              <img
+                src={watermarkedImage}
+                alt={photo.client_name}
+                className="w-full h-full object-cover"
+              />
+            ) : photo.preview_image ? (
               <img
                 src={photo.preview_image}
                 alt={photo.client_name}
@@ -158,9 +178,17 @@ const PhotoDetail = () => {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <CardTitle className="text-2xl">{photo.client_name}</CardTitle>
-                <p className="text-muted-foreground mt-2">
-                  Size: {formatFileSize(photo.file_size)}
-                </p>
+                <div className="space-y-1 mt-2">
+                  <p className="text-muted-foreground">
+                    Size: {formatFileSize(photo.file_size)}
+                  </p>
+                  {photo.shooting_date && (
+                    <p className="text-muted-foreground flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(photo.shooting_date).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
               </div>
               <Button
                 variant="ghost"
