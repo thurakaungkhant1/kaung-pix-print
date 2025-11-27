@@ -55,9 +55,9 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
 
     // Calculate rotation (multiple full spins + random landing position for visual effect)
     const baseRotation = 360 * 5; // 5 full spins
-    const randomSegment = Math.floor(Math.random() * 15) + 1;
-    const segmentAngle = 360 / 15;
-    const targetAngle = (15 - randomSegment) * segmentAngle;
+    const randomSegment = Math.floor(Math.random() * 10) + 1;
+    const segmentAngle = 360 / 10;
+    const targetAngle = (10 - randomSegment) * segmentAngle;
     const finalRotation = rotation + baseRotation + targetAngle;
 
     setRotation(finalRotation);
@@ -66,22 +66,8 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
     setTimeout(async () => {
       const today = new Date().toISOString().split("T")[0];
 
-      // Check how many points already earned from spins today
-      const { data: todaySpins } = await supabase
-        .from("spinner_spins")
-        .select("points_won")
-        .eq("user_id", user.id)
-        .eq("spin_date", today);
-
-      const todaySpinPoints = todaySpins?.reduce((sum, spin) => sum + spin.points_won, 0) || 0;
-      
-      // Calculate points to award - max 5 per day total from spins
-      const maxDailySpinPoints = 5;
-      const remainingPoints = Math.max(0, maxDailySpinPoints - todaySpinPoints);
-      
-      // Determine if this spin wins (segments 1-5)
-      const isWinningSegment = randomSegment >= 1 && randomSegment <= 5;
-      const pointsWon = isWinningSegment ? Math.min(remainingPoints, 5) : 0;
+      // Always award 5 points per spin
+      const pointsWon = 5;
 
       // Record spin
       const { error: spinError } = await supabase
@@ -102,28 +88,26 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
         return;
       }
 
-      // Add transaction and update points only if points were won
-      if (pointsWon > 0) {
-        await supabase.from("point_transactions").insert({
-          user_id: user.id,
-          amount: pointsWon,
-          transaction_type: "spin",
-          description: `Won ${pointsWon} points from daily spinner`,
-        });
+      // Add transaction and update points
+      await supabase.from("point_transactions").insert({
+        user_id: user.id,
+        amount: pointsWon,
+        transaction_type: "spin",
+        description: `Won ${pointsWon} points from daily spinner`,
+      });
 
-        // Update user points
-        const { data: profile } = await supabase
+      // Update user points
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("points")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        await supabase
           .from("profiles")
-          .select("points")
-          .eq("id", user.id)
-          .single();
-
-        if (profile) {
-          await supabase
-            .from("profiles")
-            .update({ points: profile.points + pointsWon })
-            .eq("id", user.id);
-        }
+          .update({ points: profile.points + pointsWon })
+          .eq("id", user.id);
       }
 
       onPointsWon(pointsWon);
@@ -133,25 +117,11 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
       
       // Show confirmation dialog
       setTimeout(() => {
-        if (pointsWon > 0) {
-          toast({
-            title: "Congratulations! 🎉",
-            description: `You have been awarded ${pointsWon} points!`,
-            duration: 5000,
-          });
-        } else if (isWinningSegment && remainingPoints === 0) {
-          toast({
-            title: "Daily Limit Reached",
-            description: "You've already earned the maximum 5 points from spins today. Try again tomorrow!",
-            duration: 5000,
-          });
-        } else {
-          toast({
-            title: "Better luck tomorrow!",
-            description: "You didn't win points this time. Try again tomorrow!",
-            duration: 5000,
-          });
-        }
+        toast({
+          title: "Congratulations! 🎉",
+          description: `You won ${pointsWon} points! Come back tomorrow for another spin!`,
+          duration: 5000,
+        });
       }, 100);
     }, 4000);
   };
@@ -192,12 +162,12 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
                 }}
               >
                 {/* Segments */}
-                {Array.from({ length: 15 }).map((_, i) => (
+                {Array.from({ length: 10 }).map((_, i) => (
                   <div
                     key={i}
                     className="absolute top-1/2 left-1/2 origin-top-left text-sm text-primary-foreground font-bold"
                     style={{
-                      transform: `rotate(${i * (360 / 15)}deg) translateX(5.5rem)`,
+                      transform: `rotate(${i * (360 / 10)}deg) translateX(5.5rem)`,
                       width: "2rem",
                     }}
                   >
@@ -220,7 +190,7 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
             {canSpin ? (
               <>
                 <p className="text-sm text-muted-foreground">
-                  Spin the wheel daily! Land on segments 1-5 to win 15 points!
+                  Spin the wheel once daily and win 5 points!
                 </p>
                 <Button
                   onClick={handleSpin}
