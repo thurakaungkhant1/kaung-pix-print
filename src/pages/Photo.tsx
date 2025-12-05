@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, FileArchive, Users, Search } from "lucide-react";
+import { Heart, FileArchive, Users, Search, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
@@ -10,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 import { Input } from "@/components/ui/input";
 import { addWatermark } from "@/lib/watermarkUtils";
+import { cn } from "@/lib/utils";
 
 interface Photo {
   id: number;
@@ -39,7 +40,6 @@ const Photo = () => {
   }, [user]);
 
   useEffect(() => {
-    // Apply watermark to loaded photos
     photos.forEach(async (photo) => {
       if (photo.preview_image && !watermarkedImages.has(photo.id)) {
         try {
@@ -61,7 +61,6 @@ const Photo = () => {
     if (!error && data) {
       setPhotos(data);
       
-      // Extract unique categories
       const uniqueCategories = Array.from(
         new Set(data.map((photo) => photo.category || "General"))
       );
@@ -123,11 +122,15 @@ const Photo = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background pb-24">
         <div className="max-w-screen-xl mx-auto p-4">
           <div className="grid grid-cols-2 gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />
+              <div 
+                key={i} 
+                className="h-56 rounded-2xl animate-shimmer" 
+                style={{ animationDelay: `${i * 100}ms` }}
+              />
             ))}
           </div>
         </div>
@@ -144,96 +147,144 @@ const Photo = () => {
     });
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            <span className="text-sm font-semibold">{onlineCount} Online</span>
-          </div>
-          <h1 className="text-2xl font-bold">Kaung Computer</h1>
-          <div className="flex justify-end">
+    <div className="min-h-screen bg-background pb-24">
+      {/* Hero Header */}
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-hero" />
+        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
+        
+        <div className="relative z-10 p-4 pt-6 pb-5">
+          {/* Top row */}
+          <div className="flex items-center justify-between mb-5">
+            <div className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-full",
+              "bg-primary-foreground/10 border border-primary-foreground/20"
+            )}>
+              <div className="relative">
+                <Users className="h-4 w-4 text-primary-foreground" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-accent rounded-full animate-pulse" />
+              </div>
+              <span className="text-sm font-semibold text-primary-foreground">{onlineCount} Online</span>
+            </div>
+            
+            <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
+              Photos
+            </h1>
+            
             <CartHeader />
           </div>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
-          <Input
-            type="text"
-            placeholder="Search photos..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
-          />
+          
+          {/* Search bar */}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-primary-foreground/10 rounded-2xl blur group-focus-within:blur-lg transition-all duration-300" />
+            <div className="relative flex items-center">
+              <Search className="absolute left-4 h-5 w-5 text-primary-foreground/50 transition-colors group-focus-within:text-primary-foreground/80" />
+              <Input
+                type="text"
+                placeholder="Search by client name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={cn(
+                  "w-full pl-11 pr-4 py-3 h-12 rounded-2xl",
+                  "bg-primary-foreground/10 border-primary-foreground/20",
+                  "text-primary-foreground placeholder:text-primary-foreground/50",
+                  "focus:bg-primary-foreground/15 focus:border-primary-foreground/30",
+                  "transition-all duration-300"
+                )}
+              />
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-screen-xl mx-auto p-4 space-y-4">
+      <div className="max-w-screen-xl mx-auto p-4 space-y-5">
         {/* Category Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {categories.map((category) => (
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+          {categories.map((category, index) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+              className={cn(
+                "px-4 py-2.5 rounded-xl whitespace-nowrap font-medium text-sm",
+                "transition-all duration-300 active:scale-95",
+                "animate-fade-in",
                 selectedCategory === category
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
+                  ? "bg-primary text-primary-foreground shadow-glow"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+              )}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
               {category}
             </button>
           ))}
         </div>
+
         {filteredPhotos.length === 0 ? (
-          <div className="text-center py-12">
-            <FileArchive className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
+          <div className="text-center py-16 animate-fade-in">
+            <div className="relative inline-block mb-6">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse-soft" />
+              <Camera className="relative h-20 w-20 text-muted-foreground" />
+            </div>
+            <p className="text-lg text-muted-foreground font-medium">
               {selectedCategory === "All"
                 ? "No photos available yet"
                 : `No photos in ${selectedCategory} category`}
             </p>
+            <p className="text-sm text-muted-foreground/70 mt-1">Check back soon for new uploads</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {filteredPhotos.map((photo) => (
+            {filteredPhotos.map((photo, index) => (
               <Card
                 key={photo.id}
-                className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                className={cn(
+                  "product-card cursor-pointer animate-scale-in"
+                )}
+                style={{ animationDelay: `${index * 50}ms` }}
                 onClick={() => navigate(`/photo/${photo.id}`)}
               >
-                <div className="relative aspect-square bg-muted flex items-center justify-center">
+                <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden rounded-t-2xl">
                   {photo.preview_image ? (
                     <img
                       src={watermarkedImages.get(photo.id) || photo.preview_image}
                       alt={photo.client_name}
-                      className="w-full h-full object-cover"
+                      className="product-image"
                     />
                   ) : (
                     <FileArchive className="h-16 w-16 text-muted-foreground" />
                   )}
+                  
+                  {/* Favourite button */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleFavourite(photo.id);
                     }}
-                    className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
+                    className={cn(
+                      "absolute top-2.5 right-2.5 p-2 rounded-full",
+                      "glass border-0 transition-all duration-300",
+                      "hover:scale-110 active:scale-95",
+                      favourites.has(photo.id) 
+                        ? "bg-primary/90 text-primary-foreground shadow-glow" 
+                        : "bg-background/80 text-muted-foreground hover:bg-background"
+                    )}
                   >
                     <Heart
-                      className={`h-4 w-4 ${
-                        favourites.has(photo.id)
-                          ? "fill-primary text-primary"
-                          : "text-muted-foreground"
-                      }`}
+                      className={cn(
+                        "h-4 w-4 transition-all duration-300",
+                        favourites.has(photo.id) && "fill-current"
+                      )}
                     />
                   </button>
+                  
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
                 </div>
-                <CardContent className="p-3">
-                  <div className="mb-1">
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                      {photo.category || "General"}
-                    </span>
-                  </div>
+                
+                <CardContent className="p-3 space-y-1.5">
+                  <span className="badge-modern">
+                    {photo.category || "General"}
+                  </span>
                   <h3 className="font-semibold text-sm truncate">{photo.client_name}</h3>
                   <p className="text-xs text-muted-foreground">
                     {formatFileSize(photo.file_size)}

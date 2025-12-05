@@ -7,15 +7,15 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import SpinnerWheel from "@/components/SpinnerWheel";
-import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import ReferralSection from "@/components/ReferralSection";
+import { cn } from "@/lib/utils";
 
 interface Profile {
   name: string;
@@ -152,62 +152,102 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Account</h1>
-          <div className="flex items-center gap-3">
-            {theme === "dark" ? (
-              <Moon className="h-5 w-5" />
-            ) : (
-              <Sun className="h-5 w-5" />
-            )}
-            <Switch
-              id="header-theme-switch"
-              checked={theme === "dark"}
-              onCheckedChange={toggleTheme}
-            />
+    <div className="min-h-screen bg-background pb-24">
+      {/* Hero Header */}
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-hero" />
+        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
+        
+        <div className="relative z-10 p-4 pt-6 pb-5">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
+              Account
+            </h1>
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                "flex items-center gap-3 px-4 py-2 rounded-full",
+                "bg-primary-foreground/10 border border-primary-foreground/20",
+                "transition-all duration-300 hover:bg-primary-foreground/15",
+                "active:scale-95"
+              )}
+            >
+              {theme === "dark" ? (
+                <Moon className="h-4 w-4 text-primary-foreground" />
+              ) : (
+                <Sun className="h-4 w-4 text-primary-foreground" />
+              )}
+              <Switch
+                id="header-theme-switch"
+                checked={theme === "dark"}
+                onCheckedChange={toggleTheme}
+                className="data-[state=checked]:bg-primary-foreground/30"
+              />
+            </button>
           </div>
         </div>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-4">
-        {/* Points Card */}
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Coins className="h-6 w-6 text-primary" />
+        {/* Points Card - Premium Design */}
+        <Card className={cn(
+          "relative overflow-hidden border-0",
+          "bg-gradient-to-br from-primary/10 via-primary/5 to-transparent",
+          "animate-slide-up"
+        )}>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-accent/10 rounded-full blur-3xl" />
+          
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="p-2 rounded-xl bg-primary/15">
+                <Coins className="h-5 w-5 text-primary" />
+              </div>
               Your Points
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center">
-              <p className="text-5xl font-bold text-primary">{profile?.points?.toLocaleString() || 0}</p>
-              <p className="text-sm text-muted-foreground mt-2">Total Points</p>
+          
+          <CardContent className="space-y-5">
+            <div className="text-center py-4">
+              <div className="relative inline-block">
+                <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse-soft" />
+                <p className="relative text-5xl font-display font-bold text-primary">
+                  {profile?.points?.toLocaleString() || 0}
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2 font-medium">Total Points</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <Button
                 variant="outline"
-                className="w-full"
+                className={cn(
+                  "h-12 rounded-xl border-border/50",
+                  "hover:bg-primary/5 hover:border-primary/30",
+                  "transition-all duration-300 active:scale-98"
+                )}
                 onClick={() => setSpinnerOpen(true)}
               >
-                <Gift className="mr-2 h-4 w-4" />
-                Daily Spin
+                <Gift className="mr-2 h-5 w-5 text-accent" />
+                <span>Daily Spin</span>
+                <Sparkles className="ml-1 h-3 w-3 text-accent/70" />
               </Button>
               <Button
-                variant="default"
-                className="w-full"
+                className={cn(
+                  "h-12 rounded-xl bg-primary hover:bg-primary/90",
+                  "shadow-glow transition-all duration-300",
+                  "hover:shadow-lg active:scale-98"
+                )}
                 onClick={() => navigate("/exchange")}
               >
-                <Coins className="mr-2 h-4 w-4" />
+                <Coins className="mr-2 h-5 w-5" />
                 Exchange
               </Button>
             </div>
             
             {withdrawalSettings && profile && profile.points < withdrawalSettings.minimum_points && (
-              <p className="text-xs text-center text-muted-foreground">
-                View exchange options! Minimum {withdrawalSettings.minimum_points.toLocaleString()} points required to exchange.
+              <p className="text-xs text-center text-muted-foreground bg-muted/50 rounded-lg py-2 px-3">
+                Minimum {withdrawalSettings.minimum_points.toLocaleString()} points required to exchange
               </p>
             )}
           </CardContent>
@@ -215,192 +255,151 @@ const Account = () => {
 
         {/* Top Earners Card */}
         <Card 
-          className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 cursor-pointer hover:shadow-lg transition-shadow"
+          className={cn(
+            "premium-card cursor-pointer group animate-slide-up",
+            "hover:border-primary/30"
+          )}
+          style={{ animationDelay: "50ms" }}
           onClick={() => navigate("/top-earners")}
         >
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Trophy className="h-6 w-6 text-primary" />
-                Top Earners
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-accent/15 group-hover:bg-accent/20 transition-colors">
+                <Trophy className="h-5 w-5 text-accent" />
               </div>
-              <span className="text-sm text-muted-foreground">View All →</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground text-center">
-              See who's leading the leaderboard
-            </p>
+              <div>
+                <h3 className="font-semibold">Top Earners</h3>
+                <p className="text-sm text-muted-foreground">See the leaderboard</p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </CardContent>
         </Card>
 
         {/* History Links */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="h-6 w-6" />
+        <Card className="premium-card animate-slide-up" style={{ animationDelay: "100ms" }}>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="p-2 rounded-xl bg-muted">
+                <History className="h-5 w-5 text-muted-foreground" />
+              </div>
               History
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/point-history")}
-            >
-              <History className="mr-2 h-5 w-5 text-muted-foreground" />
-              <span>Point History</span>
-            </Button>
-            <Separator />
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/point-history")}
-            >
-              <History className="mr-2 h-5 w-5 text-muted-foreground" />
-              <span>Order History</span>
-            </Button>
-            <Separator />
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/point-history")}
-            >
-              <History className="mr-2 h-5 w-5 text-muted-foreground" />
-              <span>Redeem/Withdrawal History</span>
-            </Button>
+          <CardContent className="space-y-1">
+            {[
+              { label: "Point History", path: "/point-history" },
+              { label: "Order History", path: "/point-history" },
+              { label: "Redeem/Withdrawal History", path: "/point-history" },
+            ].map((item, index) => (
+              <button
+                key={item.label}
+                onClick={() => navigate(item.path)}
+                className={cn(
+                  "w-full flex items-center justify-between p-3 rounded-xl",
+                  "hover:bg-muted/50 transition-all duration-200",
+                  "active:scale-99 group"
+                )}
+              >
+                <span className="text-sm font-medium">{item.label}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+              </button>
+            ))}
           </CardContent>
         </Card>
 
         {/* Referral Section */}
-        <ReferralSection />
+        <div className="animate-slide-up" style={{ animationDelay: "150ms" }}>
+          <ReferralSection />
+        </div>
 
-        <Card>
+        {/* Profile Information */}
+        <Card className="premium-card animate-slide-up" style={{ animationDelay: "200ms" }}>
           <Collapsible open={profileSectionOpen} onOpenChange={setProfileSectionOpen}>
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors rounded-t-2xl">
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
+                    <div className="p-2 rounded-xl bg-muted">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    </div>
                     Profile Information
                   </div>
-                  {profileSectionOpen ? (
-                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  )}
+                  <div className={cn(
+                    "p-1.5 rounded-lg bg-muted transition-transform duration-200",
+                    profileSectionOpen && "rotate-180"
+                  )}>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 </CardTitle>
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 pt-0">
                 {/* Profile Details */}
-                <div className="space-y-4">
+                <div className="space-y-4 bg-muted/30 rounded-xl p-4">
                   <div className="flex items-center gap-3">
                     <User className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Name</p>
+                      <p className="text-xs text-muted-foreground">Name</p>
                       <p className="font-medium">{profile?.name || "Loading..."}</p>
                     </div>
                   </div>
-                  <Separator />
+                  <Separator className="bg-border/50" />
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Phone Number</p>
+                      <p className="text-xs text-muted-foreground">Phone Number</p>
                       <p className="font-medium">{profile?.phone_number || "Loading..."}</p>
                     </div>
                   </div>
                 </div>
 
-                <Separator className="my-6" />
+                <Separator />
 
                 {/* Password Management Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Lock className="h-5 w-5" />
-                      Change Password
-                    </h3>
-                  </div>
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    Change Password
+                  </h3>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="current-password">Current Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="current-password"
-                          type={showCurrentPassword ? "text" : "password"}
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          placeholder="Enter current password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showCurrentPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
+                  <div className="space-y-3">
+                    {[
+                      { id: "current-password", label: "Current Password", value: currentPassword, setValue: setCurrentPassword, show: showCurrentPassword, setShow: setShowCurrentPassword },
+                      { id: "new-password", label: "New Password", value: newPassword, setValue: setNewPassword, show: showNewPassword, setShow: setShowNewPassword },
+                      { id: "confirm-password", label: "Confirm New Password", value: confirmPassword, setValue: setConfirmPassword, show: showConfirmPassword, setShow: setShowConfirmPassword },
+                    ].map((field) => (
+                      <div key={field.id} className="space-y-1.5">
+                        <Label htmlFor={field.id} className="text-sm">{field.label}</Label>
+                        <div className="relative">
+                          <Input
+                            id={field.id}
+                            type={field.show ? "text" : "password"}
+                            value={field.value}
+                            onChange={(e) => field.setValue(e.target.value)}
+                            placeholder={`Enter ${field.label.toLowerCase()}`}
+                            className="pr-10 h-11 rounded-xl"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => field.setShow(!field.show)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {field.show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="new-password">New Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="new-password"
-                          type={showNewPassword ? "text" : "password"}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Enter new password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showNewPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Must have 8+ characters, 1 capital letter, 1 number, 1 symbol
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm New Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="confirm-password"
-                          type={showConfirmPassword ? "text" : "password"}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Confirm new password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                    ))}
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Must have 8+ characters, 1 capital letter, 1 number, 1 symbol
+                    </p>
+                    
                     <Button
                       onClick={handlePasswordChange}
                       disabled={isChangingPassword}
-                      className="w-full"
+                      className="w-full h-11 rounded-xl"
                     >
                       {isChangingPassword ? "Changing..." : "Change Password"}
                     </Button>
@@ -411,52 +410,42 @@ const Account = () => {
           </Collapsible>
         </Card>
 
-        <Button
-          variant="outline"
-          className="w-full justify-start"
-          onClick={() => navigate("/ai-chat")}
-        >
-          <Mail className="mr-2 h-5 w-5" />
-          AI Assistant
-        </Button>
+        {/* Action Buttons */}
+        <div className="space-y-2 animate-slide-up" style={{ animationDelay: "250ms" }}>
+          {[
+            { icon: Mail, label: "AI Assistant", path: "/ai-chat", show: true },
+            { icon: Shield, label: "Admin Dashboard", path: "/admin", show: isAdmin },
+            { icon: FileText, label: "Terms & Policy", path: "/terms", show: true },
+            { icon: Mail, label: "Contact Us", path: "/contact", show: true },
+          ].filter(item => item.show).map((item) => (
+            <Button
+              key={item.label}
+              variant="outline"
+              className={cn(
+                "w-full justify-start h-12 rounded-xl border-border/50",
+                "hover:bg-muted/50 hover:border-primary/20",
+                "transition-all duration-200 active:scale-99"
+              )}
+              onClick={() => navigate(item.path)}
+            >
+              <item.icon className="mr-3 h-5 w-5 text-muted-foreground" />
+              {item.label}
+            </Button>
+          ))}
 
-        {isAdmin && (
           <Button
             variant="outline"
-            className="w-full justify-start"
-            onClick={() => navigate("/admin")}
+            className={cn(
+              "w-full justify-start h-12 rounded-xl mt-4",
+              "border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50",
+              "transition-all duration-200 active:scale-99"
+            )}
+            onClick={signOut}
           >
-            <Shield className="mr-2 h-5 w-5" />
-            Admin Dashboard
+            <LogOut className="mr-3 h-5 w-5" />
+            Logout
           </Button>
-        )}
-
-        <Button
-          variant="outline"
-          className="w-full justify-start"
-          onClick={() => navigate("/terms")}
-        >
-          <FileText className="mr-2 h-5 w-5" />
-          Terms & Policy
-        </Button>
-
-        <Button
-          variant="outline"
-          className="w-full justify-start"
-          onClick={() => navigate("/contact")}
-        >
-          <Mail className="mr-2 h-5 w-5" />
-          Contact Us
-        </Button>
-
-        <Button
-          variant="destructive"
-          className="w-full justify-start"
-          onClick={signOut}
-        >
-          <LogOut className="mr-2 h-5 w-5" />
-          Logout
-        </Button>
+        </div>
       </div>
 
       <SpinnerWheel

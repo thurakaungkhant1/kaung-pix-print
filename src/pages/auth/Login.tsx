@@ -6,23 +6,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import logoImage from "@/assets/diamond-white-bg.png";
+import { Loader2, Phone, Lock, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: `${phoneNumber}@kaungcomputer.app`,
         password
       });
@@ -42,45 +40,113 @@ const Login = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
+      <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+      
+      <Card className={cn(
+        "w-full max-w-md relative z-10",
+        "border-border/50 shadow-xl",
+        "animate-slide-up"
+      )}>
+        <CardHeader className="space-y-4 text-center pb-2">
+          {/* Logo */}
           <div className="flex justify-center">
-            <img alt="Kaung Computer Logo" src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" className="h-20 w-20 object-contain shadow-sm border-slate-950" />
-          </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Kaung Computer
-          </CardTitle>
-          <CardDescription>Login to your account</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" placeholder="09123456789" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} required />
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse-soft" />
+              <img 
+                alt="Kaung Computer Logo" 
+                src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" 
+                className="relative h-20 w-20 object-contain rounded-2xl shadow-lg" 
+              />
             </div>
+          </div>
+          
+          {/* Brand */}
+          <div className="space-y-1">
+            <CardTitle className="text-3xl font-display font-bold text-gradient">
+              Kaung Computer
+            </CardTitle>
+            <CardDescription className="text-base">
+              Welcome back! Login to continue
+            </CardDescription>
+          </div>
+        </CardHeader>
+        
+        <form onSubmit={handleLogin}>
+          <CardContent className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+              <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="phone" 
+                  type="tel" 
+                  placeholder="09123456789" 
+                  value={phoneNumber} 
+                  onChange={e => setPhoneNumber(e.target.value)} 
+                  required 
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="••••••••"
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  required 
+                  className="pl-10"
+                />
+              </div>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Login
+          
+          <CardFooter className="flex flex-col space-y-4 pt-2">
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base group" 
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <>
+                  Login
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </Button>
+            
             <p className="text-sm text-muted-foreground text-center">
               Don't have an account?{" "}
-              <button type="button" onClick={() => navigate("/auth/signup")} className="text-primary hover:underline">
+              <button 
+                type="button" 
+                onClick={() => navigate("/auth/signup")} 
+                className="text-primary font-medium hover:underline underline-offset-4 transition-colors"
+              >
                 Sign up
               </button>
             </p>
-            <p className="text-xs text-muted-foreground text-center mt-4">
+            
+            <p className="text-xs text-muted-foreground/60 text-center pt-2">
               created by Thura Kaung Khant
             </p>
           </CardFooter>
         </form>
       </Card>
-    </div>;
+    </div>
+  );
 };
+
 export default Login;

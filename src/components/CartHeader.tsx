@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const CartHeader = () => {
   const { user } = useAuth();
@@ -14,7 +15,6 @@ const CartHeader = () => {
     if (user) {
       loadCartCount();
       
-      // Subscribe to cart changes
       const channel = supabase
         .channel("cart-header-changes")
         .on(
@@ -55,11 +55,20 @@ const CartHeader = () => {
       variant="ghost"
       size="icon"
       onClick={() => navigate("/cart")}
-      className="relative text-primary-foreground hover:bg-primary-foreground/10"
+      className={cn(
+        "relative text-primary-foreground",
+        "hover:bg-primary-foreground/10 active:scale-95",
+        "transition-all duration-200"
+      )}
     >
       <ShoppingCart className="h-6 w-6" />
       {cartCount > 0 && (
-        <span className="absolute -top-1 -right-1 bg-primary-foreground text-primary text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+        <span className={cn(
+          "absolute -top-1 -right-1 min-w-[20px] h-5 px-1",
+          "bg-accent text-accent-foreground text-xs font-bold",
+          "rounded-full flex items-center justify-center",
+          "shadow-accent animate-scale-in"
+        )}>
           {cartCount > 9 ? "9+" : cartCount}
         </span>
       )}
