@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, ShoppingCart, Gem, Search } from "lucide-react";
+import { Heart, ShoppingCart, Gem, Search, ChevronRight, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface Product {
   id: number;
@@ -46,7 +47,6 @@ const Home = () => {
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      // Group products by category
       const grouped = data.reduce((acc: { [key: string]: Product[] }, product) => {
         const category = product.category || "General";
         if (!acc[category]) {
@@ -56,7 +56,6 @@ const Home = () => {
         return acc;
       }, {});
 
-      // Convert to array format
       const groups: CategoryGroup[] = Object.entries(grouped).map(([category, products]) => ({
         category,
         products,
@@ -115,11 +114,15 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background pb-24">
         <div className="max-w-screen-xl mx-auto p-4">
           <div className="grid grid-cols-2 gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />
+              <div 
+                key={i} 
+                className="h-56 rounded-2xl animate-shimmer" 
+                style={{ animationDelay: `${i * 100}ms` }}
+              />
             ))}
           </div>
         </div>
@@ -129,43 +132,77 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex-1">
+    <div className="min-h-screen bg-background pb-24">
+      {/* Hero Header */}
+      <header className="relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-hero" />
+        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
+        
+        {/* Decorative elements */}
+        <div className="absolute top-4 right-4 w-32 h-32 bg-primary-foreground/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-primary-foreground/5 rounded-full blur-3xl" />
+        
+        <div className="relative z-10 p-4 pt-6 pb-5">
+          {/* Top row */}
+          <div className="flex items-center justify-between mb-5">
             <Button
               onClick={() => navigate("/mlbb-diamonds")}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-3 py-1 rounded-full flex items-center gap-1.5 text-xs shadow-lg"
+              className={cn(
+                "relative overflow-hidden bg-accent hover:bg-accent/90 text-accent-foreground",
+                "font-bold px-4 py-2 rounded-full flex items-center gap-2 text-sm",
+                "shadow-accent transition-all duration-300 hover:shadow-lg hover:scale-102",
+                "active:scale-98"
+              )}
             >
               <Gem className="h-4 w-4" />
-              <span>ML</span>
+              <span>ML Diamonds</span>
+              <Sparkles className="h-3 w-3 opacity-70" />
             </Button>
-          </div>
-          <h1 className="text-2xl font-bold">Kaung Computer</h1>
-          <div className="flex-1 flex justify-end">
+            
+            <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
+              Kaung Computer
+            </h1>
+            
             <CartHeader />
           </div>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
-          <Input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
-          />
+          
+          {/* Search bar */}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-primary-foreground/10 rounded-2xl blur group-focus-within:blur-lg transition-all duration-300" />
+            <div className="relative flex items-center">
+              <Search className="absolute left-4 h-5 w-5 text-primary-foreground/50 transition-colors group-focus-within:text-primary-foreground/80" />
+              <Input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={cn(
+                  "w-full pl-11 pr-4 py-3 h-12 rounded-2xl",
+                  "bg-primary-foreground/10 border-primary-foreground/20",
+                  "text-primary-foreground placeholder:text-primary-foreground/50",
+                  "focus:bg-primary-foreground/15 focus:border-primary-foreground/30",
+                  "transition-all duration-300"
+                )}
+              />
+            </div>
+          </div>
         </div>
       </header>
 
+      {/* Content */}
       <div className="max-w-screen-xl mx-auto p-4 space-y-8">
         {categoryGroups.length === 0 ? (
-          <div className="text-center py-12">
-            <ShoppingCart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No products available yet</p>
+          <div className="text-center py-16 animate-fade-in">
+            <div className="relative inline-block mb-6">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse-soft" />
+              <ShoppingCart className="relative h-20 w-20 text-muted-foreground" />
+            </div>
+            <p className="text-lg text-muted-foreground font-medium">No products available yet</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">Check back soon for new arrivals</p>
           </div>
         ) : (
-          categoryGroups.slice(0, 3).map((group) => {
+          categoryGroups.slice(0, 3).map((group, groupIndex) => {
             const filteredProducts = group.products.filter((product) =>
               product.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
@@ -173,56 +210,82 @@ const Home = () => {
             if (filteredProducts.length === 0 && searchQuery) return null;
             
             return (
-              <div key={group.category} className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">{group.category}</h2>
+              <section 
+                key={group.category} 
+                className="animate-slide-up"
+                style={{ animationDelay: `${groupIndex * 100}ms` }}
+              >
+                {/* Section header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-display font-bold tracking-tight">{group.category}</h2>
                   <button
                     onClick={() => navigate(`/category/${encodeURIComponent(group.category)}`)}
-                    className="text-primary text-sm font-medium hover:underline"
+                    className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
                   >
-                    View All
+                    <span>View All</span>
+                    <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>
                 
-                <div className="overflow-x-auto scrollbar-hide">
+                {/* Products carousel */}
+                <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
                   <div className="flex gap-4 pb-2">
-                    {filteredProducts.slice(0, 6).map((product) => (
-                    <Card
-                      key={product.id}
-                      className="flex-shrink-0 w-40 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                      onClick={() => navigate(`/product/${product.id}`)}
-                    >
-                      <div className="relative aspect-square bg-muted">
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavourite(product.id);
-                          }}
-                          className="absolute top-2 right-2 p-1.5 bg-background/80 rounded-full hover:bg-background transition-colors"
-                        >
-                          <Heart
-                            className={`h-3.5 w-3.5 ${
-                              favourites.has(product.id)
-                                ? "fill-primary text-primary"
-                                : "text-muted-foreground"
-                            }`}
+                    {filteredProducts.slice(0, 6).map((product, productIndex) => (
+                      <Card
+                        key={product.id}
+                        className={cn(
+                          "product-card flex-shrink-0 w-44 cursor-pointer",
+                          "animate-scale-in"
+                        )}
+                        style={{ animationDelay: `${productIndex * 50}ms` }}
+                        onClick={() => navigate(`/product/${product.id}`)}
+                      >
+                        <div className="relative aspect-square bg-muted overflow-hidden rounded-t-2xl">
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="product-image"
                           />
-                        </button>
-                      </div>
-                      <CardContent className="p-2">
-                        <h3 className="font-semibold text-xs truncate">{product.name}</h3>
-                        <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} MMK</p>
-                      </CardContent>
-                    </Card>
+                          
+                          {/* Favourite button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavourite(product.id);
+                            }}
+                            className={cn(
+                              "absolute top-2.5 right-2.5 p-2 rounded-full",
+                              "glass border-0 transition-all duration-300",
+                              "hover:scale-110 active:scale-95",
+                              favourites.has(product.id) 
+                                ? "bg-primary/90 text-primary-foreground shadow-glow" 
+                                : "bg-background/80 text-muted-foreground hover:bg-background"
+                            )}
+                          >
+                            <Heart
+                              className={cn(
+                                "h-4 w-4 transition-all duration-300",
+                                favourites.has(product.id) && "fill-current"
+                              )}
+                            />
+                          </button>
+                          
+                          {/* Gradient overlay */}
+                          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
+                        </div>
+                        
+                        <CardContent className="p-3 space-y-1">
+                          <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                          <p className="text-primary font-bold text-base">
+                            {product.price.toLocaleString()} 
+                            <span className="text-xs font-medium ml-1 text-muted-foreground">MMK</span>
+                          </p>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </div>
-              </div>
+              </section>
             );
           })
         )}
