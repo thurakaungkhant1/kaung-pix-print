@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Minus, Plus, ArrowLeft, ShoppingCart } from "lucide-react";
+import { Heart, Minus, Plus, ArrowLeft, ShoppingCart, Sparkles, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import CheckoutDialog from "@/components/CheckoutDialog";
@@ -26,6 +26,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [isFavourite, setIsFavourite] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -49,6 +50,7 @@ const ProductDetail = () => {
     if (!error && data) {
       setProduct(data);
     }
+    setLoading(false);
   };
 
   const checkFavourite = async () => {
@@ -95,6 +97,10 @@ const ProductDetail = () => {
     }
 
     setIsFavourite(!isFavourite);
+    toast({
+      title: isFavourite ? "Removed from favourites" : "Added to favourites! ❤️",
+      description: isFavourite ? "Product removed from your favourites" : "You can find it in your favourites",
+    });
   };
 
   const handleBuyNow = () => {
@@ -112,7 +118,6 @@ const ProductDetail = () => {
   };
 
   const handleCheckoutSuccess = () => {
-    // Reload product to ensure fresh data
     loadProduct();
   };
 
@@ -129,7 +134,6 @@ const ProductDetail = () => {
 
     if (!product) return;
 
-    // Check if item already in cart
     const { data: existing } = await supabase
       .from("cart_items")
       .select("id, quantity")
@@ -138,7 +142,6 @@ const ProductDetail = () => {
       .maybeSingle();
 
     if (existing) {
-      // Update quantity
       const { error } = await supabase
         .from("cart_items")
         .update({ quantity: existing.quantity + quantity })
@@ -153,7 +156,6 @@ const ProductDetail = () => {
         return;
       }
     } else {
-      // Add new item
       const { error } = await supabase
         .from("cart_items")
         .insert({
@@ -173,47 +175,53 @@ const ProductDetail = () => {
     }
 
     toast({
-      title: "Added to Cart",
+      title: "Added to Cart! 🛒",
       description: `${quantity} ${product.name} added to your cart`,
     });
 
-    // Navigate to cart page
     navigate("/cart");
   };
 
-  if (!product) {
+  if (loading || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground font-medium animate-pulse">Loading product...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-8">
+      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-6 w-6" />
+          <button 
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold">Product Details</h1>
+          <h1 className="text-xl font-display font-bold">Product Details</h1>
         </div>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-6">
-        <Card className="overflow-hidden">
-          <div className="aspect-square bg-muted">
+        <Card className="overflow-hidden shadow-xl border-0 animate-fade-in">
+          <div className="aspect-square bg-muted relative group">
             <img
               src={product.image_url}
               alt={product.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent" />
           </div>
-          <CardHeader>
-            <div className="flex items-start justify-between">
+          <CardHeader className="pb-2">
+            <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <CardTitle className="text-2xl">{product.name}</CardTitle>
-                <CardDescription className="text-xl font-bold text-primary mt-2">
+                <CardTitle className="text-2xl font-display">{product.name}</CardTitle>
+                <CardDescription className="text-2xl font-bold text-primary mt-2">
                   {product.price.toLocaleString()} MMK
                 </CardDescription>
               </div>
@@ -221,11 +229,13 @@ const ProductDetail = () => {
                 variant="ghost"
                 size="icon"
                 onClick={toggleFavourite}
-                className="shrink-0"
+                className={`shrink-0 rounded-full h-12 w-12 transition-all duration-300 ${
+                  isFavourite ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-muted"
+                }`}
               >
                 <Heart
-                  className={`h-6 w-6 ${
-                    isFavourite ? "fill-primary text-primary" : ""
+                  className={`h-6 w-6 transition-all duration-300 ${
+                    isFavourite ? "fill-primary text-primary scale-110" : ""
                   }`}
                 />
               </Button>
@@ -233,57 +243,82 @@ const ProductDetail = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {product.description && (
-              <div>
-                <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground">{product.description}</p>
+              <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+                <h3 className="font-display font-semibold mb-2">Description</h3>
+                <p className="text-muted-foreground leading-relaxed">{product.description}</p>
               </div>
             )}
 
-            <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-              <p className="text-sm font-semibold text-green-800 dark:text-green-200">
-                🎁 Earn {product.points_value} points per item!
-              </p>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                Total: {product.points_value * quantity} points for {quantity} item(s)
+            <div 
+              className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20 animate-fade-in"
+              style={{ animationDelay: '150ms' }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <p className="font-display font-semibold text-primary">
+                  Earn {product.points_value} points per item!
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Total: <span className="font-bold text-primary">{product.points_value * quantity} points</span> for {quantity} item(s)
               </p>
             </div>
 
-            <div>
-              <h3 className="font-semibold mb-2">Quantity</h3>
+            <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <h3 className="font-display font-semibold mb-3">Quantity</h3>
               <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="text-xl font-bold w-12 text-center">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2 bg-muted/50 rounded-full p-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full hover:bg-background"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xl font-bold w-12 text-center">{quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full hover:bg-background"
+                    onClick={() => setQuantity(quantity + 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex gap-2">
-            <Button variant="outline" size="lg" className="flex-1" onClick={handleAddToCart}>
-              <ShoppingCart className="mr-2 h-4 w-4" />
+          <CardFooter className="flex gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="flex-1 h-12 hover:bg-muted transition-all duration-300" 
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="mr-2 h-5 w-5" />
               Add to Cart
             </Button>
-            <Button className="flex-1" size="lg" onClick={handleBuyNow}>
+            <Button 
+              className="flex-1 h-12 shadow-lg hover:shadow-xl transition-all duration-300" 
+              size="lg" 
+              onClick={handleBuyNow}
+            >
               Buy Now
             </Button>
           </CardFooter>
         </Card>
 
         {/* Product Reviews Section */}
-        <Tabs defaultValue="reviews" className="w-full">
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="reviews">Reviews & Ratings</TabsTrigger>
+        <Tabs defaultValue="reviews" className="w-full animate-fade-in" style={{ animationDelay: '250ms' }}>
+          <TabsList className="grid w-full grid-cols-1 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger 
+              value="reviews"
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md flex items-center gap-2"
+            >
+              <Star className="h-4 w-4" />
+              Reviews & Ratings
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="reviews" className="mt-4">
             <ReviewSection productId={product.id} />
