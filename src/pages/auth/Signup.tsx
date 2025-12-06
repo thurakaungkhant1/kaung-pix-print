@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle } from "lucide-react";
 
 const Signup = () => {
   const [searchParams] = useSearchParams();
@@ -20,7 +20,6 @@ const Signup = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Pre-fill referral code from URL if present
     const refCode = searchParams.get('ref');
     if (refCode) {
       setReferralCode(refCode.toUpperCase());
@@ -33,6 +32,15 @@ const Signup = () => {
     if (!/[0-9]/.test(pwd)) return "Password must contain at least 1 number";
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) return "Password must contain at least 1 symbol";
     return null;
+  };
+
+  const getPasswordStrength = () => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+    return strength;
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -77,8 +85,8 @@ const Signup = () => {
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Account created successfully",
+        title: "Welcome aboard! 🎉",
+        description: "Your account has been created successfully",
       });
       navigate("/");
     } catch (error: any) {
@@ -92,19 +100,35 @@ const Signup = () => {
     }
   };
 
+  const passwordStrength = getPasswordStrength();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-primary/5 p-4">
+      {/* Background decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+      </div>
+
+      <Card className="w-full max-w-md relative shadow-2xl border-primary/10 animate-fade-in">
+        <CardHeader className="space-y-1 text-center pb-2">
+          <div className="mx-auto mb-2 p-3 rounded-2xl bg-gradient-primary shadow-lg">
+            <Sparkles className="h-8 w-8 text-primary-foreground" />
+          </div>
+          <CardTitle className="text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
             Kaung Computer
           </CardTitle>
-          <CardDescription>Create your account</CardDescription>
+          <CardDescription className="text-base">
+            Create your account and start earning points!
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSignup}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name" className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                Name
+              </Label>
               <Input
                 id="name"
                 type="text"
@@ -112,10 +136,14 @@ const Signup = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="h-12"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                Phone Number
+              </Label>
               <Input
                 id="phone"
                 type="tel"
@@ -123,61 +151,123 @@ const Signup = () => {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 required
+                className="h-12"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-12"
               />
-              <p className="text-xs text-muted-foreground">
-                Min 8 chars, 1 capital, 1 number, 1 symbol
-              </p>
+              {password && (
+                <div className="space-y-2">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4].map((level) => (
+                      <div
+                        key={level}
+                        className={`h-1.5 flex-1 rounded-full transition-colors ${
+                          passwordStrength >= level
+                            ? level <= 2
+                              ? "bg-destructive"
+                              : level === 3
+                              ? "bg-yellow-500"
+                              : "bg-primary"
+                            : "bg-muted"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <span className={`flex items-center gap-1 ${password.length >= 8 ? "text-primary" : "text-muted-foreground"}`}>
+                      <CheckCircle className={`h-3 w-3 ${password.length >= 8 ? "opacity-100" : "opacity-30"}`} />
+                      8+ characters
+                    </span>
+                    <span className={`flex items-center gap-1 ${/[A-Z]/.test(password) ? "text-primary" : "text-muted-foreground"}`}>
+                      <CheckCircle className={`h-3 w-3 ${/[A-Z]/.test(password) ? "opacity-100" : "opacity-30"}`} />
+                      1 capital
+                    </span>
+                    <span className={`flex items-center gap-1 ${/[0-9]/.test(password) ? "text-primary" : "text-muted-foreground"}`}>
+                      <CheckCircle className={`h-3 w-3 ${/[0-9]/.test(password) ? "opacity-100" : "opacity-30"}`} />
+                      1 number
+                    </span>
+                    <span className={`flex items-center gap-1 ${/[!@#$%^&*(),.?":{}|<>]/.test(password) ? "text-primary" : "text-muted-foreground"}`}>
+                      <CheckCircle className={`h-3 w-3 ${/[!@#$%^&*(),.?":{}|<>]/.test(password) ? "opacity-100" : "opacity-30"}`} />
+                      1 symbol
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                Confirm Password
+              </Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                className="h-12"
               />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-xs text-destructive">Passwords don't match</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+              <Label htmlFor="referralCode" className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-primary" />
+                Referral Code (Optional)
+              </Label>
               <Input
                 id="referralCode"
                 type="text"
                 placeholder="Enter referral code"
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                className="h-12 border-dashed"
               />
-              <p className="text-xs text-muted-foreground">
-                Have a referral code? Get bonus points!
+              <p className="text-xs text-primary flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                Have a referral code? Get 5 bonus points!
               </p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Sign Up
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base shadow-lg hover:shadow-xl transition-all" 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               Already have an account?{" "}
               <button
                 type="button"
                 onClick={() => navigate("/auth/login")}
-                className="text-primary hover:underline"
+                className="text-primary font-semibold hover:underline"
               >
                 Login
               </button>
             </p>
-            <p className="text-xs text-muted-foreground text-center mt-4">
+            <p className="text-xs text-muted-foreground/60 text-center mt-4">
               created by Thura Kaung Khant
             </p>
           </CardFooter>

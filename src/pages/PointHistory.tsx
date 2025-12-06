@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, History, ShoppingBag, Wallet } from "lucide-react";
+import { ArrowLeft, History, ShoppingBag, Wallet, Sparkles, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
@@ -49,87 +49,81 @@ const PointHistory = () => {
 
   const loadTransactions = async () => {
     if (!user) return;
-
     const { data } = await supabase
       .from("point_transactions")
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-
-    if (data) {
-      setTransactions(data);
-    }
+    if (data) setTransactions(data);
   };
 
   const loadWithdrawals = async () => {
     if (!user) return;
-
     const { data } = await supabase
       .from("point_withdrawals")
-      .select(`
-        *,
-        withdrawal_items:withdrawal_item_id(name, value_amount)
-      `)
+      .select(`*, withdrawal_items:withdrawal_item_id(name, value_amount)`)
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-
-    if (data) {
-      setWithdrawals(data as any);
-    }
+    if (data) setWithdrawals(data as any);
   };
 
   const loadOrders = async () => {
     if (!user) return;
-
     const { data } = await supabase
       .from("orders")
-      .select(`
-        *,
-        products:product_id(name, image_url)
-      `)
+      .select(`*, products:product_id(name, image_url)`)
       .eq("user_id", user.id)
       .is("game_id", null)
       .order("created_at", { ascending: false });
+    if (data) setOrders(data as any);
+  };
 
-    if (data) {
-      setOrders(data as any);
-    }
+  const getStatusVariant = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+      finished: "default",
+      approved: "secondary",
+      cancelled: "destructive",
+      rejected: "destructive",
+      pending: "outline",
+    };
+    return variants[status] || "outline";
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
+      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-6 w-6" />
+          <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors">
+            <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold">History</h1>
+          <h1 className="text-xl font-display font-bold">History</h1>
         </div>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-4">
         {/* Point History */}
-        <Card>
+        <Card className="animate-fade-in shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 font-display">
+              <Sparkles className="h-5 w-5 text-primary" />
               Point History
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {transactions.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No transactions yet</p>
+              <div className="text-center py-8">
+                <History className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">No transactions yet</p>
+              </div>
             ) : (
-              transactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{transaction.description || transaction.transaction_type}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(transaction.created_at).toLocaleDateString()}
-                    </p>
+              transactions.map((t, i) => (
+                <div key={t.id} className="flex items-center justify-between py-3 border-b last:border-0 animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
+                  <div>
+                    <p className="font-medium">{t.description || t.transaction_type}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</p>
                   </div>
-                  <p className={`text-sm font-bold ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
-                    {transaction.amount > 0 ? "+" : ""}{transaction.amount}
+                  <p className={`font-bold ${t.amount > 0 ? "text-primary" : "text-destructive"}`}>
+                    {t.amount > 0 ? "+" : ""}{t.amount}
                   </p>
                 </div>
               ))
@@ -138,40 +132,31 @@ const PointHistory = () => {
         </Card>
 
         {/* Withdrawal History */}
-        <Card>
+        <Card className="animate-fade-in shadow-lg" style={{ animationDelay: '100ms' }}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 font-display">
+              <Wallet className="h-5 w-5 text-primary" />
               Withdrawal History
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {withdrawals.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No withdrawals yet</p>
+              <div className="text-center py-8">
+                <Wallet className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">No withdrawals yet</p>
+              </div>
             ) : (
-              withdrawals.map((withdrawal) => (
-                <div key={withdrawal.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1 space-y-1">
-                    <h4 className="font-semibold text-sm">
-                      {withdrawal.withdrawal_items?.name || "Point Withdrawal"}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {withdrawal.points_withdrawn.toLocaleString()} points
-                      {withdrawal.withdrawal_items && ` → $${withdrawal.withdrawal_items.value_amount}`}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(withdrawal.created_at).toLocaleDateString()}
-                      </p>
-                      <Badge variant={
-                        withdrawal.status === "approved" ? "default" :
-                        withdrawal.status === "rejected" ? "destructive" :
-                        "outline"
-                      }>
-                        {withdrawal.status}
-                      </Badge>
-                    </div>
+              withdrawals.map((w) => (
+                <div key={w.id} className="p-3 border rounded-xl hover:bg-muted/50 transition-colors">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-display font-semibold">{w.withdrawal_items?.name || "Point Withdrawal"}</h4>
+                    <Badge variant={getStatusVariant(w.status)}>{w.status}</Badge>
                   </div>
+                  <p className="text-sm text-muted-foreground">
+                    {w.points_withdrawn.toLocaleString()} points
+                    {w.withdrawal_items && ` → $${w.withdrawal_items.value_amount}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{new Date(w.created_at).toLocaleDateString()}</p>
                 </div>
               ))
             )}
@@ -179,41 +164,31 @@ const PointHistory = () => {
         </Card>
 
         {/* Purchase History */}
-        <Card>
+        <Card className="animate-fade-in shadow-lg" style={{ animationDelay: '200ms' }}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShoppingBag className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 font-display">
+              <ShoppingBag className="h-5 w-5 text-primary" />
               Purchase History
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {orders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No orders yet</p>
+              <div className="text-center py-8">
+                <Package className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">No orders yet</p>
+              </div>
             ) : (
-              orders.map((order) => (
-                <div key={order.id} className="flex gap-3 p-3 border rounded-lg">
-                  <img
-                    src={order.products.image_url}
-                    alt={order.products.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  <div className="flex-1 space-y-1">
-                    <h4 className="font-semibold text-sm">{order.products.name}</h4>
-                    <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
-                    <p className="text-sm font-bold text-primary">{order.price.toLocaleString()} MMK</p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </p>
-                      <Badge variant={
-                        order.status === "finished" ? "default" :
-                        order.status === "approved" ? "secondary" :
-                        order.status === "cancelled" ? "destructive" :
-                        "outline"
-                      }>
-                        {order.status}
-                      </Badge>
+              orders.map((o) => (
+                <div key={o.id} className="flex gap-3 p-3 border rounded-xl hover:bg-muted/50 transition-colors">
+                  <img src={o.products.image_url} alt={o.products.name} className="w-16 h-16 object-cover rounded-lg" />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="font-display font-semibold">{o.products.name}</h4>
+                      <Badge variant={getStatusVariant(o.status)}>{o.status}</Badge>
                     </div>
+                    <p className="text-xs text-muted-foreground">Qty: {o.quantity}</p>
+                    <p className="font-bold text-primary">{o.price.toLocaleString()} MMK</p>
+                    <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))

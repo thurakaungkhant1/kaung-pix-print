@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Lock, Coins, CheckCircle } from "lucide-react";
+import { ArrowLeft, Lock, Coins, CheckCircle, Gift, Sparkles, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import PointsDisplay from "@/components/PointsDisplay";
@@ -101,7 +101,6 @@ const Exchange = () => {
   const handleExchange = async (item: WithdrawalItem) => {
     if (!user || !withdrawalSettings) return;
 
-    // Check if withdrawals are enabled
     if (!withdrawalSettings.enabled) {
       toast({
         title: "Withdrawals Disabled",
@@ -111,7 +110,6 @@ const Exchange = () => {
       return;
     }
 
-    // Check minimum points requirement
     if (points < withdrawalSettings.minimum_points) {
       toast({
         title: "Insufficient Points",
@@ -121,7 +119,6 @@ const Exchange = () => {
       return;
     }
 
-    // Check if user has enough points for this specific item
     if (points < item.points_required) {
       toast({
         title: "Insufficient Points",
@@ -134,7 +131,6 @@ const Exchange = () => {
     setProcessingId(item.id);
 
     try {
-      // Deduct points
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ points: points - item.points_required })
@@ -142,7 +138,6 @@ const Exchange = () => {
 
       if (updateError) throw updateError;
 
-      // Create withdrawal request
       const { error: withdrawalError } = await supabase
         .from("point_withdrawals")
         .insert({
@@ -154,7 +149,6 @@ const Exchange = () => {
 
       if (withdrawalError) throw withdrawalError;
 
-      // Create transaction record
       await supabase.from("point_transactions").insert({
         user_id: user.id,
         amount: -item.points_required,
@@ -163,11 +157,10 @@ const Exchange = () => {
       });
 
       toast({
-        title: "Exchange Successful",
+        title: "Exchange Successful! 🎉",
         description: `Your exchange request for ${item.name} has been submitted and is pending approval.`,
       });
 
-      // Reload data
       await loadData();
     } catch (error) {
       console.error("Exchange error:", error);
@@ -219,57 +212,72 @@ const Exchange = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading exchange options...</p>
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground font-medium animate-pulse">Loading exchange options...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground p-6">
-        <div className="container max-w-6xl mx-auto">
-          <div className="flex items-center gap-4 mb-4">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
+      {/* Hero Header */}
+      <div className="bg-gradient-primary text-primary-foreground p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50" />
+        <div className="container max-w-6xl mx-auto relative">
+          <div className="flex items-center gap-4 mb-6">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate("/account")}
-              className="text-primary-foreground hover:bg-primary-foreground/10"
+              className="text-primary-foreground hover:bg-primary-foreground/10 rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">Exchange Points</h1>
+            <h1 className="text-2xl font-display font-bold">Exchange Points</h1>
           </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-primary-foreground/80">Your Balance</p>
-              <div className="flex items-center gap-2 mt-1">
-                <Coins className="h-6 w-6" />
-                <span className="text-3xl font-bold">{points.toLocaleString()}</span>
-                <span className="text-sm text-primary-foreground/80">points</span>
+          
+          <Card className="bg-primary-foreground/10 border-primary-foreground/20 backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-primary-foreground/80">Your Balance</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Coins className="h-8 w-8" />
+                    <span className="text-4xl font-display font-bold">{points.toLocaleString()}</span>
+                    <span className="text-sm text-primary-foreground/80">points</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <PointsDisplay />
+                </div>
               </div>
-            </div>
-            <PointsDisplay />
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       <div className="container max-w-6xl mx-auto p-6 space-y-6">
-        {/* Information Alert */}
+        {/* Progress Alert */}
         {withdrawalSettings && points < withdrawalSettings.minimum_points && (
-          <Alert>
+          <Alert className="border-primary/20 bg-primary/5 animate-fade-in">
+            <TrendingUp className="h-5 w-5 text-primary" />
             <AlertDescription>
-              <div className="flex items-start gap-2">
-                <Lock className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold mb-1">Minimum Points Required</p>
-                  <p className="text-sm">
-                    You need at least <strong>{withdrawalSettings.minimum_points} points</strong> to exchange.
-                    You're currently <strong>{withdrawalSettings.minimum_points - points} points</strong> away!
-                    Keep earning points to unlock exchanges.
+              <div className="flex items-start gap-3">
+                <div className="flex-1">
+                  <p className="font-semibold mb-1">Keep going! You're making progress</p>
+                  <p className="text-sm text-muted-foreground">
+                    You need <strong>{withdrawalSettings.minimum_points - points} more points</strong> to unlock exchanges.
+                  </p>
+                  <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-primary transition-all duration-500"
+                      style={{ width: `${Math.min((points / withdrawalSettings.minimum_points) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {Math.round((points / withdrawalSettings.minimum_points) * 100)}% complete
                   </p>
                 </div>
               </div>
@@ -278,18 +286,22 @@ const Exchange = () => {
         )}
 
         {!withdrawalSettings?.enabled && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="animate-fade-in">
+            <Lock className="h-5 w-5" />
             <AlertDescription>
-              Point exchanges are currently disabled by the administrator. Please check back later.
+              Point exchanges are currently disabled. Please check back later!
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Terms and Conditions */}
+        {/* Terms */}
         {withdrawalSettings?.terms_conditions && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Terms & Conditions</CardTitle>
+          <Card className="border-dashed animate-fade-in">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Gift className="h-5 w-5 text-primary" />
+                Terms & Conditions
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">
@@ -301,38 +313,49 @@ const Exchange = () => {
 
         {/* Exchange Items Grid */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Available Exchanges</h2>
+          <h2 className="text-xl font-display font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Available Exchanges
+          </h2>
           {withdrawalItems.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">No exchange options available at the moment.</p>
+            <Card className="animate-fade-in">
+              <CardContent className="p-12 text-center">
+                <Gift className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="font-display font-semibold mb-2">No exchange options yet</h3>
+                <p className="text-muted-foreground">
+                  Check back soon for exciting rewards!
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {withdrawalItems.map((item) => {
+              {withdrawalItems.map((item, index) => {
                 const isAvailable = canExchange(item);
                 const status = getItemStatus(item);
 
                 return (
                   <Card 
                     key={item.id} 
-                    className={!isAvailable ? "opacity-75" : ""}
+                    className={`overflow-hidden transition-all duration-300 animate-fade-in hover:shadow-lg ${
+                      !isAvailable ? "opacity-75" : ""
+                    }`}
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {item.image_url && (
-                      <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
+                      <div className="aspect-video w-full overflow-hidden bg-muted relative group">
                         <img
                           src={item.image_url}
                           alt={item.name}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 to-transparent" />
                       </div>
                     )}
                     <CardHeader>
                       <CardTitle className="flex items-start justify-between gap-2">
-                        <span>{item.name}</span>
-                        <div className="flex items-center gap-1 text-primary font-bold text-lg whitespace-nowrap">
-                          <Coins className="h-5 w-5" />
+                        <span className="font-display">{item.name}</span>
+                        <div className="flex items-center gap-1 text-primary font-bold text-lg whitespace-nowrap bg-primary/10 px-2 py-1 rounded-full">
+                          <Coins className="h-4 w-4" />
                           {item.points_required.toLocaleString()}
                         </div>
                       </CardTitle>
@@ -346,7 +369,9 @@ const Exchange = () => {
                         <span className="font-semibold text-lg">${item.value_amount}</span>
                       </div>
                       
-                      <div className={`flex items-center gap-2 text-sm ${isAvailable ? "text-primary" : "text-muted-foreground"}`}>
+                      <div className={`flex items-center gap-2 text-sm p-2 rounded-lg ${
+                        isAvailable ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                      }`}>
                         {status.icon}
                         <span>{status.text}</span>
                       </div>
@@ -354,12 +379,19 @@ const Exchange = () => {
                       <Button
                         onClick={() => handleExchange(item)}
                         disabled={!isAvailable || processingId === item.id}
-                        className="w-full"
+                        className="w-full transition-all duration-300"
+                        size="lg"
                       >
                         {processingId === item.id ? (
-                          "Processing..."
+                          <span className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            Processing...
+                          </span>
                         ) : isAvailable ? (
-                          "Exchange Now"
+                          <>
+                            <Gift className="h-4 w-4 mr-2" />
+                            Exchange Now
+                          </>
                         ) : (
                           <>
                             <Lock className="h-4 w-4 mr-2" />
