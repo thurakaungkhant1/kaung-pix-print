@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle } from "lucide-react";
+import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle, Mail } from "lucide-react";
 
 const Signup = () => {
   const [searchParams] = useSearchParams();
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -25,6 +26,11 @@ const Signup = () => {
       setReferralCode(refCode.toUpperCase());
     }
   }, [searchParams]);
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 8) return "Password must be at least 8 characters";
@@ -46,6 +52,16 @@ const Signup = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!validateEmail(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
 
     const passwordError = validatePassword(password);
     if (passwordError) {
@@ -69,11 +85,11 @@ const Signup = () => {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email: `${phoneNumber}@kaungcomputer.app`,
+      const { data, error } = await supabase.auth.signUp({
+        email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/auth/verify-email`,
           data: {
             name,
             phone_number: phoneNumber,
@@ -84,15 +100,28 @@ const Signup = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Welcome aboard! 🎉",
-        description: "Your account has been created successfully",
-      });
-      navigate("/");
+      // Check if email confirmation is required
+      if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: "Verification email sent! 📧",
+          description: "Please check your inbox to verify your email",
+        });
+        navigate("/auth/verify-email");
+      } else {
+        toast({
+          title: "Welcome aboard! 🎉",
+          description: "Your account has been created successfully",
+        });
+        navigate("/");
+      }
     } catch (error: any) {
+      let errorMessage = error.message || "Failed to create account";
+      if (error.message?.includes("already registered")) {
+        errorMessage = "An account with this email already exists. Please login instead.";
+      }
       toast({
         title: "Error",
-        description: error.message || "Failed to create account",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -135,6 +164,21 @@ const Signup = () => {
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                required
+                className="h-12"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="h-12"
               />
