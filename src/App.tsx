@@ -26,6 +26,9 @@ import PointHistory from "./pages/PointHistory";
 import TopEarners from "./pages/TopEarners";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import VerifyEmail from "./pages/auth/VerifyEmail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ProductsManage from "./pages/admin/ProductsManage";
 import ProductNew from "./pages/admin/ProductNew";
@@ -60,6 +63,9 @@ const App = () => {
               <Routes>
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/signup" element={<Signup />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/verify-email" element={<VerifyEmail />} />
               <Route
                 path="/"
                 element={

@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Phone, Lock, ArrowRight } from "lucide-react";
+import { Loader2, Mail, Lock, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Login = () => {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -20,20 +20,37 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: `${phoneNumber}@kaungcomputer.app`,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
         password
       });
+      
       if (error) throw error;
+      
+      // Check if email is verified
+      if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: "Email not verified",
+          description: "Please verify your email before logging in",
+          variant: "destructive",
+        });
+        navigate("/auth/verify-email");
+        return;
+      }
+      
       toast({
         title: "Success",
         description: "Logged in successfully"
       });
       navigate("/");
     } catch (error: any) {
+      let errorMessage = error.message || "Failed to login";
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password. Please try again.";
+      }
       toast({
         title: "Error",
-        description: error.message || "Failed to login",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -80,15 +97,15 @@ const Login = () => {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
               <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
-                  id="phone" 
-                  type="tel" 
-                  placeholder="09123456789" 
-                  value={phoneNumber} 
-                  onChange={e => setPhoneNumber(e.target.value)} 
+                  id="email" 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
                   required 
                   className="pl-10"
                 />
@@ -127,6 +144,14 @@ const Login = () => {
                 </>
               )}
             </Button>
+
+            <button
+              type="button"
+              onClick={() => navigate("/auth/forgot-password")}
+              className="text-sm text-primary hover:underline underline-offset-4 transition-colors"
+            >
+              Forgot Password?
+            </button>
             
             <p className="text-sm text-muted-foreground text-center">
               Don't have an account?{" "}
