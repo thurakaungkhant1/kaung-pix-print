@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, CheckSquare, Square, Check, XCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, CheckSquare, Square, Check, XCircle, Search, Filter, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 interface Order {
   id: string;
@@ -54,9 +62,70 @@ const OrdersManage = () => {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; status: string }>({ open: false, status: "" });
+  
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Filter orders based on search and filters
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          order.id.toLowerCase().includes(query) ||
+          order.profiles.name.toLowerCase().includes(query) ||
+          order.phone_number.toLowerCase().includes(query) ||
+          order.profiles.phone_number.toLowerCase().includes(query) ||
+          order.products.name.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+      
+      // Status filter
+      if (statusFilter !== "all" && order.status !== statusFilter) {
+        return false;
+      }
+      
+      // Payment method filter
+      if (paymentFilter !== "all" && order.payment_method !== paymentFilter) {
+        return false;
+      }
+      
+      // Date range filter
+      const orderDate = new Date(order.created_at);
+      if (dateFrom && orderDate < dateFrom) {
+        return false;
+      }
+      if (dateTo) {
+        const endOfDay = new Date(dateTo);
+        endOfDay.setHours(23, 59, 59, 999);
+        if (orderDate > endOfDay) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [orders, searchQuery, statusFilter, paymentFilter, dateFrom, dateTo]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setPaymentFilter("all");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
+  const hasActiveFilters = searchQuery || statusFilter !== "all" || paymentFilter !== "all" || dateFrom || dateTo;
 
   // Load payment proof preview for an order
   const loadPaymentProofPreview = async (orderId: string, filePath: string) => {
@@ -126,18 +195,18 @@ const OrdersManage = () => {
     });
   };
 
-  // Select all orders
+  // Select all filtered orders
   const selectAllOrders = () => {
-    if (selectedOrders.size === orders.length) {
+    if (selectedOrders.size === filteredOrders.length) {
       setSelectedOrders(new Set());
     } else {
-      setSelectedOrders(new Set(orders.map(o => o.id)));
+      setSelectedOrders(new Set(filteredOrders.map(o => o.id)));
     }
   };
 
-  // Select only pending orders
+  // Select only pending orders from filtered
   const selectPendingOrders = () => {
-    const pendingIds = orders.filter(o => o.status === "pending").map(o => o.id);
+    const pendingIds = filteredOrders.filter(o => o.status === "pending").map(o => o.id);
     setSelectedOrders(new Set(pendingIds));
   };
 
@@ -264,7 +333,7 @@ const OrdersManage = () => {
     }
   };
 
-  const pendingCount = orders.filter(o => o.status === "pending").length;
+  const pendingCount = filteredOrders.filter(o => o.status === "pending").length;
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -275,14 +344,102 @@ const OrdersManage = () => {
           </button>
           <h1 className="text-xl font-bold">Manage Orders</h1>
           <Badge variant="secondary" className="ml-auto">
-            {orders.length} orders
+            {hasActiveFilters ? `${filteredOrders.length}/${orders.length}` : orders.length} orders
           </Badge>
         </div>
       </header>
 
-      {/* Bulk Actions Toolbar */}
+      {/* Search and Filters */}
       <div className="sticky top-[60px] z-30 bg-background border-b shadow-sm">
-        <div className="max-w-screen-xl mx-auto p-3">
+        <div className="max-w-screen-xl mx-auto p-3 space-y-3">
+          {/* Search Bar */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by order ID, customer name, or phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="shrink-0">
+                <X className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {/* Filter Row */}
+          <div className="flex flex-wrap gap-2">
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[140px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="finished">Finished</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Payment Method Filter */}
+            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Payment" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Payments</SelectItem>
+                <SelectItem value="cod">COD</SelectItem>
+                <SelectItem value="kpay">KPay</SelectItem>
+                <SelectItem value="wavepay">WavePay</SelectItem>
+                <SelectItem value="bank">Bank</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Date From */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="default" className="w-[140px] justify-start">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {dateFrom ? format(dateFrom, "MMM d") : "From"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={dateFrom}
+                  onSelect={setDateFrom}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Date To */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="default" className="w-[140px] justify-start">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {dateTo ? format(dateTo, "MMM d") : "To"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={dateTo}
+                  onSelect={setDateTo}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Bulk Actions Row */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Selection Controls */}
             <div className="flex items-center gap-2">
@@ -292,12 +449,12 @@ const OrdersManage = () => {
                 onClick={selectAllOrders}
                 className="gap-1"
               >
-                {selectedOrders.size === orders.length && orders.length > 0 ? (
+                {selectedOrders.size === filteredOrders.length && filteredOrders.length > 0 ? (
                   <CheckSquare className="h-4 w-4" />
                 ) : (
                   <Square className="h-4 w-4" />
                 )}
-                {selectedOrders.size === orders.length && orders.length > 0 ? "Deselect All" : "Select All"}
+                {selectedOrders.size === filteredOrders.length && filteredOrders.length > 0 ? "Deselect All" : "Select All"}
               </Button>
               
               {pendingCount > 0 && (
@@ -379,7 +536,19 @@ const OrdersManage = () => {
       </div>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-4">
-        {orders.map((order) => (
+        {filteredOrders.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            {hasActiveFilters ? (
+              <>
+                <p>No orders match your filters</p>
+                <Button variant="link" onClick={clearFilters}>Clear filters</Button>
+              </>
+            ) : (
+              <p>No orders found</p>
+            )}
+          </div>
+        )}
+        {filteredOrders.map((order) => (
           <Card 
             key={order.id}
             className={cn(
