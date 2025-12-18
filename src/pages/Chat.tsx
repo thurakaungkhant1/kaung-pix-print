@@ -40,6 +40,7 @@ interface Message {
   is_deleted: boolean;
   edited_at?: string | null;
   reply_to_id?: string | null;
+  read_at?: string | null;
 }
 
 interface MessageReaction {
@@ -166,6 +167,29 @@ const Chat = () => {
     }
   };
 
+  // Mark messages as read
+  const markMessagesAsRead = async () => {
+    if (!user || !conversationId) return;
+    
+    const unreadMessages = messages.filter(
+      (m) => m.sender_id !== user.id && !m.read_at
+    );
+    
+    if (unreadMessages.length > 0) {
+      await supabase
+        .from("messages")
+        .update({ read_at: new Date().toISOString() })
+        .in("id", unreadMessages.map(m => m.id));
+    }
+  };
+
+  // Mark messages as read when viewing conversation
+  useEffect(() => {
+    if (conversationId && user && messages.length > 0) {
+      markMessagesAsRead();
+    }
+  }, [conversationId, messages.length, user]);
+
   // Subscribe to new messages
   useEffect(() => {
     if (!conversationId) return;
@@ -187,6 +211,11 @@ const Chat = () => {
             // Play sound for received messages
             if (newMsg.sender_id !== user?.id) {
               playMessageSound();
+              // Mark as read immediately since we're viewing the conversation
+              supabase
+                .from("messages")
+                .update({ read_at: new Date().toISOString() })
+                .eq("id", newMsg.id);
             }
           } else if (payload.eventType === "UPDATE") {
             setMessages((prev) =>
@@ -610,6 +639,7 @@ const Chat = () => {
                 isDeleted={message.is_deleted}
                 timestamp={message.created_at}
                 editedAt={message.edited_at}
+                readAt={message.read_at}
                 reactions={getMessageReactions(message.id)}
                 replyTo={getReplyMessage(message.reply_to_id)}
                 currentUserId={user?.id || ""}
