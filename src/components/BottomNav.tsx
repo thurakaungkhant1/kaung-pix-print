@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { Home, Image, Heart, User, Settings } from "lucide-react";
+import { Home, Image, Heart, User, Settings, MessageCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 const BottomNav = () => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const { hasUnread } = useUnreadMessages();
 
   useEffect(() => {
     if (user) {
@@ -31,6 +33,7 @@ const BottomNav = () => {
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/photo", icon: Image, label: "Photo" },
+    { to: "/chat-list", icon: MessageCircle, label: "Chat", showBadge: hasUnread },
     { to: "/favourite", icon: Heart, label: "Favourite" },
     { 
       to: isAdmin ? "/admin" : "/account", 
@@ -72,6 +75,11 @@ const BottomNav = () => {
                       "h-5 w-5 transition-all duration-300",
                       isActive ? "stroke-[2.5] text-primary" : "stroke-[1.5]"
                     )} />
+                    
+                    {/* Unread badge */}
+                    {item.showBadge && (
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-background animate-pulse" />
+                    )}
                     
                     {/* Glow effect */}
                     {isActive && (
