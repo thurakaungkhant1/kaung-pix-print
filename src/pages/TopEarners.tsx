@@ -6,6 +6,7 @@ import { ArrowLeft, Trophy, Medal, Award, Coins, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
 import { getRelativeTimeString } from "@/lib/timeUtils";
+import VerificationBadge from "@/components/VerificationBadge";
 import BottomNav from "@/components/BottomNav";
 
 interface LeaderboardUser {
@@ -89,12 +90,13 @@ const TopEarners = () => {
                 return (
                   <div 
                     key={leaderUser.id} 
-                    className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 animate-fade-in ${
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 animate-fade-in cursor-pointer ${
                       isCurrentUser 
                         ? "bg-primary/20 border-2 border-primary shadow-lg" 
                         : "bg-background/50 border border-border hover:bg-background/80"
                     }`}
                     style={{ animationDelay: `${index * 30}ms` }}
+                    onClick={() => navigate(`/profile/${leaderUser.id}`)}
                   >
                     <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
                       {getRankIcon(rank)}
@@ -104,6 +106,7 @@ const TopEarners = () => {
                         <p className={`font-display font-semibold truncate ${isCurrentUser ? "text-primary" : ""}`}>
                           {leaderUser.name}
                         </p>
+                        <VerificationBadge points={leaderUser.points} size="sm" />
                         {isCurrentUser && (
                           <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-medium">
                             You

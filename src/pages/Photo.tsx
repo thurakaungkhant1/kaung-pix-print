@@ -265,14 +265,14 @@ const Photo = () => {
                       "glass border-0 transition-all duration-300",
                       "hover:scale-110 active:scale-95",
                       favourites.has(photo.id) 
-                        ? "bg-primary/90 text-primary-foreground shadow-glow" 
+                        ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
                         : "bg-background/80 text-muted-foreground hover:bg-background"
                     )}
                   >
                     <Heart
                       className={cn(
                         "h-4 w-4 transition-all duration-300",
-                        favourites.has(photo.id) && "fill-current"
+                        favourites.has(photo.id) && "fill-current text-white"
                       )}
                     />
                   </button>

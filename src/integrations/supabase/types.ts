@@ -49,6 +49,30 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          participant1_id: string
+          participant2_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          participant1_id: string
+          participant2_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          participant1_id?: string
+          participant2_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       favourite_photos: {
         Row: {
           created_at: string | null
@@ -103,6 +127,41 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -335,6 +394,7 @@ export type Database = {
           download_pin: string | null
           email: string | null
           id: string
+          language: string | null
           name: string
           phone_number: string
           points: number
@@ -346,6 +406,7 @@ export type Database = {
           download_pin?: string | null
           email?: string | null
           id: string
+          language?: string | null
           name: string
           phone_number: string
           points?: number
@@ -357,6 +418,7 @@ export type Database = {
           download_pin?: string | null
           email?: string | null
           id?: string
+          language?: string | null
           name?: string
           phone_number?: string
           points?: number
