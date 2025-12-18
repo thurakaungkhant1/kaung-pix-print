@@ -32,7 +32,18 @@ import {
   Bell,
   Volume2,
   VolumeX,
+  Phone,
+  MapPin,
+  Mail,
+  User,
+  Gamepad2,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -71,8 +82,13 @@ interface Order {
   payment_method: string;
   payment_proof_url: string | null;
   created_at: string | null;
+  phone_number: string;
+  delivery_address: string;
+  game_id: string | null;
+  server_id: string | null;
+  game_name: string | null;
   products?: { name: string };
-  profiles?: { name: string };
+  profiles?: { name: string; email: string | null; phone_number: string };
 }
 
 interface DailyRevenue {
@@ -117,6 +133,8 @@ const AdminDashboard = () => {
     const saved = localStorage.getItem('admin-sound-enabled');
     return saved !== null ? saved === 'true' : true;
   });
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderDetailOpen, setOrderDetailOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -385,13 +403,34 @@ const AdminDashboard = () => {
   };
 
   const loadOrders = async () => {
-    const { data } = await supabase
+    const { data: ordersData } = await supabase
       .from("orders")
       .select(`*, products(name)`)
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (data) setOrders(data as Order[]);
+    if (ordersData) {
+      // Fetch profiles for all unique user_ids
+      const userIds = [...new Set(ordersData.map(o => o.user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, name, email, phone_number")
+        .in("id", userIds);
+
+      // Map profiles to orders
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+      const ordersWithProfiles = ordersData.map(order => ({
+        ...order,
+        profiles: profilesMap.get(order.user_id) || { name: "Unknown", email: null, phone_number: "" }
+      }));
+
+      setOrders(ordersWithProfiles as Order[]);
+    }
+  };
+
+  const viewOrderDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setOrderDetailOpen(true);
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
@@ -868,73 +907,252 @@ const AdminDashboard = () => {
 
           {/* Orders Tab */}
           {activeTab === "orders" && (
-            <Card className="premium-card">
-              <CardHeader>
-                <CardTitle>All Orders ({filteredOrders.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Product</TableHead>
-                        <TableHead>Qty</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Payment</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredOrders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}...</TableCell>
-                          <TableCell>{order.products?.name || "Product"}</TableCell>
-                          <TableCell>{order.quantity}</TableCell>
-                          <TableCell>{Number(order.price).toLocaleString()} MMK</TableCell>
-                          <TableCell>{order.payment_method}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                order.status === "approved"
-                                  ? "default"
-                                  : order.status === "pending"
-                                  ? "secondary"
-                                  : "destructive"
-                              }
-                            >
-                              {order.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {order.created_at
-                              ? new Date(order.created_at).toLocaleDateString()
-                              : "-"}
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={order.status}
-                              onValueChange={(value) => updateOrderStatus(order.id, value)}
-                            >
-                              <SelectTrigger className="w-32">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="approved">Approved</SelectItem>
-                                <SelectItem value="rejected">Rejected</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
+            <>
+              <Card className="premium-card">
+                <CardHeader>
+                  <CardTitle>All Orders ({filteredOrders.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Order ID</TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Product</TableHead>
+                          <TableHead>Qty</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredOrders.map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}...</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{order.profiles?.name || "Unknown"}</span>
+                                <span className="text-xs text-muted-foreground">{order.profiles?.email || "-"}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{order.products?.name || "Product"}</TableCell>
+                            <TableCell>{order.quantity}</TableCell>
+                            <TableCell>{Number(order.price).toLocaleString()} MMK</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  order.status === "approved"
+                                    ? "default"
+                                    : order.status === "pending"
+                                    ? "secondary"
+                                    : "destructive"
+                                }
+                              >
+                                {order.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {order.created_at
+                                ? new Date(order.created_at).toLocaleDateString()
+                                : "-"}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => viewOrderDetails(order)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Select
+                                  value={order.status}
+                                  onValueChange={(value) => updateOrderStatus(order.id, value)}
+                                >
+                                  <SelectTrigger className="w-28 h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="approved">Approved</SelectItem>
+                                    <SelectItem value="rejected">Rejected</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Order Detail Dialog */}
+              <Dialog open={orderDetailOpen} onOpenChange={setOrderDetailOpen}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <ShoppingCart className="h-5 w-5" />
+                      Order Details
+                    </DialogTitle>
+                  </DialogHeader>
+                  {selectedOrder && (
+                    <div className="space-y-6">
+                      {/* Order Info */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground">Order ID</p>
+                          <p className="font-mono text-sm">{selectedOrder.id}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground">Date</p>
+                          <p className="font-medium">
+                            {selectedOrder.created_at
+                              ? new Date(selectedOrder.created_at).toLocaleString()
+                              : "-"}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground">Status</p>
+                          <Badge
+                            variant={
+                              selectedOrder.status === "approved"
+                                ? "default"
+                                : selectedOrder.status === "pending"
+                                ? "secondary"
+                                : "destructive"
+                            }
+                          >
+                            {selectedOrder.status}
+                          </Badge>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground">Payment Method</p>
+                          <p className="font-medium capitalize">{selectedOrder.payment_method}</p>
+                        </div>
+                      </div>
+
+                      {/* Customer Info */}
+                      <div className="p-4 bg-muted/50 rounded-xl space-y-3">
+                        <h4 className="font-semibold flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Customer Information
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm text-muted-foreground">Name</p>
+                              <p className="font-medium">{selectedOrder.profiles?.name || "Unknown"}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm text-muted-foreground">Email</p>
+                              <p className="font-medium">{selectedOrder.profiles?.email || "-"}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm text-muted-foreground">Phone Number</p>
+                              <p className="font-medium">{selectedOrder.phone_number || "-"}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                            <div>
+                              <p className="text-sm text-muted-foreground">Delivery Address</p>
+                              <p className="font-medium">{selectedOrder.delivery_address || "-"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="p-4 bg-muted/50 rounded-xl space-y-3">
+                        <h4 className="font-semibold flex items-center gap-2">
+                          <Package className="h-4 w-4" />
+                          Product Details
+                        </h4>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{selectedOrder.products?.name || "Product"}</p>
+                            <p className="text-sm text-muted-foreground">Quantity: {selectedOrder.quantity}</p>
+                          </div>
+                          <p className="text-lg font-bold text-primary">
+                            {Number(selectedOrder.price).toLocaleString()} MMK
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Game Info (for MLBB orders) */}
+                      {selectedOrder.game_id && (
+                        <div className="p-4 bg-muted/50 rounded-xl space-y-3">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <Gamepad2 className="h-4 w-4" />
+                            Game Information
+                          </h4>
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Game ID</p>
+                              <p className="font-medium">{selectedOrder.game_id}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Server ID</p>
+                              <p className="font-medium">{selectedOrder.server_id || "-"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Game Name</p>
+                              <p className="font-medium">{selectedOrder.game_name || "-"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Payment Proof */}
+                      {selectedOrder.payment_proof_url && (
+                        <div className="p-4 bg-muted/50 rounded-xl space-y-3">
+                          <h4 className="font-semibold">Payment Proof</h4>
+                          <a
+                            href={selectedOrder.payment_proof_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline text-sm"
+                          >
+                            View Payment Screenshot
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex justify-end gap-2">
+                        <Select
+                          value={selectedOrder.status}
+                          onValueChange={(value) => {
+                            updateOrderStatus(selectedOrder.id, value);
+                            setSelectedOrder({ ...selectedOrder, status: value });
+                          }}
+                        >
+                          <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Change Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </>
           )}
 
           {/* Products Tab */}
