@@ -126,6 +126,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [diamondOrders, setDiamondOrders] = useState<Order[]>([]);
+  const [pendingDiamondOrders, setPendingDiamondOrders] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -196,6 +198,7 @@ const AdminDashboard = () => {
       loadStats();
       loadUsers();
       loadOrders();
+      loadDiamondOrders();
       loadRevenueData();
       loadOrderStatusData();
       loadUserGrowthData();
@@ -236,6 +239,7 @@ const AdminDashboard = () => {
 
           // Refresh data
           loadOrders();
+          loadDiamondOrders();
           loadStats();
           loadOrderStatusData();
         }
@@ -250,6 +254,7 @@ const AdminDashboard = () => {
         (payload) => {
           console.log('Order updated:', payload);
           loadOrders();
+          loadDiamondOrders();
           loadStats();
           loadOrderStatusData();
           loadRevenueData();
@@ -433,6 +438,37 @@ const AdminDashboard = () => {
     setOrderDetailOpen(true);
   };
 
+  const loadDiamondOrders = async () => {
+    const { data: ordersData } = await supabase
+      .from("orders")
+      .select(`*, products(name)`)
+      .not("game_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (ordersData) {
+      // Fetch profiles for all unique user_ids
+      const userIds = [...new Set(ordersData.map(o => o.user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, name, email, phone_number")
+        .in("id", userIds);
+
+      // Map profiles to orders
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+      const ordersWithProfiles = ordersData.map(order => ({
+        ...order,
+        profiles: profilesMap.get(order.user_id) || { name: "Unknown", email: null, phone_number: "" }
+      }));
+
+      setDiamondOrders(ordersWithProfiles as Order[]);
+      
+      // Count pending diamond orders
+      const pendingCount = ordersData.filter(o => o.status === "pending").length;
+      setPendingDiamondOrders(pendingCount);
+    }
+  };
+
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     const { error } = await supabase
       .from("orders")
@@ -444,6 +480,7 @@ const AdminDashboard = () => {
     } else {
       toast({ title: "Success", description: "Order status updated" });
       loadOrders();
+      loadDiamondOrders();
       loadStats();
     }
   };
@@ -470,15 +507,28 @@ const AdminDashboard = () => {
     );
   });
 
+  const filteredDiamondOrders = diamondOrders.filter((o) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      o.id.toLowerCase().includes(query) ||
+      o.products?.name?.toLowerCase().includes(query) ||
+      o.profiles?.name?.toLowerCase().includes(query) ||
+      o.profiles?.email?.toLowerCase().includes(query) ||
+      o.game_id?.toLowerCase().includes(query) ||
+      o.game_name?.toLowerCase().includes(query)
+    );
+  });
+
   if (!isAdmin) return null;
 
   const sidebarItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "users", label: "Users", icon: Users },
-    { id: "orders", label: "Orders", icon: ShoppingCart },
-    { id: "products", label: "Products", icon: Package },
-    { id: "photos", label: "Photos", icon: Image },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
+    { id: "users", label: "Users", icon: Users, badge: 0 },
+    { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
+    { id: "diamond-orders", label: "Diamond Orders", icon: Gem, badge: pendingDiamondOrders },
+    { id: "products", label: "Products", icon: Package, badge: 0 },
+    { id: "photos", label: "Photos", icon: Image, badge: 0 },
+    { id: "settings", label: "Settings", icon: Settings, badge: 0 },
   ];
 
   return (
@@ -507,15 +557,27 @@ const AdminDashboard = () => {
                 setSidebarOpen(false);
               }}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl",
+                "w-full flex items-center justify-between px-4 py-3 rounded-xl",
                 "transition-all duration-200",
                 activeTab === item.id
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-muted text-muted-foreground hover:text-foreground"
               )}
             >
-              <item.icon className="h-5 w-5" />
-              {item.label}
+              <div className="flex items-center gap-3">
+                <item.icon className="h-5 w-5" />
+                {item.label}
+              </div>
+              {item.badge > 0 && (
+                <span className={cn(
+                  "h-5 min-w-5 px-1.5 flex items-center justify-center text-xs font-bold rounded-full",
+                  activeTab === item.id
+                    ? "bg-primary-foreground text-primary"
+                    : "bg-destructive text-destructive-foreground"
+                )}>
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -560,7 +622,7 @@ const AdminDashboard = () => {
                 )}
               </button>
 
-              {(activeTab === "users" || activeTab === "orders") && (
+              {(activeTab === "users" || activeTab === "orders" || activeTab === "diamond-orders") && (
                 <div className="relative w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -1158,6 +1220,113 @@ const AdminDashboard = () => {
                 </DialogContent>
               </Dialog>
             </>
+          )}
+
+          {/* Diamond Orders Tab */}
+          {activeTab === "diamond-orders" && (
+            <Card className="premium-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gem className="h-5 w-5 text-primary" />
+                  Diamond Orders ({filteredDiamondOrders.length})
+                  {pendingDiamondOrders > 0 && (
+                    <Badge variant="destructive" className="ml-2">
+                      {pendingDiamondOrders} Pending
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Game Info</TableHead>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredDiamondOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}...</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{order.profiles?.name || "Unknown"}</span>
+                              <span className="text-xs text-muted-foreground">{order.profiles?.email || "-"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-sm">{order.game_name || "-"}</span>
+                              <span className="text-xs text-muted-foreground">
+                                ID: {order.game_id} | Server: {order.server_id || "-"}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{order.products?.name || "Diamond Package"}</TableCell>
+                          <TableCell>{Number(order.price).toLocaleString()} MMK</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                order.status === "approved"
+                                  ? "default"
+                                  : order.status === "pending"
+                                  ? "secondary"
+                                  : "destructive"
+                              }
+                            >
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {order.created_at
+                              ? new Date(order.created_at).toLocaleDateString()
+                              : "-"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => viewOrderDetails(order)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Select
+                                value={order.status}
+                                onValueChange={(value) => updateOrderStatus(order.id, value)}
+                              >
+                                <SelectTrigger className="w-28 h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="approved">Approved</SelectItem>
+                                  <SelectItem value="rejected">Rejected</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {filteredDiamondOrders.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                            No diamond orders found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Products Tab */}
