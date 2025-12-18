@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -16,6 +16,7 @@ import { useFriendRequests } from "@/hooks/useFriendRequests";
 import { useSoundNotification } from "@/hooks/useSoundNotification";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { compressImage } from "@/lib/imageCompression";
+import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +33,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface Message {
   id: string;
@@ -69,6 +75,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [amBlocked, setAmBlocked] = useState(false);
@@ -81,13 +88,14 @@ const Chat = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isFriend, sendFriendRequest, getFriendshipStatus } = useFriendRequests();
+  const { isFriend, sendFriendRequest, getFriendshipStatus, unfriend } = useFriendRequests();
   const { playMessageSound } = useSoundNotification();
   const { isRecipientTyping, sendTypingStatus, sendStopTyping } = useTypingIndicator({
     conversationId,
@@ -172,6 +180,20 @@ const Chat = () => {
       toast({ title: "User Unblocked", description: "You can now receive messages from this user" });
       setIsBlocked(false);
     }
+  };
+
+  const handleUnfriend = async () => {
+    if (!recipientId) return;
+    const success = await unfriend(recipientId);
+    if (success) {
+      setFriendStatus("none");
+    }
+    setUnfriendDialogOpen(false);
+  };
+
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    setNewMessage((prev) => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
   };
 
   // Mark messages as read
@@ -694,7 +716,13 @@ const Chat = () => {
                   <MoreVertical className="h-5 w-5" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-background">
+                {friendStatus === "friends" && (
+                  <DropdownMenuItem onClick={() => setUnfriendDialogOpen(true)} className="text-destructive">
+                    <UserMinus className="mr-2 h-4 w-4" />
+                    Unfriend
+                  </DropdownMenuItem>
+                )}
                 {isBlocked ? (
                   <DropdownMenuItem onClick={handleUnblockUser}>
                     <Ban className="mr-2 h-4 w-4" />
@@ -929,6 +957,32 @@ const Chat = () => {
               <ImagePlus className="h-5 w-5" />
             </Button>
             
+            {/* Emoji picker */}
+            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full h-12 w-12 shrink-0"
+                >
+                  <Smile className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-auto p-0 border-0" 
+                side="top" 
+                align="start"
+              >
+                <EmojiPicker
+                  onEmojiClick={onEmojiClick}
+                  theme={Theme.AUTO}
+                  lazyLoadEmojis
+                  height={350}
+                  width={300}
+                />
+              </PopoverContent>
+            </Popover>
+            
             <Input
               value={newMessage}
               onChange={(e) => {
@@ -997,6 +1051,27 @@ const Chat = () => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Block
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unfriend Confirmation */}
+      <AlertDialog open={unfriendDialogOpen} onOpenChange={setUnfriendDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Friend</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {recipient?.name} from your friends? You'll need to send a new friend request to chat again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUnfriend}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Unfriend
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

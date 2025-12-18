@@ -156,6 +156,35 @@ export const useFriendRequests = () => {
     return friends.includes(userId);
   };
 
+  const unfriend = async (otherUserId: string) => {
+    if (!user) return false;
+
+    // Delete the friend request record (works for both directions)
+    const { error } = await supabase
+      .from("friend_requests")
+      .delete()
+      .or(
+        `and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`
+      )
+      .eq("status", "accepted");
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove friend",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    toast({
+      title: "Unfriended",
+      description: "Friend removed successfully",
+    });
+    await loadFriendRequests();
+    return true;
+  };
+
   const getFriendshipStatus = async (
     otherUserId: string
   ): Promise<"none" | "pending_sent" | "pending_received" | "friends"> => {
@@ -184,6 +213,7 @@ export const useFriendRequests = () => {
     sendFriendRequest,
     acceptRequest,
     rejectRequest,
+    unfriend,
     isFriend,
     getFriendshipStatus,
     refresh: loadFriendRequests,
