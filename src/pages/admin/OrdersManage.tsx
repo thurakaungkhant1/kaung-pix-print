@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -29,18 +30,22 @@ interface Order {
   products: { name: string; image_url: string; points_value: number };
 }
 
-// Track which orders are currently loading signed URLs
+// Track loading and preview states per order
 type LoadingState = { [orderId: string]: boolean };
+type PreviewState = { [orderId: string]: string | null };
+type ExpandedState = { [orderId: string]: boolean };
 
 const OrdersManage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingProofs, setLoadingProofs] = useState<LoadingState>({});
+  const [previewUrls, setPreviewUrls] = useState<PreviewState>({});
+  const [expandedPreviews, setExpandedPreviews] = useState<ExpandedState>({});
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Generate a signed URL for viewing payment proof
-  const viewPaymentProof = async (orderId: string, filePath: string) => {
+  // Load payment proof preview for an order
+  const loadPaymentProofPreview = async (orderId: string, filePath: string) => {
     setLoadingProofs(prev => ({ ...prev, [orderId]: true }));
     
     try {
@@ -57,8 +62,7 @@ const OrdersManage = () => {
         return;
       }
 
-      // Open the signed URL in a new tab
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+      setPreviewUrls(prev => ({ ...prev, [orderId]: data.signedUrl }));
     } catch (err) {
       toast({
         title: "Error",
@@ -67,6 +71,31 @@ const OrdersManage = () => {
       });
     } finally {
       setLoadingProofs(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // Toggle preview expansion
+  const togglePreviewExpanded = (orderId: string) => {
+    setExpandedPreviews(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+  };
+
+  // Open payment proof in new tab
+  const openInNewTab = (orderId: string) => {
+    const url = previewUrls[orderId];
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  // Toggle preview visibility (load if not loaded, or hide)
+  const togglePreview = async (orderId: string, filePath: string) => {
+    if (previewUrls[orderId]) {
+      // Already loaded, just toggle visibility
+      setPreviewUrls(prev => ({ ...prev, [orderId]: null }));
+      setExpandedPreviews(prev => ({ ...prev, [orderId]: false }));
+    } else {
+      // Load the preview
+      await loadPaymentProofPreview(orderId, filePath);
     }
   };
 
@@ -175,26 +204,96 @@ const OrdersManage = () => {
                     <p><strong>Phone:</strong> {order.phone_number}</p>
                     <p><strong>Address:</strong> {order.delivery_address}</p>
                     <p><strong>Payment:</strong> {order.payment_method.toUpperCase()}</p>
+                    
+                    {/* Payment Proof Section */}
                     {order.payment_proof_url && (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="h-auto p-0 text-primary"
-                        onClick={() => viewPaymentProof(order.id, order.payment_proof_url!)}
-                        disabled={loadingProofs[order.id]}
-                      >
-                        {loadingProofs[order.id] ? (
-                          <>
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                            Loading...
-                          </>
-                        ) : (
-                          <>
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            View Payment Proof
-                          </>
+                      <div className="pt-2 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => togglePreview(order.id, order.payment_proof_url!)}
+                            disabled={loadingProofs[order.id]}
+                          >
+                            {loadingProofs[order.id] ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                Loading...
+                              </>
+                            ) : previewUrls[order.id] ? (
+                              <>
+                                <X className="h-3 w-3 mr-1" />
+                                Hide Proof
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="h-3 w-3 mr-1" />
+                                Show Proof
+                              </>
+                            )}
+                          </Button>
+                          
+                          {previewUrls[order.id] && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => togglePreviewExpanded(order.id)}
+                              >
+                                {expandedPreviews[order.id] ? (
+                                  <>
+                                    <ChevronUp className="h-3 w-3 mr-1" />
+                                    Collapse
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="h-3 w-3 mr-1" />
+                                    Expand
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openInNewTab(order.id)}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Open
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                        
+                        {/* Inline Preview */}
+                        {previewUrls[order.id] && (
+                          <div 
+                            className={cn(
+                              "relative cursor-pointer transition-all duration-300 overflow-hidden rounded-lg border",
+                              expandedPreviews[order.id] ? "max-h-[400px]" : "max-h-24"
+                            )}
+                            onClick={() => togglePreviewExpanded(order.id)}
+                          >
+                            <img
+                              src={previewUrls[order.id]!}
+                              alt="Payment proof"
+                              className="w-full object-contain"
+                              onError={() => {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to load payment proof image",
+                                  variant: "destructive",
+                                });
+                                setPreviewUrls(prev => ({ ...prev, [order.id]: null }));
+                              }}
+                            />
+                            {!expandedPreviews[order.id] && (
+                              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent flex items-end justify-center pb-1">
+                                <span className="text-xs text-muted-foreground">Click to expand</span>
+                              </div>
+                            )}
+                          </div>
                         )}
-                      </Button>
+                      </div>
                     )}
                   </div>
 
