@@ -96,20 +96,12 @@ const Signup = () => {
       });
       if (error) throw error;
 
-      // Check if email confirmation is required
-      if (data.user && !data.user.email_confirmed_at) {
-        toast({
-          title: "Verification email sent! 📧",
-          description: "Please check your inbox to verify your email"
-        });
-        navigate("/auth/verify-email");
-      } else {
-        toast({
-          title: "Welcome aboard! 🎉",
-          description: "Your account has been created successfully"
-        });
-        navigate("/");
-      }
+      // Auto-confirm is enabled - redirect directly to home
+      toast({
+        title: "Welcome aboard! 🎉",
+        description: "Your account has been created successfully"
+      });
+      navigate("/");
     } catch (error: any) {
       let errorMessage = error.message || "Failed to create account";
       if (error.message?.includes("already registered")) {
