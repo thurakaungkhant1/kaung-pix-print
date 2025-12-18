@@ -290,6 +290,13 @@ const Home = () => {
         )}
       </div>
 
+      {/* Footer credit */}
+      <div className="text-center py-6 pb-28">
+        <p className="text-xs text-muted-foreground/60">
+          created by thurakaungkhant
+        </p>
+      </div>
+
       <BottomNav />
     </div>
   );
