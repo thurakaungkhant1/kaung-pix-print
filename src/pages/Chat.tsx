@@ -874,6 +874,7 @@ const Chat = () => {
                 isOwn={message.sender_id === user?.id}
                 isDeleted={message.is_deleted}
                 timestamp={message.created_at}
+                senderId={message.sender_id}
                 editedAt={message.edited_at}
                 readAt={message.read_at}
                 mediaUrl={message.media_url}

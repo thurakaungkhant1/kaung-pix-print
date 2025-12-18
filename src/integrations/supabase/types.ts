@@ -495,6 +495,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           avatar_url: string | null
           created_at: string | null
           download_pin: string | null
@@ -509,6 +510,7 @@ export type Database = {
           referred_by: string | null
         }
         Insert: {
+          account_status?: string
           avatar_url?: string | null
           created_at?: string | null
           download_pin?: string | null
@@ -523,6 +525,7 @@ export type Database = {
           referred_by?: string | null
         }
         Update: {
+          account_status?: string
           avatar_url?: string | null
           created_at?: string | null
           download_pin?: string | null
@@ -549,6 +552,62 @@ export type Database = {
             columns: ["referred_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          admin_action: string | null
+          admin_notes: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          message_id: string | null
+          reason: string
+          report_type: string
+          reported_user_id: string
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          admin_action?: string | null
+          admin_notes?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          message_id?: string | null
+          reason: string
+          report_type?: string
+          reported_user_id: string
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          admin_action?: string | null
+          admin_notes?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          message_id?: string | null
+          reason?: string
+          report_type?: string
+          reported_user_id?: string
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Heart, MoreVertical, Pencil, Reply, Trash2, Check, X, CheckCheck, FileIcon, Download } from "lucide-react";
+import { Heart, MoreVertical, Pencil, Reply, Trash2, Check, X, CheckCheck, FileIcon, Download, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -7,9 +7,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
+import ReportDialog from "./ReportDialog";
 
 interface MessageReaction {
   id: string;
@@ -29,6 +31,7 @@ interface MessageBubbleProps {
   isOwn: boolean;
   isDeleted: boolean;
   timestamp: string;
+  senderId: string;
   editedAt?: string | null;
   readAt?: string | null;
   mediaUrl?: string | null;
@@ -51,6 +54,7 @@ const MessageBubble = ({
   isOwn,
   isDeleted,
   timestamp,
+  senderId,
   editedAt,
   readAt,
   mediaUrl,
@@ -70,6 +74,7 @@ const MessageBubble = ({
   const [editContent, setEditContent] = useState(content);
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const lastTapRef = useRef<number>(0);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -313,6 +318,18 @@ const MessageBubble = ({
                         Delete Message
                       </DropdownMenuItem>
                     )}
+                    {!isOwn && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => { setReportDialogOpen(true); setShowMenu(false); }}
+                          className="text-destructive"
+                        >
+                          <Flag className="mr-2 h-4 w-4" />
+                          Report Message
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -380,6 +397,16 @@ const MessageBubble = ({
           </div>
         )}
       </div>
+
+      {/* Report Dialog */}
+      <ReportDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        reportedUserId={senderId}
+        messageId={id}
+        messageContent={content}
+        reportType="message"
+      />
     </div>
   );
 };
