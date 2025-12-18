@@ -10,9 +10,11 @@ import VerificationBadge from "@/components/VerificationBadge";
 import OnlineStatus from "@/components/OnlineStatus";
 import BottomNav from "@/components/BottomNav";
 import MessageBubble from "@/components/MessageBubble";
+import TypingIndicator from "@/components/TypingIndicator";
 import { cn } from "@/lib/utils";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 import { useSoundNotification } from "@/hooks/useSoundNotification";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,6 +76,11 @@ const Chat = () => {
   const navigate = useNavigate();
   const { isFriend, sendFriendRequest, getFriendshipStatus } = useFriendRequests();
   const { playMessageSound } = useSoundNotification();
+  const { isRecipientTyping, sendTypingStatus, sendStopTyping } = useTypingIndicator({
+    conversationId,
+    userId: user?.id,
+    recipientId,
+  });
 
   useEffect(() => {
     if (user && recipientId) {
@@ -324,6 +331,7 @@ const Chat = () => {
     } else {
       setNewMessage("");
       setReplyingTo(null);
+      sendStopTyping();
     }
   };
 
@@ -500,6 +508,12 @@ const Chat = () => {
             />
           ))
         )}
+        
+        {/* Typing Indicator */}
+        {isRecipientTyping && (
+          <TypingIndicator name={recipient?.name} />
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -560,10 +574,18 @@ const Chat = () => {
           <div className="max-w-screen-xl mx-auto flex gap-2">
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                if (e.target.value) {
+                  sendTypingStatus();
+                } else {
+                  sendStopTyping();
+                }
+              }}
               placeholder={replyingTo ? "Type your reply..." : "Type a message..."}
               className="flex-1 rounded-full h-12"
               onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+              onBlur={sendStopTyping}
             />
             <Button
               onClick={sendMessage}
