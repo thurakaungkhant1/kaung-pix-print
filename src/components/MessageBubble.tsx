@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import VoiceMessagePlayer from "./VoiceMessagePlayer";
 
 interface MessageReaction {
   id: string;
@@ -32,6 +33,7 @@ interface MessageBubbleProps {
   readAt?: string | null;
   mediaUrl?: string | null;
   mediaType?: string | null;
+  transcription?: string | null;
   reactions: MessageReaction[];
   replyTo?: ReplyMessage | null;
   currentUserId: string;
@@ -53,6 +55,7 @@ const MessageBubble = ({
   readAt,
   mediaUrl,
   mediaType,
+  transcription,
   reactions,
   replyTo,
   currentUserId,
@@ -191,17 +194,12 @@ const MessageBubble = ({
                 </a>
               )}
               {mediaUrl && mediaType === "audio" && (
-                <div className={cn(
-                  "mb-2 rounded-lg p-2",
-                  isOwn ? "bg-primary-foreground/10" : "bg-background/50"
-                )}>
-                  <audio 
-                    controls 
-                    src={mediaUrl}
-                    className="w-full max-w-[200px] h-10"
-                    preload="metadata"
-                  />
-                </div>
+                <VoiceMessagePlayer
+                  audioUrl={mediaUrl}
+                  messageId={id}
+                  transcription={transcription}
+                  isOwn={isOwn}
+                />
               )}
               {mediaUrl && mediaType === "file" && (
                 <a 
