@@ -51,6 +51,7 @@ interface Message {
   read_at?: string | null;
   media_url?: string | null;
   media_type?: string | null;
+  transcription?: string | null;
 }
 
 interface MessageReaction {
@@ -860,6 +861,7 @@ const Chat = () => {
                 readAt={message.read_at}
                 mediaUrl={message.media_url}
                 mediaType={message.media_type}
+                transcription={message.transcription}
                 reactions={getMessageReactions(message.id)}
                 replyTo={getReplyMessage(message.reply_to_id)}
                 currentUserId={user?.id || ""}
