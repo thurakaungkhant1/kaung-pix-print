@@ -40,6 +40,8 @@ import {
   ExternalLink,
   Loader2,
   History,
+  Copy,
+  Check,
 } from "lucide-react";
 import {
   Dialog,
@@ -179,9 +181,30 @@ const AdminDashboard = () => {
   const [pointTransactions, setPointTransactions] = useState<PointTransaction[]>([]);
   const [historyDateFrom, setHistoryDateFrom] = useState<Date | undefined>(undefined);
   const [historyDateTo, setHistoryDateTo] = useState<Date | undefined>(undefined);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Copy to clipboard helper
+  const copyToClipboard = async (text: string, fieldId: string) => {
+    if (!text || text === "-") return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldId);
+      toast({
+        title: "Copied!",
+        description: "Copied to clipboard",
+      });
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Generate a signed URL for viewing payment proof inline
   const loadPaymentProofPreview = async (filePath: string) => {
@@ -1673,13 +1696,41 @@ const AdminDashboard = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-1 text-sm">
+                                <div className="flex items-center gap-1 text-sm group">
                                   <Phone className="h-3 w-3 text-muted-foreground" />
                                   <span>{order.phone_number || "-"}</span>
+                                  {order.phone_number && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      onClick={() => copyToClipboard(order.phone_number, `phone-${order.id}`)}
+                                    >
+                                      {copiedField === `phone-${order.id}` ? (
+                                        <Check className="h-3 w-3 text-green-500" />
+                                      ) : (
+                                        <Copy className="h-3 w-3" />
+                                      )}
+                                    </Button>
+                                  )}
                                 </div>
-                                <div className="flex items-start gap-1 text-xs text-muted-foreground max-w-[150px]">
+                                <div className="flex items-start gap-1 text-xs text-muted-foreground max-w-[180px] group">
                                   <MapPin className="h-3 w-3 flex-shrink-0 mt-0.5" />
                                   <span className="truncate">{order.delivery_address || "-"}</span>
+                                  {order.delivery_address && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                                      onClick={() => copyToClipboard(order.delivery_address, `address-${order.id}`)}
+                                    >
+                                      {copiedField === `address-${order.id}` ? (
+                                        <Check className="h-3 w-3 text-green-500" />
+                                      ) : (
+                                        <Copy className="h-3 w-3" />
+                                      )}
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             </TableCell>
@@ -1808,17 +1859,45 @@ const AdminDashboard = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <Phone className="h-4 w-4 text-muted-foreground" />
-                            <div>
+                            <div className="flex-1">
                               <p className="text-sm text-muted-foreground">Phone Number</p>
                               <p className="font-medium">{selectedOrder.phone_number || "-"}</p>
                             </div>
+                            {selectedOrder.phone_number && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => copyToClipboard(selectedOrder.phone_number, `detail-phone-${selectedOrder.id}`)}
+                              >
+                                {copiedField === `detail-phone-${selectedOrder.id}` ? (
+                                  <Check className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            )}
                           </div>
                           <div className="flex items-start gap-2">
                             <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                            <div>
+                            <div className="flex-1">
                               <p className="text-sm text-muted-foreground">Delivery Address</p>
                               <p className="font-medium">{selectedOrder.delivery_address || "-"}</p>
                             </div>
+                            {selectedOrder.delivery_address && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => copyToClipboard(selectedOrder.delivery_address, `detail-address-${selectedOrder.id}`)}
+                              >
+                                {copiedField === `detail-address-${selectedOrder.id}` ? (
+                                  <Check className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
