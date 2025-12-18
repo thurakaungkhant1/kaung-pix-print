@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Trash2, MessageCircle } from "lucide-react";
+import { ArrowLeft, Send, Trash2, MessageCircle, Ban, MoreVertical } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -19,6 +19,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Message {
   id: string;
@@ -42,7 +48,10 @@ const Chat = () => {
   const [recipient, setRecipient] = useState<Participant | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [amBlocked, setAmBlocked] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -52,8 +61,67 @@ const Chat = () => {
     if (user && recipientId) {
       loadOrCreateConversation();
       loadRecipient();
+      checkBlockStatus();
     }
   }, [user, recipientId]);
+
+  const checkBlockStatus = async () => {
+    if (!user || !recipientId) return;
+
+    // Check if I blocked them
+    const { data: blockedByMe } = await supabase
+      .from("blocked_users")
+      .select("id")
+      .eq("blocker_id", user.id)
+      .eq("blocked_id", recipientId)
+      .maybeSingle();
+
+    setIsBlocked(!!blockedByMe);
+
+    // Check if they blocked me
+    const { data: blockedMe } = await supabase
+      .from("blocked_users")
+      .select("id")
+      .eq("blocker_id", recipientId)
+      .eq("blocked_id", user.id)
+      .maybeSingle();
+
+    setAmBlocked(!!blockedMe);
+  };
+
+  const handleBlockUser = async () => {
+    if (!user || !recipientId) return;
+
+    const { error } = await supabase.from("blocked_users").insert({
+      blocker_id: user.id,
+      blocked_id: recipientId,
+    });
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to block user", variant: "destructive" });
+    } else {
+      toast({ title: "User Blocked", description: "You won't receive messages from this user" });
+      setIsBlocked(true);
+    }
+    setBlockDialogOpen(false);
+  };
+
+  const handleUnblockUser = async () => {
+    if (!user || !recipientId) return;
+
+    const { error } = await supabase
+      .from("blocked_users")
+      .delete()
+      .eq("blocker_id", user.id)
+      .eq("blocked_id", recipientId);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to unblock user", variant: "destructive" });
+    } else {
+      toast({ title: "User Unblocked", description: "You can now receive messages from this user" });
+      setIsBlocked(false);
+    }
+  };
 
   useEffect(() => {
     if (!conversationId) return;
@@ -215,32 +283,56 @@ const Chat = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-gradient-primary text-primary-foreground p-4 shadow-lg">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          {recipient && (
-            <div 
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => navigate(`/profile/${recipient.id}`)}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors"
             >
-              <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center font-bold">
-                {recipient.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold">{recipient.name}</span>
-                  <VerificationBadge points={recipient.points} size="sm" />
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            {recipient && (
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => navigate(`/profile/${recipient.id}`)}
+              >
+                <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center font-bold">
+                  {recipient.name.charAt(0).toUpperCase()}
                 </div>
-                <p className="text-xs text-primary-foreground/70">
-                  {recipient.points.toLocaleString()} points
-                </p>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold">{recipient.name}</span>
+                    <VerificationBadge points={recipient.points} size="sm" />
+                  </div>
+                  <p className="text-xs text-primary-foreground/70">
+                    {recipient.points.toLocaleString()} points
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+          
+          {/* Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors">
+                <MoreVertical className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {isBlocked ? (
+                <DropdownMenuItem onClick={handleUnblockUser}>
+                  <Ban className="mr-2 h-4 w-4" />
+                  Unblock User
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => setBlockDialogOpen(true)} className="text-destructive">
+                  <Ban className="mr-2 h-4 w-4" />
+                  Block User
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -313,22 +405,32 @@ const Chat = () => {
 
       {/* Input */}
       <div className="fixed bottom-16 left-0 right-0 p-4 bg-background border-t border-border">
-        <div className="max-w-screen-xl mx-auto flex gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 rounded-full h-12"
-            onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-          />
-          <Button
-            onClick={sendMessage}
-            disabled={!newMessage.trim()}
-            className="rounded-full h-12 w-12 p-0"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
-        </div>
+        {amBlocked ? (
+          <p className="text-center text-muted-foreground text-sm">
+            You cannot send messages to this user
+          </p>
+        ) : isBlocked ? (
+          <p className="text-center text-muted-foreground text-sm">
+            You have blocked this user. Unblock to send messages.
+          </p>
+        ) : (
+          <div className="max-w-screen-xl mx-auto flex gap-2">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 rounded-full h-12"
+              onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+            />
+            <Button
+              onClick={sendMessage}
+              disabled={!newMessage.trim()}
+              className="rounded-full h-12 w-12 p-0"
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation */}
@@ -348,6 +450,27 @@ const Chat = () => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Block Confirmation */}
+      <AlertDialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Block User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Blocked users won't be able to send you messages. You can unblock them later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBlockUser}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Block
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

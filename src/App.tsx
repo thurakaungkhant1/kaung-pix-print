@@ -27,6 +27,7 @@ import PointHistory from "./pages/PointHistory";
 import TopEarners from "./pages/TopEarners";
 import Chat from "./pages/Chat";
 import ChatList from "./pages/ChatList";
+import ExploreUsers from "./pages/ExploreUsers";
 import PublicProfile from "./pages/PublicProfile";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -300,6 +301,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ChatList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/explore-users"
+                element={
+                  <ProtectedRoute>
+                    <ExploreUsers />
                   </ProtectedRoute>
                 }
               />
