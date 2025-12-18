@@ -151,13 +151,16 @@ const AdminDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderDetailOpen, setOrderDetailOpen] = useState(false);
   const [loadingPaymentProof, setLoadingPaymentProof] = useState(false);
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
+  const [paymentProofExpanded, setPaymentProofExpanded] = useState(false);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Generate a signed URL for viewing payment proof
-  const viewPaymentProof = async (filePath: string) => {
+  // Generate a signed URL for viewing payment proof inline
+  const loadPaymentProofPreview = async (filePath: string) => {
     setLoadingPaymentProof(true);
+    setPaymentProofUrl(null);
     
     try {
       const { data, error } = await supabase.storage
@@ -173,8 +176,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Open the signed URL in a new tab
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+      setPaymentProofUrl(data.signedUrl);
     } catch (err) {
       toast({
         title: "Error",
@@ -185,6 +187,23 @@ const AdminDashboard = () => {
       setLoadingPaymentProof(false);
     }
   };
+
+  // Open payment proof in new tab (for full resolution view)
+  const openPaymentProofInNewTab = () => {
+    if (paymentProofUrl) {
+      window.open(paymentProofUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  // Load payment proof when order is selected
+  useEffect(() => {
+    if (selectedOrder?.payment_proof_url) {
+      loadPaymentProofPreview(selectedOrder.payment_proof_url);
+      setPaymentProofExpanded(false);
+    } else {
+      setPaymentProofUrl(null);
+    }
+  }, [selectedOrder?.id]);
 
   // Save sound preference
   const toggleSound = (enabled: boolean) => {
@@ -1485,26 +1504,74 @@ const AdminDashboard = () => {
                       {/* Payment Proof */}
                       {selectedOrder.payment_proof_url && (
                         <div className="p-4 bg-muted/50 rounded-xl space-y-3">
-                          <h4 className="font-semibold">Payment Proof</h4>
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0 text-primary"
-                            onClick={() => viewPaymentProof(selectedOrder.payment_proof_url!)}
-                            disabled={loadingPaymentProof}
-                          >
-                            {loadingPaymentProof ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                Loading...
-                              </>
-                            ) : (
-                              <>
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                View Payment Screenshot
-                              </>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">Payment Proof</h4>
+                            {paymentProofUrl && (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setPaymentProofExpanded(!paymentProofExpanded)}
+                                >
+                                  {paymentProofExpanded ? (
+                                    <>
+                                      <X className="h-4 w-4 mr-1" />
+                                      Collapse
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye className="h-4 w-4 mr-1" />
+                                      Expand
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={openPaymentProofInNewTab}
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-1" />
+                                  Open
+                                </Button>
+                              </div>
                             )}
-                          </Button>
+                          </div>
+                          
+                          {loadingPaymentProof ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                              <span className="ml-2 text-sm text-muted-foreground">Loading preview...</span>
+                            </div>
+                          ) : paymentProofUrl ? (
+                            <div 
+                              className={cn(
+                                "relative cursor-pointer transition-all duration-300 overflow-hidden rounded-lg border",
+                                paymentProofExpanded ? "max-h-[500px]" : "max-h-32"
+                              )}
+                              onClick={() => setPaymentProofExpanded(!paymentProofExpanded)}
+                            >
+                              <img
+                                src={paymentProofUrl}
+                                alt="Payment proof"
+                                className="w-full object-contain"
+                                onError={() => {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to load payment proof image",
+                                    variant: "destructive",
+                                  });
+                                  setPaymentProofUrl(null);
+                                }}
+                              />
+                              {!paymentProofExpanded && (
+                                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent flex items-end justify-center pb-2">
+                                  <span className="text-xs text-muted-foreground">Click to expand</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Unable to load payment proof</p>
+                          )}
                         </div>
                       )}
 
