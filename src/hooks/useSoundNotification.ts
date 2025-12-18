@@ -5,10 +5,22 @@ const NOTIFICATION_SOUNDS = {
   message: "/sounds/message.mp3",
 };
 
+const SOUND_ENABLED_KEY = "chat_sound_notifications_enabled";
+
+const isSoundEnabled = (): boolean => {
+  const stored = localStorage.getItem(SOUND_ENABLED_KEY);
+  return stored === null ? true : stored === "true";
+};
+
 export const useSoundNotification = () => {
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
   const playSound = useCallback((type: "friendRequest" | "message") => {
+    // Check if sounds are enabled
+    if (!isSoundEnabled()) {
+      return;
+    }
+
     try {
       // Create audio element if not exists
       if (!audioRefs.current[type]) {
