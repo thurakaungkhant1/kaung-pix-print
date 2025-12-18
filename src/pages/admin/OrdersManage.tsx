@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, CheckSquare, Square, Check, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Order {
   id: string;
@@ -40,6 +51,9 @@ const OrdersManage = () => {
   const [loadingProofs, setLoadingProofs] = useState<LoadingState>({});
   const [previewUrls, setPreviewUrls] = useState<PreviewState>({});
   const [expandedPreviews, setExpandedPreviews] = useState<ExpandedState>({});
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; status: string }>({ open: false, status: "" });
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -97,6 +111,85 @@ const OrdersManage = () => {
       // Load the preview
       await loadPaymentProofPreview(orderId, filePath);
     }
+  };
+
+  // Toggle order selection
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  // Select all orders
+  const selectAllOrders = () => {
+    if (selectedOrders.size === orders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(orders.map(o => o.id)));
+    }
+  };
+
+  // Select only pending orders
+  const selectPendingOrders = () => {
+    const pendingIds = orders.filter(o => o.status === "pending").map(o => o.id);
+    setSelectedOrders(new Set(pendingIds));
+  };
+
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedOrders(new Set());
+  };
+
+  // Bulk update order status
+  const bulkUpdateStatus = async (status: string) => {
+    if (selectedOrders.size === 0) return;
+    
+    setBulkUpdating(true);
+    setConfirmDialog({ open: false, status: "" });
+
+    try {
+      const orderIds = Array.from(selectedOrders);
+      
+      // Update all selected orders
+      const { error } = await supabase
+        .from("orders")
+        .update({ status })
+        .in("id", orderIds);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update orders",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `${orderIds.length} order(s) updated to "${status}"`,
+        });
+        clearSelection();
+        loadOrders();
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to update orders",
+        variant: "destructive",
+      });
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
+
+  // Open confirmation dialog
+  const openConfirmDialog = (status: string) => {
+    setConfirmDialog({ open: true, status });
   };
 
   useEffect(() => {
@@ -171,6 +264,8 @@ const OrdersManage = () => {
     }
   };
 
+  const pendingCount = orders.filter(o => o.status === "pending").length;
+
   return (
     <div className="min-h-screen bg-background pb-8">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
@@ -179,14 +274,130 @@ const OrdersManage = () => {
             <ArrowLeft className="h-6 w-6" />
           </button>
           <h1 className="text-xl font-bold">Manage Orders</h1>
+          <Badge variant="secondary" className="ml-auto">
+            {orders.length} orders
+          </Badge>
         </div>
       </header>
 
+      {/* Bulk Actions Toolbar */}
+      <div className="sticky top-[60px] z-30 bg-background border-b shadow-sm">
+        <div className="max-w-screen-xl mx-auto p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Selection Controls */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selectAllOrders}
+                className="gap-1"
+              >
+                {selectedOrders.size === orders.length && orders.length > 0 ? (
+                  <CheckSquare className="h-4 w-4" />
+                ) : (
+                  <Square className="h-4 w-4" />
+                )}
+                {selectedOrders.size === orders.length && orders.length > 0 ? "Deselect All" : "Select All"}
+              </Button>
+              
+              {pendingCount > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectPendingOrders}
+                  className="gap-1"
+                >
+                  <Square className="h-4 w-4" />
+                  Pending ({pendingCount})
+                </Button>
+              )}
+            </div>
+
+            {/* Selection Info & Actions */}
+            {selectedOrders.size > 0 && (
+              <>
+                <div className="h-6 w-px bg-border mx-1" />
+                
+                <span className="text-sm font-medium text-muted-foreground">
+                  {selectedOrders.size} selected
+                </span>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelection}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+
+                <div className="h-6 w-px bg-border mx-1" />
+
+                {/* Bulk Action Buttons */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => openConfirmDialog("approved")}
+                  disabled={bulkUpdating}
+                  className="gap-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Check className="h-4 w-4" />
+                  Approve
+                </Button>
+                
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => openConfirmDialog("finished")}
+                  disabled={bulkUpdating}
+                  className="gap-1 bg-green-600 hover:bg-green-700"
+                >
+                  <Check className="h-4 w-4" />
+                  Finish
+                </Button>
+                
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => openConfirmDialog("cancelled")}
+                  disabled={bulkUpdating}
+                  className="gap-1"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel
+                </Button>
+              </>
+            )}
+            
+            {bulkUpdating && (
+              <div className="flex items-center gap-2 ml-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Updating...</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-screen-xl mx-auto p-4 space-y-4">
         {orders.map((order) => (
-          <Card key={order.id}>
+          <Card 
+            key={order.id}
+            className={cn(
+              "transition-all",
+              selectedOrders.has(order.id) && "ring-2 ring-primary bg-primary/5"
+            )}
+          >
             <CardContent className="p-4">
               <div className="flex gap-4">
+                {/* Checkbox */}
+                <div className="flex items-start pt-1">
+                  <Checkbox
+                    checked={selectedOrders.has(order.id)}
+                    onCheckedChange={() => toggleOrderSelection(order.id)}
+                    className="h-5 w-5"
+                  />
+                </div>
+                
                 <img
                   src={order.products.image_url}
                   alt={order.products.name}
@@ -338,6 +549,41 @@ const OrdersManage = () => {
           </Card>
         ))}
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Bulk Update</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to update {selectedOrders.size} order(s) to "{confirmDialog.status}"?
+              {confirmDialog.status === "finished" && (
+                <span className="block mt-2 text-green-600 font-medium">
+                  Note: Points will be awarded to customers for finished orders.
+                </span>
+              )}
+              {confirmDialog.status === "cancelled" && (
+                <span className="block mt-2 text-destructive font-medium">
+                  Warning: This action cannot be easily undone.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => bulkUpdateStatus(confirmDialog.status)}
+              className={cn(
+                confirmDialog.status === "approved" && "bg-blue-600 hover:bg-blue-700",
+                confirmDialog.status === "finished" && "bg-green-600 hover:bg-green-700",
+                confirmDialog.status === "cancelled" && "bg-destructive hover:bg-destructive/90"
+              )}
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
