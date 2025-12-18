@@ -39,6 +39,7 @@ import {
   Gamepad2,
   ExternalLink,
   Loader2,
+  History,
 } from "lucide-react";
 import {
   Dialog,
@@ -92,6 +93,16 @@ interface Order {
   game_name: string | null;
   products?: { name: string };
   profiles?: { name: string; email: string | null; phone_number: string };
+}
+
+interface PointTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  transaction_type: string;
+  description: string | null;
+  created_at: string | null;
+  profiles?: { name: string; email: string | null };
 }
 
 interface DailyRevenue {
@@ -158,6 +169,7 @@ const AdminDashboard = () => {
   const [pointsChange, setPointsChange] = useState<string>("");
   const [pointsOperation, setPointsOperation] = useState<"add" | "subtract">("add");
   const [updatingPoints, setUpdatingPoints] = useState(false);
+  const [pointTransactions, setPointTransactions] = useState<PointTransaction[]>([]);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -260,6 +272,32 @@ const AdminDashboard = () => {
 
   // Admin check is now handled by useAdminCheck hook
 
+  const loadPointTransactions = async () => {
+    const { data } = await supabase
+      .from("point_transactions")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (data) {
+      // Fetch profiles for all unique user_ids
+      const userIds = [...new Set(data.map(t => t.user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, name, email")
+        .in("id", userIds);
+
+      // Map profiles to transactions
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+      const transactionsWithProfiles = data.map(transaction => ({
+        ...transaction,
+        profiles: profilesMap.get(transaction.user_id) || { name: "Unknown", email: null }
+      }));
+
+      setPointTransactions(transactionsWithProfiles);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
       loadStats();
@@ -270,6 +308,7 @@ const AdminDashboard = () => {
       loadOrderStatusData();
       loadUserGrowthData();
       loadDiamondAnalytics();
+      loadPointTransactions();
     }
   }, [isAdmin]);
 
@@ -685,6 +724,7 @@ const AdminDashboard = () => {
         });
         setEditPointsOpen(false);
         loadUsers();
+        loadPointTransactions();
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to update points", variant: "destructive" });
@@ -728,6 +768,7 @@ const AdminDashboard = () => {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
     { id: "users", label: "Users", icon: Users, badge: 0 },
     { id: "point-management", label: "Point Management", icon: Coins, badge: 0 },
+    { id: "point-history", label: "Point History", icon: History, badge: 0 },
     { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
     { id: "diamond-orders", label: "Diamond Orders", icon: Gem, badge: pendingDiamondOrders },
     { id: "products", label: "Products", icon: Package, badge: 0 },
@@ -826,7 +867,7 @@ const AdminDashboard = () => {
                 )}
               </button>
 
-              {(activeTab === "users" || activeTab === "orders" || activeTab === "diamond-orders" || activeTab === "point-management") && (
+              {(activeTab === "users" || activeTab === "orders" || activeTab === "diamond-orders" || activeTab === "point-management" || activeTab === "point-history") && (
                 <div className="relative w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -1417,7 +1458,86 @@ const AdminDashboard = () => {
             </Card>
           )}
 
-          {/* Orders Tab */}
+          {/* Point History Tab */}
+          {activeTab === "point-history" && (
+            <Card className="premium-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary" />
+                  Point Transaction History
+                </CardTitle>
+                <CardDescription>
+                  View all point adjustments including purchases, referrals, spins, and admin changes.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Description</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pointTransactions
+                        .filter(t => {
+                          if (!searchQuery) return true;
+                          const query = searchQuery.toLowerCase();
+                          return (
+                            t.profiles?.name?.toLowerCase().includes(query) ||
+                            t.profiles?.email?.toLowerCase().includes(query) ||
+                            t.transaction_type?.toLowerCase().includes(query) ||
+                            t.description?.toLowerCase().includes(query)
+                          );
+                        })
+                        .map((transaction) => (
+                          <TableRow key={transaction.id}>
+                            <TableCell className="text-sm">
+                              {transaction.created_at
+                                ? new Date(transaction.created_at).toLocaleString()
+                                : "-"}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{transaction.profiles?.name || "Unknown"}</span>
+                                <span className="text-xs text-muted-foreground">{transaction.profiles?.email || "-"}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={
+                                transaction.transaction_type === "admin_adjustment" ? "default" :
+                                transaction.transaction_type === "purchase" ? "secondary" :
+                                transaction.transaction_type === "referral" ? "outline" :
+                                transaction.transaction_type === "spin" ? "outline" :
+                                "secondary"
+                              }>
+                                {transaction.transaction_type.replace(/_/g, " ")}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className={cn(
+                                "font-semibold",
+                                transaction.amount > 0 ? "text-green-500" : "text-destructive"
+                              )}>
+                                {transaction.amount > 0 ? "+" : ""}{transaction.amount}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                              {transaction.description || "-"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {activeTab === "orders" && (
             <>
               <Card className="premium-card">
