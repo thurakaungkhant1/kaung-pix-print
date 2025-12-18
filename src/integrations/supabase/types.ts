@@ -219,6 +219,8 @@ export type Database = {
           edited_at: string | null
           id: string
           is_deleted: boolean | null
+          media_type: string | null
+          media_url: string | null
           read_at: string | null
           reply_to_id: string | null
           sender_id: string
@@ -230,6 +232,8 @@ export type Database = {
           edited_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
           read_at?: string | null
           reply_to_id?: string | null
           sender_id: string
@@ -241,6 +245,8 @@ export type Database = {
           edited_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
           read_at?: string | null
           reply_to_id?: string | null
           sender_id?: string
