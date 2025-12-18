@@ -120,8 +120,19 @@ const AdminDashboard = () => {
     weekRevenue: 0,
     monthRevenue: 0,
   });
+  const [diamondStats, setDiamondStats] = useState({
+    totalOrders: 0,
+    totalRevenue: 0,
+    pendingOrders: 0,
+    approvedOrders: 0,
+    todayRevenue: 0,
+    weekRevenue: 0,
+    monthRevenue: 0,
+  });
   const [revenueData, setRevenueData] = useState<DailyRevenue[]>([]);
+  const [diamondRevenueData, setDiamondRevenueData] = useState<DailyRevenue[]>([]);
   const [orderStatusData, setOrderStatusData] = useState<OrderStatusData[]>([]);
+  const [diamondStatusData, setDiamondStatusData] = useState<OrderStatusData[]>([]);
   const [userGrowthData, setUserGrowthData] = useState<UserGrowthData[]>([]);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -202,6 +213,7 @@ const AdminDashboard = () => {
       loadRevenueData();
       loadOrderStatusData();
       loadUserGrowthData();
+      loadDiamondAnalytics();
     }
   }, [isAdmin]);
 
@@ -240,6 +252,7 @@ const AdminDashboard = () => {
           // Refresh data
           loadOrders();
           loadDiamondOrders();
+          loadDiamondAnalytics();
           loadStats();
           loadOrderStatusData();
         }
@@ -255,6 +268,7 @@ const AdminDashboard = () => {
           console.log('Order updated:', payload);
           loadOrders();
           loadDiamondOrders();
+          loadDiamondAnalytics();
           loadStats();
           loadOrderStatusData();
           loadRevenueData();
@@ -394,6 +408,81 @@ const AdminDashboard = () => {
           cumulative += count;
           return { date, users: cumulative };
         })
+      );
+    }
+  };
+
+  const loadDiamondAnalytics = async () => {
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7).toISOString();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Fetch diamond orders stats
+    const [allDiamondOrders, approvedDiamondOrders, pendingDiamondOrders, todayDiamond, weekDiamond, monthDiamond] = await Promise.all([
+      supabase.from("orders").select("id, price, status", { count: "exact" }).not("game_id", "is", null),
+      supabase.from("orders").select("price").not("game_id", "is", null).eq("status", "approved"),
+      supabase.from("orders").select("id", { count: "exact", head: true }).not("game_id", "is", null).eq("status", "pending"),
+      supabase.from("orders").select("price").not("game_id", "is", null).eq("status", "approved").gte("created_at", startOfToday),
+      supabase.from("orders").select("price").not("game_id", "is", null).eq("status", "approved").gte("created_at", startOfWeek),
+      supabase.from("orders").select("price").not("game_id", "is", null).eq("status", "approved").gte("created_at", startOfMonth),
+    ]);
+
+    const totalRevenue = approvedDiamondOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const todayRevenue = todayDiamond.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const weekRevenue = weekDiamond.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const monthRevenue = monthDiamond.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+
+    // Count status distribution
+    const statusCounts = { pending: 0, approved: 0, rejected: 0 };
+    allDiamondOrders.data?.forEach((order) => {
+      if (statusCounts[order.status as keyof typeof statusCounts] !== undefined) {
+        statusCounts[order.status as keyof typeof statusCounts]++;
+      }
+    });
+
+    setDiamondStats({
+      totalOrders: allDiamondOrders.count || 0,
+      totalRevenue,
+      pendingOrders: pendingDiamondOrders.count || 0,
+      approvedOrders: statusCounts.approved,
+      todayRevenue,
+      weekRevenue,
+      monthRevenue,
+    });
+
+    setDiamondStatusData([
+      { name: "Pending", value: statusCounts.pending, color: "hsl(var(--chart-2))" },
+      { name: "Approved", value: statusCounts.approved, color: "hsl(var(--chart-1))" },
+      { name: "Rejected", value: statusCounts.rejected, color: "hsl(var(--destructive))" },
+    ]);
+
+    // Fetch revenue trend data for diamonds
+    const { data: trendData } = await supabase
+      .from("orders")
+      .select("price, created_at")
+      .not("game_id", "is", null)
+      .eq("status", "approved")
+      .gte("created_at", thirtyDaysAgo.toISOString())
+      .order("created_at", { ascending: true });
+
+    if (trendData) {
+      const grouped: { [key: string]: { revenue: number; orders: number } } = {};
+      trendData.forEach((order) => {
+        const date = new Date(order.created_at || "").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        if (!grouped[date]) grouped[date] = { revenue: 0, orders: 0 };
+        grouped[date].revenue += Number(order.price);
+        grouped[date].orders += 1;
+      });
+
+      setDiamondRevenueData(
+        Object.entries(grouped).map(([date, values]) => ({
+          date,
+          revenue: values.revenue,
+          orders: values.orders,
+        }))
       );
     }
   };
@@ -854,6 +943,175 @@ const AdminDashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+
+              {/* Diamond Sales Analytics Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Gem className="h-5 w-5 text-primary" />
+                  Diamond Sales Analytics
+                </h3>
+
+                {/* Diamond Stats Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="premium-card border-l-4 border-l-purple-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Gem className="h-5 w-5 text-purple-500" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total Diamond Orders</p>
+                          <p className="text-xl font-bold">{diamondStats.totalOrders}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="premium-card border-l-4 border-l-green-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <TrendingUp className="h-5 w-5 text-green-500" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Diamond Revenue</p>
+                          <p className="text-xl font-bold text-green-500">{diamondStats.totalRevenue.toLocaleString()} MMK</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="premium-card border-l-4 border-l-orange-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Coins className="h-5 w-5 text-orange-500" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Pending Diamond Orders</p>
+                          <p className="text-xl font-bold text-orange-500">{diamondStats.pendingOrders}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="premium-card border-l-4 border-l-blue-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-blue-500" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">This Month</p>
+                          <p className="text-xl font-bold text-blue-500">{diamondStats.monthRevenue.toLocaleString()} MMK</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Diamond Charts Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Diamond Revenue Trend */}
+                  <Card className="premium-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Gem className="h-5 w-5 text-purple-500" />
+                        Diamond Sales Trend (Last 30 Days)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={diamondRevenueData}>
+                            <defs>
+                              <linearGradient id="diamondGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="hsl(280, 80%, 60%)" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="hsl(280, 80%, 60%)" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                            <XAxis dataKey="date" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                            <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px',
+                              }}
+                              formatter={(value: number) => [`${value.toLocaleString()} MMK`, 'Revenue']}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="revenue"
+                              stroke="hsl(280, 80%, 60%)"
+                              fill="url(#diamondGradient)"
+                              strokeWidth={2}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Diamond Order Status Distribution */}
+                  <Card className="premium-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Gem className="h-5 w-5 text-purple-500" />
+                        Diamond Order Status
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-72 flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={diamondStatusData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={100}
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {diamondStatusData.map((entry, index) => (
+                                <Cell key={`diamond-cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px',
+                              }}
+                            />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Daily Diamond Orders */}
+                  <Card className="premium-card lg:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5 text-purple-500" />
+                        Daily Diamond Orders (Last 30 Days)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={diamondRevenueData}>
+                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                            <XAxis dataKey="date" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                            <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px',
+                              }}
+                            />
+                            <Bar dataKey="orders" fill="hsl(280, 80%, 60%)" radius={[4, 4, 0, 0]} name="Diamond Orders" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
               {/* Quick Actions */}
