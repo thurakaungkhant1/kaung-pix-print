@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Play, Pause, Loader2 } from "lucide-react";
+import { Play, Pause, Loader2, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,6 +20,7 @@ const VoiceMessagePlayer = ({
 }: VoiceMessagePlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const animationRef = useRef<number | null>(null);
+  const volumeRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -27,6 +29,26 @@ const VoiceMessagePlayer = ({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
   const [animationOffset, setAnimationOffset] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [showVolume, setShowVolume] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Click outside handler for volume slider
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (volumeRef.current && !volumeRef.current.contains(event.target as Node)) {
+        setShowVolume(false);
+      }
+    };
+
+    if (showVolume) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showVolume]);
 
   // Generate stable waveform bar heights
   const waveformBars = useMemo(() => {
@@ -88,6 +110,13 @@ const VoiceMessagePlayer = ({
     };
   }, []);
 
+  // Handle volume changes
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = isMuted ? 0 : volume;
+  }, [volume, isMuted]);
+
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -98,6 +127,15 @@ const VoiceMessagePlayer = ({
       audio.play();
     }
     setIsPlaying(!isPlaying);
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    setVolume(value[0]);
+    if (value[0] > 0) setIsMuted(false);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
   };
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -216,6 +254,52 @@ const VoiceMessagePlayer = ({
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
+        </div>
+
+        {/* Volume Control */}
+        <div ref={volumeRef} className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-8 w-8 shrink-0",
+              isOwn 
+                ? "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10" 
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            )}
+            onClick={() => setShowVolume(!showVolume)}
+            onDoubleClick={toggleMute}
+          >
+            {isMuted || volume === 0 ? (
+              <VolumeX className="h-4 w-4" />
+            ) : (
+              <Volume2 className="h-4 w-4" />
+            )}
+          </Button>
+          
+          {showVolume && (
+            <div className={cn(
+              "absolute bottom-full mb-2 left-1/2 -translate-x-1/2 p-2 rounded-lg shadow-lg z-10",
+              isOwn ? "bg-primary" : "bg-card border border-border"
+            )}>
+              <div className="h-20 flex flex-col items-center gap-2">
+                <Slider
+                  orientation="vertical"
+                  value={[isMuted ? 0 : volume]}
+                  max={1}
+                  step={0.1}
+                  onValueChange={handleVolumeChange}
+                  className="h-16"
+                />
+                <span className={cn(
+                  "text-[10px]",
+                  isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
+                )}>
+                  {Math.round((isMuted ? 0 : volume) * 100)}%
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
