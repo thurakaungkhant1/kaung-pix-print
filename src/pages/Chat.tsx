@@ -455,12 +455,18 @@ const Chat = () => {
       return null;
     }
 
-    const { data: urlData } = supabase.storage
+    // Use signed URL for private bucket (1 hour expiry)
+    const { data: urlData, error: signedUrlError } = await supabase.storage
       .from("chat-media")
-      .getPublicUrl(data.path);
+      .createSignedUrl(data.path, 3600);
+
+    if (signedUrlError || !urlData?.signedUrl) {
+      console.error("Signed URL error:", signedUrlError);
+      return null;
+    }
 
     return {
-      url: urlData.publicUrl,
+      url: urlData.signedUrl,
       type: file.type.startsWith("image/") ? "image" : file.type.startsWith("audio/") ? "audio" : "file",
     };
   };
@@ -487,15 +493,26 @@ const Chat = () => {
         return;
       }
 
-      const { data: urlData } = supabase.storage
+      // Use signed URL for private bucket (1 hour expiry)
+      const { data: urlData, error: signedUrlError } = await supabase.storage
         .from("chat-media")
-        .getPublicUrl(data.path);
+        .createSignedUrl(data.path, 3600);
+
+      if (signedUrlError || !urlData?.signedUrl) {
+        console.error("Signed URL error:", signedUrlError);
+        toast({
+          title: "Error",
+          description: "Failed to generate media URL",
+          variant: "destructive",
+        });
+        return;
+      }
 
       await supabase.from("messages").insert({
         conversation_id: conversationId,
         sender_id: user.id,
         content: "🎤 Voice message",
-        media_url: urlData.publicUrl,
+        media_url: urlData.signedUrl,
         media_type: "audio",
       });
 

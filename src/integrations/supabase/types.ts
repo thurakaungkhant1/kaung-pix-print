@@ -538,6 +538,13 @@ export type Database = {
             foreignKeyName: "profiles_referred_by_fkey"
             columns: ["referred_by"]
             isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -656,7 +663,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          name: string | null
+          points: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          points?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          points?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_referral_code: { Args: never; Returns: string }
