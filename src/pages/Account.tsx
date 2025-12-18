@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -413,6 +413,7 @@ const Account = () => {
         {/* Action Buttons */}
         <div className="space-y-2 animate-slide-up" style={{ animationDelay: "250ms" }}>
           {[
+            { icon: Users, label: "Community Chat", path: "/explore-users", show: true },
             { icon: Mail, label: "AI Assistant", path: "/ai-chat", show: true },
             { icon: Shield, label: "Admin Dashboard", path: "/admin", show: isAdmin },
             { icon: FileText, label: "Terms & Policy", path: "/terms", show: true },

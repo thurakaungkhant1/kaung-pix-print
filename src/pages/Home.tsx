@@ -160,9 +160,11 @@ const Home = () => {
               <Sparkles className="h-3 w-3 opacity-70" />
             </Button>
             
-            <h1 className="text-lg font-display font-bold text-primary-foreground tracking-tight">
-              KC
-            </h1>
+            <img 
+              src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" 
+              alt="Logo" 
+              className="h-8 w-8 object-contain rounded-lg"
+            />
             
             <CartHeader />
           </div>

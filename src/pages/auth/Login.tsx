@@ -39,11 +39,25 @@ const Login = () => {
         return;
       }
       
+      // Check if user is admin
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      
       toast({
         title: "Success",
         description: "Logged in successfully"
       });
-      navigate("/");
+      
+      // Redirect based on role
+      if (roleData) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       let errorMessage = error.message || "Failed to login";
       if (error.message?.includes("Invalid login credentials")) {
