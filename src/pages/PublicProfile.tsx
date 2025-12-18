@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Coins, Calendar, MessageCircle, Trophy } from "lucide-react";
+import { ArrowLeft, User, Coins, Calendar, MessageCircle, Trophy, Users, UserPlus, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFriendRequests } from "@/hooks/useFriendRequests";
 import VerificationBadge, { VERIFICATION_THRESHOLD } from "@/components/VerificationBadge";
 import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
@@ -21,8 +22,11 @@ const PublicProfile = () => {
   const [profile, setProfile] = useState<PublicProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [rank, setRank] = useState<number | null>(null);
+  const [friendCount, setFriendCount] = useState(0);
+  const [friendStatus, setFriendStatus] = useState<"none" | "pending_sent" | "pending_received" | "friends">("none");
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { sendFriendRequest, getFriendshipStatus, acceptRequest } = useFriendRequests();
 
   const isOwnProfile = user?.id === userId;
 
@@ -30,8 +34,12 @@ const PublicProfile = () => {
     if (userId) {
       loadProfile();
       loadRank();
+      loadFriendCount();
+      if (user && !isOwnProfile) {
+        checkFriendStatus();
+      }
     }
-  }, [userId]);
+  }, [userId, user]);
 
   const loadProfile = async () => {
     if (!userId) return;
@@ -52,7 +60,6 @@ const PublicProfile = () => {
   const loadRank = async () => {
     if (!userId) return;
 
-    // Get user's points first
     const { data: userProfile } = await supabase
       .from("profiles")
       .select("points")
@@ -60,13 +67,44 @@ const PublicProfile = () => {
       .single();
 
     if (userProfile) {
-      // Count how many users have more points
       const { count } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true })
         .gt("points", userProfile.points);
 
       setRank((count || 0) + 1);
+    }
+  };
+
+  const loadFriendCount = async () => {
+    if (!userId) return;
+
+    const { count } = await supabase
+      .from("friend_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "accepted")
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+
+    setFriendCount(count || 0);
+  };
+
+  const checkFriendStatus = async () => {
+    if (!userId) return;
+    const status = await getFriendshipStatus(userId);
+    setFriendStatus(status);
+  };
+
+  const handleAddFriend = async () => {
+    if (!userId) return;
+    const success = await sendFriendRequest(userId);
+    if (success) {
+      setFriendStatus("pending_sent");
+    }
+  };
+
+  const handleMessage = () => {
+    if (profile && friendStatus === "friends") {
+      navigate(`/chat/${profile.id}`);
     }
   };
 
@@ -160,13 +198,13 @@ const PublicProfile = () => {
               </div>
             )}
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-4 mt-6">
+            {/* Stats Grid - 4 columns now */}
+            <div className="grid grid-cols-4 gap-3 mt-6">
               <div className="bg-background/50 rounded-xl p-3">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Coins className="h-4 w-4 text-primary" />
                 </div>
-                <p className="text-xl font-bold text-primary">
+                <p className="text-lg font-bold text-primary">
                   {profile.points.toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground">Points</p>
@@ -174,9 +212,19 @@ const PublicProfile = () => {
               
               <div className="bg-background/50 rounded-xl p-3">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
+                  <Users className="h-4 w-4 text-green-500" />
+                </div>
+                <p className="text-lg font-bold text-green-500">
+                  {friendCount}
+                </p>
+                <p className="text-xs text-muted-foreground">Friends</p>
+              </div>
+              
+              <div className="bg-background/50 rounded-xl p-3">
+                <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Trophy className="h-4 w-4 text-accent" />
                 </div>
-                <p className="text-xl font-bold text-accent">
+                <p className="text-lg font-bold text-accent">
                   #{rank || "—"}
                 </p>
                 <p className="text-xs text-muted-foreground">Rank</p>
@@ -215,15 +263,85 @@ const PublicProfile = () => {
 
         {/* Action Buttons */}
         {!isOwnProfile && (
-          <div className="space-y-2 animate-slide-up" style={{ animationDelay: "100ms" }}>
+          <div className="grid grid-cols-2 gap-3 animate-slide-up" style={{ animationDelay: "100ms" }}>
+            {/* Message Button */}
             <Button
-              className="w-full h-12 rounded-xl"
-              onClick={() => navigate(`/chat/${profile.id}`)}
+              className={cn(
+                "h-12 rounded-xl",
+                friendStatus !== "friends" && "opacity-50"
+              )}
+              onClick={handleMessage}
+              disabled={friendStatus !== "friends"}
             >
               <MessageCircle className="mr-2 h-5 w-5" />
-              Send Message
+              Message
             </Button>
+
+            {/* Add Friend / Status Button */}
+            {friendStatus === "none" && (
+              <Button
+                variant="outline"
+                className="h-12 rounded-xl"
+                onClick={handleAddFriend}
+              >
+                <UserPlus className="mr-2 h-5 w-5" />
+                Add Friend
+              </Button>
+            )}
+            {friendStatus === "pending_sent" && (
+              <Button
+                variant="outline"
+                className="h-12 rounded-xl"
+                disabled
+              >
+                <Clock className="mr-2 h-5 w-5" />
+                Request Sent
+              </Button>
+            )}
+            {friendStatus === "pending_received" && (
+              <Button
+                variant="outline"
+                className="h-12 rounded-xl text-green-600 border-green-600 hover:bg-green-50"
+                onClick={async () => {
+                  // Find and accept the pending request
+                  const { data } = await supabase
+                    .from("friend_requests")
+                    .select("id")
+                    .eq("sender_id", userId)
+                    .eq("receiver_id", user?.id)
+                    .eq("status", "pending")
+                    .single();
+                  
+                  if (data) {
+                    await acceptRequest(data.id);
+                    setFriendStatus("friends");
+                  }
+                }}
+              >
+                <UserPlus className="mr-2 h-5 w-5" />
+                Accept Request
+              </Button>
+            )}
+            {friendStatus === "friends" && (
+              <Button
+                variant="outline"
+                className="h-12 rounded-xl text-green-600 border-green-600"
+                disabled
+              >
+                <Users className="mr-2 h-5 w-5" />
+                Friends
+              </Button>
+            )}
           </div>
+        )}
+
+        {/* Disabled message hint */}
+        {!isOwnProfile && friendStatus !== "friends" && (
+          <p className="text-xs text-center text-muted-foreground animate-slide-up" style={{ animationDelay: "150ms" }}>
+            {friendStatus === "none" && "Add as friend to send messages"}
+            {friendStatus === "pending_sent" && "Waiting for friend request to be accepted"}
+            {friendStatus === "pending_received" && "Accept the friend request to chat"}
+          </p>
         )}
 
         {isOwnProfile && (

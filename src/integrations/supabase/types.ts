@@ -179,32 +179,70 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message_id: string
+          reaction_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
           conversation_id: string
           created_at: string | null
+          edited_at: string | null
           id: string
           is_deleted: boolean | null
           read_at: string | null
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
           content: string
           conversation_id: string
           created_at?: string | null
+          edited_at?: string | null
           id?: string
           is_deleted?: boolean | null
           read_at?: string | null
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
           content?: string
           conversation_id?: string
           created_at?: string | null
+          edited_at?: string | null
           id?: string
           is_deleted?: boolean | null
           read_at?: string | null
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -213,6 +251,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
@@ -445,6 +490,7 @@ export type Database = {
           download_pin: string | null
           email: string | null
           id: string
+          is_active_visible: boolean | null
           language: string | null
           name: string
           phone_number: string
@@ -457,6 +503,7 @@ export type Database = {
           download_pin?: string | null
           email?: string | null
           id: string
+          is_active_visible?: boolean | null
           language?: string | null
           name: string
           phone_number: string
@@ -469,6 +516,7 @@ export type Database = {
           download_pin?: string | null
           email?: string | null
           id?: string
+          is_active_visible?: boolean | null
           language?: string | null
           name?: string
           phone_number?: string

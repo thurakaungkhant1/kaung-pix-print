@@ -15,6 +15,7 @@ import BottomNav from "@/components/BottomNav";
 import SpinnerWheel from "@/components/SpinnerWheel";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import ReferralSection from "@/components/ReferralSection";
+import ChatSettings from "@/components/ChatSettings";
 import { cn } from "@/lib/utils";
 
 interface Profile {
@@ -311,6 +312,11 @@ const Account = () => {
         {/* Referral Section */}
         <div className="animate-slide-up" style={{ animationDelay: "150ms" }}>
           <ReferralSection />
+        </div>
+
+        {/* Chat Settings */}
+        <div className="animate-slide-up" style={{ animationDelay: "175ms" }}>
+          <ChatSettings />
         </div>
 
         {/* Profile Information */}
