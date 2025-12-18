@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -24,6 +25,9 @@ import Exchange from "./pages/Exchange";
 import Cart from "./pages/Cart";
 import PointHistory from "./pages/PointHistory";
 import TopEarners from "./pages/TopEarners";
+import Chat from "./pages/Chat";
+import ChatList from "./pages/ChatList";
+import PublicProfile from "./pages/PublicProfile";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -59,6 +63,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <LanguageProvider>
             <OnlineUsersProvider>
               <Routes>
               <Route path="/auth/login" element={<Login />} />
@@ -282,9 +287,34 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/chat/:recipientId"
+                element={
+                  <ProtectedRoute>
+                    <Chat />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/messages"
+                element={
+                  <ProtectedRoute>
+                    <ChatList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/:userId"
+                element={
+                  <ProtectedRoute>
+                    <PublicProfile />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
             </OnlineUsersProvider>
+            </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

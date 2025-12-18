@@ -160,8 +160,8 @@ const Home = () => {
               <Sparkles className="h-3 w-3 opacity-70" />
             </Button>
             
-            <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
-              Kaung Computer
+            <h1 className="text-lg font-display font-bold text-primary-foreground tracking-tight">
+              KC
             </h1>
             
             <CartHeader />
@@ -258,14 +258,14 @@ const Home = () => {
                               "glass border-0 transition-all duration-300",
                               "hover:scale-110 active:scale-95",
                               favourites.has(product.id) 
-                                ? "bg-primary/90 text-primary-foreground shadow-glow" 
+                                ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
                                 : "bg-background/80 text-muted-foreground hover:bg-background"
                             )}
                           >
                             <Heart
                               className={cn(
                                 "h-4 w-4 transition-all duration-300",
-                                favourites.has(product.id) && "fill-current"
+                                favourites.has(product.id) && "fill-current text-white"
                               )}
                             />
                           </button>
