@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Heart, MoreVertical, Pencil, Reply, Trash2, Check, X } from "lucide-react";
+import { Heart, MoreVertical, Pencil, Reply, Trash2, Check, X, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ interface MessageBubbleProps {
   isDeleted: boolean;
   timestamp: string;
   editedAt?: string | null;
+  readAt?: string | null;
   reactions: MessageReaction[];
   replyTo?: ReplyMessage | null;
   currentUserId: string;
@@ -47,6 +48,7 @@ const MessageBubble = ({
   isDeleted,
   timestamp,
   editedAt,
+  readAt,
   reactions,
   replyTo,
   currentUserId,
@@ -226,7 +228,7 @@ const MessageBubble = ({
             </>
           )}
 
-          {/* Timestamp & edited indicator */}
+          {/* Timestamp, edited indicator & read receipt */}
           {!isEditing && (
             <div
               className={cn(
@@ -237,6 +239,14 @@ const MessageBubble = ({
               <span className="text-[10px]">{formatTime(timestamp)}</span>
               {editedAt && (
                 <span className="text-[10px] italic">(edited)</span>
+              )}
+              {/* Read receipt - only show for own messages */}
+              {isOwn && !isDeleted && (
+                readAt ? (
+                  <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
+                ) : (
+                  <Check className="h-3.5 w-3.5" />
+                )
               )}
             </div>
           )}
