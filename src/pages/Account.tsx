@@ -435,29 +435,49 @@ const Account = () => {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="space-y-6 pt-0">
-                {/* Avatar Section */}
-                <div className="flex flex-col items-center space-y-3">
-                  <Label className="text-sm text-muted-foreground">Profile Photo</Label>
+                {/* Avatar Section - Glassmorphism Style */}
+                <div className="flex flex-col items-center space-y-4 py-4">
+                  <Label className="text-sm text-muted-foreground font-medium">Profile Photo</Label>
+                  
+                  {/* Photo Container with Glow */}
                   <div 
                     className="relative cursor-pointer group"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Avatar className="h-24 w-24 border-4 border-primary/20 group-hover:border-primary/40 transition-colors">
+                    {/* Background glow effect */}
+                    <div className="absolute -inset-2 bg-gradient-to-r from-primary via-accent to-primary rounded-full blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
+                    
+                    <Avatar className={cn(
+                      "relative h-28 w-28 border-4 border-background shadow-xl",
+                      "ring-2 ring-primary/20 transition-all duration-300",
+                      "group-hover:ring-primary/50 group-hover:scale-105"
+                    )}>
                       <AvatarImage 
                         src={avatarPreview || profile?.avatar_url || undefined} 
-                        alt="Profile avatar" 
+                        alt="Profile avatar"
+                        className="object-cover"
                       />
-                      <AvatarFallback className="bg-muted text-2xl">
-                        {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-10 w-10 text-muted-foreground" />}
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-3xl font-bold text-primary">
+                        {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-12 w-12 text-muted-foreground" />}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    
+                    {/* Hover Overlay */}
+                    <div className={cn(
+                      "absolute inset-0 flex items-center justify-center rounded-full",
+                      "bg-background/70 backdrop-blur-sm opacity-0 group-hover:opacity-100",
+                      "transition-all duration-300"
+                    )}>
                       {uploadingAvatar ? (
-                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       ) : (
-                        <Camera className="h-6 w-6 text-primary" />
+                        <div className="flex flex-col items-center gap-1">
+                          <Camera className="h-7 w-7 text-primary" />
+                          <span className="text-xs font-medium text-primary">Update</span>
+                        </div>
                       )}
                     </div>
+                    
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -466,14 +486,25 @@ const Account = () => {
                       className="hidden"
                     />
                   </div>
+                  
+                  {/* Instructions */}
+                  <p className="text-xs text-muted-foreground text-center max-w-[200px]">
+                    Click to upload a new photo (max 2MB)
+                  </p>
+                  
                   {avatarFile && (
-                    <div className="flex flex-col items-center gap-2">
-                      <p className="text-xs text-muted-foreground">{avatarFile.name}</p>
+                    <div className="flex flex-col items-center gap-3 w-full">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                        <span className="truncate max-w-[150px]">{avatarFile.name}</span>
+                      </div>
                       <Button 
-                        size="sm" 
                         onClick={uploadAvatar}
                         disabled={uploadingAvatar}
-                        className="gap-2"
+                        className={cn(
+                          "rounded-full px-6 gap-2",
+                          "bg-primary hover:bg-primary/90",
+                          "shadow-lg shadow-primary/25 transition-all duration-300"
+                        )}
                       >
                         {uploadingAvatar ? (
                           <>
@@ -486,7 +517,6 @@ const Account = () => {
                       </Button>
                     </div>
                   )}
-                  <p className="text-xs text-muted-foreground">Click to change photo (max 2MB)</p>
                 </div>
 
                 <Separator />
