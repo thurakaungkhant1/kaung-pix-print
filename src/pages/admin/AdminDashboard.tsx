@@ -28,7 +28,7 @@ import {
   Menu,
   X,
   BarChart3,
-  Calendar,
+  Calendar as CalendarIcon,
   Bell,
   Volume2,
   VolumeX,
@@ -47,6 +47,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
@@ -170,6 +177,8 @@ const AdminDashboard = () => {
   const [pointsOperation, setPointsOperation] = useState<"add" | "subtract">("add");
   const [updatingPoints, setUpdatingPoints] = useState(false);
   const [pointTransactions, setPointTransactions] = useState<PointTransaction[]>([]);
+  const [historyDateFrom, setHistoryDateFrom] = useState<Date | undefined>(undefined);
+  const [historyDateTo, setHistoryDateTo] = useState<Date | undefined>(undefined);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -915,7 +924,7 @@ const AdminDashboard = () => {
                 <Card className="premium-card border-l-4 border-l-green-500">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-green-500" />
+                      <CalendarIcon className="h-5 w-5 text-green-500" />
                       <div>
                         <p className="text-sm text-muted-foreground">Today's Revenue</p>
                         <p className="text-xl font-bold text-green-500">{stats.todayRevenue.toLocaleString()} MMK</p>
@@ -1146,7 +1155,7 @@ const AdminDashboard = () => {
                   <Card className="premium-card border-l-4 border-l-blue-500">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-blue-500" />
+                        <CalendarIcon className="h-5 w-5 text-blue-500" />
                         <div>
                           <p className="text-sm text-muted-foreground">This Month</p>
                           <p className="text-xl font-bold text-blue-500">{diamondStats.monthRevenue.toLocaleString()} MMK</p>
@@ -1470,7 +1479,81 @@ const AdminDashboard = () => {
                   View all point adjustments including purchases, referrals, spins, and admin changes.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Date Range Filters */}
+                <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Filter by date:</span>
+                  </div>
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "w-[140px] justify-start text-left font-normal",
+                          !historyDateFrom && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {historyDateFrom ? format(historyDateFrom, "MMM d, yyyy") : "From"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={historyDateFrom}
+                        onSelect={setHistoryDateFrom}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <span className="text-muted-foreground">to</span>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "w-[140px] justify-start text-left font-normal",
+                          !historyDateTo && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {historyDateTo ? format(historyDateTo, "MMM d, yyyy") : "To"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={historyDateTo}
+                        onSelect={setHistoryDateTo}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  {(historyDateFrom || historyDateTo) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setHistoryDateFrom(undefined);
+                        setHistoryDateTo(undefined);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Clear
+                    </Button>
+                  )}
+                </div>
+
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -1485,14 +1568,33 @@ const AdminDashboard = () => {
                     <TableBody>
                       {pointTransactions
                         .filter(t => {
-                          if (!searchQuery) return true;
-                          const query = searchQuery.toLowerCase();
-                          return (
-                            t.profiles?.name?.toLowerCase().includes(query) ||
-                            t.profiles?.email?.toLowerCase().includes(query) ||
-                            t.transaction_type?.toLowerCase().includes(query) ||
-                            t.description?.toLowerCase().includes(query)
-                          );
+                          // Search filter
+                          if (searchQuery) {
+                            const query = searchQuery.toLowerCase();
+                            const matchesSearch = 
+                              t.profiles?.name?.toLowerCase().includes(query) ||
+                              t.profiles?.email?.toLowerCase().includes(query) ||
+                              t.transaction_type?.toLowerCase().includes(query) ||
+                              t.description?.toLowerCase().includes(query);
+                            if (!matchesSearch) return false;
+                          }
+                          
+                          // Date range filter
+                          if (t.created_at) {
+                            const transactionDate = new Date(t.created_at);
+                            if (historyDateFrom) {
+                              const startOfFrom = new Date(historyDateFrom);
+                              startOfFrom.setHours(0, 0, 0, 0);
+                              if (transactionDate < startOfFrom) return false;
+                            }
+                            if (historyDateTo) {
+                              const endOfTo = new Date(historyDateTo);
+                              endOfTo.setHours(23, 59, 59, 999);
+                              if (transactionDate > endOfTo) return false;
+                            }
+                          }
+                          
+                          return true;
                         })
                         .map((transaction) => (
                           <TableRow key={transaction.id}>
