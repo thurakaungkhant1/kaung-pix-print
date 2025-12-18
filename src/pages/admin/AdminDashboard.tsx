@@ -459,11 +459,16 @@ const AdminDashboard = () => {
       u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredOrders = orders.filter(
-    (o) =>
-      o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.products?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredOrders = orders.filter((o) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      o.id.toLowerCase().includes(query) ||
+      o.products?.name?.toLowerCase().includes(query) ||
+      o.profiles?.name?.toLowerCase().includes(query) ||
+      o.profiles?.email?.toLowerCase().includes(query) ||
+      o.phone_number?.toLowerCase().includes(query)
+    );
+  });
 
   if (!isAdmin) return null;
 
