@@ -152,6 +152,33 @@ export type Database = {
           },
         ]
       }
+      friend_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          receiver_id: string
+          sender_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          receiver_id: string
+          sender_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -159,6 +186,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
+          read_at: string | null
           sender_id: string
         }
         Insert: {
@@ -167,6 +195,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          read_at?: string | null
           sender_id: string
         }
         Update: {
@@ -175,6 +204,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          read_at?: string | null
           sender_id?: string
         }
         Relationships: [

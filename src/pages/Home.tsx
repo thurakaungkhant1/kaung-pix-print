@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, ShoppingCart, Gem, Search, ChevronRight, Sparkles } from "lucide-react";
+import { Heart, ShoppingCart, Gem, Search, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -145,26 +145,23 @@ const Home = () => {
         
         <div className="relative z-10 p-4 pt-6 pb-5">
           {/* Top row */}
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-3">
             <Button
               onClick={() => navigate("/mlbb-diamonds")}
+              size="sm"
               className={cn(
                 "relative overflow-hidden bg-accent hover:bg-accent/90 text-accent-foreground",
-                "font-bold px-4 py-2 rounded-full flex items-center gap-2 text-sm",
+                "font-bold p-2.5 rounded-full",
                 "shadow-accent transition-all duration-300 hover:shadow-lg hover:scale-102",
                 "active:scale-98"
               )}
             >
-              <Gem className="h-4 w-4" />
-              <span>ML Diamonds</span>
-              <Sparkles className="h-3 w-3 opacity-70" />
+              <Gem className="h-5 w-5" />
             </Button>
             
-            <img 
-              src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" 
-              alt="Logo" 
-              className="h-8 w-8 object-contain rounded-lg"
-            />
+            <h1 className="text-2xl font-display font-extrabold text-primary-foreground tracking-tight drop-shadow-lg">
+              Kaung Computer
+            </h1>
             
             <CartHeader />
           </div>

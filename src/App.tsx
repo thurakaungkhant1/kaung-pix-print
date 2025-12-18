@@ -297,7 +297,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/messages"
+                path="/chat-list"
                 element={
                   <ProtectedRoute>
                     <ChatList />

@@ -3,12 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Trash2, MessageCircle, Ban, MoreVertical } from "lucide-react";
+import { ArrowLeft, Send, Trash2, MessageCircle, Ban, MoreVertical, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
+import OnlineStatus from "@/components/OnlineStatus";
 import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
+import { useFriendRequests } from "@/hooks/useFriendRequests";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,18 +54,35 @@ const Chat = () => {
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [amBlocked, setAmBlocked] = useState(false);
+  const [friendStatus, setFriendStatus] = useState<string>("none");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isFriend, sendFriendRequest, getFriendshipStatus } = useFriendRequests();
 
   useEffect(() => {
     if (user && recipientId) {
       loadOrCreateConversation();
       loadRecipient();
       checkBlockStatus();
+      checkFriendStatus();
     }
   }, [user, recipientId]);
+
+  const checkFriendStatus = async () => {
+    if (!recipientId) return;
+    const status = await getFriendshipStatus(recipientId);
+    setFriendStatus(status);
+  };
+
+  const handleAddFriend = async () => {
+    if (!recipientId) return;
+    const success = await sendFriendRequest(recipientId);
+    if (success) {
+      setFriendStatus("pending_sent");
+    }
+  };
 
   const checkBlockStatus = async () => {
     if (!user || !recipientId) return;
@@ -304,9 +323,7 @@ const Chat = () => {
                     <span className="font-semibold">{recipient.name}</span>
                     <VerificationBadge points={recipient.points} size="sm" />
                   </div>
-                  <p className="text-xs text-primary-foreground/70">
-                    {recipient.points.toLocaleString()} points
-                  </p>
+                  <OnlineStatus userId={recipient.id} size="sm" />
                 </div>
               </div>
             )}
@@ -405,7 +422,29 @@ const Chat = () => {
 
       {/* Input */}
       <div className="fixed bottom-16 left-0 right-0 p-4 bg-background border-t border-border">
-        {amBlocked ? (
+        {friendStatus !== "friends" ? (
+          <div className="text-center">
+            {friendStatus === "pending_sent" ? (
+              <p className="text-muted-foreground text-sm">
+                Friend request sent. Waiting for response.
+              </p>
+            ) : friendStatus === "pending_received" ? (
+              <p className="text-muted-foreground text-sm">
+                Accept friend request to start chatting.
+              </p>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-muted-foreground text-sm">
+                  Add as friend to start chatting
+                </p>
+                <Button onClick={handleAddFriend} size="sm" className="gap-1">
+                  <UserPlus className="h-4 w-4" />
+                  Add Friend
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : amBlocked ? (
           <p className="text-center text-muted-foreground text-sm">
             You cannot send messages to this user
           </p>
