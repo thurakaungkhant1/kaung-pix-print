@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -41,6 +41,8 @@ interface Message {
   edited_at?: string | null;
   reply_to_id?: string | null;
   read_at?: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
 }
 
 interface MessageReaction {
@@ -75,8 +77,12 @@ const Chat = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -341,31 +347,118 @@ const Chat = () => {
     }
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !conversationId || !user) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const messageData: any = {
-      conversation_id: conversationId,
-      sender_id: user.id,
-      content: newMessage.trim(),
-    };
-
-    if (replyingTo) {
-      messageData.reply_to_id = replyingTo.id;
-    }
-
-    const { error } = await supabase.from("messages").insert(messageData);
-
-    if (error) {
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
-        title: "Error",
-        description: "Failed to send message",
+        title: "File too large",
+        description: "Maximum file size is 10MB",
         variant: "destructive",
       });
-    } else {
-      setNewMessage("");
-      setReplyingTo(null);
-      sendStopTyping();
+      return;
+    }
+
+    setSelectedFile(file);
+    
+    // Create preview for images
+    if (file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const uploadMedia = async (file: File): Promise<{ url: string; type: string } | null> => {
+    if (!user) return null;
+    
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from("chat-media")
+      .upload(fileName, file);
+
+    if (error) {
+      console.error("Upload error:", error);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("chat-media")
+      .getPublicUrl(data.path);
+
+    return {
+      url: urlData.publicUrl,
+      type: file.type.startsWith("image/") ? "image" : "file",
+    };
+  };
+
+  const sendMessage = async () => {
+    if ((!newMessage.trim() && !selectedFile) || !conversationId || !user) return;
+
+    setIsUploading(true);
+
+    try {
+      let mediaUrl: string | null = null;
+      let mediaType: string | null = null;
+
+      if (selectedFile) {
+        const uploadResult = await uploadMedia(selectedFile);
+        if (uploadResult) {
+          mediaUrl = uploadResult.url;
+          mediaType = uploadResult.type;
+        } else {
+          toast({
+            title: "Upload failed",
+            description: "Failed to upload media",
+            variant: "destructive",
+          });
+          setIsUploading(false);
+          return;
+        }
+      }
+
+      const messageData: any = {
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: newMessage.trim() || (mediaType === "image" ? "📷 Image" : "📎 File"),
+        media_url: mediaUrl,
+        media_type: mediaType,
+      };
+
+      if (replyingTo) {
+        messageData.reply_to_id = replyingTo.id;
+      }
+
+      const { error } = await supabase.from("messages").insert(messageData);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to send message",
+          variant: "destructive",
+        });
+      } else {
+        setNewMessage("");
+        setReplyingTo(null);
+        clearSelectedFile();
+        sendStopTyping();
+      }
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -640,6 +733,8 @@ const Chat = () => {
                 timestamp={message.created_at}
                 editedAt={message.edited_at}
                 readAt={message.read_at}
+                mediaUrl={message.media_url}
+                mediaType={message.media_type}
                 reactions={getMessageReactions(message.id)}
                 replyTo={getReplyMessage(message.reply_to_id)}
                 currentUserId={user?.id || ""}
@@ -669,7 +764,7 @@ const Chat = () => {
       </div>
 
       {/* Reply Preview */}
-      {replyingTo && (
+      {replyingTo && !selectedFile && (
         <div className="fixed bottom-[calc(4rem+56px)] left-0 right-0 px-4">
           <div className="max-w-screen-xl mx-auto bg-muted rounded-t-xl p-3 flex items-center justify-between border-l-2 border-primary">
             <div className="flex-1 min-w-0">
@@ -678,6 +773,35 @@ const Chat = () => {
             </div>
             <button
               onClick={() => setReplyingTo(null)}
+              className="p-1 hover:bg-background rounded-full"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Selected File Preview */}
+      {selectedFile && (
+        <div className="fixed bottom-[calc(4rem+56px)] left-0 right-0 px-4">
+          <div className="max-w-screen-xl mx-auto bg-muted rounded-t-xl p-3 flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              {previewUrl ? (
+                <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg" />
+              ) : (
+                <div className="h-12 w-12 bg-background rounded-lg flex items-center justify-center">
+                  <FileIcon className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(selectedFile.size / 1024).toFixed(1)} KB
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={clearSelectedFile}
               className="p-1 hover:bg-background rounded-full"
             >
               <X className="h-4 w-4 text-muted-foreground" />
@@ -722,7 +846,27 @@ const Chat = () => {
             You have blocked this user. Unblock to send messages.
           </p>
         ) : (
-          <div className="max-w-screen-xl mx-auto flex gap-2">
+          <div className="max-w-screen-xl mx-auto flex gap-2 items-center">
+            {/* Hidden file input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              className="hidden"
+            />
+            
+            {/* Media upload button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-12 w-12 shrink-0"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <ImagePlus className="h-5 w-5" />
+            </Button>
+            
             <Input
               value={newMessage}
               onChange={(e) => {
@@ -733,17 +877,21 @@ const Chat = () => {
                   sendStopTyping();
                 }
               }}
-              placeholder={replyingTo ? "Type your reply..." : "Type a message..."}
+              placeholder={selectedFile ? "Add a caption..." : replyingTo ? "Type your reply..." : "Type a message..."}
               className="flex-1 rounded-full h-12"
-              onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+              onKeyPress={(e) => e.key === "Enter" && !isUploading && sendMessage()}
               onBlur={sendStopTyping}
             />
             <Button
               onClick={sendMessage}
-              disabled={!newMessage.trim()}
+              disabled={(!newMessage.trim() && !selectedFile) || isUploading}
               className="rounded-full h-12 w-12 p-0"
             >
-              <Send className="h-5 w-5" />
+              {isUploading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
             </Button>
           </div>
         )}

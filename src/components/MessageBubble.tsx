@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Heart, MoreVertical, Pencil, Reply, Trash2, Check, X, CheckCheck } from "lucide-react";
+import { Heart, MoreVertical, Pencil, Reply, Trash2, Check, X, CheckCheck, FileIcon, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,8 @@ interface MessageBubbleProps {
   timestamp: string;
   editedAt?: string | null;
   readAt?: string | null;
+  mediaUrl?: string | null;
+  mediaType?: string | null;
   reactions: MessageReaction[];
   replyTo?: ReplyMessage | null;
   currentUserId: string;
@@ -49,6 +51,8 @@ const MessageBubble = ({
   timestamp,
   editedAt,
   readAt,
+  mediaUrl,
+  mediaType,
   reactions,
   replyTo,
   currentUserId,
@@ -176,7 +180,36 @@ const MessageBubble = ({
             </div>
           ) : (
             <>
-              <p className="text-sm break-words">{highlightText(content)}</p>
+              {/* Media content */}
+              {mediaUrl && mediaType === "image" && (
+                <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="block mb-2">
+                  <img 
+                    src={mediaUrl} 
+                    alt="Shared image" 
+                    className="rounded-lg max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  />
+                </a>
+              )}
+              {mediaUrl && mediaType === "file" && (
+                <a 
+                  href={mediaUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={cn(
+                    "flex items-center gap-2 p-2 rounded-lg mb-2",
+                    isOwn ? "bg-primary-foreground/10" : "bg-background/50"
+                  )}
+                >
+                  <FileIcon className="h-5 w-5" />
+                  <span className="text-sm underline">Download file</span>
+                  <Download className="h-4 w-4" />
+                </a>
+              )}
+              
+              {/* Text content - hide if it's just the media placeholder */}
+              {content && !["📷 Image", "📎 File"].includes(content) && (
+                <p className="text-sm break-words">{highlightText(content)}</p>
+              )}
               
               {/* Message menu for own messages */}
               {isOwn && !isDeleted && (
