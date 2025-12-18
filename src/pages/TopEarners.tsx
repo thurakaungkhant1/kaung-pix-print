@@ -34,10 +34,10 @@ const TopEarners = () => {
   }, []);
 
   const loadLeaderboard = async () => {
+    // Use the secure leaderboard view that only exposes safe fields (no PII)
     const { data } = await supabase
-      .from("profiles")
+      .from("leaderboard")
       .select("id, name, points")
-      .order("points", { ascending: false })
       .limit(50);
 
     if (data) {
