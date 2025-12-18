@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Play, Pause, Loader2, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, Loader2, Volume2, VolumeX, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
@@ -136,6 +136,23 @@ const VoiceMessagePlayer = ({
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(audioUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `voice-message-${messageId.slice(0, 8)}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -301,6 +318,22 @@ const VoiceMessagePlayer = ({
             </div>
           )}
         </div>
+
+        {/* Download Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "h-8 w-8 shrink-0",
+            isOwn 
+              ? "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10" 
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          )}
+          onClick={handleDownload}
+          title="Download voice message"
+        >
+          <Download className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Transcription Section */}
