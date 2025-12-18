@@ -3,14 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Trash2, MessageCircle, Ban, MoreVertical, UserPlus } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
 import OnlineStatus from "@/components/OnlineStatus";
 import BottomNav from "@/components/BottomNav";
+import MessageBubble from "@/components/MessageBubble";
 import { cn } from "@/lib/utils";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
+import { useSoundNotification } from "@/hooks/useSoundNotification";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +36,15 @@ interface Message {
   sender_id: string;
   created_at: string;
   is_deleted: boolean;
+  edited_at?: string | null;
+  reply_to_id?: string | null;
+}
+
+interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  reaction_type: string;
 }
 
 interface Participant {
@@ -45,6 +56,7 @@ interface Participant {
 const Chat = () => {
   const { recipientId } = useParams<{ recipientId: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [reactions, setReactions] = useState<MessageReaction[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [recipient, setRecipient] = useState<Participant | null>(null);
@@ -55,11 +67,13 @@ const Chat = () => {
   const [isBlocked, setIsBlocked] = useState(false);
   const [amBlocked, setAmBlocked] = useState(false);
   const [friendStatus, setFriendStatus] = useState<string>("none");
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isFriend, sendFriendRequest, getFriendshipStatus } = useFriendRequests();
+  const { playMessageSound } = useSoundNotification();
 
   useEffect(() => {
     if (user && recipientId) {
@@ -87,7 +101,6 @@ const Chat = () => {
   const checkBlockStatus = async () => {
     if (!user || !recipientId) return;
 
-    // Check if I blocked them
     const { data: blockedByMe } = await supabase
       .from("blocked_users")
       .select("id")
@@ -97,7 +110,6 @@ const Chat = () => {
 
     setIsBlocked(!!blockedByMe);
 
-    // Check if they blocked me
     const { data: blockedMe } = await supabase
       .from("blocked_users")
       .select("id")
@@ -142,6 +154,7 @@ const Chat = () => {
     }
   };
 
+  // Subscribe to new messages
   useEffect(() => {
     if (!conversationId) return;
 
@@ -157,7 +170,12 @@ const Chat = () => {
         },
         (payload) => {
           if (payload.eventType === "INSERT") {
-            setMessages((prev) => [...prev, payload.new as Message]);
+            const newMsg = payload.new as Message;
+            setMessages((prev) => [...prev, newMsg]);
+            // Play sound for received messages
+            if (newMsg.sender_id !== user?.id) {
+              playMessageSound();
+            }
           } else if (payload.eventType === "UPDATE") {
             setMessages((prev) =>
               prev.map((msg) =>
@@ -172,7 +190,47 @@ const Chat = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, user?.id, playMessageSound]);
+
+  // Subscribe to reactions
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const loadReactions = async () => {
+      const messageIds = messages.map((m) => m.id);
+      if (messageIds.length === 0) return;
+
+      const { data } = await supabase
+        .from("message_reactions")
+        .select("*")
+        .in("message_id", messageIds);
+
+      if (data) {
+        setReactions(data);
+      }
+    };
+
+    loadReactions();
+
+    const channel = supabase
+      .channel(`reactions-${conversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "message_reactions",
+        },
+        () => {
+          loadReactions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId, messages.length]);
 
   useEffect(() => {
     scrollToBottom();
@@ -200,7 +258,6 @@ const Chat = () => {
     if (!user || !recipientId) return;
     setLoading(true);
 
-    // Check if conversation exists
     const { data: existing } = await supabase
       .from("conversations")
       .select("id")
@@ -213,7 +270,6 @@ const Chat = () => {
       setConversationId(existing.id);
       await loadMessages(existing.id);
     } else {
-      // Create new conversation
       const { data: newConv, error } = await supabase
         .from("conversations")
         .insert({
@@ -247,11 +303,17 @@ const Chat = () => {
   const sendMessage = async () => {
     if (!newMessage.trim() || !conversationId || !user) return;
 
-    const { error } = await supabase.from("messages").insert({
+    const messageData: any = {
       conversation_id: conversationId,
       sender_id: user.id,
       content: newMessage.trim(),
-    });
+    };
+
+    if (replyingTo) {
+      messageData.reply_to_id = replyingTo.id;
+    }
+
+    const { error } = await supabase.from("messages").insert(messageData);
 
     if (error) {
       toast({
@@ -261,6 +323,7 @@ const Chat = () => {
       });
     } else {
       setNewMessage("");
+      setReplyingTo(null);
     }
   };
 
@@ -283,11 +346,58 @@ const Chat = () => {
     setMessageToDelete(null);
   };
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    const { error } = await supabase
+      .from("messages")
+      .update({ 
+        content: newContent, 
+        edited_at: new Date().toISOString() 
+      })
+      .eq("id", messageId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to edit message",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReactToMessage = async (messageId: string) => {
+    if (!user) return;
+
+    const existingReaction = reactions.find(
+      (r) => r.message_id === messageId && r.user_id === user.id
+    );
+
+    if (existingReaction) {
+      // Remove reaction
+      await supabase
+        .from("message_reactions")
+        .delete()
+        .eq("id", existingReaction.id);
+    } else {
+      // Add reaction
+      await supabase.from("message_reactions").insert({
+        message_id: messageId,
+        user_id: user.id,
+        reaction_type: "love",
+      });
+    }
+  };
+
+  const handleRemoveReaction = async (messageId: string, reactionId: string) => {
+    await supabase.from("message_reactions").delete().eq("id", reactionId);
+  };
+
+  const getMessageReactions = (messageId: string) => {
+    return reactions.filter((r) => r.message_id === messageId);
+  };
+
+  const getReplyMessage = (replyToId: string | null | undefined) => {
+    if (!replyToId) return null;
+    return messages.find((m) => m.id === replyToId) || null;
   };
 
   if (loading) {
@@ -354,7 +464,7 @@ const Chat = () => {
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-32">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-20">
             <MessageCircle className="h-16 w-16 text-muted-foreground/30 mb-4" />
@@ -364,64 +474,58 @@ const Chat = () => {
             </p>
           </div>
         ) : (
-          messages.map((message) => {
-            const isOwn = message.sender_id === user?.id;
-            return (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex",
-                  isOwn ? "justify-end" : "justify-start"
-                )}
-              >
-                <div
-                  className={cn(
-                    "max-w-[80%] rounded-2xl px-4 py-2.5 relative group",
-                    message.is_deleted
-                      ? "bg-muted/50 text-muted-foreground italic"
-                      : isOwn
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
-                  )}
-                >
-                  {message.is_deleted ? (
-                    <span className="text-sm">Message deleted</span>
-                  ) : (
-                    <>
-                      <p className="text-sm break-words">{message.content}</p>
-                      {isOwn && !message.is_deleted && (
-                        <button
-                          onClick={() => {
-                            setMessageToDelete(message.id);
-                            setDeleteDialogOpen(true);
-                          }}
-                          className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </button>
-                      )}
-                    </>
-                  )}
-                  <span
-                    className={cn(
-                      "text-[10px] mt-1 block",
-                      isOwn
-                        ? "text-primary-foreground/70"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {formatTime(message.created_at)}
-                  </span>
-                </div>
-              </div>
-            );
-          })
+          messages.map((message) => (
+            <MessageBubble
+              key={message.id}
+              id={message.id}
+              content={message.content}
+              isOwn={message.sender_id === user?.id}
+              isDeleted={message.is_deleted}
+              timestamp={message.created_at}
+              editedAt={message.edited_at}
+              reactions={getMessageReactions(message.id)}
+              replyTo={getReplyMessage(message.reply_to_id)}
+              currentUserId={user?.id || ""}
+              onDelete={(id) => {
+                setMessageToDelete(id);
+                setDeleteDialogOpen(true);
+              }}
+              onEdit={handleEditMessage}
+              onReply={(id) => {
+                const msg = messages.find((m) => m.id === id);
+                if (msg) setReplyingTo(msg);
+              }}
+              onReact={handleReactToMessage}
+              onRemoveReaction={handleRemoveReaction}
+            />
+          ))
         )}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Reply Preview */}
+      {replyingTo && (
+        <div className="fixed bottom-[calc(4rem+56px)] left-0 right-0 px-4">
+          <div className="max-w-screen-xl mx-auto bg-muted rounded-t-xl p-3 flex items-center justify-between border-l-2 border-primary">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">Replying to</p>
+              <p className="text-sm truncate">{replyingTo.content}</p>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="p-1 hover:bg-background rounded-full"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Input */}
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-background border-t border-border">
+      <div className={cn(
+        "fixed left-0 right-0 p-4 bg-background border-t border-border",
+        replyingTo ? "bottom-16" : "bottom-16"
+      )}>
         {friendStatus !== "friends" ? (
           <div className="text-center">
             {friendStatus === "pending_sent" ? (
@@ -457,7 +561,7 @@ const Chat = () => {
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
+              placeholder={replyingTo ? "Type your reply..." : "Type a message..."}
               className="flex-1 rounded-full h-12"
               onKeyPress={(e) => e.key === "Enter" && sendMessage()}
             />

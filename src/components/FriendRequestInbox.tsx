@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Inbox, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,13 +9,63 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
+import { useSoundNotification } from "@/hooks/useSoundNotification";
 import VerificationBadge from "@/components/VerificationBadge";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const FriendRequestInbox = () => {
   const [open, setOpen] = useState(false);
-  const { pendingRequests, acceptRequest, rejectRequest, loading } =
+  const { pendingRequests, acceptRequest, rejectRequest, loading, refresh } =
     useFriendRequests();
+  const { playFriendRequestSound } = useSoundNotification();
+  const { user } = useAuth();
+  const prevCountRef = useRef(pendingRequests.length);
+
+  // Play sound when new requests arrive
+  useEffect(() => {
+    if (pendingRequests.length > prevCountRef.current) {
+      playFriendRequestSound();
+    }
+    prevCountRef.current = pendingRequests.length;
+  }, [pendingRequests.length, playFriendRequestSound]);
+
+  // Subscribe to realtime updates for friend requests
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("friend-requests-notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "friend_requests",
+          filter: `receiver_id=eq.${user.id}`,
+        },
+        () => {
+          refresh();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "friend_requests",
+        },
+        () => {
+          refresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, refresh]);
 
   const handleAccept = async (id: string) => {
     await acceptRequest(id);
@@ -31,8 +81,8 @@ const FriendRequestInbox = () => {
         <button className="relative p-2 rounded-full hover:bg-primary-foreground/10 transition-colors">
           <Inbox className="h-5 w-5" />
           {pendingRequests.length > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-primary flex items-center justify-center">
-              <span className="text-[8px] font-bold text-white">
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-primary flex items-center justify-center px-1">
+              <span className="text-[10px] font-bold text-white">
                 {pendingRequests.length > 9 ? "9+" : pendingRequests.length}
               </span>
             </span>
