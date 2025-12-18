@@ -25,10 +25,27 @@ import {
   ChevronRight,
   Menu,
   X,
+  BarChart3,
+  Calendar,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 
 interface UserProfile {
   id: string;
@@ -53,6 +70,23 @@ interface Order {
   profiles?: { name: string };
 }
 
+interface DailyRevenue {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+interface OrderStatusData {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface UserGrowthData {
+  date: string;
+  users: number;
+}
+
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     products: 0,
@@ -61,7 +95,13 @@ const AdminDashboard = () => {
     users: 0,
     revenue: 0,
     pendingOrders: 0,
+    todayRevenue: 0,
+    weekRevenue: 0,
+    monthRevenue: 0,
   });
+  const [revenueData, setRevenueData] = useState<DailyRevenue[]>([]);
+  const [orderStatusData, setOrderStatusData] = useState<OrderStatusData[]>([]);
+  const [userGrowthData, setUserGrowthData] = useState<UserGrowthData[]>([]);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -81,6 +121,9 @@ const AdminDashboard = () => {
       loadStats();
       loadUsers();
       loadOrders();
+      loadRevenueData();
+      loadOrderStatusData();
+      loadUserGrowthData();
     }
   }, [isAdmin]);
 
@@ -105,16 +148,27 @@ const AdminDashboard = () => {
   };
 
   const loadStats = async () => {
-    const [products, photos, orders, profiles, revenueData, pendingData] = await Promise.all([
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7).toISOString();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+
+    const [products, photos, orders, profiles, allRevenue, pendingData, todayOrders, weekOrders, monthOrders] = await Promise.all([
       supabase.from("products").select("id", { count: "exact", head: true }),
       supabase.from("photos").select("id", { count: "exact", head: true }),
       supabase.from("orders").select("id", { count: "exact", head: true }),
       supabase.from("profiles").select("id", { count: "exact", head: true }),
       supabase.from("orders").select("price").eq("status", "approved"),
       supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
+      supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfToday),
+      supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfWeek),
+      supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfMonth),
     ]);
 
-    const totalRevenue = revenueData.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const totalRevenue = allRevenue.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const todayRevenue = todayOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const weekRevenue = weekOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const monthRevenue = monthOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
 
     setStats({
       products: products.count || 0,
@@ -123,7 +177,85 @@ const AdminDashboard = () => {
       users: profiles.count || 0,
       revenue: totalRevenue,
       pendingOrders: pendingData.count || 0,
+      todayRevenue,
+      weekRevenue,
+      monthRevenue,
     });
+  };
+
+  const loadRevenueData = async () => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const { data } = await supabase
+      .from("orders")
+      .select("price, created_at")
+      .eq("status", "approved")
+      .gte("created_at", thirtyDaysAgo.toISOString())
+      .order("created_at", { ascending: true });
+
+    if (data) {
+      const grouped: { [key: string]: { revenue: number; orders: number } } = {};
+      data.forEach((order) => {
+        const date = new Date(order.created_at || "").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        if (!grouped[date]) grouped[date] = { revenue: 0, orders: 0 };
+        grouped[date].revenue += Number(order.price);
+        grouped[date].orders += 1;
+      });
+
+      setRevenueData(
+        Object.entries(grouped).map(([date, values]) => ({
+          date,
+          revenue: values.revenue,
+          orders: values.orders,
+        }))
+      );
+    }
+  };
+
+  const loadOrderStatusData = async () => {
+    const { data } = await supabase.from("orders").select("status");
+
+    if (data) {
+      const counts: { [key: string]: number } = { pending: 0, approved: 0, rejected: 0 };
+      data.forEach((order) => {
+        if (counts[order.status] !== undefined) counts[order.status]++;
+      });
+
+      setOrderStatusData([
+        { name: "Pending", value: counts.pending, color: "hsl(var(--chart-2))" },
+        { name: "Approved", value: counts.approved, color: "hsl(var(--chart-1))" },
+        { name: "Rejected", value: counts.rejected, color: "hsl(var(--destructive))" },
+      ]);
+    }
+  };
+
+  const loadUserGrowthData = async () => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const { data } = await supabase
+      .from("profiles")
+      .select("created_at")
+      .gte("created_at", thirtyDaysAgo.toISOString())
+      .order("created_at", { ascending: true });
+
+    if (data) {
+      const grouped: { [key: string]: number } = {};
+      data.forEach((profile) => {
+        const date = new Date(profile.created_at || "").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        grouped[date] = (grouped[date] || 0) + 1;
+      });
+
+      // Cumulative count
+      let cumulative = 0;
+      setUserGrowthData(
+        Object.entries(grouped).map(([date, count]) => {
+          cumulative += count;
+          return { date, users: cumulative };
+        })
+      );
+    }
   };
 
   const loadUsers = async () => {
@@ -276,7 +408,7 @@ const AdminDashboard = () => {
                 {[
                   { label: "Total Users", value: stats.users, icon: Users, color: "text-blue-500" },
                   { label: "Total Orders", value: stats.orders, icon: ShoppingCart, color: "text-green-500" },
-                  { label: "Revenue", value: `${stats.revenue.toLocaleString()} MMK`, icon: TrendingUp, color: "text-primary" },
+                  { label: "Total Revenue", value: `${stats.revenue.toLocaleString()} MMK`, icon: TrendingUp, color: "text-primary" },
                   { label: "Pending Orders", value: stats.pendingOrders, icon: Coins, color: "text-orange-500" },
                 ].map((stat) => (
                   <Card key={stat.label} className="premium-card">
@@ -293,6 +425,197 @@ const AdminDashboard = () => {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+
+              {/* Revenue Period Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="premium-card border-l-4 border-l-green-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-green-500" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Today's Revenue</p>
+                        <p className="text-xl font-bold text-green-500">{stats.todayRevenue.toLocaleString()} MMK</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="premium-card border-l-4 border-l-blue-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <BarChart3 className="h-5 w-5 text-blue-500" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">This Week</p>
+                        <p className="text-xl font-bold text-blue-500">{stats.weekRevenue.toLocaleString()} MMK</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="premium-card border-l-4 border-l-primary">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">This Month</p>
+                        <p className="text-xl font-bold text-primary">{stats.monthRevenue.toLocaleString()} MMK</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Charts Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Revenue Chart */}
+                <Card className="premium-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                      Revenue Trend (Last 30 Days)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={revenueData}>
+                          <defs>
+                            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="date" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                          <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px',
+                            }}
+                            formatter={(value: number) => [`${value.toLocaleString()} MMK`, 'Revenue']}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="revenue"
+                            stroke="hsl(var(--primary))"
+                            fill="url(#revenueGradient)"
+                            strokeWidth={2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Order Status Chart */}
+                <Card className="premium-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShoppingCart className="h-5 w-5 text-primary" />
+                      Order Status Distribution
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-72 flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={orderStatusData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {orderStatusData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px',
+                            }}
+                          />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Daily Orders Chart */}
+                <Card className="premium-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      Daily Orders (Last 30 Days)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={revenueData}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="date" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                          <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px',
+                            }}
+                          />
+                          <Bar dataKey="orders" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* User Growth Chart */}
+                <Card className="premium-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      New User Registrations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={userGrowthData}>
+                          <defs>
+                            <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="date" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                          <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px',
+                            }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="users"
+                            stroke="hsl(var(--chart-1))"
+                            fill="url(#userGradient)"
+                            strokeWidth={2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Quick Actions */}
@@ -338,9 +661,12 @@ const AdminDashboard = () => {
                             {new Date(order.created_at || "").toLocaleDateString()}
                           </p>
                         </div>
-                        <Badge variant={order.status === "approved" ? "default" : order.status === "pending" ? "secondary" : "destructive"}>
-                          {order.status}
-                        </Badge>
+                        <div className="text-right">
+                          <p className="font-medium">{Number(order.price).toLocaleString()} MMK</p>
+                          <Badge variant={order.status === "approved" ? "default" : order.status === "pending" ? "secondary" : "destructive"}>
+                            {order.status}
+                          </Badge>
+                        </div>
                       </div>
                     ))}
                   </div>
