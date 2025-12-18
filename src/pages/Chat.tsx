@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 import { useSoundNotification } from "@/hooks/useSoundNotification";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import { compressImage } from "@/lib/imageCompression";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,8 +79,8 @@ const Chat = () => {
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -347,38 +348,71 @@ const Chat = () => {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validate total file count (max 10)
+    if (files.length > 10) {
       toast({
-        title: "File too large",
-        description: "Maximum file size is 10MB",
+        title: "Too many files",
+        description: "Maximum 10 files at once",
         variant: "destructive",
       });
       return;
     }
 
-    setSelectedFile(file);
-    
-    // Create preview for images
-    if (file.type.startsWith("image/")) {
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+    // Validate file sizes (max 10MB each)
+    const oversizedFiles = files.filter(f => f.size > 10 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      toast({
+        title: "File too large",
+        description: "Maximum file size is 10MB per file",
+        variant: "destructive",
+      });
+      return;
     }
+
+    // Compress images
+    const processedFiles: File[] = [];
+    for (const file of files) {
+      if (file.type.startsWith("image/")) {
+        const compressed = await compressImage(file);
+        processedFiles.push(compressed);
+      } else {
+        processedFiles.push(file);
+      }
+    }
+
+    setSelectedFiles(processedFiles);
+    
+    // Create previews for images
+    const urls = processedFiles
+      .filter(f => f.type.startsWith("image/"))
+      .map(f => URL.createObjectURL(f));
+    setPreviewUrls(urls);
   };
 
-  const clearSelectedFile = () => {
-    setSelectedFile(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
+  const clearSelectedFiles = () => {
+    setSelectedFiles([]);
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    setPreviewUrls([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = [...selectedFiles];
+    newFiles.splice(index, 1);
+    setSelectedFiles(newFiles);
+    
+    // Update preview URLs for images
+    const newUrls = newFiles
+      .filter(f => f.type.startsWith("image/"))
+      .map(f => URL.createObjectURL(f));
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    setPreviewUrls(newUrls);
   };
 
   const uploadMedia = async (file: File): Promise<{ url: string; type: string } | null> => {
@@ -407,56 +441,70 @@ const Chat = () => {
   };
 
   const sendMessage = async () => {
-    if ((!newMessage.trim() && !selectedFile) || !conversationId || !user) return;
+    if ((!newMessage.trim() && selectedFiles.length === 0) || !conversationId || !user) return;
 
     setIsUploading(true);
 
     try {
-      let mediaUrl: string | null = null;
-      let mediaType: string | null = null;
+      // If multiple files, send each as a separate message
+      if (selectedFiles.length > 0) {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          const uploadResult = await uploadMedia(file);
+          
+          if (!uploadResult) {
+            toast({
+              title: "Upload failed",
+              description: `Failed to upload ${file.name}`,
+              variant: "destructive",
+            });
+            continue;
+          }
 
-      if (selectedFile) {
-        const uploadResult = await uploadMedia(selectedFile);
-        if (uploadResult) {
-          mediaUrl = uploadResult.url;
-          mediaType = uploadResult.type;
-        } else {
+          const messageData: any = {
+            conversation_id: conversationId,
+            sender_id: user.id,
+            content: i === 0 && newMessage.trim() 
+              ? newMessage.trim() 
+              : (uploadResult.type === "image" ? "📷 Image" : "📎 File"),
+            media_url: uploadResult.url,
+            media_type: uploadResult.type,
+          };
+
+          if (i === 0 && replyingTo) {
+            messageData.reply_to_id = replyingTo.id;
+          }
+
+          await supabase.from("messages").insert(messageData);
+        }
+      } else {
+        // Text-only message
+        const messageData: any = {
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: newMessage.trim(),
+        };
+
+        if (replyingTo) {
+          messageData.reply_to_id = replyingTo.id;
+        }
+
+        const { error } = await supabase.from("messages").insert(messageData);
+
+        if (error) {
           toast({
-            title: "Upload failed",
-            description: "Failed to upload media",
+            title: "Error",
+            description: "Failed to send message",
             variant: "destructive",
           });
-          setIsUploading(false);
           return;
         }
       }
 
-      const messageData: any = {
-        conversation_id: conversationId,
-        sender_id: user.id,
-        content: newMessage.trim() || (mediaType === "image" ? "📷 Image" : "📎 File"),
-        media_url: mediaUrl,
-        media_type: mediaType,
-      };
-
-      if (replyingTo) {
-        messageData.reply_to_id = replyingTo.id;
-      }
-
-      const { error } = await supabase.from("messages").insert(messageData);
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to send message",
-          variant: "destructive",
-        });
-      } else {
-        setNewMessage("");
-        setReplyingTo(null);
-        clearSelectedFile();
-        sendStopTyping();
-      }
+      setNewMessage("");
+      setReplyingTo(null);
+      clearSelectedFiles();
+      sendStopTyping();
     } finally {
       setIsUploading(false);
     }
@@ -764,7 +812,7 @@ const Chat = () => {
       </div>
 
       {/* Reply Preview */}
-      {replyingTo && !selectedFile && (
+      {replyingTo && selectedFiles.length === 0 && (
         <div className="fixed bottom-[calc(4rem+56px)] left-0 right-0 px-4">
           <div className="max-w-screen-xl mx-auto bg-muted rounded-t-xl p-3 flex items-center justify-between border-l-2 border-primary">
             <div className="flex-1 min-w-0">
@@ -781,31 +829,44 @@ const Chat = () => {
         </div>
       )}
 
-      {/* Selected File Preview */}
-      {selectedFile && (
+      {/* Selected Files Preview */}
+      {selectedFiles.length > 0 && (
         <div className="fixed bottom-[calc(4rem+56px)] left-0 right-0 px-4">
-          <div className="max-w-screen-xl mx-auto bg-muted rounded-t-xl p-3 flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              {previewUrl ? (
-                <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg" />
-              ) : (
-                <div className="h-12 w-12 bg-background rounded-lg flex items-center justify-center">
-                  <FileIcon className="h-6 w-6 text-muted-foreground" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {(selectedFile.size / 1024).toFixed(1)} KB
-                </p>
-              </div>
+          <div className="max-w-screen-xl mx-auto bg-muted rounded-t-xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">
+                {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected
+              </span>
+              <button
+                onClick={clearSelectedFiles}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Clear all
+              </button>
             </div>
-            <button
-              onClick={clearSelectedFile}
-              className="p-1 hover:bg-background rounded-full"
-            >
-              <X className="h-4 w-4 text-muted-foreground" />
-            </button>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {selectedFiles.map((file, index) => (
+                <div key={index} className="relative shrink-0">
+                  {file.type.startsWith("image/") ? (
+                    <img 
+                      src={URL.createObjectURL(file)} 
+                      alt={`Preview ${index + 1}`} 
+                      className="h-16 w-16 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 bg-background rounded-lg flex items-center justify-center">
+                      <FileIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -853,6 +914,7 @@ const Chat = () => {
               ref={fileInputRef}
               onChange={handleFileSelect}
               accept="image/*,.pdf,.doc,.docx,.txt"
+              multiple
               className="hidden"
             />
             
@@ -877,14 +939,14 @@ const Chat = () => {
                   sendStopTyping();
                 }
               }}
-              placeholder={selectedFile ? "Add a caption..." : replyingTo ? "Type your reply..." : "Type a message..."}
+              placeholder={selectedFiles.length > 0 ? "Add a caption..." : replyingTo ? "Type your reply..." : "Type a message..."}
               className="flex-1 rounded-full h-12"
               onKeyPress={(e) => e.key === "Enter" && !isUploading && sendMessage()}
               onBlur={sendStopTyping}
             />
             <Button
               onClick={sendMessage}
-              disabled={(!newMessage.trim() && !selectedFile) || isUploading}
+              disabled={(!newMessage.trim() && selectedFiles.length === 0) || isUploading}
               className="rounded-full h-12 w-12 p-0"
             >
               {isUploading ? (
