@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Play, Pause, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ const VoiceMessagePlayer = ({
   isOwn 
 }: VoiceMessagePlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const animationRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -25,6 +26,37 @@ const VoiceMessagePlayer = ({
   const [transcription, setTranscription] = useState(initialTranscription);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
+  const [animationOffset, setAnimationOffset] = useState(0);
+
+  // Generate stable waveform bar heights
+  const waveformBars = useMemo(() => {
+    return Array.from({ length: 30 }, (_, i) => {
+      const seed = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
+      const random = seed - Math.floor(seed);
+      return 25 + Math.sin(i * 0.5) * 20 + random * 25;
+    });
+  }, []);
+
+  // Animation loop for waveform
+  useEffect(() => {
+    if (isPlaying) {
+      const animate = () => {
+        setAnimationOffset(prev => (prev + 0.15) % (Math.PI * 2));
+        animationRef.current = requestAnimationFrame(animate);
+      };
+      animationRef.current = requestAnimationFrame(animate);
+    } else {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    }
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -108,11 +140,16 @@ const VoiceMessagePlayer = ({
     }
   };
 
-  // Generate waveform bars (static visualization)
-  const waveformBars = Array.from({ length: 30 }, (_, i) => {
-    const height = 20 + Math.sin(i * 0.5) * 15 + Math.random() * 10;
-    return height;
-  });
+  // Calculate animated height for each bar
+  const getBarHeight = (baseHeight: number, index: number) => {
+    if (!isPlaying) return baseHeight;
+    
+    // Create a wave effect that moves through the bars
+    const wave = Math.sin(animationOffset + index * 0.3) * 15;
+    const pulse = Math.sin(animationOffset * 2 + index * 0.2) * 8;
+    
+    return Math.max(15, Math.min(95, baseHeight + wave + pulse));
+  };
 
   return (
     <div className="w-full max-w-[250px]">
@@ -127,7 +164,8 @@ const VoiceMessagePlayer = ({
           variant="ghost"
           size="icon"
           className={cn(
-            "h-10 w-10 rounded-full shrink-0",
+            "h-10 w-10 rounded-full shrink-0 transition-transform",
+            isPlaying && "scale-95",
             isOwn 
               ? "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground" 
               : "bg-primary/20 hover:bg-primary/30 text-primary"
@@ -147,19 +185,24 @@ const VoiceMessagePlayer = ({
             className="relative h-8 flex items-center gap-[2px] cursor-pointer"
             onClick={handleProgressClick}
           >
-            {waveformBars.map((height, i) => {
+            {waveformBars.map((baseHeight, i) => {
               const barProgress = (i / waveformBars.length) * 100;
               const isActive = barProgress <= progress;
+              const height = getBarHeight(baseHeight, i);
+              
               return (
                 <div
                   key={i}
                   className={cn(
-                    "w-1 rounded-full transition-colors",
+                    "w-1 rounded-full",
                     isActive 
                       ? isOwn ? "bg-primary-foreground" : "bg-primary"
                       : isOwn ? "bg-primary-foreground/30" : "bg-muted-foreground/30"
                   )}
-                  style={{ height: `${height}%` }}
+                  style={{ 
+                    height: `${height}%`,
+                    transition: isPlaying ? 'none' : 'height 0.2s ease-out, background-color 0.15s ease'
+                  }}
                 />
               );
             })}
