@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Package,
   Image,
@@ -28,6 +30,8 @@ import {
   BarChart3,
   Calendar,
   Bell,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -109,12 +113,28 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('admin-sound-enabled');
+    return saved !== null ? saved === 'true' : true;
+  });
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Save sound preference
+  const toggleSound = (enabled: boolean) => {
+    setSoundEnabled(enabled);
+    localStorage.setItem('admin-sound-enabled', String(enabled));
+    toast({
+      title: enabled ? "Sound Enabled" : "Sound Disabled",
+      description: enabled ? "You'll hear notifications for new orders" : "Notification sounds are now muted",
+    });
+  };
+
   // Notification sound function
   const playNotificationSound = () => {
+    if (!soundEnabled) return;
+    
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
@@ -961,6 +981,56 @@ const AdminDashboard = () => {
           {/* Settings Tab */}
           {activeTab === "settings" && (
             <div className="space-y-4">
+              {/* Notification Settings */}
+              <Card className="premium-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Notification Settings
+                  </CardTitle>
+                  <CardDescription>
+                    Configure how you receive notifications for new orders
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      {soundEnabled ? (
+                        <Volume2 className="h-5 w-5 text-primary" />
+                      ) : (
+                        <VolumeX className="h-5 w-5 text-muted-foreground" />
+                      )}
+                      <div>
+                        <Label htmlFor="sound-toggle" className="font-medium">
+                          Order Notification Sound
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Play a sound when new orders arrive
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="sound-toggle"
+                      checked={soundEnabled}
+                      onCheckedChange={toggleSound}
+                    />
+                  </div>
+                  
+                  {soundEnabled && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={playNotificationSound}
+                      className="gap-2"
+                    >
+                      <Volume2 className="h-4 w-4" />
+                      Test Sound
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* System Settings */}
               <Card className="premium-card">
                 <CardHeader>
                   <CardTitle>System Settings</CardTitle>
