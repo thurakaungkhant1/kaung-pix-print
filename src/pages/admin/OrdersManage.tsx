@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -29,11 +29,46 @@ interface Order {
   products: { name: string; image_url: string; points_value: number };
 }
 
+// Track which orders are currently loading signed URLs
+type LoadingState = { [orderId: string]: boolean };
+
 const OrdersManage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingProofs, setLoadingProofs] = useState<LoadingState>({});
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Generate a signed URL for viewing payment proof
+  const viewPaymentProof = async (orderId: string, filePath: string) => {
+    setLoadingProofs(prev => ({ ...prev, [orderId]: true }));
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from("payment-proofs")
+        .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+      if (error || !data?.signedUrl) {
+        toast({
+          title: "Error",
+          description: "Failed to load payment proof",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Open the signed URL in a new tab
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to access payment proof",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingProofs(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
 
   useEffect(() => {
     checkAdmin();
@@ -141,14 +176,25 @@ const OrdersManage = () => {
                     <p><strong>Address:</strong> {order.delivery_address}</p>
                     <p><strong>Payment:</strong> {order.payment_method.toUpperCase()}</p>
                     {order.payment_proof_url && (
-                      <a
-                        href={order.payment_proof_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 text-primary"
+                        onClick={() => viewPaymentProof(order.id, order.payment_proof_url!)}
+                        disabled={loadingProofs[order.id]}
                       >
-                        View Payment Proof
-                      </a>
+                        {loadingProofs[order.id] ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            View Payment Proof
+                          </>
+                        )}
+                      </Button>
                     )}
                   </div>
 
