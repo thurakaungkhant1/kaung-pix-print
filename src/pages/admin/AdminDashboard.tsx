@@ -113,6 +113,42 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Notification sound function
+  const playNotificationSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Create a pleasant two-tone notification sound
+      const playTone = (frequency: number, startTime: number, duration: number) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
+        gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
+      
+      const now = audioContext.currentTime;
+      playTone(880, now, 0.15); // A5
+      playTone(1174.66, now + 0.15, 0.15); // D6
+      playTone(1318.51, now + 0.3, 0.2); // E6
+      
+      // Close audio context after sound plays
+      setTimeout(() => audioContext.close(), 1000);
+    } catch (error) {
+      console.log('Could not play notification sound:', error);
+    }
+  };
+
   useEffect(() => {
     checkAdmin();
   }, [user]);
@@ -143,6 +179,9 @@ const AdminDashboard = () => {
         },
         async (payload) => {
           console.log('New order received:', payload);
+          
+          // Play notification sound
+          playNotificationSound();
           
           // Fetch product name for the new order
           const { data: product } = await supabase
