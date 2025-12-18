@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles, Camera, Loader2, Trash2 } from "lucide-react";
+import AccountQualityBadge from "@/components/AccountQualityBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +36,7 @@ interface Profile {
   phone_number: string;
   points: number;
   avatar_url: string | null;
+  account_status: string;
 }
 
 interface WithdrawalSettings {
@@ -100,7 +102,7 @@ const Account = () => {
 
     const { data } = await supabase
       .from("profiles")
-      .select("name, phone_number, points, avatar_url")
+      .select("name, phone_number, points, avatar_url, account_status")
       .eq("id", user.id)
       .single();
 
@@ -418,6 +420,13 @@ const Account = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Account Quality Section */}
+        {profile && (
+          <div className="animate-slide-up" style={{ animationDelay: "25ms" }}>
+            <AccountQualityBadge status={profile.account_status || "good"} />
+          </div>
+        )}
 
         {/* Top Earners Card */}
         <Card 

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Coins, Calendar, MessageCircle, Trophy, Users, UserPlus, Clock, UserMinus, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, User, Coins, Calendar, MessageCircle, Trophy, Users, UserPlus, Clock, UserMinus, Download, Loader2, Flag } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 import VerificationBadge, { VERIFICATION_THRESHOLD } from "@/components/VerificationBadge";
@@ -11,6 +11,7 @@ import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import ReportDialog from "@/components/ReportDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,7 @@ const PublicProfile = () => {
   const [friendCount, setFriendCount] = useState(0);
   const [friendStatus, setFriendStatus] = useState<"none" | "pending_sent" | "pending_received" | "friends">("none");
   const [downloadingImage, setDownloadingImage] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -458,7 +460,29 @@ const PublicProfile = () => {
             Edit Profile
           </Button>
         )}
+
+        {/* Report Account Button - Only for other users */}
+        {!isOwnProfile && user && (
+          <Button
+            variant="ghost"
+            className="w-full h-10 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 animate-slide-up"
+            style={{ animationDelay: "200ms" }}
+            onClick={() => setReportDialogOpen(true)}
+          >
+            <Flag className="mr-2 h-4 w-4" />
+            Report Account
+          </Button>
+        )}
       </div>
+
+      {/* Report Dialog */}
+      <ReportDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        reportedUserId={profile?.id || ""}
+        reportedUserName={profile?.name}
+        reportType="account"
+      />
 
       {/* Unfriend Confirmation Dialog */}
       <AlertDialog open={unfriendDialogOpen} onOpenChange={setUnfriendDialogOpen}>
