@@ -37,6 +37,7 @@ interface MessageBubbleProps {
   onReply: (id: string) => void;
   onReact: (id: string) => void;
   onRemoveReaction: (messageId: string, reactionId: string) => void;
+  searchQuery?: string;
 }
 
 const MessageBubble = ({
@@ -54,6 +55,7 @@ const MessageBubble = ({
   onReply,
   onReact,
   onRemoveReaction,
+  searchQuery,
 }: MessageBubbleProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(content);
@@ -91,6 +93,24 @@ const MessageBubble = ({
 
   const userReaction = reactions.find((r) => r.user_id === currentUserId);
   const totalReactions = reactions.length;
+
+  // Highlight search matches in content
+  const highlightText = (text: string) => {
+    if (!searchQuery?.trim()) return text;
+    
+    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, i) => 
+      regex.test(part) ? (
+        <mark key={i} className="bg-yellow-300 text-black rounded px-0.5">
+          {part}
+        </mark>
+      ) : (
+        part
+      )
+    );
+  };
 
   return (
     <div
@@ -154,7 +174,7 @@ const MessageBubble = ({
             </div>
           ) : (
             <>
-              <p className="text-sm break-words">{content}</p>
+              <p className="text-sm break-words">{highlightText(content)}</p>
               
               {/* Message menu for own messages */}
               {isOwn && !isDeleted && (

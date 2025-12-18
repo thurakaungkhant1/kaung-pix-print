@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -70,7 +70,12 @@ const Chat = () => {
   const [amBlocked, setAmBlocked] = useState(false);
   const [friendStatus, setFriendStatus] = useState<string>("none");
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<string[]>([]);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -408,6 +413,60 @@ const Chat = () => {
     return messages.find((m) => m.id === replyToId) || null;
   };
 
+  // Search functionality
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      setCurrentSearchIndex(0);
+      return;
+    }
+
+    const results = messages
+      .filter((m) => !m.is_deleted && m.content.toLowerCase().includes(query.toLowerCase()))
+      .map((m) => m.id);
+    
+    setSearchResults(results);
+    setCurrentSearchIndex(results.length > 0 ? 0 : -1);
+    
+    // Scroll to first result
+    if (results.length > 0) {
+      scrollToMessage(results[0]);
+    }
+  };
+
+  const scrollToMessage = (messageId: string) => {
+    const element = messageRefs.current[messageId];
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
+  const navigateSearchResult = (direction: "next" | "prev") => {
+    if (searchResults.length === 0) return;
+    
+    let newIndex: number;
+    if (direction === "next") {
+      newIndex = (currentSearchIndex + 1) % searchResults.length;
+    } else {
+      newIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+    }
+    
+    setCurrentSearchIndex(newIndex);
+    scrollToMessage(searchResults[newIndex]);
+  };
+
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    setCurrentSearchIndex(0);
+  };
+
+  const isMessageHighlighted = (messageId: string) => {
+    return searchResults.includes(messageId) && searchResults[currentSearchIndex] === messageId;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -447,28 +506,81 @@ const Chat = () => {
             )}
           </div>
           
-          {/* Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors">
-                <MoreVertical className="h-5 w-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isBlocked ? (
-                <DropdownMenuItem onClick={handleUnblockUser}>
-                  <Ban className="mr-2 h-4 w-4" />
-                  Unblock User
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onClick={() => setBlockDialogOpen(true)} className="text-destructive">
-                  <Ban className="mr-2 h-4 w-4" />
-                  Block User
-                </DropdownMenuItem>
+          {/* Search & Menu */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className={cn(
+                "p-2 rounded-full transition-colors",
+                isSearchOpen ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"
               )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            >
+              <Search className="h-5 w-5" />
+            </button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors">
+                  <MoreVertical className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isBlocked ? (
+                  <DropdownMenuItem onClick={handleUnblockUser}>
+                    <Ban className="mr-2 h-4 w-4" />
+                    Unblock User
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => setBlockDialogOpen(true)} className="text-destructive">
+                    <Ban className="mr-2 h-4 w-4" />
+                    Block User
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+        
+        {/* Search Bar */}
+        {isSearchOpen && (
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search messages..."
+                className="pl-9 h-9 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
+                autoFocus
+              />
+            </div>
+            {searchResults.length > 0 && (
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-primary-foreground/70">
+                  {currentSearchIndex + 1}/{searchResults.length}
+                </span>
+                <button
+                  onClick={() => navigateSearchResult("prev")}
+                  className="p-1.5 rounded-full hover:bg-primary-foreground/10"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => navigateSearchResult("next")}
+                  className="p-1.5 rounded-full hover:bg-primary-foreground/10"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            <button
+              onClick={closeSearch}
+              className="p-1.5 rounded-full hover:bg-primary-foreground/10"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Messages */}
@@ -483,29 +595,38 @@ const Chat = () => {
           </div>
         ) : (
           messages.map((message) => (
-            <MessageBubble
+            <div
               key={message.id}
-              id={message.id}
-              content={message.content}
-              isOwn={message.sender_id === user?.id}
-              isDeleted={message.is_deleted}
-              timestamp={message.created_at}
-              editedAt={message.edited_at}
-              reactions={getMessageReactions(message.id)}
-              replyTo={getReplyMessage(message.reply_to_id)}
-              currentUserId={user?.id || ""}
-              onDelete={(id) => {
-                setMessageToDelete(id);
-                setDeleteDialogOpen(true);
-              }}
-              onEdit={handleEditMessage}
-              onReply={(id) => {
-                const msg = messages.find((m) => m.id === id);
-                if (msg) setReplyingTo(msg);
-              }}
-              onReact={handleReactToMessage}
-              onRemoveReaction={handleRemoveReaction}
-            />
+              ref={(el) => (messageRefs.current[message.id] = el)}
+              className={cn(
+                "transition-all duration-300",
+                isMessageHighlighted(message.id) && "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-2xl"
+              )}
+            >
+              <MessageBubble
+                id={message.id}
+                content={message.content}
+                isOwn={message.sender_id === user?.id}
+                isDeleted={message.is_deleted}
+                timestamp={message.created_at}
+                editedAt={message.edited_at}
+                reactions={getMessageReactions(message.id)}
+                replyTo={getReplyMessage(message.reply_to_id)}
+                currentUserId={user?.id || ""}
+                onDelete={(id) => {
+                  setMessageToDelete(id);
+                  setDeleteDialogOpen(true);
+                }}
+                onEdit={handleEditMessage}
+                onReply={(id) => {
+                  const msg = messages.find((m) => m.id === id);
+                  if (msg) setReplyingTo(msg);
+                }}
+                onReact={handleReactToMessage}
+                onRemoveReaction={handleRemoveReaction}
+                searchQuery={searchQuery}
+              />
+            </div>
           ))
         )}
         
