@@ -37,6 +37,8 @@ import {
   Mail,
   User,
   Gamepad2,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -148,9 +150,41 @@ const AdminDashboard = () => {
   });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderDetailOpen, setOrderDetailOpen] = useState(false);
+  const [loadingPaymentProof, setLoadingPaymentProof] = useState(false);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Generate a signed URL for viewing payment proof
+  const viewPaymentProof = async (filePath: string) => {
+    setLoadingPaymentProof(true);
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from("payment-proofs")
+        .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+      if (error || !data?.signedUrl) {
+        toast({
+          title: "Error",
+          description: "Failed to load payment proof",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Open the signed URL in a new tab
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to access payment proof",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPaymentProof(false);
+    }
+  };
 
   // Save sound preference
   const toggleSound = (enabled: boolean) => {
@@ -1452,14 +1486,25 @@ const AdminDashboard = () => {
                       {selectedOrder.payment_proof_url && (
                         <div className="p-4 bg-muted/50 rounded-xl space-y-3">
                           <h4 className="font-semibold">Payment Proof</h4>
-                          <a
-                            href={selectedOrder.payment_proof_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline text-sm"
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-primary"
+                            onClick={() => viewPaymentProof(selectedOrder.payment_proof_url!)}
+                            disabled={loadingPaymentProof}
                           >
-                            View Payment Screenshot
-                          </a>
+                            {loadingPaymentProof ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                Loading...
+                              </>
+                            ) : (
+                              <>
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                View Payment Screenshot
+                              </>
+                            )}
+                          </Button>
                         </div>
                       )}
 

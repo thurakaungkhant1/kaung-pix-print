@@ -103,7 +103,7 @@ const CheckoutDialog = ({
   const handleSubmit = async () => {
     setSubmitting(true);
 
-    let paymentProofUrl = null;
+    let paymentProofPath = null;
 
     // Upload payment proof if mobile payment
     if (paymentMethod !== "cod" && paymentProof) {
@@ -124,11 +124,9 @@ const CheckoutDialog = ({
         return;
       }
 
-      const { data: urlData } = supabase.storage
-        .from("payment-proofs")
-        .getPublicUrl(fileName);
-
-      paymentProofUrl = urlData.publicUrl;
+      // Store only the file path, not a public URL
+      // Signed URLs will be generated on-demand when admins view the order
+      paymentProofPath = fileName;
     }
 
     // Create orders for all cart items
@@ -140,7 +138,7 @@ const CheckoutDialog = ({
       phone_number: phoneNumber,
       delivery_address: deliveryAddress,
       payment_method: paymentMethod,
-      payment_proof_url: paymentProofUrl,
+      payment_proof_url: paymentProofPath, // Store file path, not public URL
       status: "pending",
     }));
 
