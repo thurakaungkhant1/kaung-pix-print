@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles, Camera, Loader2 } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles, Camera, Loader2, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,17 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import ReferralSection from "@/components/ReferralSection";
 import ChatSettings from "@/components/ChatSettings";
 import { cn } from "@/lib/utils";
+import { ImageCropper } from "@/components/ImageCropper";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Profile {
   name: string;
@@ -51,6 +62,10 @@ const Account = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [deletingAvatar, setDeletingAvatar] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { user, signOut } = useAuth();
@@ -107,7 +122,7 @@ const Account = () => {
     setIsAdmin(!!data);
   };
 
-  // Handle avatar file selection
+  // Handle avatar file selection - opens cropper
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -122,24 +137,36 @@ const Account = () => {
       return;
     }
 
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
+    // Validate file size (max 5MB for cropping)
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please select an image under 2MB",
+        description: "Please select an image under 5MB",
         variant: "destructive"
       });
       return;
     }
 
-    setAvatarFile(file);
-    
-    // Create preview
+    // Create preview and open cropper
     const reader = new FileReader();
     reader.onloadend = () => {
-      setAvatarPreview(reader.result as string);
+      setImageToCrop(reader.result as string);
+      setCropperOpen(true);
     };
     reader.readAsDataURL(file);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Handle cropped image
+  const handleCropComplete = (croppedBlob: Blob) => {
+    const file = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(croppedBlob));
+    setImageToCrop(null);
   };
 
   // Upload avatar to Supabase Storage
@@ -188,6 +215,51 @@ const Account = () => {
       });
     } finally {
       setUploadingAvatar(false);
+    }
+  };
+
+  // Delete avatar
+  const deleteAvatar = async () => {
+    if (!user) return;
+    
+    setDeletingAvatar(true);
+    try {
+      // List and delete all files in user's avatar folder
+      const { data: files } = await supabase.storage
+        .from('avatars')
+        .list(user.id);
+
+      if (files && files.length > 0) {
+        const filePaths = files.map(file => `${user.id}/${file.name}`);
+        await supabase.storage.from('avatars').remove(filePaths);
+      }
+
+      // Update profile to remove avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Photo removed",
+        description: "Your profile photo has been deleted"
+      });
+
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      loadProfile();
+    } catch (error: any) {
+      console.error('Delete avatar error:', error);
+      toast({
+        title: "Delete failed",
+        description: error.message || "Failed to remove profile photo",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingAvatar(false);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -489,14 +561,12 @@ const Account = () => {
                   
                   {/* Instructions */}
                   <p className="text-xs text-muted-foreground text-center max-w-[200px]">
-                    Click to upload a new photo (max 2MB)
+                    Click to upload a new photo
                   </p>
                   
-                  {avatarFile && (
-                    <div className="flex flex-col items-center gap-3 w-full">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                        <span className="truncate max-w-[150px]">{avatarFile.name}</span>
-                      </div>
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2">
+                    {avatarFile ? (
                       <Button 
                         onClick={uploadAvatar}
                         disabled={uploadingAvatar}
@@ -515,8 +585,23 @@ const Account = () => {
                           "Save Photo"
                         )}
                       </Button>
-                    </div>
-                  )}
+                    ) : profile?.avatar_url && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDeleteDialogOpen(true)}
+                        disabled={deletingAvatar}
+                        className="rounded-full gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive"
+                      >
+                        {deletingAvatar ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        Remove Photo
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <Separator />
@@ -640,6 +725,48 @@ const Account = () => {
           loadProfile();
         }}
       />
+
+      {/* Image Cropper Dialog */}
+      {imageToCrop && (
+        <ImageCropper
+          open={cropperOpen}
+          onOpenChange={(open) => {
+            setCropperOpen(open);
+            if (!open) setImageToCrop(null);
+          }}
+          imageSrc={imageToCrop}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+        />
+      )}
+
+      {/* Delete Photo Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Profile Photo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove your profile photo? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteAvatar}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingAvatar ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Removing...
+                </>
+              ) : (
+                "Remove"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNav />
     </div>
