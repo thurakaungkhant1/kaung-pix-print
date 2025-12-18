@@ -44,8 +44,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
 import {
   AreaChart,
@@ -142,14 +142,13 @@ const AdminDashboard = () => {
   const [pendingDiamondOrders, setPendingDiamondOrders] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = localStorage.getItem('admin-sound-enabled');
     return saved !== null ? saved === 'true' : true;
   });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderDetailOpen, setOrderDetailOpen] = useState(false);
-  const { user } = useAuth();
+  const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -201,9 +200,7 @@ const AdminDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    checkAdmin();
-  }, [user]);
+  // Admin check is now handled by useAdminCheck hook
 
   useEffect(() => {
     if (isAdmin) {
@@ -282,25 +279,7 @@ const AdminDashboard = () => {
     };
   }, [isAdmin]);
 
-  const checkAdmin = async () => {
-    if (!user) {
-      navigate("/");
-      return;
-    }
-
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (!data) {
-      navigate("/");
-    } else {
-      setIsAdmin(true);
-    }
-  };
+  // checkAdmin function removed - now handled by useAdminCheck hook
 
   const loadStats = async () => {
     const today = new Date();

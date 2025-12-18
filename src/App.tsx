@@ -9,6 +9,7 @@ import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import LoadingScreen from "@/components/LoadingScreen";
 import Home from "./pages/Home";
 import Photo from "./pages/Photo";
@@ -163,97 +164,97 @@ const App = () => {
               <Route
                 path="/admin"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <AdminDashboard />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/products"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <ProductsManage />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/products/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <ProductNew />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/diamond-packages"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <DiamondPackages />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/diamond-packages/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <DiamondPackageForm />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/diamond-packages/edit/:id"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <DiamondPackageForm />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/photos"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <PhotosManage />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/photos/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <PhotoNew />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/orders"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <OrdersManage />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/users"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <UsersManage />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/withdrawal-settings"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <WithdrawalSettings />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
                 path="/admin/withdrawal-items"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedAdminRoute>
                     <WithdrawalItemsManage />
-                  </ProtectedRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route
