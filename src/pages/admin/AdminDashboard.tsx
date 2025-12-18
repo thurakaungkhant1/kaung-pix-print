@@ -27,6 +27,7 @@ import {
   X,
   BarChart3,
   Calendar,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -125,6 +126,63 @@ const AdminDashboard = () => {
       loadOrderStatusData();
       loadUserGrowthData();
     }
+  }, [isAdmin]);
+
+  // Real-time order notifications
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const channel = supabase
+      .channel('admin-orders')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders'
+        },
+        async (payload) => {
+          console.log('New order received:', payload);
+          
+          // Fetch product name for the new order
+          const { data: product } = await supabase
+            .from('products')
+            .select('name')
+            .eq('id', payload.new.product_id)
+            .single();
+
+          toast({
+            title: "🔔 New Order Received!",
+            description: `${product?.name || 'Product'} - ${Number(payload.new.price).toLocaleString()} MMK`,
+            duration: 5000,
+          });
+
+          // Refresh data
+          loadOrders();
+          loadStats();
+          loadOrderStatusData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders'
+        },
+        (payload) => {
+          console.log('Order updated:', payload);
+          loadOrders();
+          loadStats();
+          loadOrderStatusData();
+          loadRevenueData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [isAdmin]);
 
   const checkAdmin = async () => {
@@ -385,17 +443,32 @@ const AdminDashboard = () => {
               <h1 className="text-xl font-semibold capitalize">{activeTab}</h1>
             </div>
 
-            {(activeTab === "users" || activeTab === "orders") && (
-              <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            )}
+            <div className="flex items-center gap-4">
+              {/* Notification Bell */}
+              <button
+                onClick={() => setActiveTab("orders")}
+                className="relative p-2 hover:bg-muted rounded-lg transition-colors"
+              >
+                <Bell className="h-5 w-5" />
+                {stats.pendingOrders > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-destructive text-destructive-foreground text-xs font-bold rounded-full animate-pulse">
+                    {stats.pendingOrders > 9 ? '9+' : stats.pendingOrders}
+                  </span>
+                )}
+              </button>
+
+              {(activeTab === "users" || activeTab === "orders") && (
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
