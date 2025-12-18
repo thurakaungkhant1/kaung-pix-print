@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Heart, MoreVertical, Pencil, Reply, Trash2, Check, X, CheckCheck, FileIcon, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +68,20 @@ const MessageBubble = ({
 }: MessageBubbleProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(content);
+  const [showMenu, setShowMenu] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const lastTapRef = useRef<number>(0);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Cleanup long press timer
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, []);
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString([], {
@@ -86,6 +99,42 @@ const MessageBubble = ({
       onReact(id);
     }
     lastTapRef.current = now;
+  };
+
+  // Long press handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    longPressTimerRef.current = setTimeout(() => {
+      setShowMenu(true);
+    }, 500);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const moveThreshold = 10;
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartRef.current.x);
+    const deltaY = Math.abs(e.touches[0].clientY - touchStartRef.current.y);
+    if (deltaX > moveThreshold || deltaY > moveThreshold) {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+    }
+    touchStartRef.current = null;
+  };
+
+  const handleDelete = () => {
+    setIsDeleting(true);
+    setShowMenu(false);
+    // Optimistic UI - show deletion immediately
+    setTimeout(() => {
+      onDelete(id);
+    }, 150);
   };
 
   const handleEditSave = () => {
@@ -123,7 +172,11 @@ const MessageBubble = ({
 
   return (
     <div
-      className={cn("flex group", isOwn ? "justify-end" : "justify-start")}
+      className={cn(
+        "flex group transition-all duration-200",
+        isOwn ? "justify-end" : "justify-start",
+        isDeleting && "opacity-0 scale-95"
+      )}
     >
       <div className="relative max-w-[80%]">
         {/* Reply reference */}
@@ -152,6 +205,9 @@ const MessageBubble = ({
             replyTo && !isDeleted && "rounded-tl-none"
           )}
           onClick={handleDoubleTap}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {isDeleted ? (
             <span className="text-sm">Message deleted</span>
@@ -222,13 +278,14 @@ const MessageBubble = ({
                 <p className="text-sm break-words">{highlightText(content)}</p>
               )}
               
-              {/* Message menu for own messages */}
-              {isOwn && !isDeleted && (
-                <DropdownMenu>
+              {/* Message menu - three dot menu for all messages */}
+              {!isDeleted && (
+                <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
                   <DropdownMenuTrigger asChild>
                     <button
                       className={cn(
-                        "absolute -left-8 top-1/2 -translate-y-1/2",
+                        "absolute top-1/2 -translate-y-1/2",
+                        isOwn ? "-left-8" : "-right-8",
                         "opacity-0 group-hover:opacity-100 transition-opacity",
                         "p-1.5 rounded-full hover:bg-muted"
                       )}
@@ -236,38 +293,28 @@ const MessageBubble = ({
                       <MoreVertical className="h-4 w-4 text-muted-foreground" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit Message
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onReply(id)}>
+                  <DropdownMenuContent align={isOwn ? "start" : "end"}>
+                    {isOwn && (
+                      <DropdownMenuItem onClick={() => { setIsEditing(true); setShowMenu(false); }}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit Message
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => { onReply(id); setShowMenu(false); }}>
                       <Reply className="mr-2 h-4 w-4" />
                       Reply
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onDelete(id)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Message
-                    </DropdownMenuItem>
+                    {isOwn && (
+                      <DropdownMenuItem
+                        onClick={handleDelete}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Message
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
-              )}
-
-              {/* Reply option for received messages */}
-              {!isOwn && !isDeleted && (
-                <button
-                  onClick={() => onReply(id)}
-                  className={cn(
-                    "absolute -right-8 top-1/2 -translate-y-1/2",
-                    "opacity-0 group-hover:opacity-100 transition-opacity",
-                    "p-1.5 rounded-full hover:bg-muted"
-                  )}
-                >
-                  <Reply className="h-4 w-4 text-muted-foreground" />
-                </button>
               )}
             </>
           )}
