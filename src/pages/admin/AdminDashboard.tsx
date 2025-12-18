@@ -153,6 +153,11 @@ const AdminDashboard = () => {
   const [loadingPaymentProof, setLoadingPaymentProof] = useState(false);
   const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
   const [paymentProofExpanded, setPaymentProofExpanded] = useState(false);
+  const [editPointsOpen, setEditPointsOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [pointsChange, setPointsChange] = useState<string>("");
+  const [pointsOperation, setPointsOperation] = useState<"add" | "subtract">("add");
+  const [updatingPoints, setUpdatingPoints] = useState(false);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -635,6 +640,59 @@ const AdminDashboard = () => {
     toast({ title: "Info", description: "User deletion requires backend admin setup" });
   };
 
+  const openEditPointsModal = (user: UserProfile) => {
+    setSelectedUser(user);
+    setPointsChange("");
+    setPointsOperation("add");
+    setEditPointsOpen(true);
+  };
+
+  const updateUserPoints = async () => {
+    if (!selectedUser || !pointsChange) return;
+    
+    const changeAmount = parseInt(pointsChange);
+    if (isNaN(changeAmount) || changeAmount <= 0) {
+      toast({ title: "Error", description: "Please enter a valid positive number", variant: "destructive" });
+      return;
+    }
+
+    const newPoints = pointsOperation === "add" 
+      ? selectedUser.points + changeAmount 
+      : Math.max(0, selectedUser.points - changeAmount);
+
+    setUpdatingPoints(true);
+    
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ points: newPoints })
+        .eq("id", selectedUser.id);
+
+      if (error) {
+        toast({ title: "Error", description: "Failed to update points", variant: "destructive" });
+      } else {
+        // Create a point transaction record
+        await supabase.from("point_transactions").insert({
+          user_id: selectedUser.id,
+          amount: pointsOperation === "add" ? changeAmount : -changeAmount,
+          transaction_type: "admin_adjustment",
+          description: `Admin ${pointsOperation === "add" ? "added" : "subtracted"} ${changeAmount} points`
+        });
+
+        toast({ 
+          title: "Success", 
+          description: `${pointsOperation === "add" ? "Added" : "Subtracted"} ${changeAmount} points. New balance: ${newPoints}` 
+        });
+        setEditPointsOpen(false);
+        loadUsers();
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to update points", variant: "destructive" });
+    } finally {
+      setUpdatingPoints(false);
+    }
+  };
+
   const filteredUsers = users.filter(
     (u) =>
       u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -669,6 +727,7 @@ const AdminDashboard = () => {
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
     { id: "users", label: "Users", icon: Users, badge: 0 },
+    { id: "point-management", label: "Point Management", icon: Coins, badge: 0 },
     { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
     { id: "diamond-orders", label: "Diamond Orders", icon: Gem, badge: pendingDiamondOrders },
     { id: "products", label: "Products", icon: Package, badge: 0 },
@@ -767,7 +826,7 @@ const AdminDashboard = () => {
                 )}
               </button>
 
-              {(activeTab === "users" || activeTab === "orders" || activeTab === "diamond-orders") && (
+              {(activeTab === "users" || activeTab === "orders" || activeTab === "diamond-orders" || activeTab === "point-management") && (
                 <div className="relative w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -1276,12 +1335,78 @@ const AdminDashboard = () => {
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                onClick={() => openEditPointsModal(profile)}
+                              >
+                                <Coins className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
                                 className="text-destructive"
                                 onClick={() => deleteUser(profile.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Point Management Tab */}
+          {activeTab === "point-management" && (
+            <Card className="premium-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Coins className="h-5 w-5 text-primary" />
+                  Point Management ({filteredUsers.length} Users)
+                </CardTitle>
+                <CardDescription>
+                  View and manage user points. Click "Edit Points" to add or subtract points from a user's balance.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Current Points</TableHead>
+                        <TableHead>Joined</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map((profile) => (
+                        <TableRow key={profile.id}>
+                          <TableCell className="font-medium">{profile.name}</TableCell>
+                          <TableCell>{profile.email || "-"}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Coins className="h-4 w-4 text-primary" />
+                              <span className="font-semibold text-primary">{profile.points.toLocaleString()}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {profile.created_at
+                              ? new Date(profile.created_at).toLocaleDateString()
+                              : "-"}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              onClick={() => openEditPointsModal(profile)}
+                              className="gap-1"
+                            >
+                              <Coins className="h-4 w-4" />
+                              Edit Points
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1837,6 +1962,112 @@ const AdminDashboard = () => {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Edit Points Modal */}
+      <Dialog open={editPointsOpen} onOpenChange={setEditPointsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5 text-primary" />
+              Edit User Points
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* User Info */}
+              <div className="p-4 bg-muted/50 rounded-xl space-y-2">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">{selectedUser.name}</span>
+                </div>
+                {selectedUser.email && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                    {selectedUser.email}
+                  </div>
+                )}
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <Coins className="h-5 w-5 text-primary" />
+                  <span className="text-lg font-bold text-primary">
+                    {selectedUser.points.toLocaleString()} points
+                  </span>
+                </div>
+              </div>
+
+              {/* Operation Selection */}
+              <div className="flex gap-2">
+                <Button
+                  variant={pointsOperation === "add" ? "default" : "outline"}
+                  onClick={() => setPointsOperation("add")}
+                  className="flex-1"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Points
+                </Button>
+                <Button
+                  variant={pointsOperation === "subtract" ? "destructive" : "outline"}
+                  onClick={() => setPointsOperation("subtract")}
+                  className="flex-1"
+                >
+                  <Ban className="h-4 w-4 mr-1" />
+                  Subtract Points
+                </Button>
+              </div>
+
+              {/* Points Input */}
+              <div className="space-y-2">
+                <Label htmlFor="points-amount">
+                  Points to {pointsOperation === "add" ? "add" : "subtract"}
+                </Label>
+                <Input
+                  id="points-amount"
+                  type="number"
+                  min="1"
+                  placeholder="Enter amount"
+                  value={pointsChange}
+                  onChange={(e) => setPointsChange(e.target.value)}
+                />
+                {pointsChange && parseInt(pointsChange) > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    New balance will be:{" "}
+                    <span className="font-semibold text-foreground">
+                      {pointsOperation === "add"
+                        ? (selectedUser.points + parseInt(pointsChange)).toLocaleString()
+                        : Math.max(0, selectedUser.points - parseInt(pointsChange)).toLocaleString()}{" "}
+                      points
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditPointsOpen(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={updateUserPoints}
+                  disabled={!pointsChange || parseInt(pointsChange) <= 0 || updatingPoints}
+                  className="flex-1"
+                >
+                  {updatingPoints ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>Confirm {pointsOperation === "add" ? "Add" : "Subtract"}</>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
