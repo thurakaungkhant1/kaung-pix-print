@@ -1653,8 +1653,8 @@ const AdminDashboard = () => {
                         <TableRow>
                           <TableHead>Order ID</TableHead>
                           <TableHead>Customer</TableHead>
+                          <TableHead>Contact Info</TableHead>
                           <TableHead>Product</TableHead>
-                          <TableHead>Qty</TableHead>
                           <TableHead>Price</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Date</TableHead>
@@ -1671,8 +1671,24 @@ const AdminDashboard = () => {
                                 <span className="text-xs text-muted-foreground">{order.profiles?.email || "-"}</span>
                               </div>
                             </TableCell>
-                            <TableCell>{order.products?.name || "Product"}</TableCell>
-                            <TableCell>{order.quantity}</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Phone className="h-3 w-3 text-muted-foreground" />
+                                  <span>{order.phone_number || "-"}</span>
+                                </div>
+                                <div className="flex items-start gap-1 text-xs text-muted-foreground max-w-[150px]">
+                                  <MapPin className="h-3 w-3 flex-shrink-0 mt-0.5" />
+                                  <span className="truncate">{order.delivery_address || "-"}</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span>{order.products?.name || "Product"}</span>
+                                <span className="text-xs text-muted-foreground">Qty: {order.quantity}</span>
+                              </div>
+                            </TableCell>
                             <TableCell>{Number(order.price).toLocaleString()} MMK</TableCell>
                             <TableCell>
                               <Badge
