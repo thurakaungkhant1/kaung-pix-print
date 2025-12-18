@@ -3,12 +3,22 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Coins, Calendar, MessageCircle, Trophy, Users, UserPlus, Clock } from "lucide-react";
+import { ArrowLeft, User, Coins, Calendar, MessageCircle, Trophy, Users, UserPlus, Clock, UserMinus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 import VerificationBadge, { VERIFICATION_THRESHOLD } from "@/components/VerificationBadge";
 import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PublicProfileData {
   id: string;
@@ -26,7 +36,8 @@ const PublicProfile = () => {
   const [friendStatus, setFriendStatus] = useState<"none" | "pending_sent" | "pending_received" | "friends">("none");
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { sendFriendRequest, getFriendshipStatus, acceptRequest } = useFriendRequests();
+  const { sendFriendRequest, getFriendshipStatus, acceptRequest, unfriend } = useFriendRequests();
+  const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
 
   const isOwnProfile = user?.id === userId;
 
@@ -325,11 +336,11 @@ const PublicProfile = () => {
             {friendStatus === "friends" && (
               <Button
                 variant="outline"
-                className="h-12 rounded-xl text-green-600 border-green-600"
-                disabled
+                className="h-12 rounded-xl text-destructive border-destructive hover:bg-destructive/10"
+                onClick={() => setUnfriendDialogOpen(true)}
               >
-                <Users className="mr-2 h-5 w-5" />
-                Friends
+                <UserMinus className="mr-2 h-5 w-5" />
+                Unfriend
               </Button>
             )}
           </div>
@@ -355,6 +366,35 @@ const PublicProfile = () => {
           </Button>
         )}
       </div>
+
+      {/* Unfriend Confirmation Dialog */}
+      <AlertDialog open={unfriendDialogOpen} onOpenChange={setUnfriendDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Friend</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {profile?.name} from your friends? You'll need to send a new friend request to chat again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (userId) {
+                  const success = await unfriend(userId);
+                  if (success) {
+                    setFriendStatus("none");
+                  }
+                }
+                setUnfriendDialogOpen(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Unfriend
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNav />
     </div>

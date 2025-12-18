@@ -41,6 +41,8 @@ const ChatList = () => {
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { friends, isFriend, sendFriendRequest, getFriendshipStatus } = useFriendRequests();
@@ -52,6 +54,24 @@ const ChatList = () => {
       loadAllUsers();
     }
   }, [user, friends]);
+
+  // Handle scroll to hide/show header
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsHeaderVisible(false);
+      } else {
+        setIsHeaderVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   const loadAllUsers = async () => {
     if (!user) return;
@@ -193,8 +213,11 @@ const ChatList = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-gradient-primary text-primary-foreground p-4 shadow-lg">
+      {/* Header - hides on scroll */}
+      <header className={cn(
+        "sticky top-0 z-40 bg-gradient-primary text-primary-foreground p-4 shadow-lg transition-all duration-300",
+        !isHeaderVisible && "opacity-0 -translate-y-full"
+      )}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -212,7 +235,10 @@ const ChatList = () => {
         </div>
       </header>
 
-      <div className="max-w-screen-xl mx-auto p-4 space-y-4">
+      <div className={cn(
+        "max-w-screen-xl mx-auto p-4 space-y-4 transition-all duration-300",
+        !isHeaderVisible && "pt-2"
+      )}>
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
