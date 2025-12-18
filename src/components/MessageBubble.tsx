@@ -190,6 +190,19 @@ const MessageBubble = ({
                   />
                 </a>
               )}
+              {mediaUrl && mediaType === "audio" && (
+                <div className={cn(
+                  "mb-2 rounded-lg p-2",
+                  isOwn ? "bg-primary-foreground/10" : "bg-background/50"
+                )}>
+                  <audio 
+                    controls 
+                    src={mediaUrl}
+                    className="w-full max-w-[200px] h-10"
+                    preload="metadata"
+                  />
+                </div>
+              )}
               {mediaUrl && mediaType === "file" && (
                 <a 
                   href={mediaUrl} 
@@ -207,7 +220,7 @@ const MessageBubble = ({
               )}
               
               {/* Text content - hide if it's just the media placeholder */}
-              {content && !["📷 Image", "📎 File"].includes(content) && (
+              {content && !["📷 Image", "📎 File", "🎤 Voice message"].includes(content) && (
                 <p className="text-sm break-words">{highlightText(content)}</p>
               )}
               

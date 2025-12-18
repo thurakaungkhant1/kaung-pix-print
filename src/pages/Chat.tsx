@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile, Mic } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -11,6 +11,7 @@ import OnlineStatus from "@/components/OnlineStatus";
 import BottomNav from "@/components/BottomNav";
 import MessageBubble from "@/components/MessageBubble";
 import TypingIndicator from "@/components/TypingIndicator";
+import VoiceRecorder from "@/components/VoiceRecorder";
 import { cn } from "@/lib/utils";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 import { useSoundNotification } from "@/hooks/useSoundNotification";
@@ -89,6 +90,7 @@ const Chat = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -458,8 +460,55 @@ const Chat = () => {
 
     return {
       url: urlData.publicUrl,
-      type: file.type.startsWith("image/") ? "image" : "file",
+      type: file.type.startsWith("image/") ? "image" : file.type.startsWith("audio/") ? "audio" : "file",
     };
+  };
+
+  const sendVoiceMessage = async (audioBlob: Blob) => {
+    if (!conversationId || !user) return;
+
+    setIsUploading(true);
+
+    try {
+      const fileExt = audioBlob.type.includes("webm") ? "webm" : "mp4";
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from("chat-media")
+        .upload(fileName, audioBlob);
+
+      if (error) {
+        toast({
+          title: "Upload failed",
+          description: "Failed to upload voice message",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("chat-media")
+        .getPublicUrl(data.path);
+
+      await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: "🎤 Voice message",
+        media_url: urlData.publicUrl,
+        media_type: "audio",
+      });
+
+      setIsRecordingVoice(false);
+    } catch (error) {
+      console.error("Error sending voice message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send voice message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const sendMessage = async () => {
@@ -934,6 +983,14 @@ const Chat = () => {
           <p className="text-center text-muted-foreground text-sm">
             You have blocked this user. Unblock to send messages.
           </p>
+        ) : isRecordingVoice ? (
+          <div className="max-w-screen-xl mx-auto">
+            <VoiceRecorder
+              onSend={sendVoiceMessage}
+              onCancel={() => setIsRecordingVoice(false)}
+              isUploading={isUploading}
+            />
+          </div>
         ) : (
           <div className="max-w-screen-xl mx-auto flex gap-2 items-center">
             {/* Hidden file input */}
@@ -998,17 +1055,30 @@ const Chat = () => {
               onKeyPress={(e) => e.key === "Enter" && !isUploading && sendMessage()}
               onBlur={sendStopTyping}
             />
-            <Button
-              onClick={sendMessage}
-              disabled={(!newMessage.trim() && selectedFiles.length === 0) || isUploading}
-              className="rounded-full h-12 w-12 p-0"
-            >
-              {isUploading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
-            </Button>
+            
+            {/* Voice or Send button */}
+            {newMessage.trim() || selectedFiles.length > 0 ? (
+              <Button
+                onClick={sendMessage}
+                disabled={isUploading}
+                className="rounded-full h-12 w-12 p-0"
+              >
+                {isUploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-12 w-12 shrink-0"
+                onClick={() => setIsRecordingVoice(true)}
+              >
+                <Mic className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         )}
       </div>
