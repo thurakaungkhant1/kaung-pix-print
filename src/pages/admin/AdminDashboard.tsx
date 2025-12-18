@@ -70,6 +70,7 @@ interface UserProfile {
   email: string | null;
   points: number;
   created_at: string | null;
+  referral_count: number;
 }
 
 interface Order {
@@ -493,7 +494,30 @@ const AdminDashboard = () => {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (data) setUsers(data);
+    if (data) {
+      // Count referrals for each user
+      const userIds = data.map(u => u.id);
+      const { data: referralCounts } = await supabase
+        .from("profiles")
+        .select("referred_by")
+        .in("referred_by", userIds);
+
+      // Create a map of referral counts
+      const countMap: { [key: string]: number } = {};
+      referralCounts?.forEach(r => {
+        if (r.referred_by) {
+          countMap[r.referred_by] = (countMap[r.referred_by] || 0) + 1;
+        }
+      });
+
+      // Add referral count to each user
+      const usersWithReferrals = data.map(user => ({
+        ...user,
+        referral_count: countMap[user.id] || 0
+      }));
+
+      setUsers(usersWithReferrals);
+    }
   };
 
   const loadOrders = async () => {
@@ -1186,6 +1210,7 @@ const AdminDashboard = () => {
                         <TableHead>Email</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Points</TableHead>
+                        <TableHead>Invited Users</TableHead>
                         <TableHead>Joined</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -1197,6 +1222,11 @@ const AdminDashboard = () => {
                           <TableCell>{profile.email || "-"}</TableCell>
                           <TableCell>{profile.phone_number}</TableCell>
                           <TableCell>{profile.points.toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Badge variant={profile.referral_count > 0 ? "default" : "secondary"}>
+                              {profile.referral_count}
+                            </Badge>
+                          </TableCell>
                           <TableCell>
                             {profile.created_at
                               ? new Date(profile.created_at).toLocaleDateString()
