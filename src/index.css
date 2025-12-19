@@ -75,58 +75,67 @@
   }
 
   .dark {
-    /* Dark Mode - Pure Black with Emerald Accents */
-    --background: 200 15% 5%;
+    /* Dark Mode - Deep Purple with Soft Glows */
+    --background: 270 25% 6%;
     --foreground: 0 0% 98%;
 
-    --card: 200 15% 8%;
+    --card: 270 20% 10%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 200 15% 8%;
+    --popover: 270 20% 10%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary - Brighter Teal for dark mode */
-    --primary: 168 70% 50%;
+    /* Primary - Soft Violet for dark mode */
+    --primary: 280 70% 65%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
-    --secondary: 200 15% 12%;
-    --secondary-foreground: 168 70% 60%;
+    --secondary: 270 20% 14%;
+    --secondary-foreground: 280 60% 75%;
 
     /* Muted */
-    --muted: 200 15% 12%;
-    --muted-foreground: 200 10% 60%;
+    --muted: 270 20% 14%;
+    --muted-foreground: 270 15% 55%;
 
     /* Accent */
-    --accent: 15 85% 55%;
+    --accent: 330 70% 60%;
     --accent-foreground: 0 0% 100%;
 
     /* System */
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 15% 18%;
-    --input: 200 15% 18%;
-    --ring: 168 70% 50%;
+    --border: 270 20% 20%;
+    --input: 270 20% 18%;
+    --ring: 280 70% 65%;
     
     /* Navigation */
-    --nav-bg: 200 15% 5%;
-    --nav-active: 200 15% 12%;
+    --nav-bg: 270 25% 6%;
+    --nav-active: 270 20% 14%;
     
     /* Dark Mode Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(200 15% 5%), hsl(200 15% 10%));
-    --gradient-hero: linear-gradient(145deg, hsl(168 70% 50% / 0.1), hsl(200 15% 8%), hsl(168 70% 50% / 0.05));
-    --gradient-card: linear-gradient(180deg, hsl(200 15% 10%), hsl(200 15% 7%));
-    --gradient-accent: linear-gradient(135deg, hsl(15 85% 55%), hsl(25 90% 50%));
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(168 70% 50% / 0.2), transparent 60%);
+    --gradient-primary: linear-gradient(135deg, hsl(270 25% 6%), hsl(270 20% 12%));
+    --gradient-hero: linear-gradient(145deg, hsl(280 70% 65% / 0.1), hsl(270 20% 10%), hsl(330 70% 60% / 0.05));
+    --gradient-card: linear-gradient(180deg, hsl(270 20% 12%), hsl(270 20% 8%));
+    --gradient-accent: linear-gradient(135deg, hsl(330 70% 60%), hsl(280 70% 65%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(280 70% 65% / 0.25), transparent 60%);
     
-    /* Dark Shadows */
+    /* Dark Shadows with purple glow */
     --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.2);
     --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.3);
     --shadow-lg: 0 8px 30px hsl(0 0% 0% / 0.4);
     --shadow-xl: 0 20px 50px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 60px hsl(168 70% 50% / 0.15);
-    --shadow-accent: 0 8px 30px hsl(15 85% 55% / 0.25);
+    --shadow-glow: 0 0 60px hsl(280 70% 65% / 0.2);
+    --shadow-accent: 0 8px 30px hsl(330 70% 60% / 0.3);
+
+    /* Dark Mode Chat Theme - Deep Purple & Soft Glows */
+    --chat-pink: 330 70% 60%;
+    --chat-pink-light: 330 50% 20%;
+    --chat-violet: 280 70% 65%;
+    --chat-violet-light: 280 50% 18%;
+    --chat-cream: 270 25% 8%;
+    --chat-bubble-own: linear-gradient(135deg, hsl(280 70% 50%), hsl(330 60% 45%));
+    --chat-bubble-other: 270 20% 14%;
   }
 }
 
@@ -335,6 +344,77 @@
       radial-gradient(ellipse 80% 50% at 20% 40%, hsl(var(--chat-pink) / 0.08), transparent),
       radial-gradient(ellipse 60% 40% at 80% 20%, hsl(var(--chat-violet) / 0.06), transparent),
       radial-gradient(ellipse 50% 30% at 40% 80%, hsl(var(--chat-pink) / 0.05), transparent);
+  }
+
+  /* Dark mode chat background with purple glows */
+  .dark .chat-bg-pattern {
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 20% 40%, hsl(var(--chat-pink) / 0.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 20%, hsl(var(--chat-violet) / 0.12), transparent),
+      radial-gradient(ellipse 50% 30% at 40% 80%, hsl(var(--chat-pink) / 0.08), transparent);
+  }
+
+  /* Spring pop animation for emoji picker */
+  @keyframes spring-pop {
+    0% { 
+      opacity: 0; 
+      transform: scale(0.8) translateY(10px); 
+    }
+    50% { 
+      transform: scale(1.05) translateY(-2px); 
+    }
+    70% { 
+      transform: scale(0.98) translateY(0); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: scale(1) translateY(0); 
+    }
+  }
+
+  .animate-spring-pop {
+    animation: spring-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Bouncy scale for file cards */
+  @keyframes bouncy-appear {
+    0% { 
+      opacity: 0; 
+      transform: scale(0.7); 
+    }
+    60% { 
+      transform: scale(1.08); 
+    }
+    80% { 
+      transform: scale(0.95); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+  }
+
+  .animate-bouncy-appear {
+    animation: bouncy-appear 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  /* Subtle float animation for file preview container */
+  @keyframes slide-up-spring {
+    0% { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    70% { 
+      transform: translateY(-4px); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  .animate-slide-up-spring {
+    animation: slide-up-spring 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }
 

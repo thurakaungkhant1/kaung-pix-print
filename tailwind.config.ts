@@ -162,6 +162,23 @@ export default {
           "0%, 100%": { boxShadow: "0 0 0 0 hsl(142 76% 50% / 0.4)" },
           "50%": { boxShadow: "0 0 0 8px hsl(142 76% 50% / 0)" },
         },
+        "spring-pop": {
+          "0%": { opacity: "0", transform: "scale(0.8) translateY(10px)" },
+          "50%": { transform: "scale(1.05) translateY(-2px)" },
+          "70%": { transform: "scale(0.98) translateY(0)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
+        "bouncy-appear": {
+          "0%": { opacity: "0", transform: "scale(0.7)" },
+          "60%": { transform: "scale(1.08)" },
+          "80%": { transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "slide-up-spring": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "70%": { transform: "translateY(-4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -181,6 +198,9 @@ export default {
         "dot-bounce": "dot-bounce 1.2s ease-in-out infinite",
         "heart-pulse": "heart-pulse 1s ease-in-out infinite",
         "online-glow": "online-glow 2s ease-in-out infinite",
+        "spring-pop": "spring-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "bouncy-appear": "bouncy-appear 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "slide-up-spring": "slide-up-spring 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
       },
       transitionTimingFunction: {
         'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
