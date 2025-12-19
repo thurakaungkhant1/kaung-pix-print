@@ -577,7 +577,17 @@ const Chat = () => {
       // If multiple files, send each as a separate message
       if (selectedFiles.length > 0) {
         for (let i = 0; i < selectedFiles.length; i++) {
-          const file = selectedFiles[i];
+          let file = selectedFiles[i];
+          
+          // Compress images before upload
+          if (file.type.startsWith("image/")) {
+            try {
+              file = await compressImage(file);
+            } catch (err) {
+              console.error("Image compression failed, using original:", err);
+            }
+          }
+          
           const uploadResult = await uploadMedia(file);
           
           if (!uploadResult) {

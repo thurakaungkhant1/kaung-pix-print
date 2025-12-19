@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from "react";
-import { Play, Pause, Loader2, Volume2, VolumeX, Download } from "lucide-react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { Play, Pause, Loader2, Volume2, VolumeX, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
@@ -12,8 +12,41 @@ interface VoiceMessagePlayerProps {
   isOwn: boolean;
 }
 
+// Helper to extract file path from signed URL
+const extractFilePath = (url: string): string | null => {
+  try {
+    const urlObj = new URL(url);
+    const pathMatch = urlObj.pathname.match(/\/storage\/v1\/object\/sign\/chat-voices\/(.+)/);
+    return pathMatch ? pathMatch[1].split('?')[0] : null;
+  } catch {
+    return null;
+  }
+};
+
+// Check if signed URL is expired or about to expire (within 5 minutes)
+const isUrlExpired = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    const token = urlObj.searchParams.get('token');
+    if (!token) return true;
+    
+    // Decode JWT to check expiration (JWT is base64 encoded)
+    const payload = token.split('.')[1];
+    if (!payload) return true;
+    
+    const decoded = JSON.parse(atob(payload));
+    const expTime = decoded.exp * 1000; // Convert to milliseconds
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+    
+    return now >= (expTime - fiveMinutes);
+  } catch {
+    return true; // If we can't parse, assume expired
+  }
+};
+
 const VoiceMessagePlayer = ({ 
-  audioUrl, 
+  audioUrl: initialAudioUrl, 
   messageId, 
   transcription: initialTranscription,
   isOwn 
@@ -21,6 +54,7 @@ const VoiceMessagePlayer = ({
   const audioRef = useRef<HTMLAudioElement>(null);
   const animationRef = useRef<number | null>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
+  const [audioUrl, setAudioUrl] = useState(initialAudioUrl);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -32,6 +66,42 @@ const VoiceMessagePlayer = ({
   const [volume, setVolume] = useState(1);
   const [showVolume, setShowVolume] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+
+  // Refresh signed URL if expired
+  const refreshSignedUrl = useCallback(async (): Promise<string | null> => {
+    const filePath = extractFilePath(initialAudioUrl);
+    if (!filePath) return null;
+
+    setIsRefreshing(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from('chat-voices')
+        .createSignedUrl(filePath, 3600); // 1 hour
+
+      if (error || !data?.signedUrl) {
+        console.error('Failed to refresh signed URL:', error);
+        return null;
+      }
+
+      setAudioUrl(data.signedUrl);
+      setLoadError(false);
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error refreshing URL:', error);
+      return null;
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [initialAudioUrl]);
+
+  // Check and refresh URL on mount and when trying to play
+  useEffect(() => {
+    if (isUrlExpired(audioUrl)) {
+      refreshSignedUrl();
+    }
+  }, []);
 
   // Click outside handler for volume slider
   useEffect(() => {
@@ -117,17 +187,59 @@ const VoiceMessagePlayer = ({
     audio.volume = isMuted ? 0 : volume;
   }, [volume, isMuted]);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
     if (isPlaying) {
       audio.pause();
+      setIsPlaying(false);
     } else {
-      audio.play();
+      // Check if URL is expired before playing
+      if (isUrlExpired(audioUrl) || loadError) {
+        const newUrl = await refreshSignedUrl();
+        if (newUrl && audioRef.current) {
+          audioRef.current.src = newUrl;
+          audioRef.current.load();
+        } else {
+          return; // Can't play without valid URL
+        }
+      }
+      
+      try {
+        await audio.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error('Playback failed:', error);
+        // Try refreshing URL on playback error
+        const newUrl = await refreshSignedUrl();
+        if (newUrl && audioRef.current) {
+          audioRef.current.src = newUrl;
+          try {
+            await audioRef.current.play();
+            setIsPlaying(true);
+          } catch {
+            setLoadError(true);
+          }
+        }
+      }
     }
-    setIsPlaying(!isPlaying);
   };
+
+  // Handle audio load errors (expired URL)
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleError = async () => {
+      console.log('Audio load error, attempting to refresh URL');
+      setLoadError(true);
+      await refreshSignedUrl();
+    };
+
+    audio.addEventListener('error', handleError);
+    return () => audio.removeEventListener('error', handleError);
+  }, [refreshSignedUrl]);
 
   const handleVolumeChange = (value: number[]) => {
     setVolume(value[0]);
@@ -226,8 +338,13 @@ const VoiceMessagePlayer = ({
               : "bg-primary/20 hover:bg-primary/30 text-primary"
           )}
           onClick={togglePlay}
+          disabled={isRefreshing}
         >
-          {isPlaying ? (
+          {isRefreshing ? (
+            <RefreshCw className="h-5 w-5 animate-spin" />
+          ) : loadError ? (
+            <RefreshCw className="h-5 w-5" />
+          ) : isPlaying ? (
             <Pause className="h-5 w-5" />
           ) : (
             <Play className="h-5 w-5 ml-0.5" />
