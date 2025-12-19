@@ -201,10 +201,10 @@ const MessageBubble = ({
             isDeleted
               ? "bg-muted/50 text-muted-foreground italic"
               : isOwn
-              ? "bg-chat-bubble-own text-foreground shadow-chat-pink/20"
-              : "bg-chat-bubble-other text-foreground border border-chat-pink/10",
+              ? "bg-chat-bubble-own text-foreground shadow-chat-pink/20 dark:shadow-chat-violet/20"
+              : "bg-chat-bubble-other dark:bg-chat-violet-light/40 text-foreground border border-chat-pink/10 dark:border-chat-violet/20",
             replyTo && !isDeleted && "rounded-tl-lg",
-            !isDeleted && "hover:shadow-md"
+            !isDeleted && "hover:shadow-md dark:hover:shadow-chat-violet/30"
           )}
           onClick={handleDoubleTap}
           onTouchStart={handleTouchStart}
@@ -356,7 +356,7 @@ const MessageBubble = ({
           )}
         </div>
 
-        {/* Reactions */}
+        {/* Reactions with spring animation */}
         {totalReactions > 0 && !isDeleted && (
           <div
             className={cn(
@@ -374,20 +374,21 @@ const MessageBubble = ({
               }}
               className={cn(
                 "flex items-center gap-0.5 px-2 py-1 rounded-full text-xs",
-                "bg-white border border-chat-pink/30 shadow-sm",
-                "hover:scale-110 hover:shadow-md transition-all duration-200"
+                "bg-white dark:bg-card border border-chat-pink/30 dark:border-chat-violet/40 shadow-sm dark:shadow-chat-violet/10",
+                "hover:scale-110 hover:shadow-md dark:hover:shadow-chat-violet/20 transition-all duration-200",
+                "animate-bouncy-appear"
               )}
             >
               <Heart
                 className={cn(
-                  "h-3.5 w-3.5 transition-colors",
+                  "h-3.5 w-3.5 transition-all duration-300",
                   userReaction
-                    ? "fill-chat-pink text-chat-pink"
-                    : "text-chat-pink/60"
+                    ? "fill-chat-pink text-chat-pink animate-heart-pulse"
+                    : "text-chat-pink/60 dark:text-chat-violet/60"
                 )}
               />
               {totalReactions > 1 && (
-                <span className="text-chat-pink font-medium">{totalReactions}</span>
+                <span className="text-chat-pink dark:text-chat-violet font-medium animate-spring-pop">{totalReactions}</span>
               )}
             </button>
           </div>

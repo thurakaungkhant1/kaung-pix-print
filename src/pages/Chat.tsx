@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile, Mic, Heart } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile, Mic, Heart, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 import { useSoundNotification } from "@/hooks/useSoundNotification";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import { useTheme } from "@/components/ThemeProvider";
 import { compressImage } from "@/lib/imageCompression";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import {
@@ -66,6 +67,25 @@ interface Participant {
   name: string;
   points: number;
 }
+
+// Theme toggle button component
+const ThemeToggle = () => {
+  const { theme, toggleTheme } = useTheme();
+  
+  return (
+    <button
+      onClick={toggleTheme}
+      className="p-2.5 rounded-full hover:bg-chat-pink/10 dark:hover:bg-chat-violet/20 transition-all duration-300 group"
+      aria-label="Toggle theme"
+    >
+      {theme === "light" ? (
+        <Moon className="h-5 w-5 text-chat-violet group-hover:rotate-12 transition-transform" />
+      ) : (
+        <Sun className="h-5 w-5 text-chat-pink group-hover:rotate-45 transition-transform" />
+      )}
+    </button>
+  );
+};
 
 const Chat = () => {
   const { recipientId } = useParams<{ recipientId: string }>();
@@ -772,10 +792,11 @@ const Chat = () => {
             )}
           </div>
           
-          {/* Heart favorite & Menu */}
+          {/* Theme toggle, Heart favorite & Menu */}
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <button
-              className="p-2.5 rounded-full hover:bg-chat-pink/10 transition-colors"
+              className="p-2.5 rounded-full hover:bg-chat-pink/10 dark:hover:bg-chat-violet/20 transition-colors"
             >
               <Heart className="h-5 w-5 text-chat-pink fill-chat-pink/30" />
             </button>
@@ -783,10 +804,10 @@ const Chat = () => {
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className={cn(
                 "p-2.5 rounded-full transition-colors",
-                isSearchOpen ? "bg-chat-pink/20" : "hover:bg-chat-pink/10"
+                isSearchOpen ? "bg-chat-pink/20 dark:bg-chat-violet/30" : "hover:bg-chat-pink/10 dark:hover:bg-chat-violet/20"
               )}
             >
-              <Search className="h-5 w-5 text-chat-pink" />
+              <Search className="h-5 w-5 text-chat-pink dark:text-chat-violet" />
             </button>
             
             <DropdownMenu>
