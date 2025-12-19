@@ -55,6 +55,14 @@ export default {
           DEFAULT: "hsl(var(--nav-bg))",
           active: "hsl(var(--nav-active))",
         },
+        chat: {
+          pink: "hsl(var(--chat-pink))",
+          "pink-light": "hsl(var(--chat-pink-light))",
+          violet: "hsl(var(--chat-violet))",
+          "violet-light": "hsl(var(--chat-violet-light))",
+          cream: "hsl(var(--chat-cream))",
+          "bubble-other": "hsl(var(--chat-bubble-other))",
+        },
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
@@ -62,6 +70,7 @@ export default {
         "gradient-card": "var(--gradient-card)",
         "gradient-accent": "var(--gradient-accent)",
         "gradient-glow": "var(--gradient-glow)",
+        "chat-bubble-own": "var(--chat-bubble-own)",
       },
       boxShadow: {
         'sm': 'var(--shadow-sm)',
@@ -136,6 +145,23 @@ export default {
           from: { height: "var(--radix-collapsible-content-height)", opacity: "1" },
           to: { height: "0", opacity: "0" },
         },
+        "message-spring": {
+          "0%": { opacity: "0", transform: "translateY(20px) scale(0.9)" },
+          "60%": { transform: "translateY(-5px) scale(1.02)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "dot-bounce": {
+          "0%, 80%, 100%": { transform: "translateY(0)" },
+          "40%": { transform: "translateY(-8px)" },
+        },
+        "heart-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.7" },
+          "50%": { transform: "scale(1.2)", opacity: "1" },
+        },
+        "online-glow": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(142 76% 50% / 0.4)" },
+          "50%": { boxShadow: "0 0 0 8px hsl(142 76% 50% / 0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -151,6 +177,10 @@ export default {
         "spin-slow": "spin-slow 8s linear infinite",
         "collapsible-down": "collapsible-down 0.3s ease-out",
         "collapsible-up": "collapsible-up 0.3s ease-out",
+        "message-spring": "message-spring 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "dot-bounce": "dot-bounce 1.2s ease-in-out infinite",
+        "heart-pulse": "heart-pulse 1s ease-in-out infinite",
+        "online-glow": "online-glow 2s ease-in-out infinite",
       },
       transitionTimingFunction: {
         'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
