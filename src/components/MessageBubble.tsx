@@ -79,7 +79,6 @@ const MessageBubble = ({
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Cleanup long press timer
   useEffect(() => {
     return () => {
       if (longPressTimerRef.current) {
@@ -100,13 +99,11 @@ const MessageBubble = ({
     const DOUBLE_TAP_DELAY = 300;
 
     if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      // Double tap detected
       onReact(id);
     }
     lastTapRef.current = now;
   };
 
-  // Long press handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     longPressTimerRef.current = setTimeout(() => {
@@ -136,7 +133,6 @@ const MessageBubble = ({
   const handleDelete = () => {
     setIsDeleting(true);
     setShowMenu(false);
-    // Optimistic UI - show deletion immediately
     setTimeout(() => {
       onDelete(id);
     }, 150);
@@ -157,7 +153,6 @@ const MessageBubble = ({
   const userReaction = reactions.find((r) => r.user_id === currentUserId);
   const totalReactions = reactions.length;
 
-  // Highlight search matches in content
   const highlightText = (text: string) => {
     if (!searchQuery?.trim()) return text;
     
@@ -166,7 +161,7 @@ const MessageBubble = ({
     
     return parts.map((part, i) => 
       regex.test(part) ? (
-        <mark key={i} className="bg-yellow-300 text-black rounded px-0.5">
+        <mark key={i} className="bg-chat-pink/40 text-foreground rounded px-0.5">
           {part}
         </mark>
       ) : (
@@ -178,7 +173,7 @@ const MessageBubble = ({
   return (
     <div
       className={cn(
-        "flex group transition-all duration-200",
+        "flex group transition-all duration-300 animate-message-spring",
         isOwn ? "justify-end" : "justify-start",
         isDeleting && "opacity-0 scale-95"
       )}
@@ -188,11 +183,12 @@ const MessageBubble = ({
         {replyTo && !isDeleted && (
           <div
             className={cn(
-              "text-xs px-3 py-1.5 rounded-t-xl -mb-1 bg-muted/50",
-              "border-l-2 border-primary/50"
+              "text-xs px-4 py-2 rounded-t-[20px] -mb-1",
+              "bg-chat-violet-light/50 backdrop-blur-sm",
+              "border-l-2 border-chat-violet/50"
             )}
           >
-            <span className="text-muted-foreground">Replying to:</span>
+            <span className="text-chat-violet font-medium">Replying to:</span>
             <p className="text-foreground/70 truncate max-w-[200px]">
               {replyTo.content}
             </p>
@@ -201,13 +197,14 @@ const MessageBubble = ({
 
         <div
           className={cn(
-            "rounded-2xl px-4 py-2.5 relative",
+            "rounded-[24px] px-5 py-3 relative shadow-sm transition-all duration-200",
             isDeleted
               ? "bg-muted/50 text-muted-foreground italic"
               : isOwn
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-foreground",
-            replyTo && !isDeleted && "rounded-tl-none"
+              ? "bg-chat-bubble-own text-foreground shadow-chat-pink/20"
+              : "bg-chat-bubble-other text-foreground border border-chat-pink/10",
+            replyTo && !isDeleted && "rounded-tl-lg",
+            !isDeleted && "hover:shadow-md"
           )}
           onClick={handleDoubleTap}
           onTouchStart={handleTouchStart}
@@ -221,21 +218,21 @@ const MessageBubble = ({
               <Input
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="h-8 text-sm bg-background/50"
+                className="h-8 text-sm bg-background/50 border-chat-pink/30 rounded-xl"
                 autoFocus
               />
               <div className="flex gap-1 justify-end">
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-6 px-2"
+                  className="h-6 px-2 hover:bg-chat-pink/10"
                   onClick={handleEditCancel}
                 >
                   <X className="h-3 w-3" />
                 </Button>
                 <Button
                   size="sm"
-                  className="h-6 px-2"
+                  className="h-6 px-2 bg-chat-pink hover:bg-chat-pink/80 text-white"
                   onClick={handleEditSave}
                 >
                   <Check className="h-3 w-3" />
@@ -250,7 +247,7 @@ const MessageBubble = ({
                   <img 
                     src={mediaUrl} 
                     alt="Shared image" 
-                    className="rounded-lg max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    className="rounded-2xl max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
                   />
                 </a>
               )}
@@ -268,22 +265,22 @@ const MessageBubble = ({
                   target="_blank" 
                   rel="noopener noreferrer"
                   className={cn(
-                    "flex items-center gap-2 p-2 rounded-lg mb-2",
-                    isOwn ? "bg-primary-foreground/10" : "bg-background/50"
+                    "flex items-center gap-2 p-3 rounded-xl mb-2 transition-colors",
+                    isOwn ? "bg-white/20 hover:bg-white/30" : "bg-chat-pink/10 hover:bg-chat-pink/20"
                   )}
                 >
-                  <FileIcon className="h-5 w-5" />
+                  <FileIcon className="h-5 w-5 text-chat-pink" />
                   <span className="text-sm underline">Download file</span>
                   <Download className="h-4 w-4" />
                 </a>
               )}
               
-              {/* Text content - hide if it's just the media placeholder */}
+              {/* Text content */}
               {content && !["📷 Image", "📎 File", "🎤 Voice message"].includes(content) && (
-                <p className="text-sm break-words">{highlightText(content)}</p>
+                <p className="text-sm break-words leading-relaxed">{highlightText(content)}</p>
               )}
               
-              {/* Message menu - three dot menu for all messages */}
+              {/* Message menu */}
               {!isDeleted && (
                 <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
                   <DropdownMenuTrigger asChild>
@@ -292,13 +289,13 @@ const MessageBubble = ({
                         "absolute top-1/2 -translate-y-1/2",
                         isOwn ? "-left-8" : "-right-8",
                         "opacity-0 group-hover:opacity-100 transition-opacity",
-                        "p-1.5 rounded-full hover:bg-muted"
+                        "p-1.5 rounded-full hover:bg-chat-pink/10"
                       )}
                     >
                       <MoreVertical className="h-4 w-4 text-muted-foreground" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align={isOwn ? "start" : "end"}>
+                  <DropdownMenuContent align={isOwn ? "start" : "end"} className="rounded-xl">
                     {isOwn && (
                       <DropdownMenuItem onClick={() => { setIsEditing(true); setShowMenu(false); }}>
                         <Pencil className="mr-2 h-4 w-4" />
@@ -340,18 +337,17 @@ const MessageBubble = ({
           {!isEditing && (
             <div
               className={cn(
-                "flex items-center gap-1 mt-1",
-                isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
+                "flex items-center gap-1.5 mt-1.5",
+                isOwn ? "text-foreground/60" : "text-muted-foreground"
               )}
             >
-              <span className="text-[10px]">{formatTime(timestamp)}</span>
+              <span className="text-[10px] font-medium">{formatTime(timestamp)}</span>
               {editedAt && (
                 <span className="text-[10px] italic">(edited)</span>
               )}
-              {/* Read receipt - only show for own messages */}
               {isOwn && !isDeleted && (
                 readAt ? (
-                  <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
+                  <CheckCheck className="h-3.5 w-3.5 text-chat-violet" />
                 ) : (
                   <Check className="h-3.5 w-3.5" />
                 )
@@ -365,7 +361,7 @@ const MessageBubble = ({
           <div
             className={cn(
               "absolute -bottom-2",
-              isOwn ? "left-2" : "right-2"
+              isOwn ? "left-3" : "right-3"
             )}
           >
             <button
@@ -377,21 +373,21 @@ const MessageBubble = ({
                 }
               }}
               className={cn(
-                "flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs",
-                "bg-background border border-border shadow-sm",
-                "hover:scale-110 transition-transform"
+                "flex items-center gap-0.5 px-2 py-1 rounded-full text-xs",
+                "bg-white border border-chat-pink/30 shadow-sm",
+                "hover:scale-110 hover:shadow-md transition-all duration-200"
               )}
             >
               <Heart
                 className={cn(
-                  "h-3 w-3",
+                  "h-3.5 w-3.5 transition-colors",
                   userReaction
-                    ? "fill-red-500 text-red-500"
-                    : "text-muted-foreground"
+                    ? "fill-chat-pink text-chat-pink"
+                    : "text-chat-pink/60"
                 )}
               />
               {totalReactions > 1 && (
-                <span className="text-muted-foreground">{totalReactions}</span>
+                <span className="text-chat-pink font-medium">{totalReactions}</span>
               )}
             </button>
           </div>

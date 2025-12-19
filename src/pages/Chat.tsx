@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile, Mic } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile, Mic, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -735,68 +735,80 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-chat-cream chat-bg-pattern flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-gradient-primary text-primary-foreground p-4 shadow-lg">
+      <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-chat-pink/20 p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors"
+              className="p-2.5 rounded-full bg-chat-pink-light hover:bg-chat-pink/20 transition-all duration-200 active:scale-95"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-chat-pink" />
             </button>
             {recipient && (
               <div 
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-3 cursor-pointer group"
                 onClick={() => navigate(`/profile/${recipient.id}`)}
               >
-                <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center font-bold">
-                  {recipient.name.charAt(0).toUpperCase()}
+                {/* Avatar with online glow */}
+                <div className="relative">
+                  <div className="w-11 h-11 rounded-full bg-chat-bubble-own flex items-center justify-center font-bold text-foreground shadow-md group-hover:scale-105 transition-transform">
+                    {recipient.name.charAt(0).toUpperCase()}
+                  </div>
+                  {/* Online indicator with glow */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white animate-online-glow" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-semibold">{recipient.name}</span>
+                    <span className="font-semibold text-foreground">{recipient.name}</span>
                     <VerificationBadge points={recipient.points} size="sm" />
                   </div>
-                  <OnlineStatus userId={recipient.id} size="sm" />
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-emerald-500 font-medium">Online</span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
           
-          {/* Search & Menu */}
+          {/* Heart favorite & Menu */}
           <div className="flex items-center gap-1">
+            <button
+              className="p-2.5 rounded-full hover:bg-chat-pink/10 transition-colors"
+            >
+              <Heart className="h-5 w-5 text-chat-pink fill-chat-pink/30" />
+            </button>
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className={cn(
-                "p-2 rounded-full transition-colors",
-                isSearchOpen ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"
+                "p-2.5 rounded-full transition-colors",
+                isSearchOpen ? "bg-chat-pink/20" : "hover:bg-chat-pink/10"
               )}
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-5 w-5 text-chat-pink" />
             </button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors">
-                  <MoreVertical className="h-5 w-5" />
+                <button className="p-2.5 rounded-full hover:bg-chat-pink/10 transition-colors">
+                  <MoreVertical className="h-5 w-5 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-background">
+              <DropdownMenuContent align="end" className="bg-white/90 backdrop-blur-lg rounded-xl border-chat-pink/20">
                 {friendStatus === "friends" && (
-                  <DropdownMenuItem onClick={() => setUnfriendDialogOpen(true)} className="text-destructive">
+                  <DropdownMenuItem onClick={() => setUnfriendDialogOpen(true)} className="text-destructive rounded-lg">
                     <UserMinus className="mr-2 h-4 w-4" />
                     Unfriend
                   </DropdownMenuItem>
                 )}
                 {isBlocked ? (
-                  <DropdownMenuItem onClick={handleUnblockUser}>
+                  <DropdownMenuItem onClick={handleUnblockUser} className="rounded-lg">
                     <Ban className="mr-2 h-4 w-4" />
                     Unblock User
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem onClick={() => setBlockDialogOpen(true)} className="text-destructive">
+                  <DropdownMenuItem onClick={() => setBlockDialogOpen(true)} className="text-destructive rounded-lg">
                     <Ban className="mr-2 h-4 w-4" />
                     Block User
                   </DropdownMenuItem>
@@ -808,41 +820,41 @@ const Chat = () => {
         
         {/* Search Bar */}
         {isSearchOpen && (
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex items-center gap-2 animate-fade-in">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-chat-pink/60" />
               <Input
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder="Search messages..."
-                className="pl-9 h-9 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
+                className="pl-10 h-10 bg-white/60 border-chat-pink/20 rounded-full text-foreground placeholder:text-muted-foreground/50"
                 autoFocus
               />
             </div>
             {searchResults.length > 0 && (
               <div className="flex items-center gap-1">
-                <span className="text-xs text-primary-foreground/70">
+                <span className="text-xs text-chat-pink font-medium">
                   {currentSearchIndex + 1}/{searchResults.length}
                 </span>
                 <button
                   onClick={() => navigateSearchResult("prev")}
-                  className="p-1.5 rounded-full hover:bg-primary-foreground/10"
+                  className="p-1.5 rounded-full hover:bg-chat-pink/10"
                 >
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-4 w-4 text-chat-pink" />
                 </button>
                 <button
                   onClick={() => navigateSearchResult("next")}
-                  className="p-1.5 rounded-full hover:bg-primary-foreground/10"
+                  className="p-1.5 rounded-full hover:bg-chat-pink/10"
                 >
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 text-chat-pink" />
                 </button>
               </div>
             )}
             <button
               onClick={closeSearch}
-              className="p-1.5 rounded-full hover:bg-primary-foreground/10"
+              className="p-1.5 rounded-full hover:bg-chat-pink/10"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
         )}
@@ -970,8 +982,9 @@ const Chat = () => {
 
       {/* Input */}
       <div className={cn(
-        "fixed left-0 right-0 p-4 bg-background border-t border-border",
-        replyingTo ? "bottom-16" : "bottom-16"
+        "fixed left-0 right-0 p-4",
+        "bg-white/70 backdrop-blur-xl border-t border-chat-pink/20",
+        "bottom-0"
       )}>
         {friendStatus !== "friends" ? (
           <div className="text-center">
@@ -1027,7 +1040,7 @@ const Chat = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-12 w-12 shrink-0"
+              className="rounded-full h-11 w-11 shrink-0 bg-chat-pink-light hover:bg-chat-pink/20 text-chat-pink"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
             >
@@ -1071,29 +1084,29 @@ const Chat = () => {
                 }
               }}
               placeholder={selectedFiles.length > 0 ? "Add a caption..." : replyingTo ? "Type your reply..." : "Type a message..."}
-              className="flex-1 rounded-full h-12"
+              className="flex-1 rounded-full h-11 bg-white/60 border-chat-pink/20 focus:border-chat-pink/40 placeholder:text-muted-foreground/50"
               onKeyPress={(e) => e.key === "Enter" && !isUploading && sendMessage()}
               onBlur={sendStopTyping}
             />
             
-            {/* Voice or Send button */}
+            {/* Heart Send or Voice button */}
             {newMessage.trim() || selectedFiles.length > 0 ? (
               <Button
                 onClick={sendMessage}
                 disabled={isUploading}
-                className="rounded-full h-12 w-12 p-0"
+                className="rounded-full h-11 w-11 p-0 bg-chat-bubble-own hover:opacity-90 shadow-md"
               >
                 {isUploading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin text-chat-pink" />
                 ) : (
-                  <Send className="h-5 w-5" />
+                  <Heart className="h-5 w-5 text-chat-pink fill-chat-pink" />
                 )}
               </Button>
             ) : (
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full h-12 w-12 shrink-0"
+                className="rounded-full h-11 w-11 shrink-0 bg-chat-pink-light hover:bg-chat-pink/20 text-chat-pink"
                 onClick={() => setIsRecordingVoice(true)}
               >
                 <Mic className="h-5 w-5" />
