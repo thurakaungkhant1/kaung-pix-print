@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { GlobalMessageNotificationProvider } from "@/contexts/GlobalMessageNotificationContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
@@ -67,6 +68,7 @@ const App = () => {
           <AuthProvider>
             <LanguageProvider>
             <OnlineUsersProvider>
+            <GlobalMessageNotificationProvider>
               <Routes>
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/signup" element={<Signup />} />
@@ -322,7 +324,8 @@ const App = () => {
                 }
               />
               <Route path="*" element={<NotFound />} />
-            </Routes>
+              </Routes>
+            </GlobalMessageNotificationProvider>
             </OnlineUsersProvider>
             </LanguageProvider>
           </AuthProvider>
