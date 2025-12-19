@@ -110,6 +110,7 @@ const Chat = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [compressionStats, setCompressionStats] = useState<{ [key: number]: { original: number; compressed: number } }>({});
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -418,18 +419,26 @@ const Chat = () => {
       return;
     }
 
-    // Compress images
+    // Compress images and track stats
     const processedFiles: File[] = [];
-    for (const file of files) {
+    const newStats: { [key: number]: { original: number; compressed: number } } = {};
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       if (file.type.startsWith("image/")) {
         const compressed = await compressImage(file);
         processedFiles.push(compressed);
+        // Track compression stats
+        if (compressed.size < file.size) {
+          newStats[i] = { original: file.size, compressed: compressed.size };
+        }
       } else {
         processedFiles.push(file);
       }
     }
 
     setSelectedFiles(processedFiles);
+    setCompressionStats(newStats);
     
     // Create previews for images
     const urls = processedFiles
@@ -440,6 +449,7 @@ const Chat = () => {
 
   const clearSelectedFiles = () => {
     setSelectedFiles([]);
+    setCompressionStats({});
     previewUrls.forEach(url => URL.revokeObjectURL(url));
     setPreviewUrls([]);
     if (fileInputRef.current) {
@@ -451,6 +461,18 @@ const Chat = () => {
     const newFiles = [...selectedFiles];
     newFiles.splice(index, 1);
     setSelectedFiles(newFiles);
+    
+    // Update compression stats
+    const newStats: { [key: number]: { original: number; compressed: number } } = {};
+    Object.entries(compressionStats).forEach(([key, value]) => {
+      const keyNum = parseInt(key);
+      if (keyNum < index) {
+        newStats[keyNum] = value;
+      } else if (keyNum > index) {
+        newStats[keyNum - 1] = value;
+      }
+    });
+    setCompressionStats(newStats);
     
     // Update preview URLs for images
     const newUrls = newFiles
@@ -1011,11 +1033,18 @@ const Chat = () => {
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {file.type.startsWith("image/") ? (
-                    <img 
-                      src={URL.createObjectURL(file)} 
-                      alt={`Preview ${index + 1}`} 
-                      className="h-16 w-16 object-cover rounded-lg ring-2 ring-chat-pink/20 dark:ring-chat-violet/30 hover:ring-chat-pink/50 dark:hover:ring-chat-violet/50 transition-all hover:scale-105"
-                    />
+                    <div className="relative">
+                      <img 
+                        src={URL.createObjectURL(file)} 
+                        alt={`Preview ${index + 1}`} 
+                        className="h-16 w-16 object-cover rounded-lg ring-2 ring-chat-pink/20 dark:ring-chat-violet/30 hover:ring-chat-pink/50 dark:hover:ring-chat-violet/50 transition-all hover:scale-105"
+                      />
+                      {compressionStats[index] && (
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-green-500 text-white text-[9px] font-medium rounded-full whitespace-nowrap shadow-sm">
+                          -{Math.round((1 - compressionStats[index].compressed / compressionStats[index].original) * 100)}%
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="h-16 w-16 bg-background rounded-lg flex items-center justify-center ring-2 ring-chat-pink/20 dark:ring-chat-violet/30 hover:ring-chat-pink/50 dark:hover:ring-chat-violet/50 transition-all hover:scale-105">
                       <FileIcon className="h-6 w-6 text-muted-foreground" />

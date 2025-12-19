@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface VoiceMessagePlayerProps {
   audioUrl: string;
@@ -54,6 +55,7 @@ const VoiceMessagePlayer = ({
   const audioRef = useRef<HTMLAudioElement>(null);
   const animationRef = useRef<number | null>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   const [audioUrl, setAudioUrl] = useState(initialAudioUrl);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -70,7 +72,7 @@ const VoiceMessagePlayer = ({
   const [loadError, setLoadError] = useState(false);
 
   // Refresh signed URL if expired
-  const refreshSignedUrl = useCallback(async (): Promise<string | null> => {
+  const refreshSignedUrl = useCallback(async (showToast = true): Promise<string | null> => {
     const filePath = extractFilePath(initialAudioUrl);
     if (!filePath) return null;
 
@@ -82,11 +84,26 @@ const VoiceMessagePlayer = ({
 
       if (error || !data?.signedUrl) {
         console.error('Failed to refresh signed URL:', error);
+        if (showToast) {
+          toast({
+            title: "Playback error",
+            description: "Unable to load voice message. Please try again.",
+            variant: "destructive",
+          });
+        }
         return null;
       }
 
       setAudioUrl(data.signedUrl);
       setLoadError(false);
+      
+      if (showToast) {
+        toast({
+          title: "Voice message ready",
+          description: "Audio link refreshed. Tap play to listen.",
+        });
+      }
+      
       return data.signedUrl;
     } catch (error) {
       console.error('Error refreshing URL:', error);
@@ -94,12 +111,12 @@ const VoiceMessagePlayer = ({
     } finally {
       setIsRefreshing(false);
     }
-  }, [initialAudioUrl]);
+  }, [initialAudioUrl, toast]);
 
-  // Check and refresh URL on mount and when trying to play
+  // Check and refresh URL on mount (silently, no toast)
   useEffect(() => {
     if (isUrlExpired(audioUrl)) {
-      refreshSignedUrl();
+      refreshSignedUrl(false);
     }
   }, []);
 
