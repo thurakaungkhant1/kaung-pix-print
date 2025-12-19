@@ -465,9 +465,13 @@ const Chat = () => {
     
     const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    const isImage = file.type.startsWith("image/");
+    
+    // Use chat-images bucket for images (public), chat-voices for audio
+    const bucketName = isImage ? "chat-images" : "chat-media";
     
     const { data, error } = await supabase.storage
-      .from("chat-media")
+      .from(bucketName)
       .upload(fileName, file);
 
     if (error) {
@@ -475,19 +479,30 @@ const Chat = () => {
       return null;
     }
 
-    // Use signed URL for private bucket (1 hour expiry)
-    const { data: urlData, error: signedUrlError } = await supabase.storage
-      .from("chat-media")
-      .createSignedUrl(data.path, 3600);
+    let mediaUrl: string;
+    
+    if (isImage) {
+      // Public URL for images in chat-images bucket
+      const { data: publicUrlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(data.path);
+      mediaUrl = publicUrlData.publicUrl;
+    } else {
+      // Signed URL for private files (1 hour expiry)
+      const { data: urlData, error: signedUrlError } = await supabase.storage
+        .from(bucketName)
+        .createSignedUrl(data.path, 3600);
 
-    if (signedUrlError || !urlData?.signedUrl) {
-      console.error("Signed URL error:", signedUrlError);
-      return null;
+      if (signedUrlError || !urlData?.signedUrl) {
+        console.error("Signed URL error:", signedUrlError);
+        return null;
+      }
+      mediaUrl = urlData.signedUrl;
     }
 
     return {
-      url: urlData.signedUrl,
-      type: file.type.startsWith("image/") ? "image" : file.type.startsWith("audio/") ? "audio" : "file",
+      url: mediaUrl,
+      type: isImage ? "image" : file.type.startsWith("audio/") ? "audio" : "file",
     };
   };
 
@@ -500,8 +515,9 @@ const Chat = () => {
       const fileExt = audioBlob.type.includes("webm") ? "webm" : "mp4";
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
+      // Upload voice messages to chat-voices bucket (private)
       const { data, error } = await supabase.storage
-        .from("chat-media")
+        .from("chat-voices")
         .upload(fileName, audioBlob);
 
       if (error) {
@@ -515,7 +531,7 @@ const Chat = () => {
 
       // Use signed URL for private bucket (1 hour expiry)
       const { data: urlData, error: signedUrlError } = await supabase.storage
-        .from("chat-media")
+        .from("chat-voices")
         .createSignedUrl(data.path, 3600);
 
       if (signedUrlError || !urlData?.signedUrl) {
