@@ -466,9 +466,12 @@ const Chat = () => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}/${Date.now()}.${fileExt}`;
     const isImage = file.type.startsWith("image/");
+    const isAudio = file.type.startsWith("audio/");
     
-    // Use chat-images bucket for images (public), chat-voices for audio
-    const bucketName = isImage ? "chat-images" : "chat-media";
+    // Route to appropriate bucket:
+    // - chat-images (public) for images → public URL
+    // - chat-voices (private) for audio → signed URL
+    const bucketName = isImage ? "chat-images" : "chat-voices";
     
     const { data, error } = await supabase.storage
       .from(bucketName)
@@ -502,7 +505,7 @@ const Chat = () => {
 
     return {
       url: mediaUrl,
-      type: isImage ? "image" : file.type.startsWith("audio/") ? "audio" : "file",
+      type: isImage ? "image" : isAudio ? "audio" : "file",
     };
   };
 
