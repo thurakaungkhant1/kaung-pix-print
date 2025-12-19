@@ -940,36 +940,40 @@ const Chat = () => {
 
       {/* Selected Files Preview */}
       {selectedFiles.length > 0 && (
-        <div className="fixed bottom-[calc(4rem+56px)] left-0 right-0 px-4">
-          <div className="max-w-screen-xl mx-auto bg-muted rounded-t-xl p-3">
+        <div className="fixed bottom-[calc(4rem+56px)] left-0 right-0 px-4 animate-slide-up-spring">
+          <div className="max-w-screen-xl mx-auto bg-muted/90 dark:bg-muted/80 backdrop-blur-md rounded-t-xl p-3 border border-chat-pink/20 dark:border-chat-violet/30 shadow-lg dark:shadow-chat-violet/10">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-muted-foreground">
                 {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected
               </span>
               <button
                 onClick={clearSelectedFiles}
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Clear all
               </button>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {selectedFiles.map((file, index) => (
-                <div key={index} className="relative shrink-0">
+                <div 
+                  key={index} 
+                  className="relative shrink-0 animate-bouncy-appear"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   {file.type.startsWith("image/") ? (
                     <img 
                       src={URL.createObjectURL(file)} 
                       alt={`Preview ${index + 1}`} 
-                      className="h-16 w-16 object-cover rounded-lg"
+                      className="h-16 w-16 object-cover rounded-lg ring-2 ring-chat-pink/20 dark:ring-chat-violet/30 hover:ring-chat-pink/50 dark:hover:ring-chat-violet/50 transition-all hover:scale-105"
                     />
                   ) : (
-                    <div className="h-16 w-16 bg-background rounded-lg flex items-center justify-center">
+                    <div className="h-16 w-16 bg-background rounded-lg flex items-center justify-center ring-2 ring-chat-pink/20 dark:ring-chat-violet/30 hover:ring-chat-pink/50 dark:hover:ring-chat-violet/50 transition-all hover:scale-105">
                       <FileIcon className="h-6 w-6 text-muted-foreground" />
                     </div>
                   )}
                   <button
                     onClick={() => removeFile(index)}
-                    className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                    className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:scale-110 transition-transform"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -1059,17 +1063,19 @@ const Chat = () => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent 
-                className="w-auto p-0 border-0" 
+                className="w-auto p-0 border-0 animate-spring-pop shadow-xl dark:shadow-chat-violet/20" 
                 side="top" 
                 align="start"
               >
-                <EmojiPicker
-                  onEmojiClick={onEmojiClick}
-                  theme={Theme.AUTO}
-                  lazyLoadEmojis
-                  height={350}
-                  width={300}
-                />
+                <div className="rounded-xl overflow-hidden ring-2 ring-chat-pink/20 dark:ring-chat-violet/30">
+                  <EmojiPicker
+                    onEmojiClick={onEmojiClick}
+                    theme={Theme.AUTO}
+                    lazyLoadEmojis
+                    height={350}
+                    width={300}
+                  />
+                </div>
               </PopoverContent>
             </Popover>
             
