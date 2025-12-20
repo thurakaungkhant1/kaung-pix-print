@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,15 +8,19 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, BadgeCheck, Edit3, Coins, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
+import { Crown, BadgeCheck, Edit3, Coins, Sparkles, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PremiumFeaturesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+const PREMIUM_COST_POINTS = 500; // Cost in points to purchase premium
 
 const PREMIUM_BENEFITS = [
   {
@@ -45,29 +49,94 @@ const PREMIUM_BENEFITS = [
 const PremiumFeaturesDialog = ({ open, onOpenChange }: PremiumFeaturesDialogProps) => {
   const { isPremium, membership, activatePremium, getDaysRemaining, loading } = usePremiumMembership();
   const [activating, setActivating] = useState(false);
+  const [userPoints, setUserPoints] = useState(0);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleActivate = async () => {
-    setActivating(true);
-    const result = await activatePremium(3);
-    setActivating(false);
+  useEffect(() => {
+    if (open && user) {
+      loadUserPoints();
+    }
+  }, [open, user]);
 
-    if (result.error) {
+  const loadUserPoints = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("points")
+      .eq("id", user.id)
+      .single();
+    
+    if (data) {
+      setUserPoints(data.points);
+    }
+  };
+
+  const handlePurchaseWithPoints = async () => {
+    if (!user) return;
+    
+    if (userPoints < PREMIUM_COST_POINTS) {
       toast({
-        title: "Error",
-        description: result.error,
+        title: "Insufficient Points",
+        description: `You need ${PREMIUM_COST_POINTS} points to purchase Premium. You have ${userPoints} points.`,
         variant: "destructive",
       });
-    } else {
+      return;
+    }
+
+    setActivating(true);
+    
+    try {
+      // Deduct points
+      const newPoints = userPoints - PREMIUM_COST_POINTS;
+      const { error: pointsError } = await supabase
+        .from("profiles")
+        .update({ points: newPoints })
+        .eq("id", user.id);
+
+      if (pointsError) throw pointsError;
+
+      // Create point transaction
+      await supabase.from("point_transactions").insert({
+        user_id: user.id,
+        amount: -PREMIUM_COST_POINTS,
+        transaction_type: "premium_purchase",
+        description: `Purchased Premium Membership for ${PREMIUM_COST_POINTS} points`,
+      });
+
+      // Activate premium
+      const result = await activatePremium(3);
+
+      if (result.error) {
+        // Refund points if activation fails
+        await supabase
+          .from("profiles")
+          .update({ points: userPoints })
+          .eq("id", user.id);
+        throw new Error(result.error);
+      }
+
       toast({
         title: "Premium Activated! 🎉",
-        description: "Welcome to Premium! Enjoy your exclusive benefits.",
+        description: "Welcome to Premium! Enjoy your exclusive benefits for 3 months.",
       });
+      
+      setUserPoints(newPoints);
       onOpenChange(false);
+    } catch (error: any) {
+      console.error("Error purchasing premium:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to purchase premium",
+        variant: "destructive",
+      });
+    } finally {
+      setActivating(false);
     }
   };
 
   const daysRemaining = getDaysRemaining();
+  const canAfford = userPoints >= PREMIUM_COST_POINTS;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,28 +198,58 @@ const PremiumFeaturesDialog = ({ open, onOpenChange }: PremiumFeaturesDialogProp
         </div>
 
         {!isPremium && (
-          <Button
-            className={cn(
-              "w-full mt-4 h-12",
-              "bg-gradient-to-r from-amber-500 to-yellow-500",
-              "hover:from-amber-600 hover:to-yellow-600",
-              "text-white font-semibold"
+          <div className="mt-4 space-y-3">
+            {/* Points balance */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
+              <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-primary" />
+                <span className="text-sm">Your Points</span>
+              </div>
+              <span className={cn(
+                "font-bold",
+                canAfford ? "text-green-500" : "text-destructive"
+              )}>
+                {userPoints.toLocaleString()}
+              </span>
+            </div>
+
+            {!canAfford && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+                <span className="text-sm text-destructive">
+                  You need {(PREMIUM_COST_POINTS - userPoints).toLocaleString()} more points
+                </span>
+              </div>
             )}
-            onClick={handleActivate}
-            disabled={activating || loading}
-          >
-            {activating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Activating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Activate Premium (3 Months)
-              </>
-            )}
-          </Button>
+
+            <Button
+              className={cn(
+                "w-full h-12",
+                "bg-gradient-to-r from-amber-500 to-yellow-500",
+                "hover:from-amber-600 hover:to-yellow-600",
+                "text-white font-semibold",
+                "disabled:opacity-50"
+              )}
+              onClick={handlePurchaseWithPoints}
+              disabled={activating || loading || !canAfford}
+            >
+              {activating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Activating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Purchase for {PREMIUM_COST_POINTS} Points
+                </>
+              )}
+            </Button>
+
+            <p className="text-xs text-center text-muted-foreground">
+              Premium membership lasts for 3 months
+            </p>
+          </div>
         )}
 
         {isPremium && (

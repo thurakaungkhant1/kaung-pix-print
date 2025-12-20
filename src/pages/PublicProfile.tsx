@@ -251,7 +251,7 @@ const PublicProfile = () => {
                 </Avatar>
                 {isVerified && (
                   <div className="absolute -bottom-2 -right-2 bg-background rounded-full p-1.5 shadow-lg">
-                    <VerificationBadge points={profile.points} size="lg" />
+                    <VerificationBadge points={profile.points} userId={profile.id} size="lg" />
                   </div>
                 )}
               </div>
@@ -268,13 +268,13 @@ const PublicProfile = () => {
             {/* Name */}
             <div className="flex items-center justify-center gap-2 mb-2">
               <h2 className="text-2xl md:text-3xl font-display font-bold">{profile.name}</h2>
-              <VerificationBadge points={profile.points} size="md" />
+              <VerificationBadge points={profile.points} userId={profile.id} size="md" />
             </div>
 
             {/* Verification Status */}
             {isVerified && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-sm font-medium mb-4">
-                <VerificationBadge points={profile.points} size="sm" showTooltip={false} />
+                <VerificationBadge points={profile.points} userId={profile.id} size="sm" showTooltip={false} />
                 Verified Member
               </div>
             )}
