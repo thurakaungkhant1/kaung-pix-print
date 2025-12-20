@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles, Camera, Loader2, Trash2 } from "lucide-react";
+import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles, Camera, Loader2, Trash2, Crown } from "lucide-react";
 import AccountQualityBadge from "@/components/AccountQualityBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
@@ -20,6 +20,9 @@ import ReferralSection from "@/components/ReferralSection";
 import ChatSettings from "@/components/ChatSettings";
 import { cn } from "@/lib/utils";
 import { ImageCropper } from "@/components/ImageCropper";
+import { usePremiumMembership } from "@/hooks/usePremiumMembership";
+import PremiumFeaturesDialog from "@/components/PremiumFeaturesDialog";
+import PremiumBadge from "@/components/PremiumBadge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,7 +71,10 @@ const Account = () => {
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [deletingAvatar, setDeletingAvatar] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [premiumDialogOpen, setPremiumDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { isPremium, getDaysRemaining } = usePremiumMembership();
   
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -421,9 +427,41 @@ const Account = () => {
           </CardContent>
         </Card>
 
+        {/* Premium Membership Card */}
+        <Card 
+          className={cn(
+            "cursor-pointer group animate-slide-up overflow-hidden",
+            "border-amber-500/20 hover:border-amber-500/40",
+            isPremium && "bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent"
+          )}
+          style={{ animationDelay: "25ms" }}
+          onClick={() => setPremiumDialogOpen(true)}
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "p-2.5 rounded-xl transition-colors",
+                isPremium ? "bg-amber-500/20" : "bg-muted"
+              )}>
+                <Crown className={cn("h-5 w-5", isPremium ? "text-amber-500" : "text-muted-foreground")} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">Premium Membership</h3>
+                  {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {isPremium ? `${getDaysRemaining()} days remaining` : "Unlock exclusive benefits"}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+          </CardContent>
+        </Card>
+
         {/* Account Quality Section */}
         {profile && (
-          <div className="animate-slide-up" style={{ animationDelay: "25ms" }}>
+          <div className="animate-slide-up" style={{ animationDelay: "50ms" }}>
             <AccountQualityBadge status={profile.account_status || "good"} />
           </div>
         )}
@@ -776,6 +814,9 @@ const Account = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Premium Features Dialog */}
+      <PremiumFeaturesDialog open={premiumDialogOpen} onOpenChange={setPremiumDialogOpen} />
 
       <BottomNav />
     </div>
