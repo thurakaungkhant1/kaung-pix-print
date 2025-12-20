@@ -40,6 +40,7 @@ import {
   ExternalLink,
   Loader2,
   History,
+  Crown,
   Copy,
   Check,
 } from "lucide-react";
@@ -799,6 +800,7 @@ const AdminDashboard = () => {
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
     { id: "users", label: "Users", icon: Users, badge: 0 },
+    { id: "premium-users", label: "Premium Users", icon: Crown, badge: 0, route: "/admin/premium-users" },
     { id: "point-management", label: "Point Management", icon: Coins, badge: 0 },
     { id: "point-history", label: "Point History", icon: History, badge: 0 },
     { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
@@ -830,7 +832,11 @@ const AdminDashboard = () => {
             <button
               key={item.id}
               onClick={() => {
-                setActiveTab(item.id);
+                if ((item as any).route) {
+                  navigate((item as any).route);
+                } else {
+                  setActiveTab(item.id);
+                }
                 setSidebarOpen(false);
               }}
               className={cn(

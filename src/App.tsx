@@ -47,6 +47,7 @@ import OrdersManage from "./pages/admin/OrdersManage";
 import UsersManage from "./pages/admin/UsersManage";
 import WithdrawalSettings from "./pages/admin/WithdrawalSettings";
 import WithdrawalItemsManage from "./pages/admin/WithdrawalItemsManage";
+import PremiumUsersManage from "./pages/admin/PremiumUsersManage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -256,6 +257,14 @@ const App = () => {
                 element={
                   <ProtectedAdminRoute>
                     <WithdrawalItemsManage />
+                  </ProtectedAdminRoute>
+                }
+              />
+              <Route
+                path="/admin/premium-users"
+                element={
+                  <ProtectedAdminRoute>
+                    <PremiumUsersManage />
                   </ProtectedAdminRoute>
                 }
               />
