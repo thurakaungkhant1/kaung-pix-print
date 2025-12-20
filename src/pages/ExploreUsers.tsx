@@ -147,7 +147,7 @@ const ExploreUsers = () => {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <h3 className="font-semibold">{profile.name}</h3>
-                      <VerificationBadge points={profile.points} />
+                      <VerificationBadge points={profile.points} userId={profile.id} />
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {profile.points.toLocaleString()} points

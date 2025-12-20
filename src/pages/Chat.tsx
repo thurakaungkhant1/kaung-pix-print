@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile, Mic, Heart, Sun, Moon } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile, Mic, Heart, Sun, Moon, Crown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -18,6 +18,8 @@ import { useSoundNotification } from "@/hooks/useSoundNotification";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useTheme } from "@/components/ThemeProvider";
 import { compressImage } from "@/lib/imageCompression";
+import { usePremiumMembership } from "@/hooks/usePremiumMembership";
+import { useChatPointsTimer } from "@/hooks/useChatPointsTimer";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import {
   AlertDialog,
@@ -125,6 +127,14 @@ const Chat = () => {
     conversationId,
     userId: user?.id,
     recipientId,
+  });
+  
+  // Premium membership and chat points timer
+  const { isPremium } = usePremiumMembership();
+  const { recordActivity, totalPointsEarned } = useChatPointsTimer({
+    isPremium,
+    conversationId,
+    isActive: !loading && !!conversationId,
   });
 
   useEffect(() => {
@@ -593,6 +603,9 @@ const Chat = () => {
   const sendMessage = async () => {
     if ((!newMessage.trim() && selectedFiles.length === 0) || !conversationId || !user) return;
 
+    // Record activity for premium chat points
+    recordActivity();
+    
     setIsUploading(true);
 
     try {

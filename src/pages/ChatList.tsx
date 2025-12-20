@@ -276,7 +276,7 @@ const ChatList = () => {
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold">{u.name}</span>
-                      <VerificationBadge points={u.points} size="sm" />
+                      <VerificationBadge points={u.points} userId={u.id} size="sm" />
                     </div>
                     <OnlineStatus userId={u.id} size="sm" />
                   </div>
@@ -328,6 +328,7 @@ const ChatList = () => {
                         </span>
                         <VerificationBadge
                           points={conv.other_user.points}
+                          userId={conv.other_user.id}
                           size="sm"
                         />
                       </div>

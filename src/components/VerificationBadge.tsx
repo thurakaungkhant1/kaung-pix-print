@@ -1,8 +1,10 @@
 import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 
 interface VerificationBadgeProps {
   points: number;
+  userId?: string;
   size?: "sm" | "md" | "lg";
   showTooltip?: boolean;
   className?: string;
@@ -12,11 +14,17 @@ const VERIFICATION_THRESHOLD = 5000;
 
 const VerificationBadge = ({ 
   points, 
+  userId,
   size = "md", 
   showTooltip = true,
   className 
 }: VerificationBadgeProps) => {
-  if (points < VERIFICATION_THRESHOLD) return null;
+  const { isPremium } = useUserPremiumStatus(userId);
+  
+  // Show badge if user is premium OR has enough points
+  const shouldShow = isPremium || points >= VERIFICATION_THRESHOLD;
+  
+  if (!shouldShow) return null;
 
   const sizeClasses = {
     sm: "h-3.5 w-3.5",
@@ -24,10 +32,14 @@ const VerificationBadge = ({
     lg: "h-5 w-5",
   };
 
+  const tooltipText = isPremium 
+    ? "Premium Member" 
+    : `Verified member with ${points.toLocaleString()} points`;
+
   return (
     <div 
       className={cn("relative inline-flex items-center", className)}
-      title={showTooltip ? `Verified member with ${points.toLocaleString()} points` : undefined}
+      title={showTooltip ? tooltipText : undefined}
     >
       <BadgeCheck 
         className={cn(
