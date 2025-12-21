@@ -2,20 +2,24 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, Lock, Coins, Gift, Trophy, ChevronDown, ChevronUp, History, ChevronRight, Sparkles, Camera, Loader2, Trash2, Crown } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, 
+  Lock, Coins, Gift, Trophy, ChevronRight, Sparkles, Camera, Loader2, 
+  Trash2, Crown, Bell, Globe, CreditCard, Settings, History, AlertTriangle
+} from "lucide-react";
 import AccountQualityBadge from "@/components/AccountQualityBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import SpinnerWheel from "@/components/SpinnerWheel";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import ReferralSection from "@/components/ReferralSection";
 import ChatSettings from "@/components/ChatSettings";
 import { cn } from "@/lib/utils";
@@ -62,7 +66,6 @@ const Account = () => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [spinnerOpen, setSpinnerOpen] = useState(false);
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
-  const [profileSectionOpen, setProfileSectionOpen] = useState(false);
   
   // Avatar upload states
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -73,6 +76,7 @@ const Account = () => {
   const [deletingAvatar, setDeletingAvatar] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [premiumDialogOpen, setPremiumDialogOpen] = useState(false);
+  const [deleteAccountDialogOpen, setDeleteAccountDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { isPremium, getDaysRemaining } = usePremiumMembership();
@@ -131,12 +135,10 @@ const Account = () => {
     setIsAdmin(!!data);
   };
 
-  // Handle avatar file selection - opens cropper
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
@@ -146,7 +148,6 @@ const Account = () => {
       return;
     }
 
-    // Validate file size (max 5MB for cropping)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -156,7 +157,6 @@ const Account = () => {
       return;
     }
 
-    // Create preview and open cropper
     const reader = new FileReader();
     reader.onloadend = () => {
       setImageToCrop(reader.result as string);
@@ -164,13 +164,11 @@ const Account = () => {
     };
     reader.readAsDataURL(file);
     
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  // Handle cropped image
   const handleCropComplete = (croppedBlob: Blob) => {
     const file = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
     setAvatarFile(file);
@@ -178,7 +176,6 @@ const Account = () => {
     setImageToCrop(null);
   };
 
-  // Upload avatar to Supabase Storage
   const uploadAvatar = async () => {
     if (!avatarFile || !user) return;
 
@@ -193,12 +190,10 @@ const Account = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Update profile with avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -211,7 +206,6 @@ const Account = () => {
         description: "Your avatar has been saved successfully"
       });
 
-      // Clear file state and reload profile
       setAvatarFile(null);
       setAvatarPreview(null);
       loadProfile();
@@ -227,13 +221,11 @@ const Account = () => {
     }
   };
 
-  // Delete avatar
   const deleteAvatar = async () => {
     if (!user) return;
     
     setDeletingAvatar(true);
     try {
-      // List and delete all files in user's avatar folder
       const { data: files } = await supabase.storage
         .from('avatars')
         .list(user.id);
@@ -243,7 +235,6 @@ const Account = () => {
         await supabase.storage.from('avatars').remove(filePaths);
       }
 
-      // Update profile to remove avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: null })
@@ -326,468 +317,454 @@ const Account = () => {
     }
   };
 
+  // Setting item component for consistent styling
+  const SettingItem = ({ 
+    icon: Icon, 
+    label, 
+    description, 
+    onClick, 
+    rightElement,
+    variant = "default"
+  }: { 
+    icon: React.ElementType;
+    label: string;
+    description?: string;
+    onClick?: () => void;
+    rightElement?: React.ReactNode;
+    variant?: "default" | "danger";
+  }) => (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-200",
+        "hover:bg-muted/50 active:scale-[0.98]",
+        variant === "danger" && "hover:bg-destructive/10"
+      )}
+    >
+      <div className={cn(
+        "p-2.5 rounded-xl",
+        variant === "danger" ? "bg-destructive/15" : "bg-muted"
+      )}>
+        <Icon className={cn(
+          "h-5 w-5",
+          variant === "danger" ? "text-destructive" : "text-muted-foreground"
+        )} />
+      </div>
+      <div className="flex-1 text-left">
+        <p className={cn(
+          "font-medium",
+          variant === "danger" && "text-destructive"
+        )}>{label}</p>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
+      {rightElement || <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+    </button>
+  );
+
   return (
     <MobileLayout className="pb-24">
-      {/* Hero Header */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero" />
+      {/* Profile Header - Sleek & Minimal */}
+      <div className="relative overflow-hidden bg-gradient-hero">
         <div className="absolute inset-0 bg-gradient-glow opacity-60" />
         
-        <div className="relative z-10 p-4 pt-6 pb-5">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
-              Account
-            </h1>
-            <button
-              onClick={toggleTheme}
-              className={cn(
-                "flex items-center gap-3 px-4 py-2 rounded-full",
-                "bg-primary-foreground/10 border border-primary-foreground/20",
-                "transition-all duration-300 hover:bg-primary-foreground/15",
-                "active:scale-95"
-              )}
+        <div className="relative z-10 px-6 pt-8 pb-6">
+          {/* Avatar & Info */}
+          <div className="flex items-center gap-4">
+            <div 
+              className="relative cursor-pointer group"
+              onClick={() => fileInputRef.current?.click()}
             >
-              {theme === "dark" ? (
-                <Moon className="h-4 w-4 text-primary-foreground" />
-              ) : (
-                <Sun className="h-4 w-4 text-primary-foreground" />
-              )}
-              <Switch
-                id="header-theme-switch"
-                checked={theme === "dark"}
-                onCheckedChange={toggleTheme}
-                className="data-[state=checked]:bg-primary-foreground/30"
-              />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-screen-xl mx-auto p-4 space-y-4">
-        {/* Points Card - Premium Design */}
-        <Card className={cn(
-          "relative overflow-hidden border-0",
-          "bg-gradient-to-br from-primary/10 via-primary/5 to-transparent",
-          "animate-slide-up"
-        )}>
-          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-accent/10 rounded-full blur-3xl" />
-          
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-2 rounded-xl bg-primary/15">
-                <Coins className="h-5 w-5 text-primary" />
+              <Avatar className={cn(
+                "h-20 w-20 border-4 border-primary-foreground/20",
+                "ring-2 ring-primary-foreground/10 transition-all duration-300",
+                "group-hover:ring-primary-foreground/30"
+              )}>
+                <AvatarImage 
+                  src={avatarPreview || profile?.avatar_url || undefined} 
+                  alt="Profile"
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-primary-foreground/10 text-2xl font-bold text-primary-foreground">
+                  {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-8 w-8" />}
+                </AvatarFallback>
+              </Avatar>
+              
+              {/* Edit overlay */}
+              <div className={cn(
+                "absolute inset-0 flex items-center justify-center rounded-full",
+                "bg-background/60 backdrop-blur-sm opacity-0 group-hover:opacity-100",
+                "transition-all duration-300"
+              )}>
+                <Camera className="h-6 w-6 text-primary" />
               </div>
-              Your Points
-            </CardTitle>
-          </CardHeader>
-          
-          <CardContent className="space-y-5">
-            <div className="text-center py-4">
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse-soft" />
-                <p className="relative text-5xl font-display font-bold text-primary">
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarSelect}
+                className="hidden"
+              />
+            </div>
+            
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-primary-foreground">
+                  {profile?.name || "Loading..."}
+                </h1>
+                {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
+              </div>
+              <p className="text-sm text-primary-foreground/70">{user?.email}</p>
+              
+              {avatarFile && (
+                <Button 
+                  size="sm"
+                  onClick={uploadAvatar}
+                  disabled={uploadingAvatar}
+                  className="mt-2 h-8 rounded-full bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground"
+                >
+                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Save Photo
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Points Display */}
+          <div className="mt-6 flex items-center justify-between p-4 rounded-2xl bg-primary-foreground/10 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary-foreground/15">
+                <Coins className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-primary-foreground">
                   {profile?.points?.toLocaleString() || 0}
                 </p>
+                <p className="text-xs text-primary-foreground/70">Total Points</p>
               </div>
-              <p className="text-sm text-muted-foreground mt-2 font-medium">Total Points</p>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex gap-2">
               <Button
-                variant="outline"
-                className={cn(
-                  "h-12 rounded-xl border-border/50",
-                  "hover:bg-primary/5 hover:border-primary/30",
-                  "transition-all duration-300 active:scale-98"
-                )}
+                size="sm"
+                variant="ghost"
+                className="h-9 rounded-xl bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
                 onClick={() => setSpinnerOpen(true)}
               >
-                <Gift className="mr-2 h-5 w-5 text-accent" />
-                <span>Daily Spin</span>
-                <Sparkles className="ml-1 h-3 w-3 text-accent/70" />
+                <Gift className="h-4 w-4 mr-1" />
+                Spin
               </Button>
               <Button
-                className={cn(
-                  "h-12 rounded-xl bg-primary hover:bg-primary/90",
-                  "shadow-glow transition-all duration-300",
-                  "hover:shadow-lg active:scale-98"
-                )}
+                size="sm"
+                className="h-9 rounded-xl bg-primary-foreground text-primary hover:bg-primary-foreground/90"
                 onClick={() => navigate("/exchange")}
               >
-                <Coins className="mr-2 h-5 w-5" />
+                <Coins className="h-4 w-4 mr-1" />
                 Exchange
               </Button>
             </div>
-            
+          </div>
+        </div>
+      </div>
+
+      {/* Tabbed Settings */}
+      <div className="p-4">
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="w-full h-12 p-1 rounded-2xl bg-muted/50">
+            <TabsTrigger value="profile" className="flex-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <User className="h-4 w-4 mr-1.5" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Shield className="h-4 w-4 mr-1.5" />
+              Security
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="flex-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <CreditCard className="h-4 w-4 mr-1.5" />
+              Billing
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="flex-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <Settings className="h-4 w-4 mr-1.5" />
+              More
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="mt-4 space-y-4 animate-fade-in">
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-2">
+                <SettingItem 
+                  icon={User}
+                  label="Name"
+                  description={profile?.name || "Not set"}
+                  onClick={() => {}}
+                />
+                <Separator className="my-1" />
+                <SettingItem 
+                  icon={Phone}
+                  label="Phone Number"
+                  description={profile?.phone_number || "Not set"}
+                  onClick={() => {}}
+                />
+                <Separator className="my-1" />
+                <SettingItem 
+                  icon={Mail}
+                  label="Email"
+                  description={user?.email || "Not set"}
+                  onClick={() => {}}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Account Quality */}
+            {profile && (
+              <AccountQualityBadge status={profile.account_status || "good"} />
+            )}
+
+            {/* Avatar Management */}
+            {profile?.avatar_url && !avatarFile && (
+              <Card className="rounded-2xl border-border/50 shadow-sm">
+                <CardContent className="p-2">
+                  <SettingItem 
+                    icon={Trash2}
+                    label="Remove Profile Photo"
+                    variant="danger"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    rightElement={deletingAvatar ? <Loader2 className="h-5 w-5 animate-spin" /> : undefined}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Security Tab */}
+          <TabsContent value="security" className="mt-4 space-y-4 animate-fade-in">
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-5 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-muted">
+                    <Lock className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-semibold">Change Password</h3>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    { id: "current-password", label: "Current Password", value: currentPassword, setValue: setCurrentPassword, show: showCurrentPassword, setShow: setShowCurrentPassword },
+                    { id: "new-password", label: "New Password", value: newPassword, setValue: setNewPassword, show: showNewPassword, setShow: setShowNewPassword },
+                    { id: "confirm-password", label: "Confirm Password", value: confirmPassword, setValue: setConfirmPassword, show: showConfirmPassword, setShow: setShowConfirmPassword },
+                  ].map((field) => (
+                    <div key={field.id} className="space-y-1.5">
+                      <Label htmlFor={field.id} className="text-sm">{field.label}</Label>
+                      <div className="relative">
+                        <Input
+                          id={field.id}
+                          type={field.show ? "text" : "password"}
+                          value={field.value}
+                          onChange={(e) => field.setValue(e.target.value)}
+                          placeholder={`Enter ${field.label.toLowerCase()}`}
+                          className="pr-10 h-11 rounded-xl"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => field.setShow(!field.show)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {field.show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <p className="text-xs text-muted-foreground">
+                    8+ chars, 1 uppercase, 1 number, 1 symbol
+                  </p>
+                  
+                  <Button
+                    onClick={handlePasswordChange}
+                    disabled={isChangingPassword}
+                    className="w-full h-11 rounded-xl"
+                  >
+                    {isChangingPassword ? "Changing..." : "Update Password"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Danger Zone */}
+            <Card className="rounded-2xl border-destructive/30 shadow-sm">
+              <CardContent className="p-2">
+                <div className="px-4 py-2">
+                  <p className="text-xs font-medium text-destructive">DANGER ZONE</p>
+                </div>
+                <SettingItem 
+                  icon={AlertTriangle}
+                  label="Delete Account"
+                  description="Permanently delete your account and data"
+                  variant="danger"
+                  onClick={() => setDeleteAccountDialogOpen(true)}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Billing Tab */}
+          <TabsContent value="billing" className="mt-4 space-y-4 animate-fade-in">
+            {/* Premium Status */}
+            <Card 
+              className={cn(
+                "rounded-2xl border-amber-500/30 shadow-sm cursor-pointer",
+                isPremium && "bg-gradient-to-br from-amber-500/10 to-transparent"
+              )}
+              onClick={() => setPremiumDialogOpen(true)}
+            >
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "p-2.5 rounded-xl",
+                    isPremium ? "bg-amber-500/20" : "bg-muted"
+                  )}>
+                    <Crown className={cn("h-5 w-5", isPremium ? "text-amber-500" : "text-muted-foreground")} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">Premium Membership</h3>
+                      {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {isPremium ? `${getDaysRemaining()} days remaining` : "Unlock exclusive benefits"}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </CardContent>
+            </Card>
+
+            {/* Premium Shop */}
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-2">
+                <SettingItem 
+                  icon={Sparkles}
+                  label="Premium Shop"
+                  description="Buy premium with points or cash"
+                  onClick={() => navigate("/premium-shop")}
+                />
+                <Separator className="my-1" />
+                <SettingItem 
+                  icon={Trophy}
+                  label="Top Earners"
+                  description="View the leaderboard"
+                  onClick={() => navigate("/top-earners")}
+                />
+              </CardContent>
+            </Card>
+
+            {/* History */}
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-2">
+                <SettingItem 
+                  icon={History}
+                  label="Point History"
+                  onClick={() => navigate("/point-history")}
+                />
+                <Separator className="my-1" />
+                <SettingItem 
+                  icon={CreditCard}
+                  label="Premium History"
+                  onClick={() => navigate("/premium-history")}
+                />
+              </CardContent>
+            </Card>
+
             {withdrawalSettings && profile && profile.points < withdrawalSettings.minimum_points && (
-              <p className="text-xs text-center text-muted-foreground bg-muted/50 rounded-lg py-2 px-3">
+              <p className="text-xs text-center text-muted-foreground bg-muted/50 rounded-xl py-3 px-4">
                 Minimum {withdrawalSettings.minimum_points.toLocaleString()} points required to exchange
               </p>
             )}
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        {/* Premium Membership Card */}
-        <Card 
-          className={cn(
-            "cursor-pointer group animate-slide-up overflow-hidden",
-            "border-amber-500/20 hover:border-amber-500/40",
-            isPremium && "bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent"
-          )}
-          style={{ animationDelay: "25ms" }}
-          onClick={() => setPremiumDialogOpen(true)}
-        >
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "p-2.5 rounded-xl transition-colors",
-                isPremium ? "bg-amber-500/20" : "bg-muted"
-              )}>
-                <Crown className={cn("h-5 w-5", isPremium ? "text-amber-500" : "text-muted-foreground")} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">Premium Membership</h3>
-                  {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {isPremium ? `${getDaysRemaining()} days remaining` : "Unlock exclusive benefits"}
-                </p>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
-          </CardContent>
-        </Card>
-
-        {/* Premium Shop Link */}
-        <Card 
-          className={cn(
-            "cursor-pointer group animate-slide-up overflow-hidden",
-            "border-primary/20 hover:border-primary/40",
-            "bg-gradient-to-br from-primary/5 via-primary/2 to-transparent"
-          )}
-          style={{ animationDelay: "35ms" }}
-          onClick={() => navigate("/premium-shop")}
-        >
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/15 group-hover:bg-primary/20 transition-colors">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Premium Shop</h3>
-                <p className="text-sm text-muted-foreground">Buy premium with points or cash</p>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-          </CardContent>
-        </Card>
-
-        {/* Account Quality Section */}
-        {profile && (
-          <div className="animate-slide-up" style={{ animationDelay: "50ms" }}>
-            <AccountQualityBadge status={profile.account_status || "good"} />
-          </div>
-        )}
-
-        {/* Top Earners Card */}
-        <Card 
-          className={cn(
-            "premium-card cursor-pointer group animate-slide-up",
-            "hover:border-primary/30"
-          )}
-          style={{ animationDelay: "50ms" }}
-          onClick={() => navigate("/top-earners")}
-        >
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-accent/15 group-hover:bg-accent/20 transition-colors">
-                <Trophy className="h-5 w-5 text-accent" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Top Earners</h3>
-                <p className="text-sm text-muted-foreground">See the leaderboard</p>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-          </CardContent>
-        </Card>
-
-        {/* History Links */}
-        <Card className="premium-card animate-slide-up" style={{ animationDelay: "100ms" }}>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-2 rounded-xl bg-muted">
-                <History className="h-5 w-5 text-muted-foreground" />
-              </div>
-              History
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            {[
-              { label: "Point History", path: "/point-history" },
-              { label: "Order History", path: "/point-history" },
-              { label: "Redeem/Withdrawal History", path: "/point-history" },
-            ].map((item, index) => (
-              <button
-                key={item.label}
-                onClick={() => navigate(item.path)}
-                className={cn(
-                  "w-full flex items-center justify-between p-3 rounded-xl",
-                  "hover:bg-muted/50 transition-all duration-200",
-                  "active:scale-99 group"
-                )}
-              >
-                <span className="text-sm font-medium">{item.label}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-              </button>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Referral Section */}
-        <div className="animate-slide-up" style={{ animationDelay: "150ms" }}>
-          <ReferralSection />
-        </div>
-
-        {/* Chat Settings */}
-        <div className="animate-slide-up" style={{ animationDelay: "175ms" }}>
-          <ChatSettings />
-        </div>
-
-        {/* Profile Information */}
-        <Card className="premium-card animate-slide-up" style={{ animationDelay: "200ms" }}>
-          <Collapsible open={profileSectionOpen} onOpenChange={setProfileSectionOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors rounded-t-2xl">
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 rounded-xl bg-muted">
-                      <User className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    Profile Information
-                  </div>
-                  <div className={cn(
-                    "p-1.5 rounded-lg bg-muted transition-transform duration-200",
-                    profileSectionOpen && "rotate-180"
-                  )}>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-6 pt-0">
-                {/* Avatar Section - Glassmorphism Style */}
-                <div className="flex flex-col items-center space-y-4 py-4">
-                  <Label className="text-sm text-muted-foreground font-medium">Profile Photo</Label>
-                  
-                  {/* Photo Container with Glow */}
-                  <div 
-                    className="relative cursor-pointer group"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {/* Background glow effect */}
-                    <div className="absolute -inset-2 bg-gradient-to-r from-primary via-accent to-primary rounded-full blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
-                    
-                    <Avatar className={cn(
-                      "relative h-28 w-28 border-4 border-background shadow-xl",
-                      "ring-2 ring-primary/20 transition-all duration-300",
-                      "group-hover:ring-primary/50 group-hover:scale-105"
-                    )}>
-                      <AvatarImage 
-                        src={avatarPreview || profile?.avatar_url || undefined} 
-                        alt="Profile avatar"
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-3xl font-bold text-primary">
-                        {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-12 w-12 text-muted-foreground" />}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    {/* Hover Overlay */}
-                    <div className={cn(
-                      "absolute inset-0 flex items-center justify-center rounded-full",
-                      "bg-background/70 backdrop-blur-sm opacity-0 group-hover:opacity-100",
-                      "transition-all duration-300"
-                    )}>
-                      {uploadingAvatar ? (
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          {/* Preferences Tab */}
+          <TabsContent value="preferences" className="mt-4 space-y-4 animate-fade-in">
+            {/* Theme Toggle */}
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-muted">
+                      {theme === "dark" ? (
+                        <Moon className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <div className="flex flex-col items-center gap-1">
-                          <Camera className="h-7 w-7 text-primary" />
-                          <span className="text-xs font-medium text-primary">Update</span>
-                        </div>
+                        <Sun className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
-                    
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarSelect}
-                      className="hidden"
-                    />
-                  </div>
-                  
-                  {/* Instructions */}
-                  <p className="text-xs text-muted-foreground text-center max-w-[200px]">
-                    Click to upload a new photo
-                  </p>
-                  
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-2">
-                    {avatarFile ? (
-                      <Button 
-                        onClick={uploadAvatar}
-                        disabled={uploadingAvatar}
-                        className={cn(
-                          "rounded-full px-6 gap-2",
-                          "bg-primary hover:bg-primary/90",
-                          "shadow-lg shadow-primary/25 transition-all duration-300"
-                        )}
-                      >
-                        {uploadingAvatar ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          "Save Photo"
-                        )}
-                      </Button>
-                    ) : profile?.avatar_url && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeleteDialogOpen(true)}
-                        disabled={deletingAvatar}
-                        className="rounded-full gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive"
-                      >
-                        {deletingAvatar ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                        Remove Photo
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Profile Details */}
-                <div className="space-y-4 bg-muted/30 rounded-xl p-4">
-                  <div className="flex items-center gap-3">
-                    <User className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Name</p>
-                      <p className="font-medium">{profile?.name || "Loading..."}</p>
+                      <p className="font-medium">Dark Mode</p>
+                      <p className="text-sm text-muted-foreground">
+                        {theme === "dark" ? "Currently enabled" : "Currently disabled"}
+                      </p>
                     </div>
                   </div>
-                  <Separator className="bg-border/50" />
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Phone Number</p>
-                      <p className="font-medium">{profile?.phone_number || "Loading..."}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Password Management Section */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Lock className="h-4 w-4 text-muted-foreground" />
-                    Change Password
-                  </h3>
-
-                  <div className="space-y-3">
-                    {[
-                      { id: "current-password", label: "Current Password", value: currentPassword, setValue: setCurrentPassword, show: showCurrentPassword, setShow: setShowCurrentPassword },
-                      { id: "new-password", label: "New Password", value: newPassword, setValue: setNewPassword, show: showNewPassword, setShow: setShowNewPassword },
-                      { id: "confirm-password", label: "Confirm New Password", value: confirmPassword, setValue: setConfirmPassword, show: showConfirmPassword, setShow: setShowConfirmPassword },
-                    ].map((field) => (
-                      <div key={field.id} className="space-y-1.5">
-                        <Label htmlFor={field.id} className="text-sm">{field.label}</Label>
-                        <div className="relative">
-                          <Input
-                            id={field.id}
-                            type={field.show ? "text" : "password"}
-                            value={field.value}
-                            onChange={(e) => field.setValue(e.target.value)}
-                            placeholder={`Enter ${field.label.toLowerCase()}`}
-                            className="pr-10 h-11 rounded-xl"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => field.setShow(!field.show)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {field.show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    <p className="text-xs text-muted-foreground">
-                      Must have 8+ characters, 1 capital letter, 1 number, 1 symbol
-                    </p>
-                    
-                    <Button
-                      onClick={handlePasswordChange}
-                      disabled={isChangingPassword}
-                      className="w-full h-11 rounded-xl"
-                    >
-                      {isChangingPassword ? "Changing..." : "Change Password"}
-                    </Button>
-                  </div>
+                  <Switch
+                    checked={theme === "dark"}
+                    onCheckedChange={toggleTheme}
+                  />
                 </div>
               </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
+            </Card>
 
-        {/* Action Buttons */}
-        <div className="space-y-2 animate-slide-up" style={{ animationDelay: "250ms" }}>
-          {[
-            { icon: Mail, label: "AI Assistant", path: "/ai-chat", show: true },
-            { icon: Shield, label: "Admin Dashboard", path: "/admin", show: isAdmin },
-            { icon: FileText, label: "Terms & Policy", path: "/terms", show: true },
-            { icon: Mail, label: "Contact Us", path: "/contact", show: true },
-          ].filter(item => item.show).map((item) => (
-            <Button
-              key={item.label}
-              variant="outline"
-              className={cn(
-                "w-full justify-start h-12 rounded-xl border-border/50",
-                "hover:bg-muted/50 hover:border-primary/20",
-                "transition-all duration-200 active:scale-99"
-              )}
-              onClick={() => navigate(item.path)}
-            >
-              <item.icon className="mr-3 h-5 w-5 text-muted-foreground" />
-              {item.label}
-            </Button>
-          ))}
+            {/* Chat Settings */}
+            <ChatSettings />
 
-          <Button
-            variant="outline"
-            className={cn(
-              "w-full justify-start h-12 rounded-xl mt-4",
-              "border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50",
-              "transition-all duration-200 active:scale-99"
-            )}
-            onClick={signOut}
-          >
-            <LogOut className="mr-3 h-5 w-5" />
-            Logout
-          </Button>
-        </div>
+            {/* Referral */}
+            <ReferralSection />
+
+            {/* Links */}
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-2">
+                <SettingItem 
+                  icon={Mail}
+                  label="AI Assistant"
+                  onClick={() => navigate("/ai-chat")}
+                />
+                <Separator className="my-1" />
+                {isAdmin && (
+                  <>
+                    <SettingItem 
+                      icon={Shield}
+                      label="Admin Dashboard"
+                      onClick={() => navigate("/admin")}
+                    />
+                    <Separator className="my-1" />
+                  </>
+                )}
+                <SettingItem 
+                  icon={FileText}
+                  label="Terms & Policy"
+                  onClick={() => navigate("/terms")}
+                />
+                <Separator className="my-1" />
+                <SettingItem 
+                  icon={Mail}
+                  label="Contact Us"
+                  onClick={() => navigate("/contact")}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Logout */}
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-2">
+                <SettingItem 
+                  icon={LogOut}
+                  label="Logout"
+                  variant="danger"
+                  onClick={signOut}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <SpinnerWheel
@@ -814,27 +791,48 @@ const Account = () => {
 
       {/* Delete Photo Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Profile Photo</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove your profile photo? This action cannot be undone.
+              Are you sure you want to remove your profile photo?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={deleteAvatar}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deletingAvatar ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Removing...
-                </>
-              ) : (
-                "Remove"
-              )}
+              {deletingAvatar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Account Confirmation */}
+      <AlertDialog open={deleteAccountDialogOpen} onOpenChange={setDeleteAccountDialogOpen}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Delete Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your account and remove all your data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                toast({
+                  title: "Contact Support",
+                  description: "Please contact support to delete your account",
+                });
+                setDeleteAccountDialogOpen(false);
+              }}
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Account
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
