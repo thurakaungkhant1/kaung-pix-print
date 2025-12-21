@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, MessageCircle, Ban, MoreVertical, UserPlus, X, Search, ChevronUp, ChevronDown, ImagePlus, Loader2, FileIcon, UserMinus, Smile, Mic, Heart, Sun, Moon, Crown } from "lucide-react";
+import ChatPremiumIndicator from "@/components/ChatPremiumIndicator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -131,7 +132,7 @@ const Chat = () => {
   
   // Premium membership and chat points timer
   const { isPremium } = usePremiumMembership();
-  const { recordActivity, totalPointsEarned } = useChatPointsTimer({
+  const { recordActivity, totalPointsEarned, elapsedMinutes } = useChatPointsTimer({
     isPremium,
     conversationId,
     isActive: !loading && !!conversationId,
@@ -856,8 +857,9 @@ const Chat = () => {
             )}
           </div>
           
-          {/* Theme toggle, Heart favorite & Menu */}
+          {/* Theme toggle, Premium indicator, Heart favorite & Menu */}
           <div className="flex items-center gap-1">
+            <ChatPremiumIndicator isPremium={isPremium} pointsEarned={totalPointsEarned} elapsedMinutes={elapsedMinutes} />
             <ThemeToggle />
             <button
               className="p-2.5 rounded-full hover:bg-chat-pink/10 dark:hover:bg-chat-violet/20 transition-colors"

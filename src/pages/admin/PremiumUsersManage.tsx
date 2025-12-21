@@ -6,11 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Crown, Users, Coins, Calendar, RefreshCw } from "lucide-react";
+import { ArrowLeft, Search, Crown, Users, Coins, Calendar, RefreshCw, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import MobileLayout from "@/components/MobileLayout";
 
 interface PremiumUser {
   id: string;

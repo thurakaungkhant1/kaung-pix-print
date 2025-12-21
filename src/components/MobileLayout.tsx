@@ -1,0 +1,24 @@
+import { cn } from "@/lib/utils";
+
+interface MobileLayoutProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const MobileLayout = ({ children, className }: MobileLayoutProps) => {
+  return (
+    <div className="min-h-screen bg-muted/30 flex justify-center">
+      <div
+        className={cn(
+          "w-full max-w-[430px] min-h-screen bg-background relative",
+          "md:shadow-2xl md:border-x md:border-border/50",
+          className
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export default MobileLayout;

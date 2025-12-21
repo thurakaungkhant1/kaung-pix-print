@@ -10,6 +10,7 @@ import CartHeader from "@/components/CartHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import MobileLayout from "@/components/MobileLayout";
 
 interface Product {
   id: number;
@@ -132,7 +133,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <MobileLayout>
       {/* Hero Header */}
       <header className="relative overflow-hidden">
         {/* Background gradient */}
@@ -228,22 +229,22 @@ const Home = () => {
                 
                 {/* Products carousel */}
                 <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-                  <div className="flex gap-4 pb-2">
+                  <div className="flex gap-3 pb-2">
                     {filteredProducts.slice(0, 6).map((product, productIndex) => (
                       <Card
                         key={product.id}
                         className={cn(
-                          "product-card flex-shrink-0 w-44 cursor-pointer",
+                          "product-card flex-shrink-0 w-36 cursor-pointer",
                           "animate-scale-in"
                         )}
                         style={{ animationDelay: `${productIndex * 50}ms` }}
                         onClick={() => navigate(`/product/${product.id}`)}
                       >
-                        <div className="relative aspect-square bg-muted overflow-hidden rounded-t-2xl">
+                        <div className="relative aspect-square bg-muted overflow-hidden rounded-t-xl">
                           <img
                             src={product.image_url}
                             alt={product.name}
-                            className="product-image"
+                            className="w-full h-full object-contain p-2"
                           />
                           
                           {/* Favourite button */}
@@ -253,7 +254,7 @@ const Home = () => {
                               toggleFavourite(product.id);
                             }}
                             className={cn(
-                              "absolute top-2.5 right-2.5 p-2 rounded-full",
+                              "absolute top-2 right-2 p-1.5 rounded-full",
                               "glass border-0 transition-all duration-300",
                               "hover:scale-110 active:scale-95",
                               favourites.has(product.id) 
@@ -263,21 +264,21 @@ const Home = () => {
                           >
                             <Heart
                               className={cn(
-                                "h-4 w-4 transition-all duration-300",
+                                "h-3.5 w-3.5 transition-all duration-300",
                                 favourites.has(product.id) && "fill-current text-white"
                               )}
                             />
                           </button>
                           
                           {/* Gradient overlay */}
-                          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
+                          <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
                         </div>
                         
-                        <CardContent className="p-3 space-y-1">
-                          <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                          <p className="text-primary font-bold text-base">
+                        <CardContent className="p-2 space-y-0.5">
+                          <h3 className="font-semibold text-xs truncate">{product.name}</h3>
+                          <p className="text-primary font-bold text-sm">
                             {product.price.toLocaleString()} 
-                            <span className="text-xs font-medium ml-1 text-muted-foreground">MMK</span>
+                            <span className="text-[10px] font-medium ml-0.5 text-muted-foreground">MMK</span>
                           </p>
                         </CardContent>
                       </Card>
@@ -298,7 +299,7 @@ const Home = () => {
       </div>
 
       <BottomNav />
-    </div>
+    </MobileLayout>
   );
 };
 
