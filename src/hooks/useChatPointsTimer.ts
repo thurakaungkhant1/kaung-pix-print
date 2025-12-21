@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-const POINTS_PER_MINUTE = 0.01;
 const MINUTE_IN_MS = 60 * 1000;
 
 interface UseChatPointsTimerProps {
@@ -21,8 +20,32 @@ export const useChatPointsTimer = ({
   const { toast } = useToast();
   const [elapsedMinutes, setElapsedMinutes] = useState(0);
   const [totalPointsEarned, setTotalPointsEarned] = useState(0);
+  const [pointsPerMinute, setPointsPerMinute] = useState(0.01);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+
+  // Load user's premium tier points rate
+  useEffect(() => {
+    const loadPremiumTier = async () => {
+      if (!user || !isPremium) {
+        setPointsPerMinute(0.01);
+        return;
+      }
+
+      const { data: membership } = await supabase
+        .from("premium_memberships")
+        .select("points_per_minute")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (membership) {
+        setPointsPerMinute(Number(membership.points_per_minute) || 0.01);
+      }
+    };
+
+    loadPremiumTier();
+  }, [user, isPremium]);
 
   const awardPoints = useCallback(async () => {
     if (!user || !isPremium) return;
@@ -36,7 +59,7 @@ export const useChatPointsTimer = ({
         .single();
 
       if (profile) {
-        const newPoints = profile.points + POINTS_PER_MINUTE;
+        const newPoints = profile.points + pointsPerMinute;
         await supabase
           .from("profiles")
           .update({ points: newPoints })
@@ -54,7 +77,7 @@ export const useChatPointsTimer = ({
         await supabase
           .from("premium_memberships")
           .update({
-            total_chat_points_earned: Number(membership.total_chat_points_earned) + POINTS_PER_MINUTE,
+            total_chat_points_earned: Number(membership.total_chat_points_earned) + pointsPerMinute,
           })
           .eq("user_id", user.id);
       }
@@ -62,24 +85,24 @@ export const useChatPointsTimer = ({
       // Create point transaction
       await supabase.from("point_transactions").insert({
         user_id: user.id,
-        amount: POINTS_PER_MINUTE,
+        amount: pointsPerMinute,
         transaction_type: "chat_reward",
-        description: `Earned ${POINTS_PER_MINUTE} points for 1 minute of chatting (Premium)`,
+        description: `Earned ${pointsPerMinute} points for 1 minute of chatting (Premium)`,
       });
 
-      setTotalPointsEarned((prev) => prev + POINTS_PER_MINUTE);
+      setTotalPointsEarned((prev) => prev + pointsPerMinute);
       setElapsedMinutes((prev) => prev + 1);
 
       // Show toast notification
       toast({
         title: "🎉 Points Earned!",
-        description: `You earned ${POINTS_PER_MINUTE} points for 1 minute of chatting!`,
+        description: `You earned ${pointsPerMinute} points for 1 minute of chatting!`,
         duration: 3000,
       });
     } catch (error) {
       console.error("Error awarding chat points:", error);
     }
-  }, [user, isPremium, toast]);
+  }, [user, isPremium, pointsPerMinute, toast]);
 
   useEffect(() => {
     // Clear any existing timer
@@ -125,6 +148,6 @@ export const useChatPointsTimer = ({
     elapsedMinutes,
     totalPointsEarned,
     recordActivity,
-    pointsPerMinute: POINTS_PER_MINUTE,
+    pointsPerMinute,
   };
 };
