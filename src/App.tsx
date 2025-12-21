@@ -48,8 +48,10 @@ import UsersManage from "./pages/admin/UsersManage";
 import WithdrawalSettings from "./pages/admin/WithdrawalSettings";
 import WithdrawalItemsManage from "./pages/admin/WithdrawalItemsManage";
 import PremiumUsersManage from "./pages/admin/PremiumUsersManage";
+import PremiumPlansManage from "./pages/admin/PremiumPlansManage";
 import ReportsManage from "./pages/admin/ReportsManage";
 import PremiumHistory from "./pages/PremiumHistory";
+import PremiumShop from "./pages/PremiumShop";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -271,10 +273,26 @@ const App = () => {
                 }
               />
               <Route
+                path="/admin/premium-plans"
+                element={
+                  <ProtectedAdminRoute>
+                    <PremiumPlansManage />
+                  </ProtectedAdminRoute>
+                }
+              />
+              <Route
                 path="/premium-history"
                 element={
                   <ProtectedRoute>
                     <PremiumHistory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/premium-shop"
+                element={
+                  <ProtectedRoute>
+                    <PremiumShop />
                   </ProtectedRoute>
                 }
               />
