@@ -15,9 +15,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Crown, Zap, Coins, BadgeCheck, Edit3, Sparkles, Check, Phone, Loader2 } from "lucide-react";
+import { ArrowLeft, Crown, Zap, Coins, BadgeCheck, Edit3, Sparkles, Check, Phone, Loader2, Copy, QrCode, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 
@@ -32,18 +33,18 @@ interface PremiumPlan {
   badge_text: string | null;
 }
 
+// Payment account info
+const PAYMENT_ACCOUNTS = {
+  kpay: { name: "KPay", number: "09123456789", qrImage: null },
+  wavepay: { name: "WavePay", number: "09987654321", qrImage: null },
+};
+
 // Subscription tier benefits
 const SUBSCRIPTION_TIERS = [
   { months: 1, price: 5000, pointsPerMin: 5, label: "1 Month" },
   { months: 3, price: 15000, pointsPerMin: 15, label: "3 Months" },
   { months: 6, price: 26500, pointsPerMin: 25, label: "6 Months" },
   { months: 12, price: 40000, pointsPerMin: 40, label: "1 Year" },
-];
-
-const PREMIUM_BENEFITS = [
-  { icon: BadgeCheck, text: "Blue Verified Mark" },
-  { icon: Edit3, text: "Custom Name Change" },
-  { icon: Coins, text: "Earn points while chatting" },
 ];
 
 const PremiumShop = () => {
@@ -53,11 +54,14 @@ const PremiumShop = () => {
   const [selectedPlan, setSelectedPlan] = useState<PremiumPlan | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [quickBuyDialogOpen, setQuickBuyDialogOpen] = useState(false);
-  const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
+  const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"kpay" | "wavepay">("kpay");
+  const [step, setStep] = useState<"method" | "instructions" | "confirm">("method");
   const [pendingRequest, setPendingRequest] = useState<any>(null);
+  const [copiedNumber, setCopiedNumber] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,7 +71,6 @@ const PremiumShop = () => {
   const loadData = async () => {
     setLoading(true);
     
-    // Load plans
     const { data: plansData } = await supabase
       .from("premium_plans")
       .select("*")
@@ -78,7 +81,6 @@ const PremiumShop = () => {
       setPlans(plansData);
     }
 
-    // Load user points and profile
     if (user) {
       const { data: profile } = await supabase
         .from("profiles")
@@ -91,7 +93,6 @@ const PremiumShop = () => {
         setPhoneNumber(profile.phone_number || "");
       }
 
-      // Check for pending request
       const { data: pendingReq } = await supabase
         .from("premium_purchase_requests")
         .select("*")
@@ -113,27 +114,26 @@ const PremiumShop = () => {
     return tier?.pointsPerMin || 5;
   };
 
-  const handleSubscriptionSelect = (plan: PremiumPlan) => {
+  const handlePlanSelect = (plan: PremiumPlan) => {
     if (!user) {
-      toast({ title: "Login Required", description: "Please login to purchase", variant: "destructive" });
+      toast({ title: t("loginRequired") || "Login Required", description: "Please login to purchase", variant: "destructive" });
       navigate("/auth/login");
       return;
     }
     setSelectedPlan(plan);
-    setSubscriptionDialogOpen(true);
+    setStep("method");
+    setPurchaseDialogOpen(true);
   };
 
-  const handleQuickBuySelect = (plan: PremiumPlan) => {
-    if (!user) {
-      toast({ title: "Login Required", description: "Please login to purchase", variant: "destructive" });
-      navigate("/auth/login");
-      return;
-    }
-    setSelectedPlan(plan);
-    setQuickBuyDialogOpen(true);
+  const copyPaymentNumber = async () => {
+    const number = PAYMENT_ACCOUNTS[paymentMethod].number;
+    await navigator.clipboard.writeText(number);
+    setCopiedNumber(true);
+    toast({ title: "Copied!", description: "Payment number copied to clipboard" });
+    setTimeout(() => setCopiedNumber(false), 2000);
   };
 
-  const handleSubmitPurchaseRequest = async (isSubscription: boolean) => {
+  const handleSubmitPurchaseRequest = async () => {
     if (!user || !selectedPlan || !phoneNumber.trim()) {
       toast({ title: "Missing Information", description: "Please enter your phone number", variant: "destructive" });
       return;
@@ -144,7 +144,6 @@ const PremiumShop = () => {
     try {
       const pointsPerMin = getPointsPerMinute(selectedPlan);
 
-      // Create purchase request with pending status
       const { error } = await supabase
         .from("premium_purchase_requests")
         .insert({
@@ -162,9 +161,9 @@ const PremiumShop = () => {
         description: "Your purchase request is pending admin approval. You'll receive the blue mark once approved.",
       });
 
-      setQuickBuyDialogOpen(false);
-      setSubscriptionDialogOpen(false);
+      setPurchaseDialogOpen(false);
       setSelectedPlan(null);
+      setStep("method");
       loadData();
     } catch (error: any) {
       console.error("Purchase request error:", error);
@@ -173,6 +172,12 @@ const PremiumShop = () => {
       setSubmitting(false);
     }
   };
+
+  const PREMIUM_BENEFITS = [
+    { icon: BadgeCheck, text: t("blueVerifiedMark") || "Blue Verified Mark" },
+    { icon: Edit3, text: t("customNameChange") || "Custom Name Change" },
+    { icon: Coins, text: t("earnPointsWhileChatting") || "Earn points while chatting" },
+  ];
 
   const subscriptionPlans = plans.filter((p) => p.plan_type === "subscription");
   const microPlans = plans.filter((p) => p.plan_type === "microtransaction");
@@ -189,7 +194,7 @@ const PremiumShop = () => {
             <div className="flex-1">
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <Crown className="h-5 w-5 text-amber-500" />
-                Premium Shop
+                {t("premiumShop") || "Premium Shop"}
               </h1>
               <p className="text-sm text-muted-foreground">Unlock exclusive features</p>
             </div>
@@ -210,7 +215,7 @@ const PremiumShop = () => {
                     <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
                   </div>
                   <div>
-                    <p className="font-semibold text-amber-600">Request Pending</p>
+                    <p className="font-semibold text-amber-600">{t("requestPending") || "Request Pending"}</p>
                     <p className="text-sm text-muted-foreground">
                       Your premium purchase is awaiting admin approval
                     </p>
@@ -225,7 +230,7 @@ const PremiumShop = () => {
             <CardContent className="p-4">
               <h3 className="font-semibold mb-3 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-amber-500" />
-                Premium Benefits
+                {t("premiumBenefits") || "Premium Benefits"}
               </h3>
               <div className="space-y-2">
                 {PREMIUM_BENEFITS.map((benefit, idx) => (
@@ -245,17 +250,17 @@ const PremiumShop = () => {
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="subscription" className="flex items-center gap-2">
                 <Crown className="h-4 w-4" />
-                Subscriptions
+                {t("subscriptions") || "Subscriptions"}
               </TabsTrigger>
               <TabsTrigger value="micro" className="flex items-center gap-2">
                 <Zap className="h-4 w-4" />
-                Quick Buy
+                {t("quickBuy") || "Quick Buy"}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="subscription" className="mt-4 space-y-3">
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <div className="text-center py-8 text-muted-foreground">{t("loading") || "Loading..."}</div>
               ) : subscriptionPlans.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <p>No subscription plans available yet</p>
@@ -272,7 +277,7 @@ const PremiumShop = () => {
                         plan.badge_text === "Popular" && "border-primary shadow-md",
                         plan.badge_text === "Best Value" && "border-green-500 shadow-md"
                       )}
-                      onClick={() => handleSubscriptionSelect(plan)}
+                      onClick={() => handlePlanSelect(plan)}
                     >
                       {plan.badge_text && (
                         <div className={cn(
@@ -302,16 +307,16 @@ const PremiumShop = () => {
                           <div className="flex items-center gap-2 mt-3 p-2 rounded-lg bg-green-500/10">
                             <Coins className="h-4 w-4 text-green-600" />
                             <span className="text-sm font-medium text-green-700">
-                              Earn {tier.pointsPerMin} points per minute of chatting
+                              {t("earnPoints") || "Earn"} {tier.pointsPerMin} {t("points") || "points"} {t("perMinute") || "per minute"}
                             </span>
                           </div>
                         )}
                         
                         <Button className="w-full mt-3" disabled={!!pendingRequest}>
-                          {pendingRequest ? "Request Pending" : (
+                          {pendingRequest ? (t("requestPending") || "Request Pending") : (
                             <>
                               <Check className="h-4 w-4 mr-2" />
-                              Select Plan
+                              {t("selectPlan") || "Select Plan"}
                             </>
                           )}
                         </Button>
@@ -324,7 +329,7 @@ const PremiumShop = () => {
 
             <TabsContent value="micro" className="mt-4 space-y-3">
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <div className="text-center py-8 text-muted-foreground">{t("loading") || "Loading..."}</div>
               ) : microPlans.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <p>No quick buy items available yet</p>
@@ -336,7 +341,7 @@ const PremiumShop = () => {
                     <Card 
                       key={plan.id} 
                       className="overflow-hidden hover:shadow-lg transition-all cursor-pointer"
-                      onClick={() => handleQuickBuySelect(plan)}
+                      onClick={() => handlePlanSelect(plan)}
                     >
                       <CardContent className="p-4 text-center">
                         <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-blue-500/10 flex items-center justify-center">
@@ -351,7 +356,7 @@ const PremiumShop = () => {
                           +0.01 pts/min while chatting
                         </p>
                         <Button size="sm" className="w-full" disabled={!!pendingRequest}>
-                          {pendingRequest ? "Pending" : "Buy"}
+                          {pendingRequest ? "Pending" : t("buyNow") || "Buy"}
                         </Button>
                       </CardContent>
                     </Card>
@@ -363,107 +368,156 @@ const PremiumShop = () => {
         </div>
       </div>
 
-      {/* Subscription Purchase Dialog */}
-      <Dialog open={subscriptionDialogOpen} onOpenChange={setSubscriptionDialogOpen}>
-        <DialogContent className="rounded-2xl">
+      {/* Purchase Dialog with Payment Flow */}
+      <Dialog open={purchaseDialogOpen} onOpenChange={setPurchaseDialogOpen}>
+        <DialogContent className="rounded-2xl max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-amber-500" />
-              Confirm Purchase
+              {step === "method" && <Wallet className="h-5 w-5 text-primary" />}
+              {step === "instructions" && <QrCode className="h-5 w-5 text-primary" />}
+              {step === "confirm" && <Crown className="h-5 w-5 text-amber-500" />}
+              {step === "method" && "Select Payment Method"}
+              {step === "instructions" && (t("paymentInstructions") || "Payment Instructions")}
+              {step === "confirm" && (t("confirmPurchase") || "Confirm Purchase")}
             </DialogTitle>
-            <DialogDescription>
-              {selectedPlan && (
-                <div className="mt-2 p-3 rounded-lg bg-muted/50">
+          </DialogHeader>
+
+          {/* Step 1: Select Payment Method */}
+          {step === "method" && selectedPlan && (
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-muted/50">
+                <p className="font-semibold">{selectedPlan.name}</p>
+                <p className="text-sm text-primary font-bold">{(selectedPlan.price_mmk || 0).toLocaleString()} Ks</p>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Choose payment method:</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setPaymentMethod("kpay")}
+                    className={cn(
+                      "p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2",
+                      paymentMethod === "kpay" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
+                      <span className="text-lg font-bold text-red-500">K</span>
+                    </div>
+                    <span className="font-medium">KPay</span>
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod("wavepay")}
+                    className={cn(
+                      "p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2",
+                      paymentMethod === "wavepay" 
+                        ? "border-primary bg-primary/5" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                      <span className="text-lg font-bold text-blue-500">W</span>
+                    </div>
+                    <span className="font-medium">WavePay</span>
+                  </button>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setPurchaseDialogOpen(false)}>
+                  {t("cancel") || "Cancel"}
+                </Button>
+                <Button onClick={() => setStep("instructions")}>
+                  Continue
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {/* Step 2: Payment Instructions */}
+          {step === "instructions" && selectedPlan && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+                <p className="text-sm text-muted-foreground mb-2">
+                  {paymentMethod === "kpay" 
+                    ? (t("kpayInstructions") || "Send payment to the following KPay number")
+                    : (t("wavepayInstructions") || "Send payment to the following WavePay number")}
+                </p>
+                
+                <div className="flex items-center justify-between p-3 bg-background rounded-lg mb-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">{t("paymentNumber") || "Payment Number"}</p>
+                    <p className="text-xl font-bold font-mono">{PAYMENT_ACCOUNTS[paymentMethod].number}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={copyPaymentNumber}>
+                    {copiedNumber ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+
+                <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                  <p className="text-sm font-medium text-amber-700">
+                    Amount: {(selectedPlan.price_mmk || 0).toLocaleString()} Ks
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-sm text-muted-foreground text-center">
+                {t("afterPayment") || "After sending payment, enter your phone number below"}
+              </p>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setStep("method")}>
+                  {t("back") || "Back"}
+                </Button>
+                <Button onClick={() => setStep("confirm")}>
+                  I've Sent Payment
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {/* Step 3: Confirm with Phone Number */}
+          {step === "confirm" && selectedPlan && (
+            <div className="space-y-4">
+              <DialogDescription>
+                <div className="p-3 rounded-lg bg-muted/50 mt-2">
                   <p className="font-semibold">{selectedPlan.name}</p>
                   <p className="text-sm">{(selectedPlan.price_mmk || 0).toLocaleString()} Ks</p>
                   <p className="text-xs text-green-600 mt-1">
-                    Earn {getPointsPerMinute(selectedPlan)} points per minute of chatting
+                    {t("earnPoints") || "Earn"} {getPointsPerMinute(selectedPlan)} {t("points") || "points"} {t("perMinute") || "per minute"}
                   </p>
                 </div>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number for Payment</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Enter your phone number"
-                  className="pl-10"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                We'll contact you on this number for payment
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSubscriptionDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => handleSubmitPurchaseRequest(true)} disabled={submitting}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Submit Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Quick Buy Purchase Dialog */}
-      <Dialog open={quickBuyDialogOpen} onOpenChange={setQuickBuyDialogOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-blue-500" />
-              Quick Buy
-            </DialogTitle>
-            <DialogDescription>
-              {selectedPlan && (
-                <div className="mt-2 p-3 rounded-lg bg-muted/50">
-                  <p className="font-semibold">{selectedPlan.name}</p>
-                  <p className="text-sm">{(selectedPlan.price_mmk || selectedPlan.price_points).toLocaleString()} Ks</p>
-                  <p className="text-xs text-green-600 mt-1">
-                    +0.01 points per minute of chatting
-                  </p>
+              </DialogDescription>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">{t("phoneForPayment") || "Phone Number for Payment"}</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="Enter your phone number"
+                    className="pl-10"
+                  />
                 </div>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="quickbuy-phone">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="quickbuy-phone"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Enter phone number for delivery"
-                  className="pl-10"
-                />
+                <p className="text-xs text-muted-foreground">
+                  We'll contact you on this number for verification
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                The item will be delivered to this number
-              </p>
-            </div>
-          </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setQuickBuyDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => handleSubmitPurchaseRequest(false)} disabled={submitting}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Submit Request
-            </Button>
-          </DialogFooter>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setStep("instructions")}>
+                  {t("back") || "Back"}
+                </Button>
+                <Button onClick={handleSubmitPurchaseRequest} disabled={submitting}>
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {t("submitRequest") || "Submit Request"}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </MobileLayout>

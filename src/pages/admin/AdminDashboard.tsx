@@ -797,10 +797,29 @@ const AdminDashboard = () => {
 
   if (!isAdmin) return null;
 
+  const [pendingPremiumRequests, setPendingPremiumRequests] = useState(0);
+
+  // Load pending premium requests count
+  useEffect(() => {
+    if (isAdmin) {
+      loadPendingPremiumRequests();
+    }
+  }, [isAdmin]);
+
+  const loadPendingPremiumRequests = async () => {
+    const { count } = await supabase
+      .from("premium_purchase_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+    
+    setPendingPremiumRequests(count || 0);
+  };
+
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
     { id: "users", label: "Users", icon: Users, badge: 0 },
     { id: "premium-users", label: "Premium Users", icon: Crown, badge: 0, route: "/admin/premium-users" },
+    { id: "premium-requests", label: "Premium Requests", icon: Crown, badge: pendingPremiumRequests, route: "/admin/premium-requests" },
     { id: "point-management", label: "Point Management", icon: Coins, badge: 0 },
     { id: "point-history", label: "Point History", icon: History, badge: 0 },
     { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
