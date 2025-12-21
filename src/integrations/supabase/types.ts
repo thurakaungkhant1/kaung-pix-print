@@ -431,6 +431,7 @@ export type Database = {
           expires_at: string
           id: string
           is_active: boolean
+          points_per_minute: number
           started_at: string
           total_chat_points_earned: number
           updated_at: string
@@ -441,6 +442,7 @@ export type Database = {
           expires_at: string
           id?: string
           is_active?: boolean
+          points_per_minute?: number
           started_at?: string
           total_chat_points_earned?: number
           updated_at?: string
@@ -451,6 +453,7 @@ export type Database = {
           expires_at?: string
           id?: string
           is_active?: boolean
+          points_per_minute?: number
           started_at?: string
           total_chat_points_earned?: number
           updated_at?: string
@@ -499,6 +502,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      premium_purchase_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          phone_number: string
+          plan_id: string | null
+          points_per_minute: number
+          rejected_at: string | null
+          rejection_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          phone_number: string
+          plan_id?: string | null
+          points_per_minute?: number
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          phone_number?: string
+          plan_id?: string | null
+          points_per_minute?: number
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_purchase_requests_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "premium_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_reviews: {
         Row: {

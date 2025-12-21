@@ -10,13 +10,22 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
   User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, 
   Lock, Coins, Gift, Trophy, ChevronRight, Sparkles, Camera, Loader2, 
-  Trash2, Crown, Bell, Globe, CreditCard, Settings, History, AlertTriangle
+  Trash2, Crown, Bell, Globe, CreditCard, Settings, History, AlertTriangle,
+  Check, X, Pencil
 } from "lucide-react";
 import AccountQualityBadge from "@/components/AccountQualityBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import SpinnerWheel from "@/components/SpinnerWheel";
@@ -67,6 +76,18 @@ const Account = () => {
   const [spinnerOpen, setSpinnerOpen] = useState(false);
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
   
+  // Inline editing states
+  const [editingName, setEditingName] = useState(false);
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  
+  // Notification preferences
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(true);
+  const [smsNotifications, setSmsNotifications] = useState(false);
+  
   // Avatar upload states
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -80,6 +101,7 @@ const Account = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { isPremium, getDaysRemaining } = usePremiumMembership();
+  const { language, setLanguage } = useLanguage();
   
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -119,6 +141,8 @@ const Account = () => {
 
     if (data) {
       setProfile(data);
+      setEditName(data.name);
+      setEditPhone(data.phone_number);
     }
   };
 
@@ -133,6 +157,60 @@ const Account = () => {
       .maybeSingle();
 
     setIsAdmin(!!data);
+  };
+
+  const handleSaveName = async () => {
+    if (!user || !editName.trim()) return;
+    
+    // Check if user is premium to allow name change
+    if (!isPremium) {
+      toast({
+        title: "Premium Required",
+        description: "Only premium members can change their name",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ name: editName.trim() })
+        .eq("id", user.id);
+      
+      if (error) throw error;
+      
+      toast({ title: "Name updated successfully" });
+      setEditingName(false);
+      loadProfile();
+    } catch (error: any) {
+      toast({ title: "Failed to update name", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleSavePhone = async () => {
+    if (!user || !editPhone.trim()) return;
+    
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ phone_number: editPhone.trim() })
+        .eq("id", user.id);
+      
+      if (error) throw error;
+      
+      toast({ title: "Phone number updated successfully" });
+      setEditingPhone(false);
+      loadProfile();
+    } catch (error: any) {
+      toast({ title: "Failed to update phone", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -363,6 +441,88 @@ const Account = () => {
     </button>
   );
 
+  // Editable field component
+  const EditableField = ({
+    icon: Icon,
+    label,
+    value,
+    editValue,
+    setEditValue,
+    isEditing,
+    setIsEditing,
+    onSave,
+    disabled = false,
+    disabledMessage
+  }: {
+    icon: React.ElementType;
+    label: string;
+    value: string;
+    editValue: string;
+    setEditValue: (v: string) => void;
+    isEditing: boolean;
+    setIsEditing: (v: boolean) => void;
+    onSave: () => void;
+    disabled?: boolean;
+    disabledMessage?: string;
+  }) => (
+    <div className="w-full flex items-center gap-4 p-4 rounded-2xl">
+      <div className="p-2.5 rounded-xl bg-muted">
+        <Icon className="h-5 w-5 text-muted-foreground" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        {isEditing ? (
+          <div className="flex items-center gap-2 mt-1">
+            <Input
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="h-9 rounded-xl"
+              autoFocus
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9"
+              onClick={onSave}
+              disabled={savingProfile}
+            >
+              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-green-500" />}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9"
+              onClick={() => {
+                setIsEditing(false);
+                setEditValue(value);
+              }}
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </div>
+        ) : (
+          <p className="font-medium">{value || "Not set"}</p>
+        )}
+      </div>
+      {!isEditing && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-9 w-9"
+          onClick={() => {
+            if (disabled) {
+              toast({ title: disabledMessage || "Action not allowed", variant: "destructive" });
+              return;
+            }
+            setIsEditing(true);
+          }}
+        >
+          <Pencil className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <MobileLayout className="pb-24">
       {/* Profile Header - Sleek & Minimal */}
@@ -494,18 +654,28 @@ const Account = () => {
           <TabsContent value="profile" className="mt-4 space-y-4 animate-fade-in">
             <Card className="rounded-2xl border-border/50 shadow-sm">
               <CardContent className="p-2">
-                <SettingItem 
+                <EditableField
                   icon={User}
                   label="Name"
-                  description={profile?.name || "Not set"}
-                  onClick={() => {}}
+                  value={profile?.name || ""}
+                  editValue={editName}
+                  setEditValue={setEditName}
+                  isEditing={editingName}
+                  setIsEditing={setEditingName}
+                  onSave={handleSaveName}
+                  disabled={!isPremium}
+                  disabledMessage="Only premium members can change their name"
                 />
                 <Separator className="my-1" />
-                <SettingItem 
+                <EditableField
                   icon={Phone}
                   label="Phone Number"
-                  description={profile?.phone_number || "Not set"}
-                  onClick={() => {}}
+                  value={profile?.phone_number || ""}
+                  editValue={editPhone}
+                  setEditValue={setEditPhone}
+                  isEditing={editingPhone}
+                  setIsEditing={setEditingPhone}
+                  onSave={handleSavePhone}
                 />
                 <Separator className="my-1" />
                 <SettingItem 
@@ -513,6 +683,7 @@ const Account = () => {
                   label="Email"
                   description={user?.email || "Not set"}
                   onClick={() => {}}
+                  rightElement={<></>}
                 />
               </CardContent>
             </Card>
@@ -686,6 +857,32 @@ const Account = () => {
 
           {/* Preferences Tab */}
           <TabsContent value="preferences" className="mt-4 space-y-4 animate-fade-in">
+            {/* Language Selector */}
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-muted">
+                      <Globe className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Language</p>
+                      <p className="text-sm text-muted-foreground">Select your preferred language</p>
+                    </div>
+                  </div>
+                  <Select value={language} onValueChange={(value: "en" | "my") => setLanguage(value)}>
+                    <SelectTrigger className="w-32 h-10 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border rounded-xl">
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="my">မြန်မာ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Theme Toggle */}
             <Card className="rounded-2xl border-border/50 shadow-sm">
               <CardContent className="p-4">
@@ -709,6 +906,67 @@ const Account = () => {
                     checked={theme === "dark"}
                     onCheckedChange={toggleTheme}
                   />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Notification Preferences */}
+            <Card className="rounded-2xl border-border/50 shadow-sm">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 rounded-xl bg-muted">
+                    <Bell className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Notifications</p>
+                    <p className="text-sm text-muted-foreground">Manage how you receive notifications</p>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Email Notifications</p>
+                        <p className="text-xs text-muted-foreground">Receive updates via email</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={emailNotifications}
+                      onCheckedChange={setEmailNotifications}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-3">
+                      <Bell className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Push Notifications</p>
+                        <p className="text-xs text-muted-foreground">Get instant alerts</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={pushNotifications}
+                      onCheckedChange={setPushNotifications}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-3">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">SMS Notifications</p>
+                        <p className="text-xs text-muted-foreground">Receive text messages</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={smsNotifications}
+                      onCheckedChange={setSmsNotifications}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
