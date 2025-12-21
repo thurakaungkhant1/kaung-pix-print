@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import PointsDisplay from "@/components/PointsDisplay";
 import CheckoutDialog from "@/components/CheckoutDialog";
+import MobileLayout from "@/components/MobileLayout";
 
 interface CartItem {
   id: string;
@@ -123,20 +124,22 @@ const Cart = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center space-y-4">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-muted-foreground font-medium animate-pulse">Loading your cart...</p>
+      <MobileLayout>
+        <div className="min-h-screen bg-background pb-20">
+          <div className="flex items-center justify-center h-screen">
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-muted-foreground font-medium animate-pulse">Loading your cart...</p>
+            </div>
           </div>
+          <BottomNav />
         </div>
-        <BottomNav />
-      </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
+    <MobileLayout>
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-4">
           <button 
@@ -322,7 +325,7 @@ const Cart = () => {
           onSuccess={handleCheckoutSuccess}
         />
       )}
-    </div>
+    </MobileLayout>
   );
 };
 

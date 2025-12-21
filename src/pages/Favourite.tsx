@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 import { Button } from "@/components/ui/button";
+import MobileLayout from "@/components/MobileLayout";
 
 interface Product {
   id: number;
@@ -97,7 +98,8 @@ const Favourite = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
+    <MobileLayout>
+      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex-1" />
@@ -216,7 +218,8 @@ const Favourite = () => {
       </div>
 
       <BottomNav />
-    </div>
+      </div>
+    </MobileLayout>
   );
 };
 

@@ -458,6 +458,48 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_plans: {
+        Row: {
+          badge_text: string | null
+          created_at: string
+          description: string | null
+          duration_months: number
+          id: string
+          is_active: boolean
+          name: string
+          plan_type: string
+          price_mmk: number | null
+          price_points: number
+          updated_at: string
+        }
+        Insert: {
+          badge_text?: string | null
+          created_at?: string
+          description?: string | null
+          duration_months: number
+          id?: string
+          is_active?: boolean
+          name: string
+          plan_type?: string
+          price_mmk?: number | null
+          price_points: number
+          updated_at?: string
+        }
+        Update: {
+          badge_text?: string | null
+          created_at?: string
+          description?: string | null
+          duration_months?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          plan_type?: string
+          price_mmk?: number | null
+          price_points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_reviews: {
         Row: {
           comment: string

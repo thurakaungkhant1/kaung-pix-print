@@ -9,6 +9,7 @@ import { ArrowLeft, Lock, Coins, CheckCircle, Gift, Sparkles, TrendingUp } from 
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import PointsDisplay from "@/components/PointsDisplay";
+import MobileLayout from "@/components/MobileLayout";
 
 interface WithdrawalItem {
   id: number;
@@ -211,17 +212,20 @@ const Exchange = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground font-medium animate-pulse">Loading exchange options...</p>
+      <MobileLayout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-muted-foreground font-medium animate-pulse">Loading exchange options...</p>
+          </div>
         </div>
-      </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
+    <MobileLayout>
+      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
       {/* Hero Header */}
       <div className="bg-gradient-primary text-primary-foreground p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50" />
@@ -409,7 +413,8 @@ const Exchange = () => {
       </div>
 
       <BottomNav />
-    </div>
+      </div>
+    </MobileLayout>
   );
 };
 
