@@ -7,11 +7,11 @@ interface MobileLayoutProps {
 
 const MobileLayout = ({ children, className }: MobileLayoutProps) => {
   return (
-    <div className="min-h-screen bg-muted/30 flex justify-center">
+    <div className="min-h-screen bg-muted/30 flex justify-center items-start">
       <div
         className={cn(
-          "w-full max-w-[430px] min-h-screen bg-background relative",
-          "md:shadow-2xl md:border-x md:border-border/50",
+          "w-full max-w-[480px] min-h-screen bg-background relative",
+          "md:shadow-2xl md:border-x md:border-border/50 md:my-0",
           className
         )}
       >

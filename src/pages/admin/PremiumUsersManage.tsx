@@ -11,17 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import MobileLayout from "@/components/MobileLayout";
+import GrantPremiumDialog from "@/components/GrantPremiumDialog";
 
 interface PremiumUser {
   id: string;
@@ -43,6 +33,7 @@ const PremiumUsersManage = () => {
   const [premiumUsers, setPremiumUsers] = useState<PremiumUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [grantDialogOpen, setGrantDialogOpen] = useState(false);
   const { isAdmin } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -151,6 +142,30 @@ const PremiumUsersManage = () => {
     }
   };
 
+  const revokeMembership = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("premium_memberships")
+        .update({ is_active: false, expires_at: new Date().toISOString() })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Premium membership revoked",
+      });
+      loadPremiumUsers();
+    } catch (error) {
+      console.error("Error revoking membership:", error);
+      toast({
+        title: "Error",
+        description: "Failed to revoke membership",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredUsers = premiumUsers.filter((u) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -186,6 +201,10 @@ const PremiumUsersManage = () => {
           </div>
           <Button variant="outline" size="icon" onClick={loadPremiumUsers}>
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+          </Button>
+          <Button onClick={() => setGrantDialogOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Grant Premium
           </Button>
         </div>
       </header>
@@ -337,7 +356,7 @@ const PremiumUsersManage = () => {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -352,6 +371,15 @@ const PremiumUsersManage = () => {
                               >
                                 +1 Month
                               </Button>
+                              {isActive && (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => revokeMembership(user.user_id)}
+                                >
+                                  Revoke
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -364,6 +392,12 @@ const PremiumUsersManage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <GrantPremiumDialog
+        open={grantDialogOpen}
+        onOpenChange={setGrantDialogOpen}
+        onSuccess={loadPremiumUsers}
+      />
     </div>
   );
 };

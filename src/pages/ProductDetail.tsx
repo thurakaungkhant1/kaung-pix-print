@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import CheckoutDialog from "@/components/CheckoutDialog";
 import ReviewSection from "@/components/ReviewSection";
+import { cn } from "@/lib/utils";
 
 interface Product {
   id: number;
@@ -17,6 +18,9 @@ interface Product {
   image_url: string;
   description: string | null;
   points_value: number;
+  image_url_2?: string;
+  image_url_3?: string;
+  image_url_4?: string;
 }
 
 const ProductDetail = () => {
@@ -27,6 +31,7 @@ const ProductDetail = () => {
   const [isFavourite, setIsFavourite] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string>("");
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -49,8 +54,18 @@ const ProductDetail = () => {
 
     if (!error && data) {
       setProduct(data);
+      setSelectedImage(data.image_url);
     }
     setLoading(false);
+  };
+
+  const getProductImages = () => {
+    if (!product) return [];
+    const images = [product.image_url];
+    if (product.image_url_2) images.push(product.image_url_2);
+    if (product.image_url_3) images.push(product.image_url_3);
+    if (product.image_url_4) images.push(product.image_url_4);
+    return images.slice(0, 4);
   };
 
   const checkFavourite = async () => {
@@ -209,14 +224,39 @@ const ProductDetail = () => {
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-6">
         <Card className="overflow-hidden shadow-xl border-0 animate-fade-in">
+          {/* Main Image */}
           <div className="aspect-square bg-muted relative group">
             <img
-              src={product.image_url}
+              src={selectedImage || product.image_url}
               alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent pointer-events-none" />
           </div>
+          
+          {/* Thumbnail Gallery */}
+          {getProductImages().length > 1 && (
+            <div className="p-3 flex gap-2 overflow-x-auto">
+              {getProductImages().map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImage(img)}
+                  className={cn(
+                    "w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0",
+                    selectedImage === img 
+                      ? "border-primary shadow-lg" 
+                      : "border-transparent hover:border-primary/50"
+                  )}
+                >
+                  <img
+                    src={img}
+                    alt={`${product.name} ${idx + 1}`}
+                    className="w-full h-full object-contain bg-muted"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
           <CardHeader className="pb-2">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
