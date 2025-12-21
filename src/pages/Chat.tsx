@@ -14,6 +14,7 @@ import MessageBubble from "@/components/MessageBubble";
 import TypingIndicator from "@/components/TypingIndicator";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import { cn } from "@/lib/utils";
+import MobileLayout from "@/components/MobileLayout";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 import { useSoundNotification } from "@/hooks/useSoundNotification";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
@@ -820,7 +821,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-chat-cream chat-bg-pattern flex flex-col">
+    <MobileLayout className="bg-chat-cream chat-bg-pattern flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-chat-pink/20 p-4 shadow-sm">
         <div className="flex items-center justify-between">
@@ -1279,7 +1280,7 @@ const Chat = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </MobileLayout>
   );
 };
 

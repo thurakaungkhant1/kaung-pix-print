@@ -11,6 +11,7 @@ import OnlineStatus from "@/components/OnlineStatus";
 import FriendRequestInbox from "@/components/FriendRequestInbox";
 import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
+import MobileLayout from "@/components/MobileLayout";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 
 interface Conversation {
@@ -212,7 +213,7 @@ const ChatList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <MobileLayout className="pb-24">
       {/* Header - hides on scroll */}
       <header className={cn(
         "sticky top-0 z-40 bg-gradient-primary text-primary-foreground p-4 shadow-lg transition-all duration-300",
@@ -357,7 +358,7 @@ const ChatList = () => {
       </div>
 
       <BottomNav />
-    </div>
+    </MobileLayout>
   );
 };
 

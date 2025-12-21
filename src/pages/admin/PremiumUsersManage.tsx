@@ -12,6 +12,7 @@ import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import GrantPremiumDialog from "@/components/GrantPremiumDialog";
+import MobileLayout from "@/components/MobileLayout";
 
 interface PremiumUser {
   id: string;
@@ -186,7 +187,7 @@ const PremiumUsersManage = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <MobileLayout className="pb-8">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="flex items-center gap-4 p-4">
@@ -398,7 +399,7 @@ const PremiumUsersManage = () => {
         onOpenChange={setGrantDialogOpen}
         onSuccess={loadPremiumUsers}
       />
-    </div>
+    </MobileLayout>
   );
 };
 

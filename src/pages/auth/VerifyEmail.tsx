@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, RefreshCw, CheckCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import MobileLayout from "@/components/MobileLayout";
 
 const VerifyEmail = () => {
   const [loading, setLoading] = useState(false);
@@ -88,7 +89,7 @@ const VerifyEmail = () => {
 
   if (isVerified) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
         <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
@@ -124,12 +125,12 @@ const VerifyEmail = () => {
             </Button>
           </CardFooter>
         </Card>
-      </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
       <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
@@ -217,7 +218,7 @@ const VerifyEmail = () => {
           </div>
         </CardFooter>
       </Card>
-    </div>
+    </MobileLayout>
   );
 };
 

@@ -10,6 +10,7 @@ import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, Check
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import MobileLayout from "@/components/MobileLayout";
 import {
   Select,
   SelectContent,
@@ -336,7 +337,7 @@ const OrdersManage = () => {
   const pendingCount = filteredOrders.filter(o => o.status === "pending").length;
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <MobileLayout className="pb-8">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate("/admin")}>
@@ -753,7 +754,7 @@ const OrdersManage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </MobileLayout>
   );
 };
 
