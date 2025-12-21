@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle, Mail, Eye, EyeOff, ShoppingCart, Camera } from "lucide-react";
+import MobileLayout from "@/components/MobileLayout";
 
 const Signup = () => {
   const [searchParams] = useSearchParams();
@@ -225,7 +226,7 @@ const Signup = () => {
   const passwordStrength = getPasswordStrength();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-primary/5 p-4">
+    <MobileLayout className="flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-primary/5 p-4">
       {/* Background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
@@ -463,7 +464,7 @@ const Signup = () => {
           </CardFooter>
         </form>
       </Card>
-    </div>
+    </MobileLayout>
   );
 };
 

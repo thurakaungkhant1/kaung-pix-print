@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Bot, User, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import MobileLayout from "@/components/MobileLayout";
 
 interface Message {
   role: "user" | "assistant";
@@ -67,7 +68,7 @@ const AIChat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 flex flex-col">
+    <MobileLayout className="bg-gradient-to-b from-background via-background to-muted/30 flex flex-col">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-4">
           <button 
@@ -162,7 +163,7 @@ const AIChat = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </MobileLayout>
   );
 };
 

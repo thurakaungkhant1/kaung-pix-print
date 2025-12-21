@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import VerificationBadge from "@/components/VerificationBadge";
 import { cn } from "@/lib/utils";
+import MobileLayout from "@/components/MobileLayout";
 
 interface UserProfile {
   id: string;
@@ -78,7 +79,7 @@ const ExploreUsers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <MobileLayout className="pb-24">
       {/* Header */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-hero" />
@@ -174,7 +175,7 @@ const ExploreUsers = () => {
       </div>
 
       <BottomNav />
-    </div>
+    </MobileLayout>
   );
 };
 

@@ -23,6 +23,7 @@ import { ImageCropper } from "@/components/ImageCropper";
 import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import PremiumFeaturesDialog from "@/components/PremiumFeaturesDialog";
 import PremiumBadge from "@/components/PremiumBadge";
+import MobileLayout from "@/components/MobileLayout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -326,7 +327,7 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <MobileLayout className="pb-24">
       {/* Hero Header */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-hero" />
@@ -456,6 +457,30 @@ const Account = () => {
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+          </CardContent>
+        </Card>
+
+        {/* Premium Shop Link */}
+        <Card 
+          className={cn(
+            "cursor-pointer group animate-slide-up overflow-hidden",
+            "border-primary/20 hover:border-primary/40",
+            "bg-gradient-to-br from-primary/5 via-primary/2 to-transparent"
+          )}
+          style={{ animationDelay: "35ms" }}
+          onClick={() => navigate("/premium-shop")}
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/15 group-hover:bg-primary/20 transition-colors">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Premium Shop</h3>
+                <p className="text-sm text-muted-foreground">Buy premium with points or cash</p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </CardContent>
         </Card>
 
@@ -819,7 +844,7 @@ const Account = () => {
       <PremiumFeaturesDialog open={premiumDialogOpen} onOpenChange={setPremiumDialogOpen} />
 
       <BottomNav />
-    </div>
+    </MobileLayout>
   );
 };
 

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Lock, CheckCircle, ShieldCheck, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import MobileLayout from "@/components/MobileLayout";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -108,16 +109,16 @@ const ResetPassword = () => {
   // Loading state
   if (isValidSession === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <MobileLayout className="flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      </MobileLayout>
     );
   }
 
   // Invalid or expired link
   if (!isValidSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
         
         <Card className={cn(
@@ -157,12 +158,12 @@ const ResetPassword = () => {
             </button>
           </CardFooter>
         </Card>
-      </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
       <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
@@ -281,7 +282,7 @@ const ResetPassword = () => {
           </CardFooter>
         </form>
       </Card>
-    </div>
+    </MobileLayout>
   );
 };
 
