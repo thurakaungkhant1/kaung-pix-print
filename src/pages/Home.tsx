@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, ShoppingCart, Gem, Search, ChevronRight, Crown } from "lucide-react";
+import { Heart, ShoppingCart, Gem, Search, ChevronRight, Crown, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import OnboardingFlow from "@/components/OnboardingFlow";
+import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 
 interface Product {
   id: number;
@@ -105,6 +106,7 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { user } = useAuth();
+  const { isPremium } = useUserPremiumStatus(user?.id);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -320,71 +322,92 @@ const Home = () => {
                 {/* Products carousel */}
                 <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
                   <div className="flex gap-3 pb-2">
-                    {filteredProducts.slice(0, 6).map((product, productIndex) => (
-                      <Card
-                        key={product.id}
-                        className={cn(
-                          "product-card flex-shrink-0 w-36 cursor-pointer",
-                          "animate-scale-in"
-                        )}
-                        style={{ animationDelay: `${productIndex * 50}ms` }}
-                        onClick={() => navigate(`/product/${product.id}`)}
-                      >
-                        <div className="relative aspect-square bg-muted overflow-hidden rounded-t-xl">
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-full h-full object-contain p-2"
-                          />
-                          
-                          {/* Premium/Free Badge */}
-                          {product.is_premium ? (
-                            <Badge className="absolute top-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-[9px] px-1.5 py-0.5">
-                              <Crown className="h-2.5 w-2.5 mr-0.5" />
-                              Premium
-                            </Badge>
-                          ) : (
-                            <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-600 text-white text-[9px] px-1.5 py-0.5">
-                              Free
-                            </Badge>
+                    {filteredProducts.slice(0, 6).map((product, productIndex) => {
+                      const isLocked = product.is_premium && !isPremium;
+                      
+                      return (
+                        <Card
+                          key={product.id}
+                          className={cn(
+                            "product-card flex-shrink-0 w-36 cursor-pointer relative",
+                            "animate-scale-in"
                           )}
-                          
-                          {/* Favourite button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavourite(product.id);
-                            }}
-                            className={cn(
-                              "absolute top-2 right-2 p-1.5 rounded-full",
-                              "glass border-0 transition-all duration-300",
-                              "hover:scale-110 active:scale-95",
-                              favourites.has(product.id) 
-                                ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
-                                : "bg-background/80 text-muted-foreground hover:bg-background"
-                            )}
-                          >
-                            <Heart
+                          style={{ animationDelay: `${productIndex * 50}ms` }}
+                          onClick={() => navigate(`/product/${product.id}`)}
+                        >
+                          <div className="relative aspect-square bg-muted overflow-hidden rounded-t-xl">
+                            <img
+                              src={product.image_url}
+                              alt={product.name}
                               className={cn(
-                                "h-3.5 w-3.5 transition-all duration-300",
-                                favourites.has(product.id) && "fill-current text-white"
+                                "w-full h-full object-contain p-2 transition-all duration-300",
+                                isLocked && "blur-[2px] opacity-70"
                               )}
                             />
-                          </button>
+                            
+                            {/* Premium Lock Overlay */}
+                            {isLocked && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-background/40 backdrop-blur-[1px]">
+                                <div className="flex flex-col items-center gap-1 text-center p-2">
+                                  <div className="p-2 rounded-full bg-amber-500/20 backdrop-blur-sm">
+                                    <Lock className="h-5 w-5 text-amber-500" />
+                                  </div>
+                                  <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                                    Premium Only
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Premium/Free Badge */}
+                            {product.is_premium ? (
+                              <Badge className="absolute top-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-[9px] px-1.5 py-0.5">
+                                <Crown className="h-2.5 w-2.5 mr-0.5" />
+                                Premium
+                              </Badge>
+                            ) : (
+                              <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-600 text-white text-[9px] px-1.5 py-0.5">
+                                Free
+                              </Badge>
+                            )}
+                            
+                            {/* Favourite button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavourite(product.id);
+                              }}
+                              className={cn(
+                                "absolute top-2 right-2 p-1.5 rounded-full z-10",
+                                "glass border-0 transition-all duration-300",
+                                "hover:scale-110 active:scale-95",
+                                favourites.has(product.id) 
+                                  ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
+                                  : "bg-background/80 text-muted-foreground hover:bg-background"
+                              )}
+                            >
+                              <Heart
+                                className={cn(
+                                  "h-3.5 w-3.5 transition-all duration-300",
+                                  favourites.has(product.id) && "fill-current text-white"
+                                )}
+                              />
+                            </button>
+                            
+                            {/* Gradient overlay */}
+                            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
+                          </div>
                           
-                          {/* Gradient overlay */}
-                          <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
-                        </div>
-                        
-                        <CardContent className="p-2 space-y-0.5">
-                          <h3 className="font-semibold text-xs truncate">{product.name}</h3>
-                          <p className="text-primary font-bold text-sm">
-                            {product.price.toLocaleString()} 
-                            <span className="text-[10px] font-medium ml-0.5 text-muted-foreground">MMK</span>
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          <CardContent className="p-2 space-y-0.5">
+                            <h3 className="font-semibold text-xs truncate">{product.name}</h3>
+                            <p className="text-primary font-bold text-sm">
+                              {product.price.toLocaleString()} 
+                              <span className="text-[10px] font-medium ml-0.5 text-muted-foreground">MMK</span>
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
               </section>
