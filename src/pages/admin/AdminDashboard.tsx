@@ -795,8 +795,7 @@ const AdminDashboard = () => {
     );
   });
 
-  if (!isAdmin) return null;
-
+  // Premium requests state - must be declared before any early returns
   const [pendingPremiumRequests, setPendingPremiumRequests] = useState(0);
 
   // Load pending premium requests count
@@ -814,6 +813,8 @@ const AdminDashboard = () => {
     
     setPendingPremiumRequests(count || 0);
   };
+
+  if (!isAdmin) return null;
 
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
