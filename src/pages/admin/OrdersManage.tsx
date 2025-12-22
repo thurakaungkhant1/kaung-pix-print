@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, CheckSquare, Square, Check, XCircle, Search, Filter, Calendar } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, CheckSquare, Square, Check, XCircle, Search, Filter, Calendar, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -593,6 +593,20 @@ const OrdersManage = () => {
                         <Badge variant="outline" className="font-mono text-sm bg-amber-500/10 text-amber-600 border-amber-500/30">
                           {order.transaction_id}
                         </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => {
+                            navigator.clipboard.writeText(order.transaction_id!);
+                            toast({
+                              title: "Copied!",
+                              description: `Transaction ID ${order.transaction_id} copied to clipboard`,
+                            });
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
                       </p>
                     )}
                     
