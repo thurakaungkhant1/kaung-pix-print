@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, ReactNode, useCallback, u
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 interface GlobalMessageNotificationContextType {
   isEnabled: boolean;
@@ -13,16 +14,25 @@ const GlobalMessageNotificationContext = createContext<GlobalMessageNotification
 const SOUND_ENABLED_KEY = "chat_sound_notifications_enabled";
 const NOTIFICATION_SOUND = "/sounds/message.mp3";
 
+// Cache for sender names to avoid repeated lookups
+const senderNameCache = new Map<string, string>();
+
 export const GlobalMessageNotificationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const location = useLocation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const subscribedConversationsRef = useRef<Set<string>>(new Set());
   const channelsRef = useRef<ReturnType<typeof supabase.channel>[]>([]);
+  const { notifyNewMessage, requestPermission } = usePushNotifications();
   const [isEnabled, setIsEnabled] = useState(() => {
     const stored = localStorage.getItem(SOUND_ENABLED_KEY);
     return stored === null ? true : stored === "true";
   });
+
+  // Request notification permission on mount
+  useEffect(() => {
+    requestPermission();
+  }, [requestPermission]);
 
   // Initialize audio element
   useEffect(() => {
@@ -39,6 +49,22 @@ export const GlobalMessageNotificationProvider = ({ children }: { children: Reac
     localStorage.setItem(SOUND_ENABLED_KEY, String(isEnabled));
   }, [isEnabled]);
 
+  const getSenderName = async (senderId: string): Promise<string> => {
+    if (senderNameCache.has(senderId)) {
+      return senderNameCache.get(senderId)!;
+    }
+    
+    const { data } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", senderId)
+      .single();
+    
+    const name = data?.name || "Someone";
+    senderNameCache.set(senderId, name);
+    return name;
+  };
+
   const playNotificationSound = useCallback(() => {
     if (!isEnabled || !audioRef.current) return;
     
@@ -54,6 +80,18 @@ export const GlobalMessageNotificationProvider = ({ children }: { children: Reac
       console.error("Error playing notification sound:", error);
     }
   }, [isEnabled, location.pathname]);
+
+  const handleNewMessage = useCallback(async (senderId: string, content?: string) => {
+    // Don't notify if on chat page
+    if (location.pathname.startsWith("/chat/")) return;
+    
+    playNotificationSound();
+    
+    // Get sender name and show push notification
+    const senderName = await getSenderName(senderId);
+    const preview = content && content.length > 50 ? content.substring(0, 50) + "..." : content;
+    notifyNewMessage(senderName, preview);
+  }, [location.pathname, playNotificationSound, notifyNewMessage]);
 
   // Subscribe to all user's conversations for new messages
   useEffect(() => {
@@ -89,10 +127,10 @@ export const GlobalMessageNotificationProvider = ({ children }: { children: Reac
               filter: `conversation_id=eq.${conv.id}`,
             },
             (payload) => {
-              const newMessage = payload.new as { sender_id: string };
-              // Only play sound for messages from others
+              const newMessage = payload.new as { sender_id: string; content?: string };
+              // Only notify for messages from others
               if (newMessage.sender_id !== user.id) {
-                playNotificationSound();
+                handleNewMessage(newMessage.sender_id, newMessage.content);
               }
             }
           )
@@ -132,9 +170,9 @@ export const GlobalMessageNotificationProvider = ({ children }: { children: Reac
                     filter: `conversation_id=eq.${newConv.id}`,
                   },
                   (payload) => {
-                    const newMessage = payload.new as { sender_id: string };
+                    const newMessage = payload.new as { sender_id: string; content?: string };
                     if (newMessage.sender_id !== user.id) {
-                      playNotificationSound();
+                      handleNewMessage(newMessage.sender_id, newMessage.content);
                     }
                   }
                 )
@@ -156,7 +194,7 @@ export const GlobalMessageNotificationProvider = ({ children }: { children: Reac
       channelsRef.current = [];
       subscribedConversationsRef.current.clear();
     };
-  }, [user, playNotificationSound]);
+  }, [user, handleNewMessage]);
 
   return (
     <GlobalMessageNotificationContext.Provider value={{ isEnabled, setIsEnabled }}>

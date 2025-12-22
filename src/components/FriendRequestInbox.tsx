@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { useFriendRequests } from "@/hooks/useFriendRequests";
 import { useSoundNotification } from "@/hooks/useSoundNotification";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import VerificationBadge from "@/components/VerificationBadge";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,16 +21,31 @@ const FriendRequestInbox = () => {
   const { pendingRequests, acceptRequest, rejectRequest, loading, refresh } =
     useFriendRequests();
   const { playFriendRequestSound } = useSoundNotification();
+  const { notifyFriendRequest, requestPermission } = usePushNotifications();
   const { user } = useAuth();
   const prevCountRef = useRef(pendingRequests.length);
+  const lastNotifiedRef = useRef<Set<string>>(new Set());
 
-  // Play sound when new requests arrive
+  // Request notification permission on mount
+  useEffect(() => {
+    requestPermission();
+  }, [requestPermission]);
+
+  // Play sound and show notification when new requests arrive
   useEffect(() => {
     if (pendingRequests.length > prevCountRef.current) {
       playFriendRequestSound();
+      
+      // Find and notify for new requests
+      pendingRequests.forEach((req) => {
+        if (!lastNotifiedRef.current.has(req.id)) {
+          notifyFriendRequest(req.sender?.name || "Someone");
+          lastNotifiedRef.current.add(req.id);
+        }
+      });
     }
     prevCountRef.current = pendingRequests.length;
-  }, [pendingRequests.length, playFriendRequestSound]);
+  }, [pendingRequests, playFriendRequestSound, notifyFriendRequest]);
 
   // Subscribe to realtime updates for friend requests
   useEffect(() => {
