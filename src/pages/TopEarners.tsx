@@ -8,11 +8,13 @@ import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
 import { getRelativeTimeString } from "@/lib/timeUtils";
 import VerificationBadge from "@/components/VerificationBadge";
 import BottomNav from "@/components/BottomNav";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface LeaderboardUser {
   id: string;
   name: string;
   points: number;
+  avatar_url: string | null;
 }
 
 const TopEarners = () => {
@@ -34,10 +36,11 @@ const TopEarners = () => {
   }, []);
 
   const loadLeaderboard = async () => {
-    // Use the secure leaderboard view that only exposes safe fields (no PII)
+    // Fetch profiles with avatar for the leaderboard
     const { data } = await supabase
-      .from("leaderboard")
-      .select("id, name, points")
+      .from("profiles")
+      .select("id, name, points, avatar_url")
+      .order("points", { ascending: false })
       .limit(50);
 
     if (data) {
@@ -98,9 +101,15 @@ const TopEarners = () => {
                     style={{ animationDelay: `${index * 30}ms` }}
                     onClick={() => navigate(`/profile/${leaderUser.id}`)}
                   >
-                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                    <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
                       {getRankIcon(rank)}
                     </div>
+                    <Avatar className="h-10 w-10 border-2 border-primary/20 flex-shrink-0">
+                      <AvatarImage src={leaderUser.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                        {leaderUser.name?.charAt(0).toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className={`font-display font-semibold truncate ${isCurrentUser ? "text-primary" : ""}`}>

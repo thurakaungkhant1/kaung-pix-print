@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import VerificationBadge from "@/components/VerificationBadge";
 import OnlineStatus from "@/components/OnlineStatus";
 import FriendRequestInbox from "@/components/FriendRequestInbox";
+import SuggestedFriends from "@/components/SuggestedFriends";
 import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
@@ -287,6 +288,9 @@ const ChatList = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Suggested Friends - only show when not searching */}
+        {!searchQuery && <SuggestedFriends />}
 
         {/* Friend Conversations */}
         <Card>
