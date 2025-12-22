@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import CheckoutDialog from "@/components/CheckoutDialog";
 import ReviewSection from "@/components/ReviewSection";
+import ImageViewer from "@/components/ImageViewer";
 import { cn } from "@/lib/utils";
 
 interface Product {
@@ -32,6 +33,7 @@ const ProductDetail = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -224,14 +226,20 @@ const ProductDetail = () => {
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-6">
         <Card className="overflow-hidden shadow-xl border-0 animate-fade-in">
-          {/* Main Image */}
-          <div className="aspect-square bg-muted relative group">
+          {/* Main Image - Tap to zoom */}
+          <div 
+            className="aspect-square bg-muted relative group cursor-zoom-in"
+            onClick={() => setImageViewerOpen(true)}
+          >
             <img
               src={selectedImage || product.image_url}
               alt={product.name}
               className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent pointer-events-none" />
+            <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-muted-foreground">
+              Tap to zoom
+            </div>
           </div>
           
           {/* Thumbnail Gallery */}
@@ -378,6 +386,14 @@ const ProductDetail = () => {
             onSuccess={handleCheckoutSuccess}
           />
         )}
+
+        {/* Image Viewer for pinch-to-zoom */}
+        <ImageViewer
+          src={selectedImage || product.image_url}
+          alt={product.name}
+          open={imageViewerOpen}
+          onOpenChange={setImageViewerOpen}
+        />
       </div>
     </div>
   );

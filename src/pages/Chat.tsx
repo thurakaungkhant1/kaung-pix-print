@@ -847,15 +847,15 @@ const Chat = () => {
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center font-bold text-white text-sm shadow-md">
                     {recipient.name.charAt(0).toUpperCase()}
                   </div>
-                  {/* Online indicator */}
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900" />
+                  {/* Real-time Online indicator */}
+                  <OnlineStatus userId={recipient.id} showLabel={false} size="sm" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-slate-900 dark:text-white text-sm truncate">{recipient.name}</span>
                     <VerificationBadge points={recipient.points} size="sm" />
                   </div>
-                  <span className="text-xs text-emerald-500 font-medium">Online</span>
+                  <OnlineStatus userId={recipient.id} showLabel={true} size="sm" />
                 </div>
               </div>
             )}

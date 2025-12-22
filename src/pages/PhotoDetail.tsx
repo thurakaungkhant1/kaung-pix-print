@@ -7,6 +7,7 @@ import { Heart, Download, ArrowLeft, FileArchive, Calendar } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { addWatermark } from "@/lib/watermarkUtils";
+import ImageViewer from "@/components/ImageViewer";
 
 interface Photo {
   id: number;
@@ -23,6 +24,7 @@ const PhotoDetail = () => {
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [watermarkedImage, setWatermarkedImage] = useState<string | null>(null);
   const [isFavourite, setIsFavourite] = useState(false);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -134,21 +136,29 @@ const PhotoDetail = () => {
 
       <div className="max-w-screen-xl mx-auto p-4">
         <Card className="overflow-hidden">
-          <div className="aspect-square bg-muted flex items-center justify-center">
+          <div 
+            className="aspect-square bg-muted flex items-center justify-center cursor-zoom-in relative group"
+            onClick={() => (watermarkedImage || photo.preview_image) && setImageViewerOpen(true)}
+          >
             {watermarkedImage ? (
               <img
                 src={watermarkedImage}
                 alt={photo.client_name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : photo.preview_image ? (
               <img
                 src={photo.preview_image}
                 alt={photo.client_name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
               <FileArchive className="h-32 w-32 text-muted-foreground" />
+            )}
+            {(watermarkedImage || photo.preview_image) && (
+              <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-muted-foreground">
+                Tap to zoom
+              </div>
             )}
           </div>
           <CardHeader>
@@ -193,6 +203,14 @@ const PhotoDetail = () => {
             </Button>
           </CardFooter>
         </Card>
+
+        {/* Image Viewer for pinch-to-zoom */}
+        <ImageViewer
+          src={watermarkedImage || photo.preview_image || ""}
+          alt={photo.client_name}
+          open={imageViewerOpen}
+          onOpenChange={setImageViewerOpen}
+        />
       </div>
     </div>
   );

@@ -48,6 +48,7 @@ const CheckoutDialog = ({
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<string>("cod");
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [transactionId, setTransactionId] = useState("");
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
@@ -78,13 +79,23 @@ const CheckoutDialog = ({
       }
     }
     
-    if (step === 2 && paymentMethod !== "cod" && !paymentProof) {
-      toast({
-        title: "Payment Proof Required",
-        description: "Please upload payment proof for mobile payment",
-        variant: "destructive",
-      });
-      return;
+    if (step === 2 && paymentMethod !== "cod") {
+      if (!paymentProof) {
+        toast({
+          title: "Payment Proof Required",
+          description: "Please upload payment proof for mobile payment",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!transactionId || transactionId.length !== 6 || !/^\d{6}$/.test(transactionId)) {
+        toast({
+          title: "Transaction ID Required",
+          description: "Please enter the last 6 digits of your transaction ID",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setStep(step + 1);
@@ -172,6 +183,7 @@ const CheckoutDialog = ({
     setDeliveryAddress("");
     setPaymentMethod("cod");
     setPaymentProof(null);
+    setTransactionId("");
     setOrderData(null);
   };
 
@@ -314,6 +326,25 @@ const CheckoutDialog = ({
                       {paymentProof.name}
                     </p>
                   )}
+                </div>
+
+                <div>
+                  <Label htmlFor="transactionId">Last 6 Digits of Transaction ID *</Label>
+                  <Input
+                    id="transactionId"
+                    type="text"
+                    placeholder="123456"
+                    value={transactionId}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setTransactionId(value);
+                    }}
+                    maxLength={6}
+                    className="font-mono text-lg tracking-widest"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enter exactly 6 digits from your payment transaction
+                  </p>
                 </div>
               </div>
             )}
