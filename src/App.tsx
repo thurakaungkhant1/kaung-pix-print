@@ -59,6 +59,7 @@ const PremiumUsersManage = lazy(() => import("./pages/admin/PremiumUsersManage")
 const PremiumPlansManage = lazy(() => import("./pages/admin/PremiumPlansManage"));
 const PremiumRequestsManage = lazy(() => import("./pages/admin/PremiumRequestsManage"));
 const ReportsManage = lazy(() => import("./pages/admin/ReportsManage"));
+const QuickBuyManage = lazy(() => import("./pages/admin/QuickBuyManage"));
 
 const queryClient = new QueryClient();
 
@@ -293,6 +294,14 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <ReportsManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/quick-buy"
+                  element={
+                    <ProtectedAdminRoute>
+                      <QuickBuyManage />
                     </ProtectedAdminRoute>
                   }
                 />
