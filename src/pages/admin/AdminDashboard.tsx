@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import AdminBottomNav from "@/components/AdminBottomNav";
 import { Label } from "@/components/ui/label";
 import {
   Package,
@@ -869,13 +870,13 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-background flex pb-16 lg:pb-0">
+      {/* Sidebar - Hidden on mobile */}
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border",
-          "transform transition-transform duration-300 lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "transform transition-transform duration-300",
+          "hidden lg:block lg:translate-x-0"
         )}
       >
         <div className="flex items-center justify-between p-4 border-b border-border">
@@ -940,13 +941,7 @@ const AdminDashboard = () => {
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-muted rounded-lg"
-              >
-                <Menu className="h-5 w-5" />
-              </button>
-              <h1 className="text-xl font-semibold capitalize">{activeTab}</h1>
+              <h1 className="text-xl font-semibold capitalize">{activeTab.replace("-", " ")}</h1>
             </div>
 
             <div className="flex items-center gap-4">
@@ -2449,6 +2444,13 @@ const AdminDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bottom Navigation for Mobile */}
+      <AdminBottomNav 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        pendingOrders={stats.pendingOrders}
+      />
     </div>
   );
 };
