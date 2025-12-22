@@ -207,7 +207,10 @@ const Signup = () => {
         title: "Welcome aboard! 🎉",
         description: "Your account has been created successfully"
       });
-      navigate("/");
+      
+      // Redirect to original URL if provided, otherwise to home
+      const redirectTo = searchParams.get("redirectTo");
+      navigate(redirectTo || "/");
     } catch (error: any) {
       let errorMessage = error.message || "Failed to create account";
       if (error.message?.includes("already registered")) {

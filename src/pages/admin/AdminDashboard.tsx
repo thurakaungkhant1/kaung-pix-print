@@ -863,6 +863,8 @@ const AdminDashboard = () => {
     { id: "diamond-orders", label: "Diamond Orders", icon: Gem, badge: pendingDiamondOrders },
     { id: "products", label: "Products", icon: Package, badge: 0 },
     { id: "photos", label: "Photos", icon: Image, badge: 0 },
+    { id: "shop-categories", label: "Shop Categories", icon: Settings, badge: 0, route: "/admin/shop-categories" },
+    { id: "shop-items", label: "Shop Items", icon: ShoppingCart, badge: 0, route: "/admin/shop-items" },
     { id: "settings", label: "Settings", icon: Settings, badge: 0 },
   ];
 

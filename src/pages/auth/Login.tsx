@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,11 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+
+  // Get redirect URL from query params
+  const redirectTo = searchParams.get("redirectTo") || null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +57,10 @@ const Login = () => {
         description: "Logged in successfully"
       });
       
-      // Redirect based on role
-      if (roleData) {
+      // Redirect to original URL if provided, otherwise based on role
+      if (redirectTo) {
+        navigate(redirectTo);
+      } else if (roleData) {
         navigate("/admin");
       } else {
         navigate("/");
