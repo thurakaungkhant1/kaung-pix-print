@@ -282,6 +282,14 @@ const App = () => {
                 }
               />
               <Route
+                path="/admin/premium-requests"
+                element={
+                  <ProtectedAdminRoute>
+                    <PremiumRequestsManage />
+                  </ProtectedAdminRoute>
+                }
+              />
+              <Route
                 path="/premium-history"
                 element={
                   <ProtectedRoute>

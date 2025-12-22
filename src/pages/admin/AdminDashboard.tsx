@@ -183,6 +183,7 @@ const AdminDashboard = () => {
   const [historyDateFrom, setHistoryDateFrom] = useState<Date | undefined>(undefined);
   const [historyDateTo, setHistoryDateTo] = useState<Date | undefined>(undefined);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [pendingPremiumRequests, setPendingPremiumRequests] = useState(0);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -342,8 +343,19 @@ const AdminDashboard = () => {
       loadUserGrowthData();
       loadDiamondAnalytics();
       loadPointTransactions();
+      loadPendingPremiumRequests();
     }
   }, [isAdmin]);
+
+  // Load pending premium requests count
+  const loadPendingPremiumRequests = async () => {
+    const { count } = await supabase
+      .from("premium_purchase_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+    
+    setPendingPremiumRequests(count || 0);
+  };
 
   // Real-time order notifications
   useEffect(() => {
@@ -404,8 +416,50 @@ const AdminDashboard = () => {
       )
       .subscribe();
 
+    // Real-time premium request notifications
+    const premiumChannel = supabase
+      .channel('admin-premium-requests')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'premium_purchase_requests'
+        },
+        async (payload) => {
+          console.log('New premium request received:', payload);
+          
+          // Play notification sound
+          playNotificationSound();
+          
+          // Fetch user name and plan details
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', payload.new.user_id)
+            .single();
+
+          const { data: plan } = await supabase
+            .from('premium_plans')
+            .select('name')
+            .eq('id', payload.new.plan_id)
+            .single();
+
+          toast({
+            title: "👑 New Premium Request!",
+            description: `${profile?.name || 'User'} requested ${plan?.name || 'Premium Plan'}`,
+            duration: 5000,
+          });
+
+          // Refresh premium requests count
+          loadPendingPremiumRequests();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(premiumChannel);
     };
   }, [isAdmin]);
 
@@ -795,24 +849,6 @@ const AdminDashboard = () => {
     );
   });
 
-  // Premium requests state - must be declared before any early returns
-  const [pendingPremiumRequests, setPendingPremiumRequests] = useState(0);
-
-  // Load pending premium requests count
-  useEffect(() => {
-    if (isAdmin) {
-      loadPendingPremiumRequests();
-    }
-  }, [isAdmin]);
-
-  const loadPendingPremiumRequests = async () => {
-    const { count } = await supabase
-      .from("premium_purchase_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending");
-    
-    setPendingPremiumRequests(count || 0);
-  };
 
   if (!isAdmin) return null;
 
