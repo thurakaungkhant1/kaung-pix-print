@@ -4,9 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Minus, Plus, ArrowLeft, ShoppingCart, Sparkles, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Heart, Minus, Plus, ArrowLeft, ShoppingCart, Sparkles, Star, Crown, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import CheckoutDialog from "@/components/CheckoutDialog";
 import ReviewSection from "@/components/ReviewSection";
 import ImageViewer from "@/components/ImageViewer";
@@ -22,6 +24,7 @@ interface Product {
   image_url_2?: string;
   image_url_3?: string;
   image_url_4?: string;
+  is_premium?: boolean;
 }
 
 const ProductDetail = () => {
@@ -36,6 +39,10 @@ const ProductDetail = () => {
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isPremium, loading: premiumLoading } = usePremiumMembership();
+
+  // Check if product is premium and user doesn't have subscription
+  const isLocked = product?.is_premium && !isPremium;
 
   useEffect(() => {
     loadProduct();
@@ -131,6 +138,16 @@ const ProductDetail = () => {
       return;
     }
 
+    if (isLocked) {
+      toast({
+        title: "Premium Required",
+        description: "This product is only available for premium members",
+        variant: "destructive",
+      });
+      navigate("/premium-shop");
+      return;
+    }
+
     setCheckoutOpen(true);
   };
 
@@ -146,6 +163,16 @@ const ProductDetail = () => {
         variant: "destructive",
       });
       navigate("/auth/login");
+      return;
+    }
+
+    if (isLocked) {
+      toast({
+        title: "Premium Required",
+        description: "This product is only available for premium members",
+        variant: "destructive",
+      });
+      navigate("/premium-shop");
       return;
     }
 

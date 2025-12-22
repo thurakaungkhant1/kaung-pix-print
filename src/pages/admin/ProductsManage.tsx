@@ -6,7 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Trash2, Edit, Save, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Trash2, Edit, Save, X, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileLayout from "@/components/MobileLayout";
@@ -19,12 +21,13 @@ interface Product {
   image_url: string;
   points_value: number;
   category: string;
+  is_premium: boolean;
 }
 
 const ProductsManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General" });
+  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -72,12 +75,13 @@ const ProductsManage = () => {
       image_url: product.image_url,
       points_value: product.points_value,
       category: product.category,
+      is_premium: product.is_premium || false,
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General" });
+    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
   };
 
   const saveEdit = async () => {
@@ -188,6 +192,17 @@ const ProductsManage = () => {
                     onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
                   />
                 </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Switch
+                    id="is_premium"
+                    checked={editForm.is_premium}
+                    onCheckedChange={(checked) => setEditForm({ ...editForm, is_premium: checked })}
+                  />
+                  <Label htmlFor="is_premium" className="flex items-center gap-2 cursor-pointer">
+                    <Crown className="h-4 w-4 text-amber-500" />
+                    Premium Only
+                  </Label>
+                </div>
                 <div className="flex gap-2">
                   <Button onClick={saveEdit} className="flex-1">
                     <Save className="mr-2 h-4 w-4" />
@@ -208,7 +223,15 @@ const ProductsManage = () => {
                     className="w-24 h-24 object-cover rounded"
                   />
                   <div className="flex-1">
-                    <h3 className="font-bold">{product.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold">{product.name}</h3>
+                      {product.is_premium && (
+                        <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-[10px]">
+                          <Crown className="h-3 w-3 mr-1" />
+                          Premium
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">{product.description}</p>
                     <p className="text-primary font-bold mt-2">{product.price.toLocaleString()} MMK</p>
                     <p className="text-xs text-muted-foreground mt-1">Points: {product.points_value}</p>

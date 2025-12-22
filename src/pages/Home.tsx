@@ -2,7 +2,8 @@ import { useEffect, useState, memo, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, ShoppingCart, Gem, Search, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Heart, ShoppingCart, Gem, Search, ChevronRight, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -20,6 +21,7 @@ interface Product {
   image_url: string;
   description: string | null;
   category: string;
+  is_premium: boolean;
 }
 
 interface CategoryGroup {
@@ -334,6 +336,18 @@ const Home = () => {
                             alt={product.name}
                             className="w-full h-full object-contain p-2"
                           />
+                          
+                          {/* Premium/Free Badge */}
+                          {product.is_premium ? (
+                            <Badge className="absolute top-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-[9px] px-1.5 py-0.5">
+                              <Crown className="h-2.5 w-2.5 mr-0.5" />
+                              Premium
+                            </Badge>
+                          ) : (
+                            <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-600 text-white text-[9px] px-1.5 py-0.5">
+                              Free
+                            </Badge>
+                          )}
                           
                           {/* Favourite button */}
                           <button

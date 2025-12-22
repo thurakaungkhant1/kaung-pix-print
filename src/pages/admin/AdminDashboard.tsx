@@ -856,6 +856,7 @@ const AdminDashboard = () => {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
     { id: "users", label: "Users", icon: Users, badge: 0 },
     { id: "premium-users", label: "Premium Users", icon: Crown, badge: 0, route: "/admin/premium-users" },
+    { id: "premium-plans", label: "Premium Plans", icon: Crown, badge: 0, route: "/admin/premium-plans" },
     { id: "premium-requests", label: "Premium Requests", icon: Crown, badge: pendingPremiumRequests, route: "/admin/premium-requests" },
     { id: "point-management", label: "Point Management", icon: Coins, badge: 0 },
     { id: "point-history", label: "Point History", icon: History, badge: 0 },
@@ -863,8 +864,6 @@ const AdminDashboard = () => {
     { id: "diamond-orders", label: "Diamond Orders", icon: Gem, badge: pendingDiamondOrders },
     { id: "products", label: "Products", icon: Package, badge: 0 },
     { id: "photos", label: "Photos", icon: Image, badge: 0 },
-    { id: "shop-categories", label: "Shop Categories", icon: Settings, badge: 0, route: "/admin/shop-categories" },
-    { id: "shop-items", label: "Shop Items", icon: ShoppingCart, badge: 0, route: "/admin/shop-items" },
     { id: "settings", label: "Settings", icon: Settings, badge: 0 },
   ];
 

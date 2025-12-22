@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
 
@@ -20,6 +21,7 @@ const ProductNew = () => {
   const [imageUrl4, setImageUrl4] = useState("");
   const [pointsValue, setPointsValue] = useState("");
   const [category, setCategory] = useState("General");
+  const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -48,6 +50,7 @@ const ProductNew = () => {
       image_url: primaryImage,
       points_value: parseInt(pointsValue) || 0,
       category,
+      is_premium: isPremium,
     });
 
     if (error) {
@@ -174,6 +177,21 @@ const ProductNew = () => {
                     placeholder="e.g., Electronics, Books, Apparel"
                     required
                   />
+                </div>
+
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg border">
+                  <Switch
+                    id="is_premium"
+                    checked={isPremium}
+                    onCheckedChange={setIsPremium}
+                  />
+                  <Label htmlFor="is_premium" className="flex items-center gap-2 cursor-pointer">
+                    <Crown className="h-4 w-4 text-amber-500" />
+                    <div>
+                      <span className="font-medium">Premium Only</span>
+                      <p className="text-xs text-muted-foreground">Only users with premium subscription can access this product</p>
+                    </div>
+                  </Label>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
