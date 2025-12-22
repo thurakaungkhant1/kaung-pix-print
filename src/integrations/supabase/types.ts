@@ -601,6 +601,7 @@ export type Database = {
           description: string | null
           id: number
           image_url: string
+          is_premium: boolean
           name: string
           points_value: number
           price: number
@@ -611,6 +612,7 @@ export type Database = {
           description?: string | null
           id?: number
           image_url: string
+          is_premium?: boolean
           name: string
           points_value?: number
           price: number
@@ -621,6 +623,7 @@ export type Database = {
           description?: string | null
           id?: number
           image_url?: string
+          is_premium?: boolean
           name?: string
           points_value?: number
           price?: number

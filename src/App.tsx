@@ -40,7 +40,7 @@ const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
 const PremiumHistory = lazy(() => import("./pages/PremiumHistory"));
 const PremiumShop = lazy(() => import("./pages/PremiumShop"));
-const Shop = lazy(() => import("./pages/Shop"));
+
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy load admin pages
@@ -59,8 +59,6 @@ const PremiumUsersManage = lazy(() => import("./pages/admin/PremiumUsersManage")
 const PremiumPlansManage = lazy(() => import("./pages/admin/PremiumPlansManage"));
 const PremiumRequestsManage = lazy(() => import("./pages/admin/PremiumRequestsManage"));
 const ReportsManage = lazy(() => import("./pages/admin/ReportsManage"));
-const ShopCategoriesManage = lazy(() => import("./pages/admin/ShopCategoriesManage"));
-const ShopItemsManage = lazy(() => import("./pages/admin/ShopItemsManage"));
 
 const queryClient = new QueryClient();
 
@@ -138,14 +136,6 @@ const App = () => {
                 />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/photo/:id" element={<PhotoDetail />} />
-                <Route
-                  path="/shop"
-                  element={
-                    <ProtectedRoute>
-                      <Shop />
-                    </ProtectedRoute>
-                  }
-                />
                 <Route
                   path="/category/:category"
                   element={
@@ -303,22 +293,6 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <ReportsManage />
-                    </ProtectedAdminRoute>
-                  }
-                />
-                <Route
-                  path="/admin/shop-categories"
-                  element={
-                    <ProtectedAdminRoute>
-                      <ShopCategoriesManage />
-                    </ProtectedAdminRoute>
-                  }
-                />
-                <Route
-                  path="/admin/shop-items"
-                  element={
-                    <ProtectedAdminRoute>
-                      <ShopItemsManage />
                     </ProtectedAdminRoute>
                   }
                 />
