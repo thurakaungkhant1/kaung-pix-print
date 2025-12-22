@@ -46,6 +46,7 @@ interface Order {
   delivery_address: string;
   payment_method: string;
   payment_proof_url: string | null;
+  transaction_id: string | null;
   profiles: { name: string; phone_number: string };
   products: { name: string; image_url: string; points_value: number };
 }
@@ -86,7 +87,8 @@ const OrdersManage = () => {
           order.profiles.name.toLowerCase().includes(query) ||
           order.phone_number.toLowerCase().includes(query) ||
           order.profiles.phone_number.toLowerCase().includes(query) ||
-          order.products.name.toLowerCase().includes(query);
+          order.products.name.toLowerCase().includes(query) ||
+          (order.transaction_id && order.transaction_id.toLowerCase().includes(query));
         if (!matchesSearch) return false;
       }
       
@@ -585,6 +587,14 @@ const OrdersManage = () => {
                     <p><strong>Phone:</strong> {order.phone_number}</p>
                     <p><strong>Address:</strong> {order.delivery_address}</p>
                     <p><strong>Payment:</strong> {order.payment_method.toUpperCase()}</p>
+                    {order.transaction_id && (
+                      <p className="flex items-center gap-2">
+                        <strong>Transaction ID:</strong> 
+                        <Badge variant="outline" className="font-mono text-sm bg-amber-500/10 text-amber-600 border-amber-500/30">
+                          {order.transaction_id}
+                        </Badge>
+                      </p>
+                    )}
                     
                     {/* Payment Proof Section */}
                     {order.payment_proof_url && (
