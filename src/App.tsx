@@ -40,6 +40,7 @@ const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
 const PremiumHistory = lazy(() => import("./pages/PremiumHistory"));
 const PremiumShop = lazy(() => import("./pages/PremiumShop"));
+const Shop = lazy(() => import("./pages/Shop"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy load admin pages
@@ -135,19 +136,13 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/photo/:id" element={<PhotoDetail />} />
                 <Route
-                  path="/product/:id"
+                  path="/shop"
                   element={
                     <ProtectedRoute>
-                      <ProductDetail />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/photo/:id"
-                  element={
-                    <ProtectedRoute>
-                      <PhotoDetail />
+                      <Shop />
                     </ProtectedRoute>
                   }
                 />
