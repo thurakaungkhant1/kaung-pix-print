@@ -150,6 +150,7 @@ const CheckoutDialog = ({
       delivery_address: deliveryAddress,
       payment_method: paymentMethod,
       payment_proof_url: paymentProofPath, // Store file path, not public URL
+      transaction_id: paymentMethod !== "cod" ? transactionId : null,
       status: "pending",
     }));
 

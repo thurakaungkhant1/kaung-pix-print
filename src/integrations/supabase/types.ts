@@ -286,6 +286,7 @@ export type Database = {
           quantity: number
           server_id: string | null
           status: string
+          transaction_id: string | null
           user_id: string
         }
         Insert: {
@@ -302,6 +303,7 @@ export type Database = {
           quantity?: number
           server_id?: string | null
           status?: string
+          transaction_id?: string | null
           user_id: string
         }
         Update: {
@@ -318,6 +320,7 @@ export type Database = {
           quantity?: number
           server_id?: string | null
           status?: string
+          transaction_id?: string | null
           user_id?: string
         }
         Relationships: [
