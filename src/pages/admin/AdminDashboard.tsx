@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import AdminBottomNav from "@/components/AdminBottomNav";
+import AdminFAB from "@/components/AdminFAB";
 import { Label } from "@/components/ui/label";
 import {
   Package,
@@ -2450,6 +2451,12 @@ const AdminDashboard = () => {
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         pendingOrders={stats.pendingOrders}
+      />
+
+      {/* Floating Action Button for Mobile */}
+      <AdminFAB 
+        pendingOrders={stats.pendingOrders}
+        onNavigateToTab={setActiveTab}
       />
     </div>
   );
