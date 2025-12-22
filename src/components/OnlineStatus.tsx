@@ -34,8 +34,8 @@ const OnlineStatus = ({ userId, showLabel = true, size = "md" }: OnlineStatusPro
     checkActiveVisibility();
   }, [userId]);
 
-  const dotSize = size === "sm" ? "w-2 h-2" : "w-2.5 h-2.5";
-  const textSize = size === "sm" ? "text-[10px]" : "text-xs";
+  const dotSize = size === "sm" ? "w-2.5 h-2.5" : "w-3 h-3";
+  const textSize = size === "sm" ? "text-[11px]" : "text-xs";
 
   const getLastSeenText = () => {
     if (!isActiveVisible) return "Offline";
@@ -47,21 +47,29 @@ const OnlineStatus = ({ userId, showLabel = true, size = "md" }: OnlineStatusPro
     }
   };
 
-  return (
-    <div className="flex items-center gap-1.5">
+  // For header avatar style (no label) - absolute positioned dot
+  if (!showLabel) {
+    return (
       <span
         className={cn(
-          "rounded-full flex-shrink-0",
+          "absolute bottom-0 right-0 rounded-full border-2 border-white dark:border-slate-900 flex-shrink-0",
           dotSize,
-          online ? "bg-green-500 animate-pulse" : "bg-muted-foreground/40"
+          online 
+            ? "bg-emerald-500 animate-online-glow" 
+            : "bg-slate-400 dark:bg-slate-600"
         )}
       />
-      {showLabel && (
-        <span className={cn(textSize, "text-muted-foreground")}>
-          {online ? "Active Now" : getLastSeenText()}
-        </span>
-      )}
-    </div>
+    );
+  }
+
+  return (
+    <span className={cn(
+      textSize, 
+      "font-medium",
+      online ? "text-emerald-500" : "text-muted-foreground"
+    )}>
+      {online ? "Active Now" : getLastSeenText()}
+    </span>
   );
 };
 

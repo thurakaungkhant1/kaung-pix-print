@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
+import OnboardingFlow from "@/components/OnboardingFlow";
 
 interface Product {
   id: number;
@@ -26,14 +27,97 @@ interface CategoryGroup {
   products: Product[];
 }
 
+// Memoized Product Card for performance
+const ProductCard = memo(({ 
+  product, 
+  isFavourite, 
+  onToggleFavourite, 
+  onClick,
+  animationDelay 
+}: { 
+  product: Product; 
+  isFavourite: boolean; 
+  onToggleFavourite: () => void;
+  onClick: () => void;
+  animationDelay: string;
+}) => (
+  <Card
+    className={cn(
+      "product-card flex-shrink-0 w-36 cursor-pointer",
+      "animate-scale-in"
+    )}
+    style={{ animationDelay }}
+    onClick={onClick}
+  >
+    <div className="relative aspect-square bg-muted overflow-hidden rounded-t-xl">
+      <img
+        src={product.image_url}
+        alt={product.name}
+        className="w-full h-full object-contain p-2"
+        loading="lazy"
+      />
+      
+      {/* Favourite button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleFavourite();
+        }}
+        className={cn(
+          "absolute top-2 right-2 p-1.5 rounded-full",
+          "glass border-0 transition-all duration-300",
+          "hover:scale-110 active:scale-95",
+          isFavourite 
+            ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
+            : "bg-background/80 text-muted-foreground hover:bg-background"
+        )}
+      >
+        <Heart
+          className={cn(
+            "h-3.5 w-3.5 transition-all duration-300",
+            isFavourite && "fill-current text-white"
+          )}
+        />
+      </button>
+      
+      {/* Gradient overlay */}
+      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
+    </div>
+    
+    <CardContent className="p-2 space-y-0.5">
+      <h3 className="font-semibold text-xs truncate">{product.name}</h3>
+      <p className="text-primary font-bold text-sm">
+        {product.price.toLocaleString()} 
+        <span className="text-[10px] font-medium ml-0.5 text-muted-foreground">MMK</span>
+      </p>
+    </CardContent>
+  </Card>
+));
+
+ProductCard.displayName = "ProductCard";
+
 const Home = () => {
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([]);
   const [favourites, setFavourites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Check if user has seen onboarding
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleOnboardingComplete = useCallback(() => {
+    localStorage.setItem("hasSeenOnboarding", "true");
+    setShowOnboarding(false);
+  }, []);
 
   useEffect(() => {
     loadProducts();
@@ -80,7 +164,7 @@ const Home = () => {
     }
   };
 
-  const toggleFavourite = async (productId: number) => {
+  const toggleFavourite = useCallback(async (productId: number) => {
     if (!user) {
       toast({
         title: "Login required",
@@ -111,7 +195,7 @@ const Home = () => {
 
       setFavourites((prev) => new Set(prev).add(productId));
     }
-  };
+  }, [user, favourites, toast]);
 
   if (loading) {
     return (
@@ -133,7 +217,11 @@ const Home = () => {
   }
 
   return (
-    <MobileLayout>
+    <>
+      {/* Onboarding Flow for new users */}
+      <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
+      
+      <MobileLayout>
       {/* Hero Header */}
       <header className="relative overflow-hidden">
         {/* Background gradient */}
@@ -300,6 +388,7 @@ const Home = () => {
 
       <BottomNav />
     </MobileLayout>
+    </>
   );
 };
 
