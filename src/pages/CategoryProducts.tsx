@@ -96,7 +96,7 @@ const CategoryProducts = () => {
     return (
       <div className="min-h-screen bg-background pb-20">
         <div className="max-w-screen-xl mx-auto p-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />
             ))}
@@ -126,34 +126,35 @@ const CategoryProducts = () => {
             <p className="text-muted-foreground">No products in this category yet</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {products.map((product) => (
               <Card
                 key={product.id}
-                className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group"
                 onClick={() => navigate(`/product/${product.id}`)}
               >
-                <div className="relative aspect-square bg-muted">
+                <div className="relative aspect-square bg-muted overflow-hidden">
                   <img
                     src={product.image_url}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleFavourite(product.id);
                     }}
-                    className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
+                    className="absolute top-2 right-2 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background transition-colors"
                   >
                     <Heart
-                      className={`h-4 w-4 ${
+                      className={`h-4 w-4 transition-colors ${
                         favourites.has(product.id)
                           ? "fill-primary text-primary"
                           : "text-muted-foreground"
                       }`}
                     />
                   </button>
+                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/60 to-transparent pointer-events-none" />
                 </div>
                 <CardContent className="p-3">
                   <h3 className="font-semibold text-sm truncate">{product.name}</h3>
