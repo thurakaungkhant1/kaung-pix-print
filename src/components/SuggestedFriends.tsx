@@ -16,6 +16,7 @@ interface SuggestedUser {
   name: string;
   points: number;
   avatar_url: string | null;
+  mutualFriendsCount?: number;
 }
 
 const SuggestedFriends = () => {
@@ -74,7 +75,43 @@ const SuggestedFriends = () => {
         .order("points", { ascending: false })
         .limit(10);
 
-      setSuggestions(suggestedUsers || []);
+      // Calculate mutual friends for each suggested user
+      if (suggestedUsers && suggestedUsers.length > 0) {
+        const suggestionsWithMutual = await Promise.all(
+          suggestedUsers.map(async (suggestedUser) => {
+            // Get suggested user's friends
+            const { data: theirFriends } = await supabase
+              .from("friend_requests")
+              .select("sender_id, receiver_id")
+              .eq("status", "accepted")
+              .or(`sender_id.eq.${suggestedUser.id},receiver_id.eq.${suggestedUser.id}`);
+
+            if (!theirFriends) {
+              return { ...suggestedUser, mutualFriendsCount: 0 };
+            }
+
+            const theirFriendIds = theirFriends.map((req) =>
+              req.sender_id === suggestedUser.id ? req.receiver_id : req.sender_id
+            );
+
+            // Count mutual friends
+            const mutualCount = theirFriendIds.filter((id) => friendIds.includes(id)).length;
+            return { ...suggestedUser, mutualFriendsCount: mutualCount };
+          })
+        );
+
+        // Sort by mutual friends count, then by points
+        suggestionsWithMutual.sort((a, b) => {
+          if ((b.mutualFriendsCount || 0) !== (a.mutualFriendsCount || 0)) {
+            return (b.mutualFriendsCount || 0) - (a.mutualFriendsCount || 0);
+          }
+          return b.points - a.points;
+        });
+
+        setSuggestions(suggestionsWithMutual);
+      } else {
+        setSuggestions([]);
+      }
     } catch (error) {
       console.error("Error loading suggestions:", error);
     } finally {
@@ -151,9 +188,15 @@ const SuggestedFriends = () => {
                   </span>
                   <VerificationBadge points={suggestedUser.points} size="sm" />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {suggestedUser.points.toLocaleString()} points
-                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>{suggestedUser.points.toLocaleString()} points</span>
+                  {suggestedUser.mutualFriendsCount !== undefined && suggestedUser.mutualFriendsCount > 0 && (
+                    <span className="flex items-center gap-1 text-primary">
+                      <Users className="h-3 w-3" />
+                      {suggestedUser.mutualFriendsCount} mutual
+                    </span>
+                  )}
+                </div>
               </div>
               
               <Button

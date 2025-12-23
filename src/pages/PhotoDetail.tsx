@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Download, ArrowLeft, FileArchive, Calendar } from "lucide-react";
+import { Heart, Download, ArrowLeft, FileArchive, Calendar, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { addWatermark } from "@/lib/watermarkUtils";
@@ -177,18 +177,43 @@ const PhotoDetail = () => {
                   )}
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleFavourite}
-                className="shrink-0"
-              >
-                <Heart
-                  className={`h-6 w-6 ${
-                    isFavourite ? "fill-primary text-primary" : ""
-                  }`}
-                />
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const shareUrl = `${window.location.origin}/photo/${photo.id}`;
+                    if (navigator.share) {
+                      navigator.share({
+                        title: photo.client_name,
+                        text: `Check out this photo on Kaung Computer!`,
+                        url: shareUrl,
+                      });
+                    } else {
+                      navigator.clipboard.writeText(shareUrl);
+                      toast({
+                        title: "Link copied!",
+                        description: "Photo link copied to clipboard",
+                      });
+                    }
+                  }}
+                  className="shrink-0"
+                >
+                  <Share2 className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleFavourite}
+                  className="shrink-0"
+                >
+                  <Heart
+                    className={`h-6 w-6 ${
+                      isFavourite ? "fill-primary text-primary" : ""
+                    }`}
+                  />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>

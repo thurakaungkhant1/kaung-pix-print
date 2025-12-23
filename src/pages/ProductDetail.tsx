@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Minus, Plus, ArrowLeft, ShoppingCart, Sparkles, Star, Crown, Lock } from "lucide-react";
+import { Heart, Minus, Plus, ArrowLeft, ShoppingCart, Sparkles, Star, Crown, Lock, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumMembership } from "@/hooks/usePremiumMembership";
@@ -300,20 +300,45 @@ const ProductDetail = () => {
                   {product.price.toLocaleString()} MMK
                 </CardDescription>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleFavourite}
-                className={`shrink-0 rounded-full h-12 w-12 transition-all duration-300 ${
-                  isFavourite ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-muted"
-                }`}
-              >
-                <Heart
-                  className={`h-6 w-6 transition-all duration-300 ${
-                    isFavourite ? "fill-primary text-primary scale-110" : ""
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const shareUrl = `${window.location.origin}/product/${product.id}`;
+                    if (navigator.share) {
+                      navigator.share({
+                        title: product.name,
+                        text: `Check out ${product.name} on Kaung Computer!`,
+                        url: shareUrl,
+                      });
+                    } else {
+                      navigator.clipboard.writeText(shareUrl);
+                      toast({
+                        title: "Link copied!",
+                        description: "Product link copied to clipboard",
+                      });
+                    }
+                  }}
+                  className="shrink-0 rounded-full h-12 w-12 transition-all duration-300 hover:bg-muted"
+                >
+                  <Share2 className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleFavourite}
+                  className={`shrink-0 rounded-full h-12 w-12 transition-all duration-300 ${
+                    isFavourite ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-muted"
                   }`}
-                />
-              </Button>
+                >
+                  <Heart
+                    className={`h-6 w-6 transition-all duration-300 ${
+                      isFavourite ? "fill-primary text-primary scale-110" : ""
+                    }`}
+                  />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
