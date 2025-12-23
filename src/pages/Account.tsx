@@ -37,6 +37,7 @@ import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import PremiumFeaturesDialog from "@/components/PremiumFeaturesDialog";
 import PremiumBadge from "@/components/PremiumBadge";
 import MobileLayout from "@/components/MobileLayout";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,8 +86,36 @@ const Account = () => {
   
   // Notification preferences
   const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
+  
+  // Push notifications hook
+  const { isEnabled: isPushEnabled, requestPermission, setEnabled: setPushEnabled } = usePushNotifications();
+  const [pushNotifications, setPushNotificationsState] = useState(false);
+  
+  // Initialize push notification state from hook
+  useEffect(() => {
+    setPushNotificationsState(isPushEnabled());
+  }, [isPushEnabled]);
+  
+  const handlePushNotificationToggle = async (enabled: boolean) => {
+    if (enabled) {
+      const granted = await requestPermission();
+      if (granted) {
+        setPushNotificationsState(true);
+        toast({ title: "Push notifications enabled" });
+      } else {
+        toast({
+          title: "Permission denied",
+          description: "Please enable notifications in your browser settings",
+          variant: "destructive"
+        });
+      }
+    } else {
+      setPushEnabled(false);
+      setPushNotificationsState(false);
+      toast({ title: "Push notifications disabled" });
+    }
+  };
   
   // Avatar upload states
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -950,7 +979,7 @@ const Account = () => {
                     </div>
                     <Switch
                       checked={pushNotifications}
-                      onCheckedChange={setPushNotifications}
+                      onCheckedChange={handlePushNotificationToggle}
                     />
                   </div>
                   

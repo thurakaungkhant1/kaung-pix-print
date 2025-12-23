@@ -44,6 +44,10 @@ export const usePushNotifications = () => {
     return stored === "true" && permissionRef.current === "granted";
   }, []);
 
+  const setEnabled = useCallback((enabled: boolean) => {
+    localStorage.setItem(NOTIFICATIONS_ENABLED_KEY, enabled ? "true" : "false");
+  }, []);
+
   const showNotification = useCallback((title: string, options?: NotificationOptions) => {
     if (!("Notification" in window)) return;
     if (!isEnabled()) return;
@@ -76,6 +80,7 @@ export const usePushNotifications = () => {
   return {
     requestPermission,
     isEnabled,
+    setEnabled,
     showNotification,
     notifyFriendRequest,
     notifyNewMessage,
