@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import VerificationBadge from "@/components/VerificationBadge";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
+import PeopleYouMayKnow from "@/components/PeopleYouMayKnow";
 
 interface UserProfile {
   id: string;
@@ -113,6 +114,13 @@ const ExploreUsers = () => {
           </div>
         </div>
       </header>
+
+      {/* People You May Know Section */}
+      {!searchQuery && (
+        <div className="px-4 mt-4">
+          <PeopleYouMayKnow />
+        </div>
+      )}
 
       {/* Users List */}
       <div className="max-w-screen-xl mx-auto p-4 space-y-3">

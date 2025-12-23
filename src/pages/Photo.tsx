@@ -125,11 +125,11 @@ const Photo = () => {
     return (
       <div className="min-h-screen bg-background pb-24">
         <div className="max-w-screen-xl mx-auto p-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
               <div 
                 key={i} 
-                className="h-56 rounded-2xl animate-shimmer" 
+                className="aspect-square rounded-2xl animate-shimmer" 
                 style={{ animationDelay: `${i * 100}ms` }}
               />
             ))}
@@ -234,13 +234,11 @@ const Photo = () => {
             <p className="text-sm text-muted-foreground/70 mt-1">Check back soon for new uploads</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {filteredPhotos.map((photo, index) => (
               <Card
                 key={photo.id}
-                className={cn(
-                  "product-card cursor-pointer animate-scale-in"
-                )}
+                className="product-card cursor-pointer animate-scale-in overflow-hidden group"
                 style={{ animationDelay: `${index * 50}ms` }}
                 onClick={() => navigate(`/photo/${photo.id}`)}
               >
@@ -249,7 +247,7 @@ const Photo = () => {
                     <img
                       src={watermarkedImages.get(photo.id) || photo.preview_image}
                       alt={photo.client_name}
-                      className="w-full h-full object-contain p-1"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
                     <FileArchive className="h-12 w-12 text-muted-foreground" />
@@ -282,11 +280,11 @@ const Photo = () => {
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
                 </div>
                 
-                <CardContent className="p-2 space-y-1">
+                <CardContent className="p-3 space-y-1">
                   <span className="badge-modern text-[10px]">
                     {photo.category || "General"}
                   </span>
-                  <h3 className="font-semibold text-xs truncate">{photo.client_name}</h3>
+                  <h3 className="font-semibold text-sm truncate">{photo.client_name}</h3>
                 </CardContent>
               </Card>
             ))}
