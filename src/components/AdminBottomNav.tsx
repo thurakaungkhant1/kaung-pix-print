@@ -28,16 +28,14 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
     { id: "orders", label: "Orders", icon: ShoppingCart, badge: pendingOrders },
-    { id: "products", label: "Products", icon: Package },
+    { id: "shop", label: "Shop", icon: Package },
   ];
 
   const moreNavItems = [
-    { id: "premium-users", label: "Premium Users", route: "/admin/premium-users" },
-    { id: "premium-plans", label: "Premium Plans", route: "/admin/premium-plans" },
-    { id: "premium-requests", label: "Premium Requests", route: "/admin/premium-requests" },
+    { id: "products", label: "Products", route: "/admin/products" },
     { id: "point-management", label: "Point Management" },
     { id: "point-history", label: "Point History" },
-    { id: "diamond-orders", label: "Diamond Orders" },
+    { id: "diamond-orders", label: "Game Orders" },
     { id: "photos", label: "Photos" },
     { id: "settings", label: "Settings" },
   ];
