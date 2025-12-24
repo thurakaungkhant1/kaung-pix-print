@@ -33,8 +33,6 @@ const Signup = lazy(() => import("./pages/auth/Signup"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
-const PremiumHistory = lazy(() => import("./pages/PremiumHistory"));
-const PremiumShop = lazy(() => import("./pages/PremiumShop"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -287,22 +285,6 @@ const App = () => {
                     <ProtectedAdminRoute>
                       <ReportsManage />
                     </ProtectedAdminRoute>
-                  }
-                />
-                <Route
-                  path="/premium-history"
-                  element={
-                    <ProtectedRoute>
-                      <PremiumHistory />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/premium-shop"
-                  element={
-                    <ProtectedRoute>
-                      <PremiumShop />
-                    </ProtectedRoute>
                   }
                 />
                 <Route

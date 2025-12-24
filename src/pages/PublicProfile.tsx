@@ -136,14 +136,6 @@ const PublicProfile = () => {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -338,89 +330,6 @@ const PublicProfile = () => {
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
-        {!isOwnProfile && (
-          <div className="grid grid-cols-2 gap-3 animate-slide-up" style={{ animationDelay: "100ms" }}>
-            {/* Message Button */}
-            <Button
-              className={cn(
-                "h-12 rounded-xl",
-                friendStatus !== "friends" && "opacity-50"
-              )}
-              onClick={handleMessage}
-              disabled={friendStatus !== "friends"}
-            >
-              <MessageCircle className="mr-2 h-5 w-5" />
-              Message
-            </Button>
-
-            {/* Add Friend / Status Button */}
-            {friendStatus === "none" && (
-              <Button
-                variant="outline"
-                className="h-12 rounded-xl"
-                onClick={handleAddFriend}
-              >
-                <UserPlus className="mr-2 h-5 w-5" />
-                Add Friend
-              </Button>
-            )}
-            {friendStatus === "pending_sent" && (
-              <Button
-                variant="outline"
-                className="h-12 rounded-xl"
-                disabled
-              >
-                <Clock className="mr-2 h-5 w-5" />
-                Request Sent
-              </Button>
-            )}
-            {friendStatus === "pending_received" && (
-              <Button
-                variant="outline"
-                className="h-12 rounded-xl text-green-600 border-green-600 hover:bg-green-50"
-                onClick={async () => {
-                  // Find and accept the pending request
-                  const { data } = await supabase
-                    .from("friend_requests")
-                    .select("id")
-                    .eq("sender_id", userId)
-                    .eq("receiver_id", user?.id)
-                    .eq("status", "pending")
-                    .single();
-                  
-                  if (data) {
-                    await acceptRequest(data.id);
-                    setFriendStatus("friends");
-                  }
-                }}
-              >
-                <UserPlus className="mr-2 h-5 w-5" />
-                Accept Request
-              </Button>
-            )}
-            {friendStatus === "friends" && (
-              <Button
-                variant="outline"
-                className="h-12 rounded-xl text-destructive border-destructive hover:bg-destructive/10"
-                onClick={() => setUnfriendDialogOpen(true)}
-              >
-                <UserMinus className="mr-2 h-5 w-5" />
-                Unfriend
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Disabled message hint */}
-        {!isOwnProfile && friendStatus !== "friends" && (
-          <p className="text-xs text-center text-muted-foreground animate-slide-up" style={{ animationDelay: "150ms" }}>
-            {friendStatus === "none" && "Add as friend to send messages"}
-            {friendStatus === "pending_sent" && "Waiting for friend request to be accepted"}
-            {friendStatus === "pending_received" && "Accept the friend request to chat"}
-          </p>
-        )}
-
         {isOwnProfile && (
           <Button
             variant="outline"
@@ -454,35 +363,6 @@ const PublicProfile = () => {
         reportedUserName={profile?.name}
         reportType="account"
       />
-
-      {/* Unfriend Confirmation Dialog */}
-      <AlertDialog open={unfriendDialogOpen} onOpenChange={setUnfriendDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Friend</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove {profile?.name} from your friends? You'll need to send a new friend request to chat again.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                if (userId) {
-                  const success = await unfriend(userId);
-                  if (success) {
-                    setFriendStatus("none");
-                  }
-                }
-                setUnfriendDialogOpen(false);
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Unfriend
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <BottomNav />
     </div>
