@@ -223,7 +223,7 @@ const Photo = () => {
             <p className="text-sm text-muted-foreground/70 mt-1">Check back soon for new uploads</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {filteredPhotos.map((photo, index) => (
               <Card
                 key={photo.id}

@@ -63,15 +63,15 @@ interface Order {
 // Game categories with icons
 const GAME_CATEGORIES = [
   { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500" },
-  { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500" },
+  { id: "PUBG UC", name: "PUBG", icon: Gamepad2, color: "text-yellow-500" },
   { id: "Free Fire", name: "Free Fire", icon: Zap, color: "text-orange-500" },
-  { id: "Genshin", name: "Genshin Impact", icon: Sparkles, color: "text-purple-500" },
+  { id: "Genshin", name: "Genshin", icon: Sparkles, color: "text-purple-500" },
   { id: "Gift Cards", name: "Gift Cards", icon: Gift, color: "text-green-500" },
 ];
 
 // Mobile service categories
 const MOBILE_CATEGORIES = [
-  { id: "Phone Top-up", name: "Phone Balance", icon: Smartphone, color: "text-primary" },
+  { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone, color: "text-primary" },
   { id: "Data Plans", name: "Data Plans", icon: Wifi, color: "text-blue-500" },
 ];
 

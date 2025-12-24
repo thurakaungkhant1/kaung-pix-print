@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle, Mail, Eye, EyeOff, ShoppingCart, Camera, Chrome } from "lucide-react";
+import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle, Mail, Eye, EyeOff, ShoppingCart, Camera } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 
 const Signup = () => {
@@ -21,7 +21,6 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   
   // Avatar upload states
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -227,30 +226,6 @@ const Signup = () => {
     }
   };
 
-  const handleGoogleSignup = async () => {
-    setGoogleLoading(true);
-    try {
-      const redirectUrl = searchParams.get("redirectTo")
-        ? `${window.location.origin}/auth/signup?redirectTo=${encodeURIComponent(searchParams.get("redirectTo")!)}`
-        : `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-        },
-      });
-      
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to sign up with Google",
-        variant: "destructive"
-      });
-      setGoogleLoading(false);
-    }
-  };
 
   const passwordStrength = getPasswordStrength();
 
@@ -478,29 +453,6 @@ const Signup = () => {
               )}
             </Button>
 
-            <div className="relative my-2 w-full">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 text-base"
-              onClick={handleGoogleSignup}
-              disabled={googleLoading}
-            >
-              {googleLoading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Chrome className="mr-2 h-5 w-5" />
-              )}
-              Continue with Google
-            </Button>
 
             <p className="text-sm text-muted-foreground text-center">
               Already have an account?{" "}
