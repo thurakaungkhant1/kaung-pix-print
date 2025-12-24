@@ -5,9 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { GlobalMessageNotificationProvider } from "@/contexts/GlobalMessageNotificationContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
@@ -22,16 +20,13 @@ const AIChat = lazy(() => import("./pages/AIChat"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const PhotoDetail = lazy(() => import("./pages/PhotoDetail"));
 const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
-const MLBBDiamonds = lazy(() => import("./pages/MLBBDiamonds"));
+const GamePage = lazy(() => import("./pages/GamePage"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Exchange = lazy(() => import("./pages/Exchange"));
 const Cart = lazy(() => import("./pages/Cart"));
 const PointHistory = lazy(() => import("./pages/PointHistory"));
 const TopEarners = lazy(() => import("./pages/TopEarners"));
-const Chat = lazy(() => import("./pages/Chat"));
-const ChatList = lazy(() => import("./pages/ChatList"));
-const ExploreUsers = lazy(() => import("./pages/ExploreUsers"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Signup = lazy(() => import("./pages/auth/Signup"));
@@ -85,8 +80,6 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>
-            <OnlineUsersProvider>
-            <GlobalMessageNotificationProvider>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />
@@ -145,10 +138,10 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/mlbb-diamonds"
+                  path="/game"
                   element={
                     <ProtectedRoute>
-                      <MLBBDiamonds />
+                      <GamePage />
                     </ProtectedRoute>
                   }
                 />
@@ -345,30 +338,6 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/chat/:recipientId"
-                  element={
-                    <ProtectedRoute>
-                      <Chat />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chat-list"
-                  element={
-                    <ProtectedRoute>
-                      <ChatList />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/explore-users"
-                  element={
-                    <ProtectedRoute>
-                      <ExploreUsers />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path="/profile/:userId"
                   element={
                     <ProtectedRoute>
@@ -379,8 +348,6 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
-            </GlobalMessageNotificationProvider>
-            </OnlineUsersProvider>
             </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>

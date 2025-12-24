@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, ShoppingCart, Gem, Search, ChevronRight, Crown, Lock } from "lucide-react";
+import { Heart, ShoppingCart, Search, ChevronRight, Crown, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -239,18 +239,7 @@ const Home = () => {
         <div className="relative z-10 p-4 pt-6 pb-5">
           {/* Top row */}
           <div className="flex items-center justify-between mb-3">
-            <Button
-              onClick={() => navigate("/mlbb-diamonds")}
-              size="sm"
-              className={cn(
-                "relative overflow-hidden bg-accent hover:bg-accent/90 text-accent-foreground",
-                "font-bold p-2.5 rounded-full",
-                "shadow-accent transition-all duration-300 hover:shadow-lg hover:scale-102",
-                "active:scale-98"
-              )}
-            >
-              <Gem className="h-5 w-5" />
-            </Button>
+            <div className="w-10" /> {/* Spacer for balance */}
             
             <h1 className="text-2xl font-display font-extrabold text-primary-foreground tracking-tight drop-shadow-lg">
               Kaung Computer

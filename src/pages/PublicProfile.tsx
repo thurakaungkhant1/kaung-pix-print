@@ -3,25 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Coins, Calendar, MessageCircle, Trophy, Users, UserPlus, Clock, UserMinus, Download, Loader2, Flag } from "lucide-react";
+import { ArrowLeft, User, Coins, Calendar, Trophy, Users, Download, Loader2, Flag } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useFriendRequests } from "@/hooks/useFriendRequests";
 import VerificationBadge, { VERIFICATION_THRESHOLD } from "@/components/VerificationBadge";
 import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import ReportDialog from "@/components/ReportDialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface PublicProfileData {
   id: string;
@@ -37,14 +26,11 @@ const PublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [rank, setRank] = useState<number | null>(null);
   const [friendCount, setFriendCount] = useState(0);
-  const [friendStatus, setFriendStatus] = useState<"none" | "pending_sent" | "pending_received" | "friends">("none");
   const [downloadingImage, setDownloadingImage] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { sendFriendRequest, getFriendshipStatus, acceptRequest, unfriend } = useFriendRequests();
-  const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
 
   const isOwnProfile = user?.id === userId;
 
@@ -53,9 +39,6 @@ const PublicProfile = () => {
       loadProfile();
       loadRank();
       loadFriendCount();
-      if (user && !isOwnProfile) {
-        checkFriendStatus();
-      }
     }
   }, [userId, user]);
 
@@ -145,24 +128,12 @@ const PublicProfile = () => {
     setFriendCount(count || 0);
   };
 
-  const checkFriendStatus = async () => {
-    if (!userId) return;
-    const status = await getFriendshipStatus(userId);
-    setFriendStatus(status);
-  };
-
-  const handleAddFriend = async () => {
-    if (!userId) return;
-    const success = await sendFriendRequest(userId);
-    if (success) {
-      setFriendStatus("pending_sent");
-    }
-  };
-
-  const handleMessage = () => {
-    if (profile && friendStatus === "friends") {
-      navigate(`/chat/${profile.id}`);
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
   const formatDate = (dateString: string) => {
