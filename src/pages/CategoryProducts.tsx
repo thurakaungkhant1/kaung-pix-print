@@ -96,7 +96,7 @@ const CategoryProducts = () => {
     return (
       <div className="min-h-screen bg-background pb-20">
         <div className="max-w-screen-xl mx-auto p-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />
             ))}
@@ -126,7 +126,7 @@ const CategoryProducts = () => {
             <p className="text-muted-foreground">No products in this category yet</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {products.map((product) => (
               <Card
                 key={product.id}
