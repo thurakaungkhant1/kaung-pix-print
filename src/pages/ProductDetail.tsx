@@ -144,7 +144,6 @@ const ProductDetail = () => {
         description: "This product is only available for premium members",
         variant: "destructive",
       });
-      navigate("/premium-shop");
       return;
     }
 
@@ -172,7 +171,6 @@ const ProductDetail = () => {
         description: "This product is only available for premium members",
         variant: "destructive",
       });
-      navigate("/premium-shop");
       return;
     }
 

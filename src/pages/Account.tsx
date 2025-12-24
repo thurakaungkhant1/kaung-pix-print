@@ -841,38 +841,20 @@ const Account = () => {
               </CardContent>
             </Card>
 
-            {/* Premium Shop */}
+            {/* Leaderboard & History */}
             <Card className="rounded-2xl border-border/50 shadow-sm">
               <CardContent className="p-2">
-                <SettingItem 
-                  icon={Sparkles}
-                  label="Premium Shop"
-                  description="Buy premium with points or cash"
-                  onClick={() => navigate("/premium-shop")}
-                />
-                <Separator className="my-1" />
                 <SettingItem 
                   icon={Trophy}
                   label="Top Earners"
                   description="View the leaderboard"
                   onClick={() => navigate("/top-earners")}
                 />
-              </CardContent>
-            </Card>
-
-            {/* History */}
-            <Card className="rounded-2xl border-border/50 shadow-sm">
-              <CardContent className="p-2">
+                <Separator className="my-1" />
                 <SettingItem 
                   icon={History}
                   label="Point History"
                   onClick={() => navigate("/point-history")}
-                />
-                <Separator className="my-1" />
-                <SettingItem 
-                  icon={CreditCard}
-                  label="Premium History"
-                  onClick={() => navigate("/premium-history")}
                 />
               </CardContent>
             </Card>

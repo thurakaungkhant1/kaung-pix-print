@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Diamond, Gamepad2, History, Sparkles } from "lucide-react";
+import { 
+  Diamond, 
+  Gamepad2, 
+  History, 
+  Sparkles, 
+  Smartphone, 
+  Wifi, 
+  ShoppingBag,
+  Zap,
+  Gift,
+  CreditCard
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -41,11 +52,28 @@ interface Order {
   game_id: string | null;
   server_id: string | null;
   game_name: string | null;
+  phone_number: string;
   products: {
     name: string;
     image_url: string;
+    category: string;
   };
 }
+
+// Game categories with icons
+const GAME_CATEGORIES = [
+  { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500" },
+  { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500" },
+  { id: "Free Fire", name: "Free Fire", icon: Zap, color: "text-orange-500" },
+  { id: "Genshin", name: "Genshin Impact", icon: Sparkles, color: "text-purple-500" },
+  { id: "Gift Cards", name: "Gift Cards", icon: Gift, color: "text-green-500" },
+];
+
+// Mobile service categories
+const MOBILE_CATEGORIES = [
+  { id: "Phone Top-up", name: "Phone Balance", icon: Smartphone, color: "text-primary" },
+  { id: "Data Plans", name: "Data Plans", icon: Wifi, color: "text-blue-500" },
+];
 
 const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -55,7 +83,10 @@ const GamePage = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [purchasing, setPurchasing] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("games");
+  const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -70,7 +101,6 @@ const GamePage = () => {
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .eq("category", "MLBB Diamonds")
       .order("price", { ascending: true });
 
     if (!error && data) {
@@ -88,23 +118,44 @@ const GamePage = () => {
         *,
         products (
           name,
-          image_url
+          image_url,
+          category
         )
       `)
       .eq("user_id", user.id)
-      .not("game_id", "is", null)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(20);
 
     if (!error && data) {
       setOrders(data as Order[]);
     }
   };
 
+  const isGameProduct = (category: string) => {
+    return GAME_CATEGORIES.some(cat => cat.id === category);
+  };
+
+  const isMobileProduct = (category: string) => {
+    return MOBILE_CATEGORIES.some(cat => cat.id === category);
+  };
+
+  const getFilteredProducts = () => {
+    if (activeCategory === "games") {
+      if (selectedGameCategory) {
+        return products.filter(p => p.category === selectedGameCategory);
+      }
+      return products.filter(p => isGameProduct(p.category));
+    } else if (activeCategory === "mobile") {
+      return products.filter(p => isMobileProduct(p.category));
+    }
+    return products;
+  };
+
   const handleBuyClick = (product: Product) => {
     if (!user) {
       toast({
         title: "Login required",
-        description: "Please login to purchase diamonds",
+        description: "Please login to make a purchase",
         variant: "destructive",
       });
       return;
@@ -113,16 +164,31 @@ const GamePage = () => {
     setShowPurchaseDialog(true);
     setGameId("");
     setServerId("");
+    setPhoneNumber("");
   };
 
-  const handlePurchase = async () => {
-    if (!selectedProduct || !user || !gameId || !serverId) {
-      toast({
-        title: "Error",
-        description: "Please enter your Player ID and Server ID",
-        variant: "destructive",
-      });
-      return;
+  const handleQuickBuy = async () => {
+    if (!selectedProduct || !user) return;
+
+    // Validate based on product type
+    if (isGameProduct(selectedProduct.category)) {
+      if (!gameId || !serverId) {
+        toast({
+          title: "Error",
+          description: "Please enter your Player ID and Server ID",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (isMobileProduct(selectedProduct.category)) {
+      if (!phoneNumber) {
+        toast({
+          title: "Error",
+          description: "Please enter your phone number",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setPurchasing(true);
@@ -132,13 +198,13 @@ const GamePage = () => {
       product_id: selectedProduct.id,
       quantity: 1,
       price: selectedProduct.price,
-      game_id: gameId,
-      server_id: serverId,
-      game_name: "",
+      game_id: isGameProduct(selectedProduct.category) ? gameId : null,
+      server_id: isGameProduct(selectedProduct.category) ? serverId : null,
+      game_name: selectedProduct.category,
+      phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : "",
       status: "pending",
       payment_method: "pending",
       delivery_address: "",
-      phone_number: "",
     });
 
     if (error) {
@@ -150,7 +216,7 @@ const GamePage = () => {
     } else {
       toast({
         title: "Order placed!",
-        description: "Your diamond top-up order has been placed. We'll process it shortly.",
+        description: "Your order has been placed. We'll process it shortly.",
       });
       setShowPurchaseDialog(false);
       loadOrders();
@@ -190,6 +256,8 @@ const GamePage = () => {
     );
   }
 
+  const filteredProducts = getFilteredProducts();
+
   return (
     <MobileLayout>
       {/* Hero Header */}
@@ -203,63 +271,94 @@ const GamePage = () => {
         <div className="relative z-10 p-4 pt-6 pb-6">
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="p-2 rounded-xl bg-primary-foreground/10 backdrop-blur-sm">
-              <Gamepad2 className="h-6 w-6 text-primary-foreground" />
+              <ShoppingBag className="h-6 w-6 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-display font-extrabold text-primary-foreground tracking-tight">
-              Game Top-Up
+              Top-up & Shop
             </h1>
           </div>
           <p className="text-center text-sm text-primary-foreground/70">
-            Fast & Secure Diamond Top-Up
+            Game Top-ups & Mobile Services
           </p>
         </div>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 pb-24">
-        <Tabs defaultValue="packages" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 h-12">
-            <TabsTrigger value="packages" className="gap-2 text-sm font-medium">
-              <Diamond className="h-4 w-4" />
-              Diamond Packages
+        <Tabs defaultValue="games" className="w-full" onValueChange={(v) => {
+          setActiveCategory(v);
+          setSelectedGameCategory(null);
+        }}>
+          <TabsList className="grid w-full grid-cols-3 mb-6 h-12">
+            <TabsTrigger value="games" className="gap-2 text-sm font-medium">
+              <Gamepad2 className="h-4 w-4" />
+              Games
+            </TabsTrigger>
+            <TabsTrigger value="mobile" className="gap-2 text-sm font-medium">
+              <Smartphone className="h-4 w-4" />
+              Mobile
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-2 text-sm font-medium">
               <History className="h-4 w-4" />
-              My Orders
+              Orders
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="packages" className="space-y-6">
+          <TabsContent value="games" className="space-y-6">
+            {/* Game Categories */}
+            <div className="grid grid-cols-5 gap-2">
+              {GAME_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedGameCategory(
+                    selectedGameCategory === cat.id ? null : cat.id
+                  )}
+                  className={cn(
+                    "flex flex-col items-center gap-1 p-3 rounded-xl transition-all",
+                    "border border-border/50 hover:border-primary/30",
+                    selectedGameCategory === cat.id 
+                      ? "bg-primary/10 border-primary/50" 
+                      : "bg-card hover:bg-card/80"
+                  )}
+                >
+                  <cat.icon className={cn("h-5 w-5", cat.color)} />
+                  <span className="text-[10px] font-medium text-center leading-tight">
+                    {cat.name.split(" ")[0]}
+                  </span>
+                </button>
+              ))}
+            </div>
+
             {/* Promo Banner */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 p-4">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
               <div className="relative flex items-start gap-3">
                 <div className="p-2 rounded-xl bg-primary/20">
-                  <Sparkles className="h-5 w-5 text-primary" />
+                  <Zap className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-foreground mb-1">
-                    Mobile Legends Diamond Offers!
+                    Quick Buy - Instant Delivery!
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Diamond ဝယ်ယူသူများအနေဖြင့် စိန်ဝယ်ပြီးပါက Admin ကို ဆက်သွယ်ပေးပါ
+                    Fast & secure top-up for all your favorite games
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Products Grid */}
-            {products.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <div className="text-center py-16">
                 <div className="relative inline-block mb-6">
                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                  <Diamond className="relative h-16 w-16 text-muted-foreground" />
+                  <Gamepad2 className="relative h-16 w-16 text-muted-foreground" />
                 </div>
-                <p className="text-muted-foreground font-medium">No diamond packages available</p>
+                <p className="text-muted-foreground font-medium">No products available</p>
                 <p className="text-sm text-muted-foreground/70 mt-1">Check back soon</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {products.map((product, index) => (
+                {filteredProducts.map((product, index) => (
                   <Card
                     key={product.id}
                     className={cn(
@@ -285,7 +384,82 @@ const GamePage = () => {
                           {product.price.toLocaleString()}
                           <span className="text-xs font-medium ml-1 text-muted-foreground">Ks</span>
                         </p>
-                        <Button size="sm" className="h-8 px-3 text-xs">
+                        <Button size="sm" className="h-8 px-3 text-xs gap-1">
+                          <Zap className="h-3 w-3" />
+                          Buy
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="mobile" className="space-y-6">
+            {/* Mobile Categories */}
+            <div className="grid grid-cols-2 gap-3">
+              {MOBILE_CATEGORIES.map((cat) => (
+                <Card
+                  key={cat.id}
+                  className={cn(
+                    "p-4 cursor-pointer transition-all",
+                    "hover:shadow-lg hover:border-primary/30"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn("p-3 rounded-xl bg-muted", cat.color)}>
+                      <cat.icon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{cat.name}</h3>
+                      <p className="text-xs text-muted-foreground">Quick recharge</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {/* Mobile Products */}
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+                  <Smartphone className="relative h-16 w-16 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground font-medium">No mobile services available</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">Coming soon</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {filteredProducts.map((product, index) => (
+                  <Card
+                    key={product.id}
+                    className={cn(
+                      "overflow-hidden cursor-pointer transition-all duration-300",
+                      "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+                      "animate-scale-in"
+                    )}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    onClick={() => handleBuyClick(product)}
+                  >
+                    <div className="aspect-square bg-muted overflow-hidden">
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <CardContent className="p-3 space-y-2">
+                      <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
+                      <div className="flex items-center justify-between">
+                        <p className="text-primary font-bold text-lg">
+                          {product.price.toLocaleString()}
+                          <span className="text-xs font-medium ml-1 text-muted-foreground">Ks</span>
+                        </p>
+                        <Button size="sm" className="h-8 px-3 text-xs gap-1">
+                          <Zap className="h-3 w-3" />
                           Buy
                         </Button>
                       </div>
@@ -323,7 +497,12 @@ const GamePage = () => {
                             {getStatusBadge(order.status)}
                           </div>
                           <div className="text-xs text-muted-foreground space-y-0.5">
-                            <p>ID: {order.game_id} ({order.server_id})</p>
+                            {order.game_id && (
+                              <p>ID: {order.game_id} ({order.server_id})</p>
+                            )}
+                            {order.phone_number && (
+                              <p>Phone: {order.phone_number}</p>
+                            )}
                             <p className="font-medium text-foreground">{order.price.toLocaleString()} Ks</p>
                             <p>{new Date(order.created_at).toLocaleDateString()}</p>
                           </div>
@@ -338,43 +517,59 @@ const GamePage = () => {
         </Tabs>
       </div>
 
+      {/* Quick Buy Dialog */}
       <Dialog open={showPurchaseDialog} onOpenChange={setShowPurchaseDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Diamond className="h-5 w-5 text-primary" />
-              {selectedProduct?.name}
+              <Zap className="h-5 w-5 text-primary" />
+              Quick Buy
             </DialogTitle>
             <DialogDescription>
-              Enter your Mobile Legends account details
+              {selectedProduct && isGameProduct(selectedProduct.category)
+                ? "Enter your game account details"
+                : "Enter your phone number"
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            {selectedProduct && isGameProduct(selectedProduct.category) ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="gameId">Player ID *</Label>
+                  <Input
+                    id="gameId"
+                    placeholder="123456789"
+                    value={gameId}
+                    onChange={(e) => setGameId(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="serverId">Server ID *</Label>
+                  <Input
+                    id="serverId"
+                    placeholder="1234"
+                    value={serverId}
+                    onChange={(e) => setServerId(e.target.value)}
+                  />
+                </div>
+              </div>
+            ) : (
               <div className="space-y-2">
-                <Label htmlFor="gameId">Player ID *</Label>
+                <Label htmlFor="phoneNumber">Phone Number *</Label>
                 <Input
-                  id="gameId"
-                  placeholder="123456789"
-                  value={gameId}
-                  onChange={(e) => setGameId(e.target.value)}
+                  id="phoneNumber"
+                  placeholder="09xxxxxxxxx"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="serverId">Server ID *</Label>
-                <Input
-                  id="serverId"
-                  placeholder="1234"
-                  value={serverId}
-                  onChange={(e) => setServerId(e.target.value)}
-                />
-              </div>
-            </div>
+            )}
             
             {selectedProduct && (
               <div className="p-4 bg-muted rounded-xl space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Package</span>
+                  <span className="text-muted-foreground">Product</span>
                   <span className="font-medium">{selectedProduct.name}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold">
@@ -389,10 +584,12 @@ const GamePage = () => {
               Cancel
             </Button>
             <Button
-              onClick={handlePurchase}
-              disabled={purchasing || !gameId || !serverId}
+              onClick={handleQuickBuy}
+              disabled={purchasing}
+              className="gap-2"
             >
-              {purchasing ? "Processing..." : "Confirm"}
+              <CreditCard className="h-4 w-4" />
+              {purchasing ? "Processing..." : "Confirm Purchase"}
             </Button>
           </DialogFooter>
         </DialogContent>
