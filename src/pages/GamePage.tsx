@@ -60,19 +60,19 @@ interface Order {
   };
 }
 
-// Game categories with icons
+// Game categories with icons and images
 const GAME_CATEGORIES = [
-  { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500" },
-  { id: "PUBG UC", name: "PUBG", icon: Gamepad2, color: "text-yellow-500" },
-  { id: "Free Fire", name: "Free Fire", icon: Zap, color: "text-orange-500" },
-  { id: "Genshin", name: "Genshin", icon: Sparkles, color: "text-purple-500" },
-  { id: "Gift Cards", name: "Gift Cards", icon: Gift, color: "text-green-500" },
+  { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500", image: "/images/games/mobile-legends.png" },
+  { id: "PUBG UC", name: "PUBG", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
+  { id: "Free Fire", name: "Free Fire", icon: Zap, color: "text-orange-500", image: "/images/games/free-fire.png" },
+  { id: "Genshin", name: "Genshin", icon: Sparkles, color: "text-purple-500", image: "/images/games/genshin-impact.png" },
+  { id: "Gift Cards", name: "Gift Cards", icon: Gift, color: "text-green-500", image: "/images/services/gift-card.png" },
 ];
 
-// Mobile service categories
+// Mobile service categories with images
 const MOBILE_CATEGORIES = [
-  { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone, color: "text-primary" },
-  { id: "Data Plans", name: "Data Plans", icon: Wifi, color: "text-blue-500" },
+  { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone, color: "text-primary", image: "/images/services/phone-topup.png" },
+  { id: "Data Plans", name: "Data Plans", icon: Wifi, color: "text-blue-500", image: "/images/services/data-plan.png" },
 ];
 
 const GamePage = () => {
@@ -313,14 +313,20 @@ const GamePage = () => {
                     selectedGameCategory === cat.id ? null : cat.id
                   )}
                   className={cn(
-                    "flex flex-col items-center gap-1 p-3 rounded-xl transition-all",
+                    "flex flex-col items-center gap-1 p-2 rounded-xl transition-all",
                     "border border-border/50 hover:border-primary/30",
                     selectedGameCategory === cat.id 
                       ? "bg-primary/10 border-primary/50" 
                       : "bg-card hover:bg-card/80"
                   )}
                 >
-                  <cat.icon className={cn("h-5 w-5", cat.color)} />
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted">
+                    <img 
+                      src={cat.image} 
+                      alt={cat.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <span className="text-[10px] font-medium text-center leading-tight">
                     {cat.name.split(" ")[0]}
                   </span>
@@ -408,8 +414,12 @@ const GamePage = () => {
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={cn("p-3 rounded-xl bg-muted", cat.color)}>
-                      <cat.icon className="h-6 w-6" />
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted">
+                      <img 
+                        src={cat.image} 
+                        alt={cat.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <h3 className="font-semibold">{cat.name}</h3>

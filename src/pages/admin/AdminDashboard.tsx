@@ -858,14 +858,12 @@ const AdminDashboard = () => {
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
     { id: "users", label: "Users", icon: Users, badge: 0 },
-    { id: "premium-users", label: "Premium Users", icon: Crown, badge: 0, route: "/admin/premium-users" },
-    { id: "premium-plans", label: "Premium Plans", icon: Crown, badge: 0, route: "/admin/premium-plans" },
-    { id: "premium-requests", label: "Premium Requests", icon: Crown, badge: pendingPremiumRequests, route: "/admin/premium-requests" },
     { id: "point-management", label: "Point Management", icon: Coins, badge: 0 },
     { id: "point-history", label: "Point History", icon: History, badge: 0 },
     { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
-    { id: "diamond-orders", label: "Diamond Orders", icon: Gem, badge: pendingDiamondOrders },
-    { id: "products", label: "Products", icon: Package, badge: 0 },
+    { id: "diamond-orders", label: "Game Orders", icon: Gamepad2, badge: pendingDiamondOrders },
+    { id: "shop", label: "Shop Management", icon: Package, badge: 0 },
+    { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
     { id: "photos", label: "Photos", icon: Image, badge: 0 },
     { id: "settings", label: "Settings", icon: Settings, badge: 0 },
   ];
@@ -2231,6 +2229,216 @@ const AdminDashboard = () => {
                     <Gem className="mr-2 h-4 w-4" />
                     MLBB Diamond Packages
                   </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Shop Management Tab */}
+          {activeTab === "shop" && (
+            <div className="space-y-6">
+              {/* Shop Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="premium-card border-l-4 border-l-blue-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Package className="h-5 w-5 text-blue-500" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Products</p>
+                        <p className="text-xl font-bold">{stats.products}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="premium-card border-l-4 border-l-green-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <ShoppingCart className="h-5 w-5 text-green-500" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Orders</p>
+                        <p className="text-xl font-bold">{stats.orders}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="premium-card border-l-4 border-l-orange-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Gamepad2 className="h-5 w-5 text-orange-500" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Game Orders</p>
+                        <p className="text-xl font-bold">{diamondStats.totalOrders}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="premium-card border-l-4 border-l-primary">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Revenue</p>
+                        <p className="text-xl font-bold">{(stats.revenue + diamondStats.totalRevenue).toLocaleString()} Ks</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Actions */}
+              <Card className="premium-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    Quick Actions
+                  </CardTitle>
+                  <CardDescription>Manage your shop products and categories</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  <Button onClick={() => navigate("/admin/products/new")} className="h-auto py-4 flex-col gap-2">
+                    <Plus className="h-5 w-5" />
+                    Add Product
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/products")} className="h-auto py-4 flex-col gap-2">
+                    <Package className="h-5 w-5" />
+                    Manage Products
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/diamond-packages")} className="h-auto py-4 flex-col gap-2">
+                    <Gem className="h-5 w-5" />
+                    Diamond Packages
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Product Categories */}
+              <Card className="premium-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5 text-primary" />
+                    Product Categories
+                  </CardTitle>
+                  <CardDescription>Organize products by type</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Game Items Section */}
+                  <div className="p-4 bg-muted/50 rounded-xl space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Gamepad2 className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold">Game Items (Digital)</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      In-game currencies, skins, gift cards - instant delivery with Player ID
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
+                        <div className="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center">
+                          <Gem className="h-4 w-4 text-blue-500" />
+                        </div>
+                        <span className="text-sm">MLBB Diamonds</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
+                        <div className="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
+                          <Gamepad2 className="h-4 w-4 text-yellow-500" />
+                        </div>
+                        <span className="text-sm">PUBG UC</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
+                        <div className="w-8 h-8 rounded bg-orange-500/20 flex items-center justify-center">
+                          <Zap className="h-4 w-4 text-orange-500" />
+                        </div>
+                        <span className="text-sm">Free Fire</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
+                        <div className="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center">
+                          <Package className="h-4 w-4 text-purple-500" />
+                        </div>
+                        <span className="text-sm">Genshin</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile Services Section */}
+                  <div className="p-4 bg-muted/50 rounded-xl space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-5 w-5 text-green-500" />
+                      <h3 className="font-semibold">Mobile Services</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Phone bill top-ups and mobile data plans - requires phone number
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
+                        <div className="w-8 h-8 rounded bg-green-500/20 flex items-center justify-center">
+                          <Phone className="h-4 w-4 text-green-500" />
+                        </div>
+                        <span className="text-sm">Phone Top-up</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
+                        <div className="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center">
+                          <ExternalLink className="h-4 w-4 text-blue-500" />
+                        </div>
+                        <span className="text-sm">Data Plans</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Physical Products Section */}
+                  <div className="p-4 bg-muted/50 rounded-xl space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold">Physical Products</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Merchandise, accessories - requires shipping address
+                    </p>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/products")}>
+                      View All Products
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recent Game Orders */}
+              <Card className="premium-card">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gamepad2 className="h-5 w-5 text-primary" />
+                      Recent Game Orders
+                    </CardTitle>
+                    <CardDescription>Latest game top-up orders</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setActiveTab("diamond-orders")}>
+                    View All <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {diamondOrders.slice(0, 5).map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10">
+                            <Gamepad2 className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{order.game_name || "Game Top-up"}</p>
+                            <p className="text-xs text-muted-foreground">
+                              ID: {order.game_id} | Server: {order.server_id || "-"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-sm">{Number(order.price).toLocaleString()} Ks</p>
+                          <Badge variant={order.status === "approved" ? "default" : order.status === "pending" ? "secondary" : "destructive"} className="text-xs">
+                            {order.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                    {diamondOrders.length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">No game orders yet</p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
