@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Trophy, Medal, Award, Coins, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
 import { getRelativeTimeString } from "@/lib/timeUtils";
 import VerificationBadge from "@/components/VerificationBadge";
 import BottomNav from "@/components/BottomNav";
@@ -20,7 +19,6 @@ interface LeaderboardUser {
 const TopEarners = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const { user } = useAuth();
-  const { isUserOnline, getUserLastActive } = useOnlineUsers();
   const navigate = useNavigate();
 
   const [, setTick] = useState(0);
@@ -86,8 +84,6 @@ const TopEarners = () => {
             ) : (
               leaderboard.map((leaderUser, index) => {
                 const isCurrentUser = user?.id === leaderUser.id;
-                const isOnline = isUserOnline(leaderUser.id);
-                const lastActive = getUserLastActive(leaderUser.id);
                 const rank = index + 1;
                 
                 return (
@@ -121,14 +117,6 @@ const TopEarners = () => {
                             You
                           </span>
                         )}
-                        {isOnline ? (
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-xs text-green-600 dark:text-green-400 font-medium">Active</span>
-                          </div>
-                        ) : lastActive ? (
-                          <span className="text-xs text-muted-foreground">{getRelativeTimeString(lastActive)}</span>
-                        ) : null}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full">

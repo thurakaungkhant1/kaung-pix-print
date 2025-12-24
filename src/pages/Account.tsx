@@ -30,7 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/BottomNav";
 import SpinnerWheel from "@/components/SpinnerWheel";
 import ReferralSection from "@/components/ReferralSection";
-import ChatSettings from "@/components/ChatSettings";
+
 import { cn } from "@/lib/utils";
 import { ImageCropper } from "@/components/ImageCropper";
 import { usePremiumMembership } from "@/hooks/usePremiumMembership";
@@ -1000,8 +1000,6 @@ const Account = () => {
               </CardContent>
             </Card>
 
-            {/* Chat Settings */}
-            <ChatSettings />
 
             {/* Referral */}
             <ReferralSection />

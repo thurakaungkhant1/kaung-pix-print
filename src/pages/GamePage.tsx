@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Diamond, ArrowLeft, History } from "lucide-react";
+import { Diamond, Gamepad2, History, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import MobileLayout from "@/components/MobileLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 import {
   Dialog,
@@ -46,7 +47,7 @@ interface Order {
   };
 }
 
-const MLBBDiamonds = () => {
+const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +58,6 @@ const MLBBDiamonds = () => {
   const [purchasing, setPurchasing] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadProducts();
@@ -107,7 +107,6 @@ const MLBBDiamonds = () => {
         description: "Please login to purchase diamonds",
         variant: "destructive",
       });
-      navigate("/auth/login");
       return;
     }
     setSelectedProduct(product);
@@ -115,7 +114,6 @@ const MLBBDiamonds = () => {
     setGameId("");
     setServerId("");
   };
-
 
   const handlePurchase = async () => {
     if (!selectedProduct || !user || !gameId || !serverId) {
@@ -173,108 +171,123 @@ const MLBBDiamonds = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
-        <div className="max-w-screen-xl mx-auto p-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />
-            ))}
+      <MobileLayout>
+        <div className="min-h-screen bg-background pb-24">
+          <div className="max-w-screen-xl mx-auto p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className="h-48 bg-muted animate-pulse rounded-xl" 
+                  style={{ animationDelay: `${i * 100}ms` }}
+                />
+              ))}
+            </div>
           </div>
         </div>
         <BottomNav />
-      </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-              className="hover:bg-primary-foreground/10"
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-            <h1 className="text-2xl font-bold">💎</h1>
+    <MobileLayout>
+      {/* Hero Header */}
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-hero" />
+        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
+        
+        <div className="absolute top-4 right-4 w-32 h-32 bg-primary-foreground/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-primary-foreground/5 rounded-full blur-3xl" />
+        
+        <div className="relative z-10 p-4 pt-6 pb-6">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="p-2 rounded-xl bg-primary-foreground/10 backdrop-blur-sm">
+              <Gamepad2 className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-display font-extrabold text-primary-foreground tracking-tight">
+              Game Top-Up
+            </h1>
           </div>
+          <p className="text-center text-sm text-primary-foreground/70">
+            Fast & Secure Diamond Top-Up
+          </p>
         </div>
       </header>
 
-      <div className="max-w-screen-xl mx-auto p-4">
+      <div className="max-w-screen-xl mx-auto p-4 pb-24">
         <Tabs defaultValue="packages" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="packages">
-              <Diamond className="h-4 w-4 mr-2" />
-              Packages
+          <TabsList className="grid w-full grid-cols-2 mb-6 h-12">
+            <TabsTrigger value="packages" className="gap-2 text-sm font-medium">
+              <Diamond className="h-4 w-4" />
+              Diamond Packages
             </TabsTrigger>
-            <TabsTrigger value="orders">
-              <History className="h-4 w-4 mr-2" />
+            <TabsTrigger value="orders" className="gap-2 text-sm font-medium">
+              <History className="h-4 w-4" />
               My Orders
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="packages">
-            <div className="mb-6 p-4 bg-accent/10 border border-accent rounded-lg">
-              <h2 className="text-lg font-bold text-accent mb-2 flex items-center gap-2">
-                <Diamond className="h-5 w-5" />
-                Special MLBB Diamond Offers!
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Diamond ဝယ်ယူသူများအနေဖြင့် စိန်ဝယ်ပြီးပါက Admin ကို ဆက်သွယ်ပေးပါ၊ ဝယ်ယူအားပေးလို့ ကျေးဇူးပါခင်ဗျာ။
-              </p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                created by Thura Kaung Khant
-              </p>
+          <TabsContent value="packages" className="space-y-6">
+            {/* Promo Banner */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 p-4">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+              <div className="relative flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-primary/20">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-foreground mb-1">
+                    Mobile Legends Diamond Offers!
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Diamond ဝယ်ယူသူများအနေဖြင့် စိန်ဝယ်ပြီးပါက Admin ကို ဆက်သွယ်ပေးပါ
+                  </p>
+                </div>
+              </div>
             </div>
 
+            {/* Products Grid */}
             {products.length === 0 ? (
-              <div className="text-center py-12">
-                <Diamond className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No diamond packages available yet</p>
+              <div className="text-center py-16">
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+                  <Diamond className="relative h-16 w-16 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground font-medium">No diamond packages available</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">Check back soon</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {products.map((product) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {products.map((product, index) => (
                   <Card
                     key={product.id}
-                    className="overflow-hidden hover:shadow-lg transition-shadow"
+                    className={cn(
+                      "overflow-hidden cursor-pointer transition-all duration-300",
+                      "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+                      "animate-scale-in"
+                    )}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    onClick={() => handleBuyClick(product)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex gap-4">
-                        <div className="h-24 w-24 flex-shrink-0 bg-muted rounded">
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-full h-full object-cover rounded"
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between">
-                          <div>
-                            <h3 className="font-semibold text-base mb-1">
-                              {product.name}
-                            </h3>
-                            {product.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {product.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-primary font-bold text-xl">
-                              {product.price.toLocaleString()} Ks
-                            </p>
-                            <Button
-                              onClick={() => handleBuyClick(product)}
-                              size="sm"
-                            >
-                              Buy Now
-                            </Button>
-                          </div>
-                        </div>
+                    <div className="aspect-square bg-muted overflow-hidden">
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <CardContent className="p-3 space-y-2">
+                      <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
+                      <div className="flex items-center justify-between">
+                        <p className="text-primary font-bold text-lg">
+                          {product.price.toLocaleString()}
+                          <span className="text-xs font-medium ml-1 text-muted-foreground">Ks</span>
+                        </p>
+                        <Button size="sm" className="h-8 px-3 text-xs">
+                          Buy
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -285,31 +298,34 @@ const MLBBDiamonds = () => {
 
           <TabsContent value="orders">
             {orders.length === 0 ? (
-              <div className="text-center py-12">
-                <History className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No orders yet</p>
+              <div className="text-center py-16">
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+                  <History className="relative h-16 w-16 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground font-medium">No orders yet</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">Your purchase history will appear here</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {orders.map((order) => (
-                  <Card key={order.id}>
+                  <Card key={order.id} className="overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex gap-4">
                         <img
                           src={order.products.image_url}
                           alt={order.products.name}
-                          className="h-20 w-20 rounded object-cover"
+                          className="h-20 w-20 rounded-lg object-cover flex-shrink-0"
                         />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-semibold">{order.products.name}</h3>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start gap-2 mb-2">
+                            <h3 className="font-semibold text-sm truncate">{order.products.name}</h3>
                             {getStatusBadge(order.status)}
                           </div>
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <p>Game ID: {order.game_id} ({order.server_id})</p>
-                            <p>Game Name: {order.game_name}</p>
-                            <p>Price: {order.price.toLocaleString()} Ks</p>
-                            <p>Date: {new Date(order.created_at).toLocaleDateString()}</p>
+                          <div className="text-xs text-muted-foreground space-y-0.5">
+                            <p>ID: {order.game_id} ({order.server_id})</p>
+                            <p className="font-medium text-foreground">{order.price.toLocaleString()} Ks</p>
+                            <p>{new Date(order.created_at).toLocaleDateString()}</p>
                           </div>
                         </div>
                       </div>
@@ -323,53 +339,52 @@ const MLBBDiamonds = () => {
       </div>
 
       <Dialog open={showPurchaseDialog} onOpenChange={setShowPurchaseDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Purchase {selectedProduct?.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Diamond className="h-5 w-5 text-primary" />
+              {selectedProduct?.name}
+            </DialogTitle>
             <DialogDescription>
-              Enter your Mobile Legends account details to receive diamonds
+              Enter your Mobile Legends account details
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="gameId">Player ID *</Label>
                 <Input
                   id="gameId"
                   placeholder="123456789"
                   value={gameId}
                   onChange={(e) => setGameId(e.target.value)}
-                  aria-label="Player ID"
-                  aria-required="true"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="serverId">Server ID *</Label>
                 <Input
                   id="serverId"
                   placeholder="1234"
                   value={serverId}
                   onChange={(e) => setServerId(e.target.value)}
-                  aria-label="Server ID"
-                  aria-required="true"
                 />
               </div>
             </div>
             
             {selectedProduct && (
-              <div className="p-3 bg-muted rounded">
-                <div className="flex justify-between mb-2">
-                  <span>Package:</span>
+              <div className="p-4 bg-muted rounded-xl space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Package</span>
                   <span className="font-medium">{selectedProduct.name}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Total:</span>
+                  <span>Total</span>
                   <span className="text-primary">{selectedProduct.price.toLocaleString()} Ks</span>
                 </div>
               </div>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowPurchaseDialog(false)}>
               Cancel
             </Button>
@@ -377,15 +392,15 @@ const MLBBDiamonds = () => {
               onClick={handlePurchase}
               disabled={purchasing || !gameId || !serverId}
             >
-              {purchasing ? "Processing..." : "Confirm Purchase"}
+              {purchasing ? "Processing..." : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <BottomNav />
-    </div>
+    </MobileLayout>
   );
 };
 
-export default MLBBDiamonds;
+export default GamePage;

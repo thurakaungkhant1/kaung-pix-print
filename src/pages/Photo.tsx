@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, FileArchive, Users, Search, Camera } from "lucide-react";
+import { Heart, FileArchive, Search, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOnlineUsers } from "@/contexts/OnlineUsersContext";
 import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 import { Input } from "@/components/ui/input";
@@ -33,7 +32,6 @@ const Photo = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { onlineCount } = useOnlineUsers();
 
   useEffect(() => {
     loadPhotos();
@@ -157,16 +155,7 @@ const Photo = () => {
         <div className="relative z-10 p-4 pt-6 pb-5">
           {/* Top row */}
           <div className="flex items-center justify-between mb-5">
-            <div className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full",
-              "bg-primary-foreground/10 border border-primary-foreground/20"
-            )}>
-              <div className="relative">
-                <Users className="h-4 w-4 text-primary-foreground" />
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-accent rounded-full animate-pulse" />
-              </div>
-              <span className="text-sm font-semibold text-primary-foreground">{onlineCount} Online</span>
-            </div>
+            <div className="w-10" /> {/* Spacer */}
             
             <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
               Photos
