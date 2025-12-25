@@ -33,6 +33,7 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
 
   const moreNavItems = [
     { id: "products", label: "Products", route: "/admin/products" },
+    { id: "categories", label: "Categories", route: "/admin/categories" },
     { id: "point-management", label: "Point Management" },
     { id: "point-history", label: "Point History" },
     { id: "diamond-orders", label: "Game Orders" },

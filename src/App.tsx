@@ -52,6 +52,7 @@ const PremiumUsersManage = lazy(() => import("./pages/admin/PremiumUsersManage")
 const PremiumPlansManage = lazy(() => import("./pages/admin/PremiumPlansManage"));
 const PremiumRequestsManage = lazy(() => import("./pages/admin/PremiumRequestsManage"));
 const ReportsManage = lazy(() => import("./pages/admin/ReportsManage"));
+const CategoriesManage = lazy(() => import("./pages/admin/CategoriesManage"));
 
 const queryClient = new QueryClient();
 
@@ -180,6 +181,14 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <ProductNew />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/categories"
+                  element={
+                    <ProtectedAdminRoute>
+                      <CategoriesManage />
                     </ProtectedAdminRoute>
                   }
                 />

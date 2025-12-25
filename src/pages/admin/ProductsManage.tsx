@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Trash2, Edit, Save, X, Crown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Trash2, Edit, Save, X, Crown, Search, Filter, Gamepad2, Package, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileLayout from "@/components/MobileLayout";
@@ -24,13 +25,50 @@ interface Product {
   is_premium: boolean;
 }
 
+// Category type definitions
+const DIGITAL_CATEGORIES = ['Mobile Legends', 'PUBG UC', 'Free Fire', 'Genshin Impact', 'Gift Cards', 'Phone Top-up', 'Data Plans'];
+const PHYSICAL_CATEGORIES = ['Electronics', 'Accessories', 'General'];
+
 const ProductsManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "physical">("all");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Get unique categories from products
+  const allCategories = useMemo(() => {
+    const cats = new Set(products.map(p => p.category));
+    return Array.from(cats).sort();
+  }, [products]);
+
+  // Filter products based on search, category, and type
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      // Search filter
+      const matchesSearch = searchQuery === "" || 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Category filter
+      const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
+      
+      // Type filter (digital vs physical)
+      let matchesType = true;
+      if (typeFilter === "digital") {
+        matchesType = DIGITAL_CATEGORIES.includes(product.category);
+      } else if (typeFilter === "physical") {
+        matchesType = !DIGITAL_CATEGORIES.includes(product.category);
+      }
+      
+      return matchesSearch && matchesCategory && matchesType;
+    });
+  }, [products, searchQuery, categoryFilter, typeFilter]);
 
   useEffect(() => {
     checkAdmin();
@@ -126,6 +164,12 @@ const ProductsManage = () => {
     }
   };
 
+  const getTypeIcon = (category: string) => {
+    if (DIGITAL_CATEGORIES.slice(0, 5).includes(category)) return <Gamepad2 className="h-3 w-3" />;
+    if (['Phone Top-up', 'Data Plans'].includes(category)) return <Smartphone className="h-3 w-3" />;
+    return <Package className="h-3 w-3" />;
+  };
+
   return (
     <MobileLayout className="pb-8">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
@@ -138,11 +182,73 @@ const ProductsManage = () => {
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-4">
+        {/* Search and Filters */}
+        <Card className="border-border/50">
+          <CardContent className="p-4 space-y-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Filters */}
+            <div className="flex gap-2">
+              {/* Type Filter */}
+              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "digital" | "physical")}>
+                <SelectTrigger className="flex-1">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="digital">
+                    <span className="flex items-center gap-2">
+                      <Gamepad2 className="h-4 w-4" /> Digital Items
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="physical">
+                    <span className="flex items-center gap-2">
+                      <Package className="h-4 w-4" /> Physical Products
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {/* Category Filter */}
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {allCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      <span className="flex items-center gap-2">
+                        {getTypeIcon(cat)} {cat}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Results count */}
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredProducts.length} of {products.length} products
+            </div>
+          </CardContent>
+        </Card>
+
         <Button onClick={() => navigate("/admin/products/new")} className="w-full">
           Add New Product
         </Button>
 
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <Card key={product.id}>
             {editingId === product.id ? (
               <CardContent className="p-4 space-y-4">
