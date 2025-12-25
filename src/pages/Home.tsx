@@ -1,113 +1,64 @@
-import { useEffect, useState, memo, useCallback, lazy, Suspense } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, ShoppingCart, Search, ChevronRight, Crown, Lock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { 
+  ShoppingBag, 
+  Gamepad2, 
+  Zap, 
+  Crown, 
+  Shield, 
+  Gift, 
+  Star,
+  ChevronRight,
+  Sparkles,
+  Users
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
-import CartHeader from "@/components/CartHeader";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image_url: string;
-  description: string | null;
-  category: string;
-  is_premium: boolean;
-}
+// Feature cards data
+const FEATURES = [
+  {
+    icon: Zap,
+    title: "Instant Delivery",
+    description: "Get your items within minutes",
+    color: "text-yellow-500",
+    bgColor: "bg-yellow-500/10",
+  },
+  {
+    icon: Shield,
+    title: "Secure Payment",
+    description: "100% safe & encrypted",
+    color: "text-green-500",
+    bgColor: "bg-green-500/10",
+  },
+  {
+    icon: Gift,
+    title: "Best Prices",
+    description: "Guaranteed lowest rates",
+    color: "text-purple-500",
+    bgColor: "bg-purple-500/10",
+  },
+];
 
-interface CategoryGroup {
-  category: string;
-  products: Product[];
-}
-
-// Memoized Product Card for performance
-const ProductCard = memo(({ 
-  product, 
-  isFavourite, 
-  onToggleFavourite, 
-  onClick,
-  animationDelay 
-}: { 
-  product: Product; 
-  isFavourite: boolean; 
-  onToggleFavourite: () => void;
-  onClick: () => void;
-  animationDelay: string;
-}) => (
-  <Card
-    className={cn(
-      "product-card flex-shrink-0 w-36 cursor-pointer",
-      "animate-scale-in"
-    )}
-    style={{ animationDelay }}
-    onClick={onClick}
-  >
-    <div className="relative aspect-square bg-muted overflow-hidden rounded-t-xl">
-      <img
-        src={product.image_url}
-        alt={product.name}
-        className="w-full h-full object-contain p-2"
-        loading="lazy"
-      />
-      
-      {/* Favourite button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleFavourite();
-        }}
-        className={cn(
-          "absolute top-2 right-2 p-1.5 rounded-full",
-          "glass border-0 transition-all duration-300",
-          "hover:scale-110 active:scale-95",
-          isFavourite 
-            ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
-            : "bg-background/80 text-muted-foreground hover:bg-background"
-        )}
-      >
-        <Heart
-          className={cn(
-            "h-3.5 w-3.5 transition-all duration-300",
-            isFavourite && "fill-current text-white"
-          )}
-        />
-      </button>
-      
-      {/* Gradient overlay */}
-      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
-    </div>
-    
-    <CardContent className="p-2 space-y-0.5">
-      <h3 className="font-semibold text-xs truncate">{product.name}</h3>
-      <p className="text-primary font-bold text-sm">
-        {product.price.toLocaleString()} 
-        <span className="text-[10px] font-medium ml-0.5 text-muted-foreground">MMK</span>
-      </p>
-    </CardContent>
-  </Card>
-));
-
-ProductCard.displayName = "ProductCard";
+// Game categories preview
+const GAME_PREVIEWS = [
+  { name: "Mobile Legends", image: "/images/games/mobile-legends.png" },
+  { name: "PUBG", image: "/images/games/pubg-mobile.png" },
+  { name: "Free Fire", image: "/images/games/free-fire.png" },
+  { name: "Genshin", image: "/images/games/genshin-impact.png" },
+];
 
 const Home = () => {
-  const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([]);
-  const [favourites, setFavourites] = useState<Set<number>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { user } = useAuth();
   const { isPremium } = useUserPremiumStatus(user?.id);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Check if user has seen onboarding
@@ -123,297 +74,222 @@ const Home = () => {
     setShowOnboarding(false);
   }, []);
 
-  useEffect(() => {
-    loadProducts();
-    if (user) loadFavourites();
-  }, [user]);
-
-  const loadProducts = async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .neq("category", "MLBB Diamonds")
-      .order("created_at", { ascending: false });
-
-    if (!error && data) {
-      const grouped = data.reduce((acc: { [key: string]: Product[] }, product) => {
-        const category = product.category || "General";
-        if (!acc[category]) {
-          acc[category] = [];
-        }
-        acc[category].push(product);
-        return acc;
-      }, {});
-
-      const groups: CategoryGroup[] = Object.entries(grouped).map(([category, products]) => ({
-        category,
-        products,
-      }));
-
-      setCategoryGroups(groups);
-    }
-    setLoading(false);
-  };
-
-  const loadFavourites = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("favourite_products")
-      .select("product_id")
-      .eq("user_id", user.id);
-
-    if (data) {
-      setFavourites(new Set(data.map((f) => f.product_id)));
-    }
-  };
-
-  const toggleFavourite = useCallback(async (productId: number) => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to add favourites",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const isFav = favourites.has(productId);
-
-    if (isFav) {
-      await supabase
-        .from("favourite_products")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("product_id", productId);
-
-      setFavourites((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(productId);
-        return newSet;
-      });
-    } else {
-      await supabase
-        .from("favourite_products")
-        .insert({ user_id: user.id, product_id: productId });
-
-      setFavourites((prev) => new Set(prev).add(productId));
-    }
-  }, [user, favourites, toast]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-screen-xl mx-auto p-4">
-          <div className="grid grid-cols-2 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div 
-                key={i} 
-                className="h-56 rounded-2xl animate-shimmer" 
-                style={{ animationDelay: `${i * 100}ms` }}
-              />
-            ))}
-          </div>
-        </div>
-        <BottomNav />
-      </div>
-    );
-  }
-
   return (
     <>
       {/* Onboarding Flow for new users */}
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       
       <MobileLayout>
-      {/* Hero Header */}
-      <header className="relative overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
-        
-        {/* Decorative elements */}
-        <div className="absolute top-4 right-4 w-32 h-32 bg-primary-foreground/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-primary-foreground/5 rounded-full blur-3xl" />
-        
-        <div className="relative z-10 p-4 pt-6 pb-5">
-          {/* Top row */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-10" /> {/* Spacer for balance */}
+        {/* Hero Section - Gaming Neon Style */}
+        <section className="hero-gaming relative overflow-hidden min-h-[60vh] flex flex-col">
+          {/* Grid pattern background */}
+          <div className="absolute inset-0 bg-grid-gaming opacity-50" />
+          
+          {/* Animated glow orbs */}
+          <div className="absolute top-20 right-10 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
+          <div className="absolute bottom-20 left-10 w-48 h-48 bg-accent/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+          
+          {/* Hero Content */}
+          <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center">
+            {/* Logo/Brand */}
+            <div className="mb-6 animate-fade-in">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Myanmar's #1 Gaming Store</span>
+              </div>
+            </div>
             
-            <h1 className="text-2xl font-display font-extrabold text-primary-foreground tracking-tight drop-shadow-lg">
-              Kaung Computer
+            {/* Main heading */}
+            <h1 className="text-4xl sm:text-5xl font-display font-black text-foreground mb-4 animate-slide-up">
+              <span className="block">Kaung</span>
+              <span className="block text-neon text-primary">Computer</span>
             </h1>
             
-            <CartHeader />
+            <p className="text-lg text-muted-foreground max-w-md mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
+              Top-up your favorite games instantly. Fast, secure, and at the best prices.
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm animate-slide-up" style={{ animationDelay: '200ms' }}>
+              <Button 
+                onClick={() => navigate("/game")}
+                className="btn-neon flex-1 h-14 text-lg gap-2 font-bold"
+                size="lg"
+              >
+                <ShoppingBag className="h-5 w-5" />
+                Browse Shop
+              </Button>
+              <Button 
+                onClick={() => navigate("/account")}
+                variant="outline"
+                className="flex-1 h-14 text-lg gap-2 font-bold border-primary/30 hover:bg-primary/10"
+                size="lg"
+              >
+                <Gamepad2 className="h-5 w-5" />
+                My Account
+              </Button>
+            </div>
           </div>
           
-          {/* Search bar */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-primary-foreground/10 rounded-2xl blur group-focus-within:blur-lg transition-all duration-300" />
-            <div className="relative flex items-center">
-              <Search className="absolute left-4 h-5 w-5 text-primary-foreground/50 transition-colors group-focus-within:text-primary-foreground/80" />
-              <Input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2">
+              <div className="w-1 h-2 bg-muted-foreground/50 rounded-full" />
+            </div>
+          </div>
+        </section>
+
+        {/* Games Preview Section */}
+        <section className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-display font-bold">Popular Games</h2>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-1 text-primary"
+              onClick={() => navigate("/game")}
+            >
+              View All <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-4 gap-3">
+            {GAME_PREVIEWS.map((game, index) => (
+              <button
+                key={game.name}
+                onClick={() => navigate("/game")}
                 className={cn(
-                  "w-full pl-11 pr-4 py-3 h-12 rounded-2xl",
-                  "bg-primary-foreground/10 border-primary-foreground/20",
-                  "text-primary-foreground placeholder:text-primary-foreground/50",
-                  "focus:bg-primary-foreground/15 focus:border-primary-foreground/30",
-                  "transition-all duration-300"
+                  "card-neon p-3 flex flex-col items-center gap-2 animate-scale-in",
+                  "hover:scale-105 transition-transform duration-300"
                 )}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Content */}
-      <div className="max-w-screen-xl mx-auto p-4 space-y-8">
-        {categoryGroups.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <div className="relative inline-block mb-6">
-              <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse-soft" />
-              <ShoppingCart className="relative h-20 w-20 text-muted-foreground" />
-            </div>
-            <p className="text-lg text-muted-foreground font-medium">No products available yet</p>
-            <p className="text-sm text-muted-foreground/70 mt-1">Check back soon for new arrivals</p>
-          </div>
-        ) : (
-          categoryGroups.slice(0, 3).map((group, groupIndex) => {
-            const filteredProducts = group.products.filter((product) =>
-              product.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-            
-            if (filteredProducts.length === 0 && searchQuery) return null;
-            
-            return (
-              <section 
-                key={group.category} 
-                className="animate-slide-up"
-                style={{ animationDelay: `${groupIndex * 100}ms` }}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                {/* Section header */}
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-display font-bold tracking-tight">{group.category}</h2>
-                  <button
-                    onClick={() => navigate(`/category/${encodeURIComponent(group.category)}`)}
-                    className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
-                  >
-                    <span>View All</span>
-                    <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden bg-muted">
+                  <img 
+                    src={game.image} 
+                    alt={game.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                
-                {/* Products carousel */}
-                <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-                  <div className="flex gap-3 pb-2">
-                    {filteredProducts.slice(0, 6).map((product, productIndex) => {
-                      const isLocked = product.is_premium && !isPremium;
-                      
-                      return (
-                        <Card
-                          key={product.id}
-                          className={cn(
-                            "product-card flex-shrink-0 w-36 cursor-pointer relative",
-                            "animate-scale-in"
-                          )}
-                          style={{ animationDelay: `${productIndex * 50}ms` }}
-                          onClick={() => navigate(`/product/${product.id}`)}
-                        >
-                          <div className="relative aspect-square bg-muted overflow-hidden rounded-t-xl">
-                            <img
-                              src={product.image_url}
-                              alt={product.name}
-                              className={cn(
-                                "w-full h-full object-contain p-2 transition-all duration-300",
-                                isLocked && "blur-[2px] opacity-70"
-                              )}
-                            />
-                            
-                            {/* Premium Lock Overlay */}
-                            {isLocked && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-background/40 backdrop-blur-[1px]">
-                                <div className="flex flex-col items-center gap-1 text-center p-2">
-                                  <div className="p-2 rounded-full bg-amber-500/20 backdrop-blur-sm">
-                                    <Lock className="h-5 w-5 text-amber-500" />
-                                  </div>
-                                  <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                                    Premium Only
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Premium/Free Badge */}
-                            {product.is_premium ? (
-                              <Badge className="absolute top-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-[9px] px-1.5 py-0.5">
-                                <Crown className="h-2.5 w-2.5 mr-0.5" />
-                                Premium
-                              </Badge>
-                            ) : (
-                              <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-600 text-white text-[9px] px-1.5 py-0.5">
-                                Free
-                              </Badge>
-                            )}
-                            
-                            {/* Favourite button */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavourite(product.id);
-                              }}
-                              className={cn(
-                                "absolute top-2 right-2 p-1.5 rounded-full z-10",
-                                "glass border-0 transition-all duration-300",
-                                "hover:scale-110 active:scale-95",
-                                favourites.has(product.id) 
-                                  ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
-                                  : "bg-background/80 text-muted-foreground hover:bg-background"
-                              )}
-                            >
-                              <Heart
-                                className={cn(
-                                  "h-3.5 w-3.5 transition-all duration-300",
-                                  favourites.has(product.id) && "fill-current text-white"
-                                )}
-                              />
-                            </button>
-                            
-                            {/* Gradient overlay */}
-                            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
-                          </div>
-                          
-                          <CardContent className="p-2 space-y-0.5">
-                            <h3 className="font-semibold text-xs truncate">{product.name}</h3>
-                            <p className="text-primary font-bold text-sm">
-                              {product.price.toLocaleString()} 
-                              <span className="text-[10px] font-medium ml-0.5 text-muted-foreground">MMK</span>
-                            </p>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+                <span className="text-[10px] sm:text-xs font-medium text-center leading-tight">
+                  {game.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="p-6 space-y-6">
+          <h2 className="text-xl font-display font-bold text-center">Why Choose Us?</h2>
+          
+          <div className="grid gap-4">
+            {FEATURES.map((feature, index) => (
+              <Card 
+                key={feature.title}
+                className={cn(
+                  "card-neon animate-slide-up"
+                )}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className={cn("p-3 rounded-xl", feature.bgColor)}>
+                    <feature.icon className={cn("h-6 w-6", feature.color)} />
                   </div>
+                  <div>
+                    <h3 className="font-bold">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Premium Membership Showcase */}
+        <section className="p-6">
+          <Card className="relative overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-card to-orange-500/10">
+            {/* Glow effect */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl" />
+            
+            <CardContent className="relative p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-amber-500/20">
+                  <Crown className="h-8 w-8 text-amber-500" />
                 </div>
-              </section>
-            );
-          })
-        )}
-      </div>
+                <div>
+                  <Badge className="bg-amber-500 text-white mb-1">Premium</Badge>
+                  <h3 className="text-xl font-display font-bold">Premium Membership</h3>
+                </div>
+              </div>
+              
+              <p className="text-muted-foreground">
+                Unlock exclusive benefits, earn more points, and get access to premium-only deals!
+              </p>
+              
+              <ul className="space-y-2">
+                {[
+                  "Exclusive premium products",
+                  "Earn points while chatting",
+                  "Priority customer support",
+                  "Special discounts & offers"
+                ].map((benefit, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              {isPremium ? (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+                  <Shield className="h-5 w-5 text-green-500" />
+                  <span className="font-medium text-green-600 dark:text-green-400">You're a Premium Member!</span>
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => navigate("/account")}
+                  className="w-full h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold gap-2"
+                >
+                  <Crown className="h-5 w-5" />
+                  Become Premium
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </section>
 
-      {/* Footer credit */}
-      <div className="text-center py-6 pb-28">
-        <p className="text-xs text-muted-foreground/60">
-          created by thurakaungkhant
-        </p>
-      </div>
+        {/* Stats Section */}
+        <section className="p-6 pb-28">
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { value: "10K+", label: "Happy Users", icon: Users },
+              { value: "50K+", label: "Orders", icon: ShoppingBag },
+              { value: "24/7", label: "Support", icon: Shield },
+            ].map((stat, index) => (
+              <Card 
+                key={stat.label}
+                className="card-neon text-center p-4 animate-scale-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <stat.icon className="h-5 w-5 mx-auto mb-2 text-primary" />
+                <p className="text-xl font-display font-bold text-neon text-primary">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              </Card>
+            ))}
+          </div>
+        </section>
 
-      <BottomNav />
-    </MobileLayout>
+        {/* Footer credit */}
+        <div className="text-center py-6 pb-28">
+          <p className="text-xs text-muted-foreground/60">
+            created by thurakaungkhant
+          </p>
+        </div>
+
+        <BottomNav />
+      </MobileLayout>
     </>
   );
 };
