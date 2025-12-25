@@ -260,24 +260,25 @@ const GamePage = () => {
 
   return (
     <MobileLayout>
-      {/* Hero Header */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
+      {/* Hero Header - Gaming Neon Style */}
+      <header className="hero-gaming relative overflow-hidden">
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-grid-gaming opacity-30" />
         
-        <div className="absolute top-4 right-4 w-32 h-32 bg-primary-foreground/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-primary-foreground/5 rounded-full blur-3xl" />
+        {/* Neon glow effects */}
+        <div className="absolute top-4 right-4 w-40 h-40 bg-primary/30 rounded-full blur-[80px] animate-pulse" />
+        <div className="absolute -bottom-8 -left-8 w-48 h-48 bg-accent/20 rounded-full blur-[60px]" />
         
         <div className="relative z-10 p-4 pt-6 pb-6">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="p-2 rounded-xl bg-primary-foreground/10 backdrop-blur-sm">
-              <ShoppingBag className="h-6 w-6 text-primary-foreground" />
+            <div className="p-2.5 rounded-xl bg-primary/20 backdrop-blur-sm border border-primary/30 shadow-glow">
+              <ShoppingBag className="h-6 w-6 text-primary" />
             </div>
-            <h1 className="text-2xl font-display font-extrabold text-primary-foreground tracking-tight">
+            <h1 className="text-2xl font-display font-extrabold text-foreground tracking-tight text-neon">
               Top-up & Shop
             </h1>
           </div>
-          <p className="text-center text-sm text-primary-foreground/70">
+          <p className="text-center text-sm text-muted-foreground">
             Game Top-ups & Mobile Services
           </p>
         </div>
@@ -288,16 +289,16 @@ const GamePage = () => {
           setActiveCategory(v);
           setSelectedGameCategory(null);
         }}>
-          <TabsList className="grid w-full grid-cols-3 mb-6 h-12">
-            <TabsTrigger value="games" className="gap-2 text-sm font-medium">
+          <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-card/50 border border-border/50">
+            <TabsTrigger value="games" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <Gamepad2 className="h-4 w-4" />
               Games
             </TabsTrigger>
-            <TabsTrigger value="mobile" className="gap-2 text-sm font-medium">
+            <TabsTrigger value="mobile" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <Smartphone className="h-4 w-4" />
               Mobile
             </TabsTrigger>
-            <TabsTrigger value="orders" className="gap-2 text-sm font-medium">
+            <TabsTrigger value="orders" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <History className="h-4 w-4" />
               Orders
             </TabsTrigger>
@@ -313,21 +314,23 @@ const GamePage = () => {
                     selectedGameCategory === cat.id ? null : cat.id
                   )}
                   className={cn(
-                    "flex flex-col items-center gap-1 p-2 rounded-xl transition-all",
-                    "border border-border/50 hover:border-primary/30",
+                    "card-neon flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all duration-300",
                     selectedGameCategory === cat.id 
-                      ? "bg-primary/10 border-primary/50" 
-                      : "bg-card hover:bg-card/80"
+                      ? "bg-primary/15 border-primary/50 shadow-glow" 
+                      : "hover:bg-primary/5"
                   )}
                 >
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted">
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted ring-2 ring-transparent transition-all group-hover:ring-primary/30">
                     <img 
                       src={cat.image} 
                       alt={cat.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className="text-[10px] font-medium text-center leading-tight">
+                  <span className={cn(
+                    "text-[10px] font-medium text-center leading-tight transition-colors",
+                    selectedGameCategory === cat.id ? "text-primary" : ""
+                  )}>
                     {cat.name.split(" ")[0]}
                   </span>
                 </button>
@@ -368,29 +371,29 @@ const GamePage = () => {
                   <Card
                     key={product.id}
                     className={cn(
-                      "overflow-hidden cursor-pointer transition-all duration-300",
-                      "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+                      "card-neon overflow-hidden cursor-pointer transition-all duration-300",
+                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
                       "animate-scale-in"
                     )}
                     style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => handleBuyClick(product)}
                   >
-                    <div className="aspect-square bg-muted overflow-hidden">
+                    <div className="aspect-square bg-muted/50 overflow-hidden">
                       <img
                         src={product.image_url}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                         loading="lazy"
                       />
                     </div>
                     <CardContent className="p-3 space-y-2">
                       <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
                       <div className="flex items-center justify-between">
-                        <p className="text-primary font-bold text-lg">
+                        <p className="text-primary font-bold text-lg text-neon">
                           {product.price.toLocaleString()}
                           <span className="text-xs font-medium ml-1 text-muted-foreground">Ks</span>
                         </p>
-                        <Button size="sm" className="h-8 px-3 text-xs gap-1">
+                        <Button size="sm" className="btn-neon h-8 px-3 text-xs gap-1">
                           <Zap className="h-3 w-3" />
                           Buy
                         </Button>
@@ -409,12 +412,12 @@ const GamePage = () => {
                 <Card
                   key={cat.id}
                   className={cn(
-                    "p-4 cursor-pointer transition-all",
-                    "hover:shadow-lg hover:border-primary/30"
+                    "card-neon p-4 cursor-pointer transition-all duration-300",
+                    "hover:shadow-glow"
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted/50 ring-2 ring-primary/20">
                       <img 
                         src={cat.image} 
                         alt={cat.name}
@@ -446,29 +449,29 @@ const GamePage = () => {
                   <Card
                     key={product.id}
                     className={cn(
-                      "overflow-hidden cursor-pointer transition-all duration-300",
-                      "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+                      "card-neon overflow-hidden cursor-pointer transition-all duration-300",
+                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
                       "animate-scale-in"
                     )}
                     style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => handleBuyClick(product)}
                   >
-                    <div className="aspect-square bg-muted overflow-hidden">
+                    <div className="aspect-square bg-muted/50 overflow-hidden">
                       <img
                         src={product.image_url}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                         loading="lazy"
                       />
                     </div>
                     <CardContent className="p-3 space-y-2">
                       <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
                       <div className="flex items-center justify-between">
-                        <p className="text-primary font-bold text-lg">
+                        <p className="text-primary font-bold text-lg text-neon">
                           {product.price.toLocaleString()}
                           <span className="text-xs font-medium ml-1 text-muted-foreground">Ks</span>
                         </p>
-                        <Button size="sm" className="h-8 px-3 text-xs gap-1">
+                        <Button size="sm" className="btn-neon h-8 px-3 text-xs gap-1">
                           <Zap className="h-3 w-3" />
                           Buy
                         </Button>
