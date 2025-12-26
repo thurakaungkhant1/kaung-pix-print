@@ -603,6 +603,7 @@ export type Database = {
           image_url: string
           is_premium: boolean
           name: string
+          original_price: number | null
           points_value: number
           price: number
         }
@@ -614,6 +615,7 @@ export type Database = {
           image_url: string
           is_premium?: boolean
           name: string
+          original_price?: number | null
           points_value?: number
           price: number
         }
@@ -625,6 +627,7 @@ export type Database = {
           image_url?: string
           is_premium?: boolean
           name?: string
+          original_price?: number | null
           points_value?: number
           price?: number
         }
@@ -645,6 +648,7 @@ export type Database = {
           points: number
           referral_code: string | null
           referred_by: string | null
+          wallet_balance: number | null
         }
         Insert: {
           account_status?: string
@@ -660,6 +664,7 @@ export type Database = {
           points?: number
           referral_code?: string | null
           referred_by?: string | null
+          wallet_balance?: number | null
         }
         Update: {
           account_status?: string
@@ -675,6 +680,7 @@ export type Database = {
           points?: number
           referral_code?: string | null
           referred_by?: string | null
+          wallet_balance?: number | null
         }
         Relationships: [
           {
@@ -876,6 +882,81 @@ export type Database = {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_deposits: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          id: string
+          rejected_at: string | null
+          screenshot_url: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          id?: string
+          rejected_at?: string | null
+          screenshot_url: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          id?: string
+          rejected_at?: string | null
+          screenshot_url?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string | null
+          description: string | null
+          id: string
+          reference_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type?: string
           user_id?: string
         }
         Relationships: []

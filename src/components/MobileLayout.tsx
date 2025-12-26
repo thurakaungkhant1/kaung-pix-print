@@ -3,9 +3,10 @@ import { cn } from "@/lib/utils";
 interface MobileLayoutProps {
   children: React.ReactNode;
   className?: string;
+  hideNav?: boolean;
 }
 
-const MobileLayout = ({ children, className }: MobileLayoutProps) => {
+const MobileLayout = ({ children, className, hideNav }: MobileLayoutProps) => {
   return (
     <div className="min-h-screen bg-muted/30 flex justify-center items-start">
       <div
