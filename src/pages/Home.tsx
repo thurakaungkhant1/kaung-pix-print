@@ -13,7 +13,9 @@ import {
   Star,
   ChevronRight,
   Sparkles,
-  Users
+  Users,
+  ShoppingCart,
+  Package
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -21,6 +23,9 @@ import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
+import WalletDisplay from "@/components/WalletDisplay";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Feature cards data
 const FEATURES = [
@@ -57,6 +62,8 @@ const GAME_PREVIEWS = [
 
 const Home = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [physicalProducts, setPhysicalProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { isPremium } = useUserPremiumStatus(user?.id);
   const navigate = useNavigate();
@@ -67,6 +74,27 @@ const Home = () => {
     if (!hasSeenOnboarding) {
       setShowOnboarding(true);
     }
+  }, []);
+
+  // Load physical products (non-game categories)
+  useEffect(() => {
+    const loadProducts = async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .not('category', 'ilike', '%diamond%')
+        .not('category', 'ilike', '%game%')
+        .not('category', 'ilike', '%mobile legends%')
+        .not('category', 'ilike', '%pubg%')
+        .not('category', 'ilike', '%free fire%')
+        .limit(8);
+      
+      if (!error && data) {
+        setPhysicalProducts(data);
+      }
+      setLoading(false);
+    };
+    loadProducts();
   }, []);
 
   const handleOnboardingComplete = useCallback(() => {
@@ -139,10 +167,85 @@ const Home = () => {
           </div>
         </section>
 
+        {/* Wallet Display */}
+        {user && (
+          <section className="px-6 pt-6">
+            <WalletDisplay />
+          </section>
+        )}
+
+        {/* Physical Products Section */}
+        <section className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-display font-bold">Physical Products</h2>
+            </div>
+          </div>
+          
+          {physicalProducts.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+              {physicalProducts.map((product, index) => (
+                <Card 
+                  key={product.id}
+                  className="overflow-hidden border-border/50 hover:border-primary/30 transition-all animate-scale-in cursor-pointer"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={() => navigate(`/product/${product.id}`)}
+                >
+                  <div className="aspect-square bg-muted overflow-hidden">
+                    <img 
+                      src={product.image_url} 
+                      alt={product.name}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform"
+                    />
+                  </div>
+                  <CardContent className="p-3 space-y-2">
+                    <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-primary font-bold">{product.price.toLocaleString()} Ks</p>
+                        {product.original_price && product.original_price > product.price && (
+                          <p className="text-xs text-muted-foreground line-through">
+                            {product.original_price.toLocaleString()} Ks
+                          </p>
+                        )}
+                      </div>
+                      {product.original_price && product.original_price > product.price && (
+                        <Badge variant="destructive" className="text-xs">
+                          -{Math.round((1 - product.price / product.original_price) * 100)}%
+                        </Badge>
+                      )}
+                    </div>
+                    <Button size="sm" className="w-full gap-1" variant="outline">
+                      <ShoppingCart className="h-3 w-3" />
+                      Add to Cart
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="p-8 text-center border-dashed">
+              <Package className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground">No physical products available yet</p>
+              <Button 
+                variant="link" 
+                onClick={() => navigate("/game")}
+                className="mt-2 gap-1"
+              >
+                Browse Game Items <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Card>
+          )}
+        </section>
+
         {/* Games Preview Section */}
         <section className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-display font-bold">Popular Games</h2>
+            <div className="flex items-center gap-2">
+              <Gamepad2 className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-display font-bold">Game Top-ups</h2>
+            </div>
             <Button 
               variant="ghost" 
               size="sm" 
