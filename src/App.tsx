@@ -53,6 +53,8 @@ const PremiumPlansManage = lazy(() => import("./pages/admin/PremiumPlansManage")
 const PremiumRequestsManage = lazy(() => import("./pages/admin/PremiumRequestsManage"));
 const ReportsManage = lazy(() => import("./pages/admin/ReportsManage"));
 const CategoriesManage = lazy(() => import("./pages/admin/CategoriesManage"));
+const DepositsManage = lazy(() => import("./pages/admin/DepositsManage"));
+const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 
 const queryClient = new QueryClient();
 
@@ -294,6 +296,22 @@ const App = () => {
                     <ProtectedAdminRoute>
                       <ReportsManage />
                     </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/deposits"
+                  element={
+                    <ProtectedAdminRoute>
+                      <DepositsManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/wallet-history"
+                  element={
+                    <ProtectedRoute>
+                      <WalletHistory />
+                    </ProtectedRoute>
                   }
                 />
                 <Route

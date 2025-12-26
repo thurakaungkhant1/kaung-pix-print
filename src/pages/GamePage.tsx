@@ -11,7 +11,10 @@ import {
   ShoppingBag,
   Zap,
   Gift,
-  CreditCard
+  CreditCard,
+  Wallet,
+  Plus,
+  Percent
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import WalletDisplay from "@/components/WalletDisplay";
+import TopUpDialog from "@/components/TopUpDialog";
 
 import {
   Dialog,
@@ -37,6 +42,7 @@ interface Product {
   id: number;
   name: string;
   price: number;
+  original_price?: number | null;
   image_url: string;
   description: string | null;
   category: string;
@@ -80,6 +86,7 @@ const GamePage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const [showTopUpDialog, setShowTopUpDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
@@ -87,6 +94,7 @@ const GamePage = () => {
   const [purchasing, setPurchasing] = useState(false);
   const [activeCategory, setActiveCategory] = useState("games");
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -94,8 +102,19 @@ const GamePage = () => {
     loadProducts();
     if (user) {
       loadOrders();
+      loadWalletBalance();
     }
   }, [user]);
+
+  const loadWalletBalance = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single();
+    setWalletBalance(data?.wallet_balance || 0);
+  };
 
   const loadProducts = async () => {
     const { data, error } = await supabase
@@ -191,38 +210,79 @@ const GamePage = () => {
       }
     }
 
-    setPurchasing(true);
-
-    const { error } = await supabase.from("orders").insert({
-      user_id: user.id,
-      product_id: selectedProduct.id,
-      quantity: 1,
-      price: selectedProduct.price,
-      game_id: isGameProduct(selectedProduct.category) ? gameId : null,
-      server_id: isGameProduct(selectedProduct.category) ? serverId : null,
-      game_name: selectedProduct.category,
-      phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : "",
-      status: "pending",
-      payment_method: "pending",
-      delivery_address: "",
-    });
-
-    if (error) {
+    // Check wallet balance
+    if (walletBalance < selectedProduct.price) {
       toast({
-        title: "Purchase failed",
-        description: error.message,
+        title: "Insufficient Balance",
+        description: "Please top up your wallet to make this purchase",
         variant: "destructive",
       });
-    } else {
+      return;
+    }
+
+    setPurchasing(true);
+
+    try {
+      const newBalance = walletBalance - selectedProduct.price;
+
+      // Deduct from wallet
+      const { error: balanceError } = await supabase
+        .from('profiles')
+        .update({ wallet_balance: newBalance })
+        .eq('id', user.id);
+
+      if (balanceError) throw balanceError;
+
+      // Create order
+      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
+        user_id: user.id,
+        product_id: selectedProduct.id,
+        quantity: 1,
+        price: selectedProduct.price,
+        game_id: isGameProduct(selectedProduct.category) ? gameId : null,
+        server_id: isGameProduct(selectedProduct.category) ? serverId : null,
+        game_name: selectedProduct.category,
+        phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : "",
+        status: "pending",
+        payment_method: "wallet",
+        delivery_address: "",
+      }).select().single();
+
+      if (orderError) throw orderError;
+
+      // Create wallet transaction
+      await supabase.from('wallet_transactions').insert({
+        user_id: user.id,
+        amount: -selectedProduct.price,
+        transaction_type: 'purchase',
+        reference_id: orderData.id,
+        description: `Purchase: ${selectedProduct.name}`,
+        balance_after: newBalance
+      });
+
+      setWalletBalance(newBalance);
       toast({
         title: "Order placed!",
         description: "Your order has been placed. We'll process it shortly.",
       });
       setShowPurchaseDialog(false);
       loadOrders();
+    } catch (error: any) {
+      toast({
+        title: "Purchase failed",
+        description: error.message,
+        variant: "destructive",
+      });
     }
 
     setPurchasing(false);
+  };
+
+  const getDiscountPercent = (product: Product) => {
+    if (product.original_price && product.original_price > product.price) {
+      return Math.round((1 - product.price / product.original_price) * 100);
+    }
+    return 0;
   };
 
   const getStatusBadge = (status: string) => {
