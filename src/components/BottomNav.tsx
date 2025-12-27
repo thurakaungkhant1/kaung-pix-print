@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Home, Image, Heart, User, Settings, Gamepad2 } from "lucide-react";
+import { Home, Image, Heart, User, Settings, Gamepad2, ShoppingCart } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,10 +8,31 @@ import { supabase } from "@/integrations/supabase/client";
 const BottomNav = () => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     if (user) {
       checkAdmin();
+      loadCartCount();
+
+      // Real-time cart updates
+      const channel = supabase
+        .channel("bottom-nav-cart")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "cart_items",
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => loadCartCount()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -28,11 +49,22 @@ const BottomNav = () => {
     setIsAdmin(!!data);
   };
 
+  const loadCartCount = async () => {
+    if (!user) return;
+
+    const { count } = await supabase
+      .from("cart_items")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    setCartCount(count || 0);
+  };
+
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/photo", icon: Image, label: "Photo" },
     { to: "/game", icon: Gamepad2, label: "Shop" },
-    { to: "/favourite", icon: Heart, label: "Favourite" },
+    { to: "/cart", icon: ShoppingCart, label: "Cart", badge: cartCount },
     { 
       to: isAdmin ? "/admin" : "/account", 
       icon: isAdmin ? Settings : User, 
@@ -74,6 +106,12 @@ const BottomNav = () => {
                       isActive ? "stroke-[2.5] text-primary" : "stroke-[1.5]"
                     )} />
                     
+                    {/* Cart badge */}
+                    {item.badge && item.badge > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full bg-accent text-accent-foreground animate-scale-in">
+                        {item.badge > 9 ? "9+" : item.badge}
+                      </span>
+                    )}
                     
                     {/* Glow effect */}
                     {isActive && (

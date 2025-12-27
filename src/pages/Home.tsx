@@ -185,21 +185,29 @@ const Home = () => {
           </section>
         )}
 
-        {/* Physical Products Section */}
-        <section className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
+        {/* Physical Products Section - Horizontal Scroll */}
+        <section className="py-6 space-y-4">
+          <div className="flex items-center justify-between px-6">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-display font-bold">Physical Products</h2>
             </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-1 text-primary"
+              onClick={() => navigate("/physical-products")}
+            >
+              View All <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
           
           {physicalProducts.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4">
-              {physicalProducts.map((product, index) => (
+            <div className="flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide">
+              {physicalProducts.slice(0, 6).map((product, index) => (
                 <Card 
                   key={product.id}
-                  className="overflow-hidden border-border/50 hover:border-primary/30 transition-all animate-scale-in cursor-pointer"
+                  className="flex-shrink-0 w-40 overflow-hidden border-border/50 hover:border-primary/30 transition-all animate-scale-in cursor-pointer"
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
@@ -212,24 +220,10 @@ const Home = () => {
                   </div>
                   <CardContent className="p-3 space-y-2">
                     <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-primary font-bold">{product.price.toLocaleString()} Ks</p>
-                        {product.original_price && product.original_price > product.price && (
-                          <p className="text-xs text-muted-foreground line-through">
-                            {product.original_price.toLocaleString()} Ks
-                          </p>
-                        )}
-                      </div>
-                      {product.original_price && product.original_price > product.price && (
-                        <Badge variant="destructive" className="text-xs">
-                          -{Math.round((1 - product.price / product.original_price) * 100)}%
-                        </Badge>
-                      )}
-                    </div>
+                    <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} Ks</p>
                     <Button 
                       size="sm" 
-                      className="w-full gap-1" 
+                      className="w-full gap-1 text-xs" 
                       variant="outline"
                       disabled={isAdding === product.id}
                       onClick={(e) => {
@@ -242,24 +236,29 @@ const Home = () => {
                       ) : (
                         <ShoppingCart className="h-3 w-3" />
                       )}
-                      {isAdding === product.id ? "Adding..." : "Add to Cart"}
+                      Add
                     </Button>
                   </CardContent>
                 </Card>
               ))}
+              {/* View All Card */}
+              <Card 
+                className="flex-shrink-0 w-40 overflow-hidden border-dashed cursor-pointer hover:border-primary/50 transition-all"
+                onClick={() => navigate("/physical-products")}
+              >
+                <div className="aspect-[3/4] flex flex-col items-center justify-center text-muted-foreground">
+                  <ChevronRight className="h-8 w-8 mb-2" />
+                  <span className="text-sm font-medium">View All</span>
+                </div>
+              </Card>
             </div>
           ) : (
-            <Card className="p-8 text-center border-dashed">
-              <Package className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground">No physical products available yet</p>
-              <Button 
-                variant="link" 
-                onClick={() => navigate("/game")}
-                className="mt-2 gap-1"
-              >
-                Browse Game Items <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Card>
+            <div className="px-6">
+              <Card className="p-8 text-center border-dashed">
+                <Package className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">No physical products available yet</p>
+              </Card>
+            </div>
           )}
         </section>
 

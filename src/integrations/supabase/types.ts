@@ -366,6 +366,39 @@ export type Database = {
         }
         Relationships: []
       }
+      physical_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       point_transactions: {
         Row: {
           amount: number
@@ -604,8 +637,11 @@ export type Database = {
           is_premium: boolean
           name: string
           original_price: number | null
+          physical_category_id: string | null
           points_value: number
           price: number
+          status: string | null
+          stock_quantity: number | null
         }
         Insert: {
           category?: string
@@ -616,8 +652,11 @@ export type Database = {
           is_premium?: boolean
           name: string
           original_price?: number | null
+          physical_category_id?: string | null
           points_value?: number
           price: number
+          status?: string | null
+          stock_quantity?: number | null
         }
         Update: {
           category?: string
@@ -628,10 +667,21 @@ export type Database = {
           is_premium?: boolean
           name?: string
           original_price?: number | null
+          physical_category_id?: string | null
           points_value?: number
           price?: number
+          status?: string | null
+          stock_quantity?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_physical_category_id_fkey"
+            columns: ["physical_category_id"]
+            isOneToOne: false
+            referencedRelation: "physical_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
