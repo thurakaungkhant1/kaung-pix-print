@@ -15,7 +15,8 @@ import {
   Sparkles,
   Users,
   ShoppingCart,
-  Package
+  Package,
+  Loader2
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -26,6 +27,9 @@ import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCart } from "@/hooks/useCart";
+import ThemeToggle from "@/components/ThemeToggle";
+import CartHeader from "@/components/CartHeader";
 
 // Feature cards data
 const FEATURES = [
@@ -67,6 +71,7 @@ const Home = () => {
   const { user } = useAuth();
   const { isPremium } = useUserPremiumStatus(user?.id);
   const navigate = useNavigate();
+  const { addToCart, isAdding } = useCart({ userId: user?.id });
 
   // Check if user has seen onboarding
   useEffect(() => {
@@ -112,6 +117,12 @@ const Home = () => {
         <section className="hero-gaming relative overflow-hidden min-h-[60vh] flex flex-col">
           {/* Grid pattern background */}
           <div className="absolute inset-0 bg-grid-gaming opacity-50" />
+          
+          {/* Theme Toggle & Cart in top right */}
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+            <ThemeToggle variant="hero" />
+            <CartHeader />
+          </div>
           
           {/* Animated glow orbs */}
           <div className="absolute top-20 right-10 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
@@ -216,9 +227,22 @@ const Home = () => {
                         </Badge>
                       )}
                     </div>
-                    <Button size="sm" className="w-full gap-1" variant="outline">
-                      <ShoppingCart className="h-3 w-3" />
-                      Add to Cart
+                    <Button 
+                      size="sm" 
+                      className="w-full gap-1" 
+                      variant="outline"
+                      disabled={isAdding === product.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(product.id);
+                      }}
+                    >
+                      {isAdding === product.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <ShoppingCart className="h-3 w-3" />
+                      )}
+                      {isAdding === product.id ? "Adding..." : "Add to Cart"}
                     </Button>
                   </CardContent>
                 </Card>
