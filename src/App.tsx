@@ -54,8 +54,10 @@ const PremiumRequestsManage = lazy(() => import("./pages/admin/PremiumRequestsMa
 const ReportsManage = lazy(() => import("./pages/admin/ReportsManage"));
 const CategoriesManage = lazy(() => import("./pages/admin/CategoriesManage"));
 const ProductCategoriesManage = lazy(() => import("./pages/admin/ProductCategoriesManage"));
+const PhysicalCategoriesManage = lazy(() => import("./pages/admin/PhysicalCategoriesManage"));
 const DepositsManage = lazy(() => import("./pages/admin/DepositsManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
+const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
 
 const queryClient = new QueryClient();
 
@@ -201,6 +203,22 @@ const App = () => {
                     <ProtectedAdminRoute>
                       <ProductCategoriesManage />
                     </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/physical-categories"
+                  element={
+                    <ProtectedAdminRoute>
+                      <PhysicalCategoriesManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/physical-products"
+                  element={
+                    <ProtectedRoute>
+                      <PhysicalProducts />
+                    </ProtectedRoute>
                   }
                 />
                 <Route
