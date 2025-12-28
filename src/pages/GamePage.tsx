@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import WalletDisplay from "@/components/WalletDisplay";
 import TopUpDialog from "@/components/TopUpDialog";
+import { useTheme } from "@/components/ThemeProvider";
 
 import {
   Dialog,
@@ -97,6 +98,23 @@ const GamePage = () => {
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
+
+  // Force dark theme on this page
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const wasLight = theme === "light";
+    
+    // Force dark mode
+    root.classList.remove("light");
+    root.classList.add("dark");
+    
+    // Restore original theme on unmount
+    return () => {
+      root.classList.remove("light", "dark");
+      root.classList.add(wasLight ? "light" : "dark");
+    };
+  }, []);
 
   useEffect(() => {
     loadProducts();
