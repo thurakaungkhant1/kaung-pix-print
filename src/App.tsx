@@ -56,7 +56,9 @@ const CategoriesManage = lazy(() => import("./pages/admin/CategoriesManage"));
 const ProductCategoriesManage = lazy(() => import("./pages/admin/ProductCategoriesManage"));
 const PhysicalCategoriesManage = lazy(() => import("./pages/admin/PhysicalCategoriesManage"));
 const DepositsManage = lazy(() => import("./pages/admin/DepositsManage"));
+const WalletManage = lazy(() => import("./pages/admin/WalletManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
+const TopUp = lazy(() => import("./pages/TopUp"));
 const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
 
 const queryClient = new QueryClient();
@@ -334,10 +336,26 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/admin/wallets"
+                  element={
+                    <ProtectedAdminRoute>
+                      <WalletManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
                   path="/wallet-history"
                   element={
                     <ProtectedRoute>
                       <WalletHistory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/top-up"
+                  element={
+                    <ProtectedRoute>
+                      <TopUp />
                     </ProtectedRoute>
                   }
                 />

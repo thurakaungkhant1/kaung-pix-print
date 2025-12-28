@@ -3,14 +3,12 @@ import { Wallet, Plus, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import TopUpDialog from "./TopUpDialog";
 import { useNavigate } from "react-router-dom";
 
 const WalletDisplay = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [balance, setBalance] = useState<number>(0);
-  const [isTopUpOpen, setIsTopUpOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -99,19 +97,13 @@ const WalletDisplay = () => {
         </div>
 
         <Button 
-          onClick={() => setIsTopUpOpen(true)}
+          onClick={() => navigate('/top-up')}
           className="w-full btn-neon"
         >
           <Plus className="h-4 w-4 mr-2" />
           Top Up / ငွေသွင်းမည်
         </Button>
       </div>
-
-      <TopUpDialog 
-        open={isTopUpOpen} 
-        onOpenChange={setIsTopUpOpen}
-        onSuccess={loadBalance}
-      />
     </>
   );
 };
