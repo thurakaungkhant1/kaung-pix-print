@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ShoppingBag, 
-  Gamepad2, 
   Zap, 
   Crown, 
   Shield, 
@@ -14,9 +13,9 @@ import {
   ChevronRight,
   Sparkles,
   Users,
-  ShoppingCart,
   Package,
-  Loader2
+  Camera,
+  User
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -26,52 +25,48 @@ import OnboardingFlow from "@/components/OnboardingFlow";
 import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCart } from "@/hooks/useCart";
 import ThemeToggle from "@/components/ThemeToggle";
-import CartHeader from "@/components/CartHeader";
 
 // Feature cards data
 const FEATURES = [
   {
     icon: Zap,
-    title: "Instant Delivery",
-    description: "Get your items within minutes",
+    title: "Fast Delivery",
+    description: "Quick processing & delivery",
     color: "text-yellow-500",
     bgColor: "bg-yellow-500/10",
   },
   {
     icon: Shield,
     title: "Secure Payment",
-    description: "100% safe & encrypted",
+    description: "100% safe transactions",
     color: "text-green-500",
     bgColor: "bg-green-500/10",
   },
   {
     icon: Gift,
     title: "Best Prices",
-    description: "Guaranteed lowest rates",
+    description: "Competitive rates guaranteed",
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
   },
 ];
 
-// Game categories preview
-const GAME_PREVIEWS = [
-  { name: "Mobile Legends", image: "/images/games/mobile-legends.png" },
-  { name: "PUBG", image: "/images/games/pubg-mobile.png" },
-  { name: "Free Fire", image: "/images/games/free-fire.png" },
-  { name: "Genshin", image: "/images/games/genshin-impact.png" },
-];
+interface Photo {
+  id: number;
+  client_name: string;
+  preview_image: string | null;
+  category: string | null;
+}
 
 const Home = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [physicalProducts, setPhysicalProducts] = useState<any[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { isPremium } = useUserPremiumStatus(user?.id);
   const navigate = useNavigate();
-  const { addToCart, isAdding } = useCart({ userId: user?.id });
 
   // Check if user has seen onboarding
   useEffect(() => {
@@ -81,10 +76,11 @@ const Home = () => {
     }
   }, []);
 
-  // Load physical products (non-game categories)
+  // Load physical products and photos
   useEffect(() => {
-    const loadProducts = async () => {
-      const { data, error } = await supabase
+    const loadData = async () => {
+      // Load physical products
+      const { data: productsData } = await supabase
         .from('products')
         .select('*')
         .not('category', 'ilike', '%diamond%')
@@ -92,14 +88,26 @@ const Home = () => {
         .not('category', 'ilike', '%mobile legends%')
         .not('category', 'ilike', '%pubg%')
         .not('category', 'ilike', '%free fire%')
-        .limit(8);
+        .limit(6);
       
-      if (!error && data) {
-        setPhysicalProducts(data);
+      if (productsData) {
+        setPhysicalProducts(productsData);
       }
+
+      // Load photos
+      const { data: photosData } = await supabase
+        .from('photos')
+        .select('id, client_name, preview_image, category')
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (photosData) {
+        setPhotos(photosData);
+      }
+
       setLoading(false);
     };
-    loadProducts();
+    loadData();
   }, []);
 
   const handleOnboardingComplete = useCallback(() => {
@@ -113,50 +121,48 @@ const Home = () => {
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       
       <MobileLayout>
-        {/* Hero Section - Gaming Neon Style */}
-        <section className="hero-gaming relative overflow-hidden min-h-[60vh] flex flex-col">
-          {/* Grid pattern background */}
-          <div className="absolute inset-0 bg-grid-gaming opacity-50" />
-          
-          {/* Theme Toggle & Cart in top right */}
-          <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-            <ThemeToggle variant="hero" />
-            <CartHeader />
+        {/* Hero Section - Clean & Professional */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 min-h-[50vh] flex flex-col">
+          {/* Subtle pattern */}
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-10 right-10 w-40 h-40 bg-primary/10 rounded-full blur-[80px]" />
+            <div className="absolute bottom-10 left-10 w-32 h-32 bg-accent/10 rounded-full blur-[60px]" />
           </div>
           
-          {/* Animated glow orbs */}
-          <div className="absolute top-20 right-10 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute bottom-20 left-10 w-48 h-48 bg-accent/20 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+          {/* Theme Toggle in top right */}
+          <div className="absolute top-4 right-4 z-20">
+            <ThemeToggle variant="hero" />
+          </div>
           
           {/* Hero Content */}
           <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center">
-            {/* Logo/Brand */}
+            {/* Brand Badge */}
             <div className="mb-6 animate-fade-in">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Myanmar's #1 Gaming Store</span>
+                <span className="text-sm font-medium text-primary">Premium Quality Products</span>
               </div>
             </div>
             
             {/* Main heading */}
             <h1 className="text-4xl sm:text-5xl font-display font-black text-foreground mb-4 animate-slide-up">
               <span className="block">Kaung</span>
-              <span className="block text-neon text-primary">Computer</span>
+              <span className="block text-primary">Computer</span>
             </h1>
             
             <p className="text-lg text-muted-foreground max-w-md mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
-              Top-up your favorite games instantly. Fast, secure, and at the best prices.
+              Quality products & professional photography services at the best prices.
             </p>
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm animate-slide-up" style={{ animationDelay: '200ms' }}>
               <Button 
-                onClick={() => navigate("/game")}
-                className="btn-neon flex-1 h-14 text-lg gap-2 font-bold"
+                onClick={() => navigate("/physical-products")}
+                className="flex-1 h-14 text-lg gap-2 font-bold"
                 size="lg"
               >
                 <ShoppingBag className="h-5 w-5" />
-                Browse Shop
+                Shop Now
               </Button>
               <Button 
                 onClick={() => navigate("/account")}
@@ -164,16 +170,9 @@ const Home = () => {
                 className="flex-1 h-14 text-lg gap-2 font-bold border-primary/30 hover:bg-primary/10"
                 size="lg"
               >
-                <Gamepad2 className="h-5 w-5" />
+                <User className="h-5 w-5" />
                 My Account
               </Button>
-            </div>
-          </div>
-          
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-            <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2">
-              <div className="w-1 h-2 bg-muted-foreground/50 rounded-full" />
             </div>
           </div>
         </section>
@@ -185,12 +184,12 @@ const Home = () => {
           </section>
         )}
 
-        {/* Physical Products Section - Horizontal Scroll */}
+        {/* Physical Products Section */}
         <section className="py-6 space-y-4">
           <div className="flex items-center justify-between px-6">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-display font-bold">Physical Products</h2>
+              <h2 className="text-xl font-display font-bold">Products</h2>
             </div>
             <Button 
               variant="ghost" 
@@ -204,46 +203,29 @@ const Home = () => {
           
           {physicalProducts.length > 0 ? (
             <div className="flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide">
-              {physicalProducts.slice(0, 6).map((product, index) => (
+              {physicalProducts.map((product, index) => (
                 <Card 
                   key={product.id}
-                  className="flex-shrink-0 w-40 overflow-hidden border-border/50 hover:border-primary/30 transition-all animate-scale-in cursor-pointer"
+                  className="flex-shrink-0 w-40 overflow-hidden border-border/50 hover:border-primary/30 hover:shadow-lg transition-all animate-scale-in cursor-pointer rounded-2xl"
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
-                  <div className="aspect-square bg-muted overflow-hidden">
+                  <div className="aspect-square bg-muted overflow-hidden rounded-t-2xl">
                     <img 
                       src={product.image_url} 
                       alt={product.name}
                       className="w-full h-full object-cover hover:scale-105 transition-transform"
                     />
                   </div>
-                  <CardContent className="p-3 space-y-2">
+                  <CardContent className="p-3 space-y-1">
                     <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
                     <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} Ks</p>
-                    <Button 
-                      size="sm" 
-                      className="w-full gap-1 text-xs" 
-                      variant="outline"
-                      disabled={isAdding === product.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(product.id);
-                      }}
-                    >
-                      {isAdding === product.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <ShoppingCart className="h-3 w-3" />
-                      )}
-                      Add
-                    </Button>
                   </CardContent>
                 </Card>
               ))}
               {/* View All Card */}
               <Card 
-                className="flex-shrink-0 w-40 overflow-hidden border-dashed cursor-pointer hover:border-primary/50 transition-all"
+                className="flex-shrink-0 w-40 overflow-hidden border-dashed cursor-pointer hover:border-primary/50 transition-all rounded-2xl"
                 onClick={() => navigate("/physical-products")}
               >
                 <div className="aspect-[3/4] flex flex-col items-center justify-center text-muted-foreground">
@@ -254,54 +236,89 @@ const Home = () => {
             </div>
           ) : (
             <div className="px-6">
-              <Card className="p-8 text-center border-dashed">
+              <Card className="p-8 text-center border-dashed rounded-2xl">
                 <Package className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No physical products available yet</p>
+                <p className="text-muted-foreground">No products available yet</p>
               </Card>
             </div>
           )}
         </section>
 
-        {/* Games Preview Section */}
-        <section className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
+        {/* Photo Gallery Section */}
+        <section className="py-6 space-y-4">
+          <div className="flex items-center justify-between px-6">
             <div className="flex items-center gap-2">
-              <Gamepad2 className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-display font-bold">Game Top-ups</h2>
+              <Camera className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-display font-bold">Photo Gallery</h2>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
               className="gap-1 text-primary"
-              onClick={() => navigate("/game")}
+              onClick={() => navigate("/photo")}
             >
               View All <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="grid grid-cols-4 gap-3">
-            {GAME_PREVIEWS.map((game, index) => (
-              <button
-                key={game.name}
-                onClick={() => navigate("/game")}
-                className={cn(
-                  "card-neon p-3 flex flex-col items-center gap-2 animate-scale-in",
-                  "hover:scale-105 transition-transform duration-300"
-                )}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden bg-muted">
-                  <img 
-                    src={game.image} 
-                    alt={game.name}
-                    className="w-full h-full object-cover"
-                  />
+          {photos.length > 0 ? (
+            <div className="grid grid-cols-3 gap-3 px-6">
+              {photos.map((photo, index) => (
+                <Card 
+                  key={photo.id}
+                  className="overflow-hidden border-border/50 hover:border-primary/30 hover:shadow-lg transition-all animate-scale-in cursor-pointer rounded-2xl group"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={() => navigate("/photo")}
+                >
+                  <div className="aspect-square bg-muted overflow-hidden relative">
+                    {photo.preview_image ? (
+                      <img 
+                        src={photo.preview_image} 
+                        alt={photo.client_name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Camera className="h-8 w-8 text-muted-foreground/50" />
+                      </div>
+                    )}
+                    {/* Overlay gradient */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <p className="text-white text-xs font-medium truncate">{photo.client_name}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="px-6">
+              <Card className="p-8 text-center border-dashed rounded-2xl">
+                <Camera className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">No photos available yet</p>
+              </Card>
+            </div>
+          )}
+
+          {/* Browse Gallery Card */}
+          <div className="px-6">
+            <Card 
+              className="p-4 cursor-pointer hover:border-primary/50 transition-all rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5"
+              onClick={() => navigate("/photo")}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-primary/10">
+                    <Camera className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Browse Full Gallery</h3>
+                    <p className="text-sm text-muted-foreground">View all photos & categories</p>
+                  </div>
                 </div>
-                <span className="text-[10px] sm:text-xs font-medium text-center leading-tight">
-                  {game.name}
-                </span>
-              </button>
-            ))}
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </Card>
           </div>
         </section>
 
@@ -313,9 +330,7 @@ const Home = () => {
             {FEATURES.map((feature, index) => (
               <Card 
                 key={feature.title}
-                className={cn(
-                  "card-neon animate-slide-up"
-                )}
+                className="animate-slide-up rounded-2xl"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <CardContent className="flex items-center gap-4 p-4">
@@ -334,7 +349,7 @@ const Home = () => {
 
         {/* Premium Membership Showcase */}
         <section className="p-6">
-          <Card className="relative overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-card to-orange-500/10">
+          <Card className="relative overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-card to-orange-500/10 rounded-2xl">
             {/* Glow effect */}
             <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl" />
@@ -351,7 +366,7 @@ const Home = () => {
               </div>
               
               <p className="text-muted-foreground">
-                Unlock exclusive benefits, earn more points, and get access to premium-only deals!
+                Unlock exclusive benefits and get access to premium-only deals!
               </p>
               
               <ul className="space-y-2">
@@ -396,11 +411,11 @@ const Home = () => {
             ].map((stat, index) => (
               <Card 
                 key={stat.label}
-                className="card-neon text-center p-4 animate-scale-in"
+                className="text-center p-4 animate-scale-in rounded-2xl"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <stat.icon className="h-5 w-5 mx-auto mb-2 text-primary" />
-                <p className="text-xl font-display font-bold text-neon text-primary">{stat.value}</p>
+                <p className="text-xl font-display font-bold text-primary">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </Card>
             ))}
