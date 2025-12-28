@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,24 +7,51 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Crown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Crown, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
+
+interface PhysicalCategory {
+  id: string;
+  name: string;
+}
 
 const ProductNew = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
   const [imageUrl1, setImageUrl1] = useState("");
   const [imageUrl2, setImageUrl2] = useState("");
   const [imageUrl3, setImageUrl3] = useState("");
   const [imageUrl4, setImageUrl4] = useState("");
   const [pointsValue, setPointsValue] = useState("");
   const [category, setCategory] = useState("General");
+  const [physicalCategoryId, setPhysicalCategoryId] = useState<string>("");
+  const [stockQuantity, setStockQuantity] = useState("0");
+  const [status, setStatus] = useState("available");
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [physicalCategories, setPhysicalCategories] = useState<PhysicalCategory[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    loadPhysicalCategories();
+  }, []);
+
+  const loadPhysicalCategories = async () => {
+    const { data } = await supabase
+      .from("physical_categories")
+      .select("id, name")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+    
+    if (data) {
+      setPhysicalCategories(data);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,9 +74,13 @@ const ProductNew = () => {
       name,
       description,
       price: parseFloat(price),
+      original_price: originalPrice ? parseFloat(originalPrice) : null,
       image_url: primaryImage,
       points_value: parseInt(pointsValue) || 0,
       category,
+      physical_category_id: physicalCategoryId || null,
+      stock_quantity: parseInt(stockQuantity) || 0,
+      status,
       is_premium: isPremium,
     });
 
@@ -109,16 +140,29 @@ const ProductNew = () => {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="price">Price *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="price">Price (MMK) *</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="originalPrice">Original Price (MMK)</Label>
+                    <Input
+                      id="originalPrice"
+                      type="number"
+                      step="0.01"
+                      value={originalPrice}
+                      onChange={(e) => setOriginalPrice(e.target.value)}
+                      placeholder="For discount display"
+                    />
+                  </div>
                 </div>
 
                 {/* 4 Image URL Fields */}
@@ -169,14 +213,67 @@ const ProductNew = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Category *</Label>
+                  <Label htmlFor="category">Category Type *</Label>
                   <Input
                     id="category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    placeholder="e.g., Electronics, Books, Apparel"
+                    placeholder="e.g., General, diamond, MLBB Diamonds"
                     required
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Use "diamond", "game", "MLBB Diamonds", etc. for game items
+                  </p>
+                </div>
+
+                {/* Physical Category Selection */}
+                <div>
+                  <Label className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Physical Category (Optional)
+                  </Label>
+                  <Select value={physicalCategoryId} onValueChange={setPhysicalCategoryId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select physical category..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {physicalCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Assign to a physical category to show in Physical Products section
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="stockQuantity">Stock Quantity</Label>
+                    <Input
+                      id="stockQuantity"
+                      type="number"
+                      value={stockQuantity}
+                      onChange={(e) => setStockQuantity(e.target.value)}
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={status} onValueChange={setStatus}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+                        <SelectItem value="hidden">Hidden</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg border">

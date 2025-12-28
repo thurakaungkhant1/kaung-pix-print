@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Minus, Plus, ArrowLeft, ShoppingCart, Sparkles, Star, Crown, Lock, Share2 } from "lucide-react";
+import { Heart, Minus, Plus, ArrowLeft, Sparkles, Star, Crown, Lock, Share2, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumMembership } from "@/hooks/usePremiumMembership";
-import CheckoutDialog from "@/components/CheckoutDialog";
 import ReviewSection from "@/components/ReviewSection";
 import ImageViewer from "@/components/ImageViewer";
 import { cn } from "@/lib/utils";
@@ -33,10 +32,11 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isFavourite, setIsFavourite] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const { user } = useAuth();
   const { toast } = useToast();
   const { isPremium, loading: premiumLoading } = usePremiumMembership();
@@ -46,8 +46,21 @@ const ProductDetail = () => {
 
   useEffect(() => {
     loadProduct();
-    if (user) checkFavourite();
+    if (user) {
+      checkFavourite();
+      loadWalletBalance();
+    }
   }, [id, user]);
+
+  const loadWalletBalance = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single();
+    setWalletBalance(data?.wallet_balance || 0);
+  };
 
   const loadProduct = async () => {
     if (!id) return;
@@ -127,7 +140,7 @@ const ProductDetail = () => {
     });
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (!user) {
       toast({
         title: "Login required",
@@ -147,81 +160,73 @@ const ProductDetail = () => {
       return;
     }
 
-    setCheckoutOpen(true);
-  };
-
-  const handleCheckoutSuccess = () => {
-    loadProduct();
-  };
-
-  const handleAddToCart = async () => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to add items to cart",
-        variant: "destructive",
-      });
-      navigate("/auth/login");
-      return;
-    }
-
-    if (isLocked) {
-      toast({
-        title: "Premium Required",
-        description: "This product is only available for premium members",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!product) return;
 
-    const { data: existing } = await supabase
-      .from("cart_items")
-      .select("id, quantity")
-      .eq("user_id", user.id)
-      .eq("product_id", product.id)
-      .maybeSingle();
+    const totalPrice = product.price * quantity;
 
-    if (existing) {
-      const { error } = await supabase
-        .from("cart_items")
-        .update({ quantity: existing.quantity + quantity })
-        .eq("id", existing.id);
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to update cart",
-          variant: "destructive",
-        });
-        return;
-      }
-    } else {
-      const { error } = await supabase
-        .from("cart_items")
-        .insert({
-          user_id: user.id,
-          product_id: product.id,
-          quantity,
-        });
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to add to cart",
-          variant: "destructive",
-        });
-        return;
-      }
+    // Check wallet balance
+    if (walletBalance < totalPrice) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You need ${totalPrice.toLocaleString()} MMK but only have ${walletBalance.toLocaleString()} MMK. Please top up your wallet.`,
+        variant: "destructive",
+      });
+      navigate("/wallet-history");
+      return;
     }
 
-    toast({
-      title: "Added to Cart! 🛒",
-      description: `${quantity} ${product.name} added to your cart`,
-    });
+    setPurchasing(true);
 
-    navigate("/cart");
+    try {
+      const newBalance = walletBalance - totalPrice;
+
+      // Deduct from wallet
+      const { error: balanceError } = await supabase
+        .from('profiles')
+        .update({ wallet_balance: newBalance })
+        .eq('id', user.id);
+
+      if (balanceError) throw balanceError;
+
+      // Create order
+      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
+        user_id: user.id,
+        product_id: product.id,
+        quantity: quantity,
+        price: totalPrice,
+        phone_number: "",
+        delivery_address: "",
+        payment_method: "wallet",
+        status: "pending",
+      }).select().single();
+
+      if (orderError) throw orderError;
+
+      // Create wallet transaction
+      await supabase.from('wallet_transactions').insert({
+        user_id: user.id,
+        amount: -totalPrice,
+        transaction_type: 'purchase',
+        reference_id: orderData.id,
+        description: `Purchase: ${product.name} x${quantity}`,
+        balance_after: newBalance
+      });
+
+      setWalletBalance(newBalance);
+      toast({
+        title: "Purchase Successful! 🎉",
+        description: `Order placed for ${product.name}. You earned ${product.points_value * quantity} points!`,
+      });
+      loadProduct();
+    } catch (error: any) {
+      toast({
+        title: "Purchase failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+
+    setPurchasing(false);
   };
 
   if (loading || !product) {
@@ -387,22 +392,35 @@ const ProductDetail = () => {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex gap-3 pt-4">
+          <CardFooter className="flex flex-col gap-3 pt-4">
+            {/* Wallet Balance Display */}
+            <div className="w-full p-3 bg-muted/50 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-primary" />
+                <span className="text-sm text-muted-foreground">Your Balance:</span>
+              </div>
+              <span className={cn(
+                "font-bold",
+                walletBalance >= (product?.price || 0) * quantity ? "text-primary" : "text-destructive"
+              )}>
+                {walletBalance.toLocaleString()} MMK
+              </span>
+            </div>
+            
             <Button 
-              variant="outline" 
-              size="lg" 
-              className="flex-1 h-12 hover:bg-muted transition-all duration-300" 
-              onClick={handleAddToCart}
-            >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
-            </Button>
-            <Button 
-              className="flex-1 h-12 shadow-lg hover:shadow-xl transition-all duration-300" 
+              className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300" 
               size="lg" 
               onClick={handleBuyNow}
+              disabled={purchasing}
             >
-              Buy Now
+              {purchasing ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                `Buy Now - ${((product?.price || 0) * quantity).toLocaleString()} MMK`
+              )}
             </Button>
           </CardFooter>
         </Card>
@@ -422,20 +440,6 @@ const ProductDetail = () => {
             <ReviewSection productId={product.id} />
           </TabsContent>
         </Tabs>
-
-        {user && product && (
-          <CheckoutDialog
-            open={checkoutOpen}
-            onClose={() => setCheckoutOpen(false)}
-            cartItems={[{
-              id: 'temp-' + product.id,
-              quantity: quantity,
-              products: product,
-            }]}
-            userId={user.id}
-            onSuccess={handleCheckoutSuccess}
-          />
-        )}
 
         {/* Image Viewer for pinch-to-zoom */}
         <ImageViewer
