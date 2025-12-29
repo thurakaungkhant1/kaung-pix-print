@@ -1,15 +1,24 @@
-import { useState } from "react";
-import { ArrowLeft, Upload, Loader2, CheckCircle, AlertCircle, Wallet, CreditCard, Phone, Copy, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Upload, Loader2, CheckCircle, AlertCircle, Wallet, CreditCard, Phone, Copy, Check, Clock, XCircle, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import MobileLayout from "@/components/MobileLayout";
 import BottomNav from "@/components/BottomNav";
 import { toast } from "sonner";
+import { format } from "date-fns";
+
+interface Deposit {
+  id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+}
 
 const TopUp = () => {
   const { user } = useAuth();
@@ -20,6 +29,34 @@ const TopUp = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+  const [deposits, setDeposits] = useState<Deposit[]>([]);
+  const [isLoadingDeposits, setIsLoadingDeposits] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchDeposits();
+    }
+  }, [user]);
+
+  const fetchDeposits = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('wallet_deposits')
+        .select('id, amount, status, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setDeposits(data || []);
+    } catch (error) {
+      console.error('Error fetching deposits:', error);
+    } finally {
+      setIsLoadingDeposits(false);
+    }
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -29,6 +66,17 @@ const TopUp = () => {
       setTimeout(() => setCopiedPhone(null), 2000);
     } catch (err) {
       toast.error("Failed to copy");
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge className="bg-green-500/20 text-green-600 border-green-500/30"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-500/20 text-red-600 border-red-500/30"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
     }
   };
 
@@ -79,6 +127,7 @@ const TopUp = () => {
       if (insertError) throw insertError;
 
       setIsSuccess(true);
+      fetchDeposits(); // Refresh the deposits list
       toast.success("Deposit request submitted! Awaiting admin approval.");
 
     } catch (error: any) {
@@ -311,6 +360,43 @@ const TopUp = () => {
                   </>
                 )}
               </Button>
+
+              {/* Deposit History */}
+              <div className="space-y-3 pt-4 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <History className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="font-semibold text-lg">Recent Deposits</h2>
+                </div>
+                
+                {isLoadingDeposits ? (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : deposits.length === 0 ? (
+                  <Card className="border-border/50">
+                    <CardContent className="py-8 text-center">
+                      <Wallet className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-muted-foreground">No deposits yet</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-2">
+                    {deposits.map((deposit) => (
+                      <Card key={deposit.id} className="border-border/50">
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold">{Number(deposit.amount).toLocaleString()} Ks</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(deposit.created_at), 'MMM dd, yyyy • HH:mm')}
+                            </p>
+                          </div>
+                          {getStatusBadge(deposit.status)}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
