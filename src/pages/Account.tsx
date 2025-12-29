@@ -555,8 +555,8 @@ const Account = () => {
   return (
     <MobileLayout className="pb-24">
       {/* Profile Header - Sleek & Minimal */}
-      <div className="relative overflow-hidden bg-gradient-hero">
-        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/5">
+        <div className="absolute inset-0 bg-gradient-glow opacity-40" />
         
         <div className="relative z-10 px-6 pt-8 pb-6">
           {/* Avatar & Info */}
@@ -566,16 +566,16 @@ const Account = () => {
               onClick={() => fileInputRef.current?.click()}
             >
               <Avatar className={cn(
-                "h-20 w-20 border-4 border-primary-foreground/20",
-                "ring-2 ring-primary-foreground/10 transition-all duration-300",
-                "group-hover:ring-primary-foreground/30"
+                "h-20 w-20 border-4 border-border/50",
+                "ring-2 ring-primary/20 transition-all duration-300",
+                "group-hover:ring-primary/40"
               )}>
                 <AvatarImage 
                   src={avatarPreview || profile?.avatar_url || undefined} 
                   alt="Profile"
                   className="object-cover"
                 />
-                <AvatarFallback className="bg-primary-foreground/10 text-2xl font-bold text-primary-foreground">
+                <AvatarFallback className="bg-primary/10 text-2xl font-bold text-primary">
                   {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-8 w-8" />}
                 </AvatarFallback>
               </Avatar>
@@ -600,19 +600,19 @@ const Account = () => {
             
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-primary-foreground">
+                <h1 className="text-xl font-bold text-foreground">
                   {profile?.name || "Loading..."}
                 </h1>
                 {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
               </div>
-              <p className="text-sm text-primary-foreground/70">{user?.email}</p>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
               
               {avatarFile && (
                 <Button 
                   size="sm"
                   onClick={uploadAvatar}
                   disabled={uploadingAvatar}
-                  className="mt-2 h-8 rounded-full bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground"
+                  className="mt-2 h-8 rounded-full"
                 >
                   {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Save Photo
@@ -622,23 +622,23 @@ const Account = () => {
           </div>
 
           {/* Points Display */}
-          <div className="mt-6 flex items-center justify-between p-4 rounded-2xl bg-primary-foreground/10 backdrop-blur-sm">
+          <div className="mt-6 flex items-center justify-between p-4 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary-foreground/15">
-                <Coins className="h-5 w-5 text-primary-foreground" />
+              <div className="p-2 rounded-xl bg-primary/15">
+                <Coins className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-primary-foreground">
+                <p className="text-2xl font-bold text-foreground">
                   {profile?.points?.toLocaleString() || 0}
                 </p>
-                <p className="text-xs text-primary-foreground/70">Total Points</p>
+                <p className="text-xs text-muted-foreground">Total Points</p>
               </div>
             </div>
             <div className="flex gap-2">
               <Button
                 size="sm"
-                variant="ghost"
-                className="h-9 rounded-xl bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
+                variant="outline"
+                className="h-9 rounded-xl"
                 onClick={() => setSpinnerOpen(true)}
               >
                 <Gift className="h-4 w-4 mr-1" />
@@ -646,7 +646,7 @@ const Account = () => {
               </Button>
               <Button
                 size="sm"
-                className="h-9 rounded-xl bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                className="h-9 rounded-xl"
                 onClick={() => navigate("/exchange")}
               >
                 <Coins className="h-4 w-4 mr-1" />
