@@ -35,6 +35,7 @@ interface Deposit {
   status: string;
   admin_notes: string | null;
   created_at: string;
+  transaction_id?: string;
   profiles?: {
     name: string;
     phone_number: string;
@@ -251,7 +252,8 @@ const DepositsManage = () => {
   const filteredDeposits = deposits.filter(deposit => {
     const userName = deposit.profiles?.name?.toLowerCase() || '';
     const phone = deposit.profiles?.phone_number?.toLowerCase() || '';
-    return userName.includes(searchTerm.toLowerCase()) || phone.includes(searchTerm.toLowerCase());
+    const txId = deposit.transaction_id?.toLowerCase() || '';
+    return userName.includes(searchTerm.toLowerCase()) || phone.includes(searchTerm.toLowerCase()) || txId.includes(searchTerm.toLowerCase());
   });
 
   const pendingCount = deposits.filter(d => d.status === 'pending').length;
@@ -283,7 +285,7 @@ const DepositsManage = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or phone..."
+                placeholder="Search by name, phone, or transaction ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-card/50 border-border/50"
@@ -323,6 +325,14 @@ const DepositsManage = () => {
                   </div>
                   {getStatusBadge(deposit.status)}
                 </div>
+
+                {deposit.transaction_id && (
+                  <div className="mb-3 flex items-center gap-2">
+                    <Badge variant="outline" className="font-mono text-xs">
+                      TX ID: {deposit.transaction_id}
+                    </Badge>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between">
                   <div>
@@ -382,6 +392,11 @@ const DepositsManage = () => {
                   <p className="text-sm text-muted-foreground">
                     {selectedDeposit.profiles?.phone_number}
                   </p>
+                  {selectedDeposit.transaction_id && (
+                    <p className="text-sm text-muted-foreground font-mono mt-1">
+                      Transaction ID: {selectedDeposit.transaction_id}
+                    </p>
+                  )}
                   <p className="text-2xl font-bold text-neon mt-2">
                     {formatCurrency(selectedDeposit.amount)}
                   </p>

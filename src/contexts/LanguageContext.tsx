@@ -15,6 +15,20 @@ const translations: Translations = {
   favourites: { en: "Favourites", my: "နှစ်သက်ရာများ" },
   account: { en: "Account", my: "အကောင့်" },
   
+  // Wallet & Deposit
+  wallet: { en: "Wallet", my: "လက်ကျန်ငွေ" },
+  walletBalance: { en: "Wallet Balance", my: "လက်ကျန်ငွေ" },
+  deposit: { en: "Deposit", my: "ငွေသွင်းမည်" },
+  depositAmount: { en: "Amount (Ks)", my: "ငွေပမာဏ (ကျပ်)" },
+  paymentMethod: { en: "Payment Method", my: "ငွေပေးချေမှုနည်းလမ်း" },
+  transactionId: { en: "Transaction ID (Last 6 digits)", my: "ငွေလွှဲအမှတ် နောက်ဆုံး ၆ လုံး" },
+  submit: { en: "Submit", my: "တင်သွင်းမည်" },
+  pending: { en: "Pending", my: "စောင့်ဆိုင်းဆဲ" },
+  approved: { en: "Approved", my: "အတည်ပြုပြီး" },
+  rejected: { en: "Rejected", my: "ပယ်ဖျက်ထားသည်" },
+  insufficientBalance: { en: "Insufficient Balance", my: "လက်ကျန်ငွေမလုံလောက်ပါ" },
+  depositFirst: { en: "Please deposit first to purchase", my: "ဝယ်ယူရန်အတွက် အရင်ဆုံး ငွေသွင်းပါ" },
+  
   // Account page
   yourPoints: { en: "Your Points", my: "သင့်အမှတ်များ" },
   totalPoints: { en: "Total Points", my: "စုစုပေါင်းအမှတ်" },
