@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ShoppingBag, 
-  Zap, 
   Crown, 
   Shield, 
-  Gift, 
   Star,
   ChevronRight,
   Sparkles,
@@ -26,31 +24,6 @@ import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
-
-// Feature cards data
-const FEATURES = [
-  {
-    icon: Zap,
-    title: "Fast Delivery",
-    description: "Quick processing & delivery",
-    color: "text-yellow-500",
-    bgColor: "bg-yellow-500/10",
-  },
-  {
-    icon: Shield,
-    title: "Secure Payment",
-    description: "100% safe transactions",
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-  },
-  {
-    icon: Gift,
-    title: "Best Prices",
-    description: "Competitive rates guaranteed",
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
-  },
-];
 
 interface Photo {
   id: number;
@@ -322,30 +295,6 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="p-6 space-y-6">
-          <h2 className="text-xl font-display font-bold text-center">Why Choose Us?</h2>
-          
-          <div className="grid gap-4">
-            {FEATURES.map((feature, index) => (
-              <Card 
-                key={feature.title}
-                className="animate-slide-up rounded-2xl"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className={cn("p-3 rounded-xl", feature.bgColor)}>
-                    <feature.icon className={cn("h-6 w-6", feature.color)} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
 
         {/* Premium Membership Showcase */}
         <section className="p-6">
