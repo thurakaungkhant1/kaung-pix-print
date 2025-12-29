@@ -13,7 +13,11 @@ import {
   Users,
   Package,
   Camera,
-  User
+  User,
+  Percent,
+  Clock,
+  ArrowRight,
+  Flame
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -156,6 +160,132 @@ const Home = () => {
             <WalletDisplay />
           </section>
         )}
+
+        {/* Promotional Banner Section */}
+        <section className="px-6 pt-6">
+          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            {/* Flash Sale Banner */}
+            <Card 
+              className="flex-shrink-0 w-[85%] overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 border-0 cursor-pointer hover:shadow-xl transition-all group"
+              onClick={() => navigate("/physical-products")}
+            >
+              <CardContent className="p-5 relative">
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+                
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Flame className="h-5 w-5 text-yellow-200 animate-pulse" />
+                      <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
+                        Limited Time
+                      </Badge>
+                    </div>
+                    <h3 className="text-2xl font-display font-black text-white">
+                      Flash Sale
+                    </h3>
+                    <p className="text-white/80 text-sm">
+                      Up to 30% off on selected items
+                    </p>
+                    <div className="flex items-center gap-2 pt-2">
+                      <span className="text-white font-semibold text-sm group-hover:underline">
+                        Shop Now
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+                    <Percent className="h-10 w-10 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Premium Offer Banner */}
+            <Card 
+              className="flex-shrink-0 w-[85%] overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 border-0 cursor-pointer hover:shadow-xl transition-all group"
+              onClick={() => navigate("/premium-shop")}
+            >
+              <CardContent className="p-5 relative">
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+                
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-yellow-300" />
+                      <Badge className="bg-yellow-400/20 text-yellow-200 border-0 backdrop-blur-sm">
+                        Special Offer
+                      </Badge>
+                    </div>
+                    <h3 className="text-2xl font-display font-black text-white">
+                      Go Premium
+                    </h3>
+                    <p className="text-white/80 text-sm">
+                      Unlock exclusive benefits today
+                    </p>
+                    <div className="flex items-center gap-2 pt-2">
+                      <span className="text-white font-semibold text-sm group-hover:underline">
+                        Learn More
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+                    <Crown className="h-10 w-10 text-yellow-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* New Arrivals Banner */}
+            <Card 
+              className="flex-shrink-0 w-[85%] overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 border-0 cursor-pointer hover:shadow-xl transition-all group"
+              onClick={() => navigate("/physical-products")}
+            >
+              <CardContent className="p-5 relative">
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+                
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-white" />
+                      <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
+                        New Arrivals
+                      </Badge>
+                    </div>
+                    <h3 className="text-2xl font-display font-black text-white">
+                      Fresh Stock
+                    </h3>
+                    <p className="text-white/80 text-sm">
+                      Check out what's new this week
+                    </p>
+                    <div className="flex items-center gap-2 pt-2">
+                      <span className="text-white font-semibold text-sm group-hover:underline">
+                        Explore
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+                    <Package className="h-10 w-10 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Scroll indicator dots */}
+          <div className="flex justify-center gap-1.5 pt-2">
+            <span className="w-6 h-1.5 rounded-full bg-primary" />
+            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
+            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
+          </div>
+        </section>
 
         {/* Physical Products Section */}
         <section className="py-6 space-y-4">
