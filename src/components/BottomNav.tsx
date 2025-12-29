@@ -32,7 +32,7 @@ const BottomNav = () => {
     { to: "/", icon: Home, label: "Home" },
     { to: "/game", icon: Gamepad2, label: "Shop" },
     { to: "/favourite", icon: Heart, label: "Favorites" },
-    { to: "/wallet-history", icon: Wallet, label: "Wallet" },
+    { to: "/top-up", icon: Wallet, label: "Wallet" },
     { 
       to: isAdmin ? "/admin" : "/account", 
       icon: isAdmin ? Settings : User, 
