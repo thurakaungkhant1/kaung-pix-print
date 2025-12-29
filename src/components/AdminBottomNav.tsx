@@ -35,6 +35,7 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
     { id: "products", label: "Products", route: "/admin/products" },
     { id: "categories", label: "Shop Categories", route: "/admin/categories" },
     { id: "physical-categories", label: "Physical Categories", route: "/admin/physical-categories" },
+    { id: "banners", label: "Promo Banners", route: "/admin/banners" },
     { id: "deposits", label: "Deposits", route: "/admin/deposits" },
     { id: "wallets", label: "Wallet Management", route: "/admin/wallets" },
     { id: "point-management", label: "Point Management" },

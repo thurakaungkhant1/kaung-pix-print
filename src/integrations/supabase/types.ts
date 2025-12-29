@@ -749,6 +749,60 @@ export type Database = {
           },
         ]
       }
+      promotional_banners: {
+        Row: {
+          badge_text: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          gradient_from: string
+          gradient_to: string
+          gradient_via: string | null
+          icon_name: string
+          id: string
+          is_active: boolean
+          link_text: string
+          link_url: string
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge_text?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          gradient_from?: string
+          gradient_to?: string
+          gradient_via?: string | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          link_text?: string
+          link_url?: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          badge_text?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          gradient_from?: string
+          gradient_to?: string
+          gradient_via?: string | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          link_text?: string
+          link_url?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           admin_action: string | null

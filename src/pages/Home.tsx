@@ -6,14 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { 
   ShoppingBag, 
   Crown, 
-  Shield, 
+  Shield,
   Star,
   ChevronRight,
   Sparkles,
   Users,
   Package,
   Camera,
-  User,
   Percent,
   Clock,
   ArrowRight,
@@ -36,10 +35,60 @@ interface Photo {
   category: string | null;
 }
 
+interface PromotionalBanner {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  description: string | null;
+  badge_text: string | null;
+  gradient_from: string;
+  gradient_via: string | null;
+  gradient_to: string;
+  icon_name: string;
+  link_url: string;
+  link_text: string;
+  display_order: number | null;
+}
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Percent,
+  Crown,
+  Package,
+  Flame,
+  Sparkles,
+  Clock,
+  Star,
+  ShoppingBag,
+  Camera,
+  Shield,
+  Users,
+};
+
+const getBannerColor = (colorName: string): string => {
+  const colorMap: Record<string, string> = {
+    'rose-500': '#f43f5e',
+    'pink-500': '#ec4899',
+    'orange-400': '#fb923c',
+    'violet-600': '#7c3aed',
+    'purple-600': '#9333ea',
+    'indigo-600': '#4f46e5',
+    'emerald-500': '#10b981',
+    'teal-500': '#14b8a6',
+    'cyan-500': '#06b6d4',
+    'blue-500': '#3b82f6',
+    'green-500': '#22c55e',
+    'amber-500': '#f59e0b',
+    'red-500': '#ef4444',
+    'yellow-500': '#eab308',
+  };
+  return colorMap[colorName] || colorMap['rose-500'];
+};
+
 const Home = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [physicalProducts, setPhysicalProducts] = useState<any[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [banners, setBanners] = useState<PromotionalBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { isPremium } = useUserPremiumStatus(user?.id);
@@ -53,7 +102,7 @@ const Home = () => {
     }
   }, []);
 
-  // Load physical products and photos
+  // Load physical products, photos, and banners
   useEffect(() => {
     const loadData = async () => {
       // Load physical products
@@ -82,6 +131,17 @@ const Home = () => {
         setPhotos(photosData);
       }
 
+      // Load promotional banners
+      const { data: bannersData } = await supabase
+        .from('promotional_banners')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (bannersData) {
+        setBanners(bannersData);
+      }
+
       setLoading(false);
     };
     loadData();
@@ -92,18 +152,25 @@ const Home = () => {
     setShowOnboarding(false);
   }, []);
 
+  const getGradientClass = (from: string, via: string | null, to: string) => {
+    if (via) {
+      return `bg-gradient-to-br from-${from} via-${via} to-${to}`;
+    }
+    return `bg-gradient-to-br from-${from} to-${to}`;
+  };
+
   return (
     <>
       {/* Onboarding Flow for new users */}
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       
       <MobileLayout>
-        {/* Hero Section - Clean & Professional */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 min-h-[50vh] flex flex-col">
+        {/* Simple Header with Brand Name */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 py-8">
           {/* Subtle pattern */}
           <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-10 right-10 w-40 h-40 bg-primary/10 rounded-full blur-[80px]" />
-            <div className="absolute bottom-10 left-10 w-32 h-32 bg-accent/10 rounded-full blur-[60px]" />
+            <div className="absolute top-5 right-10 w-32 h-32 bg-primary/10 rounded-full blur-[60px]" />
+            <div className="absolute bottom-5 left-10 w-24 h-24 bg-accent/10 rounded-full blur-[40px]" />
           </div>
           
           {/* Theme Toggle in top right */}
@@ -111,46 +178,12 @@ const Home = () => {
             <ThemeToggle variant="hero" />
           </div>
           
-          {/* Hero Content */}
-          <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center">
-            {/* Brand Badge */}
-            <div className="mb-6 animate-fade-in">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Premium Quality Products</span>
-              </div>
-            </div>
-            
-            {/* Main heading */}
-            <h1 className="text-4xl sm:text-5xl font-display font-black text-foreground mb-4 animate-slide-up">
-              <span className="block">Kaung</span>
-              <span className="block text-primary">Computer</span>
+          {/* Brand Name Only */}
+          <div className="relative z-10 text-center px-6">
+            <h1 className="text-3xl sm:text-4xl font-display font-black text-foreground">
+              <span>Kaung </span>
+              <span className="text-primary">Computer</span>
             </h1>
-            
-            <p className="text-lg text-muted-foreground max-w-md mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
-              Quality products & professional photography services at the best prices.
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm animate-slide-up" style={{ animationDelay: '200ms' }}>
-              <Button 
-                onClick={() => navigate("/physical-products")}
-                className="flex-1 h-14 text-lg gap-2 font-bold"
-                size="lg"
-              >
-                <ShoppingBag className="h-5 w-5" />
-                Shop Now
-              </Button>
-              <Button 
-                onClick={() => navigate("/account")}
-                variant="outline"
-                className="flex-1 h-14 text-lg gap-2 font-bold border-primary/30 hover:bg-primary/10"
-                size="lg"
-              >
-                <User className="h-5 w-5" />
-                My Account
-              </Button>
-            </div>
           </div>
         </section>
 
@@ -161,131 +194,83 @@ const Home = () => {
           </section>
         )}
 
-        {/* Promotional Banner Section */}
-        <section className="px-6 pt-6">
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            {/* Flash Sale Banner */}
-            <Card 
-              className="flex-shrink-0 w-[85%] overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 border-0 cursor-pointer hover:shadow-xl transition-all group"
-              onClick={() => navigate("/physical-products")}
-            >
-              <CardContent className="p-5 relative">
-                {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-                
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Flame className="h-5 w-5 text-yellow-200 animate-pulse" />
-                      <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
-                        Limited Time
-                      </Badge>
-                    </div>
-                    <h3 className="text-2xl font-display font-black text-white">
-                      Flash Sale
-                    </h3>
-                    <p className="text-white/80 text-sm">
-                      Up to 30% off on selected items
-                    </p>
-                    <div className="flex items-center gap-2 pt-2">
-                      <span className="text-white font-semibold text-sm group-hover:underline">
-                        Shop Now
-                      </span>
-                      <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                  <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                    <Percent className="h-10 w-10 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Premium Offer Banner */}
-            <Card 
-              className="flex-shrink-0 w-[85%] overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 border-0 cursor-pointer hover:shadow-xl transition-all group"
-              onClick={() => navigate("/premium-shop")}
-            >
-              <CardContent className="p-5 relative">
-                {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-                
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-yellow-300" />
-                      <Badge className="bg-yellow-400/20 text-yellow-200 border-0 backdrop-blur-sm">
-                        Special Offer
-                      </Badge>
-                    </div>
-                    <h3 className="text-2xl font-display font-black text-white">
-                      Go Premium
-                    </h3>
-                    <p className="text-white/80 text-sm">
-                      Unlock exclusive benefits today
-                    </p>
-                    <div className="flex items-center gap-2 pt-2">
-                      <span className="text-white font-semibold text-sm group-hover:underline">
-                        Learn More
-                      </span>
-                      <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                  <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                    <Crown className="h-10 w-10 text-yellow-300" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* New Arrivals Banner */}
-            <Card 
-              className="flex-shrink-0 w-[85%] overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 border-0 cursor-pointer hover:shadow-xl transition-all group"
-              onClick={() => navigate("/physical-products")}
-            >
-              <CardContent className="p-5 relative">
-                {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-                
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-white" />
-                      <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
-                        New Arrivals
-                      </Badge>
-                    </div>
-                    <h3 className="text-2xl font-display font-black text-white">
-                      Fresh Stock
-                    </h3>
-                    <p className="text-white/80 text-sm">
-                      Check out what's new this week
-                    </p>
-                    <div className="flex items-center gap-2 pt-2">
-                      <span className="text-white font-semibold text-sm group-hover:underline">
-                        Explore
-                      </span>
-                      <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                  <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                    <Package className="h-10 w-10 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Scroll indicator dots */}
-          <div className="flex justify-center gap-1.5 pt-2">
-            <span className="w-6 h-1.5 rounded-full bg-primary" />
-            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
-            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
-          </div>
-        </section>
+        {/* Promotional Banner Section - Dynamic */}
+        {banners.length > 0 && (
+          <section className="px-6 pt-6">
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {banners.map((banner) => {
+                const IconComponent = ICON_MAP[banner.icon_name] || Sparkles;
+                return (
+                  <Card 
+                    key={banner.id}
+                    className={cn(
+                      "flex-shrink-0 w-[85%] overflow-hidden rounded-2xl border-0 cursor-pointer hover:shadow-xl transition-all group",
+                      getGradientClass(banner.gradient_from, banner.gradient_via, banner.gradient_to)
+                    )}
+                    style={{
+                      background: `linear-gradient(to bottom right, var(--tw-gradient-from), ${banner.gradient_via ? 'var(--tw-gradient-via),' : ''} var(--tw-gradient-to))`,
+                      ['--tw-gradient-from' as any]: getBannerColor(banner.gradient_from),
+                      ['--tw-gradient-via' as any]: banner.gradient_via ? getBannerColor(banner.gradient_via) : undefined,
+                      ['--tw-gradient-to' as any]: getBannerColor(banner.gradient_to),
+                    }}
+                    onClick={() => navigate(banner.link_url)}
+                  >
+                    <CardContent className="p-5 relative">
+                      {/* Decorative elements */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+                      
+                      <div className="relative z-10 flex items-center justify-between">
+                        <div className="space-y-2">
+                          {banner.badge_text && (
+                            <div className="flex items-center gap-2">
+                              <IconComponent className="h-5 w-5 text-yellow-200 animate-pulse" />
+                              <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
+                                {banner.badge_text}
+                              </Badge>
+                            </div>
+                          )}
+                          <h3 className="text-2xl font-display font-black text-white">
+                            {banner.title}
+                          </h3>
+                          {banner.description && (
+                            <p className="text-white/80 text-sm">
+                              {banner.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 pt-2">
+                            <span className="text-white font-semibold text-sm group-hover:underline">
+                              {banner.link_text}
+                            </span>
+                            <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                        <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+                          <IconComponent className="h-10 w-10 text-white" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            
+            {/* Scroll indicator dots */}
+            {banners.length > 1 && (
+              <div className="flex justify-center gap-1.5 pt-2">
+                {banners.map((_, index) => (
+                  <span 
+                    key={index} 
+                    className={cn(
+                      "h-1.5 rounded-full transition-all",
+                      index === 0 ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
+                    )} 
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Physical Products Section */}
         <section className="py-6 space-y-4">
