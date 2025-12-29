@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Upload, Loader2, CheckCircle, AlertCircle, Wallet, CreditCard, Phone } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, CheckCircle, AlertCircle, Wallet, CreditCard, Phone, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,18 @@ const TopUp = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedPhone(text);
+      toast.success("Copied to clipboard!");
+      setTimeout(() => setCopiedPhone(null), 2000);
+    } catch (err) {
+      toast.error("Failed to copy");
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -160,14 +172,28 @@ const TopUp = () => {
                 <div className="grid gap-3">
                   {paymentMethods.map((method) => (
                     <Card key={method.name} className="border-border/50">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-primary/10">
-                          <method.icon className="h-5 w-5 text-primary" />
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 rounded-xl bg-primary/10">
+                            <method.icon className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-semibold">{method.name}</p>
+                            <p className="text-sm text-muted-foreground font-mono">{method.phone}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold">{method.name}</p>
-                          <p className="text-sm text-muted-foreground">{method.phone}</p>
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => copyToClipboard(method.phone)}
+                          className="shrink-0"
+                        >
+                          {copiedPhone === method.phone ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
