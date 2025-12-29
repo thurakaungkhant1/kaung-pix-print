@@ -1001,6 +1001,7 @@ export type Database = {
           rejected_at: string | null
           screenshot_url: string
           status: string
+          transaction_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1014,6 +1015,7 @@ export type Database = {
           rejected_at?: string | null
           screenshot_url: string
           status?: string
+          transaction_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -1027,6 +1029,7 @@ export type Database = {
           rejected_at?: string | null
           screenshot_url?: string
           status?: string
+          transaction_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
