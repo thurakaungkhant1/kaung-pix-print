@@ -87,9 +87,9 @@ const TopUp = () => {
   const presetAmounts = [5000, 10000, 20000, 50000, 100000];
 
   const paymentMethods = [
-    { name: "KBZ Pay", phone: "09-XXX-XXX-XXX", icon: Phone },
-    { name: "Wave Pay", phone: "09-XXX-XXX-XXX", icon: CreditCard },
-    { name: "CB Pay", phone: "09-XXX-XXX-XXX", icon: Wallet },
+    { name: "KBZ Pay", phone: "09694577177", icon: Phone },
+    { name: "Wave Pay", phone: "09694577177", icon: CreditCard },
+    { name: "CB Pay", phone: "0211600900000647", icon: Wallet },
   ];
 
   if (!user) {
