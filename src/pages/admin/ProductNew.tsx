@@ -78,7 +78,7 @@ const ProductNew = () => {
       image_url: primaryImage,
       points_value: parseInt(pointsValue) || 0,
       category,
-      physical_category_id: physicalCategoryId || null,
+      physical_category_id: physicalCategoryId && physicalCategoryId !== "none" ? physicalCategoryId : null,
       stock_quantity: parseInt(stockQuantity) || 0,
       status,
       is_premium: isPremium,
@@ -237,7 +237,7 @@ const ProductNew = () => {
                       <SelectValue placeholder="Select physical category..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {physicalCategories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {cat.name}

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
-import LanguageToggle from "@/components/LanguageToggle";
 
 interface Photo {
   id: number;
@@ -91,9 +90,34 @@ const Home = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const bannerContainerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { isPremium } = useUserPremiumStatus(user?.id);
   const navigate = useNavigate();
+
+  // Auto-scroll banners
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [banners.length]);
+
+  // Scroll to current banner
+  useEffect(() => {
+    if (bannerContainerRef.current && banners.length > 1) {
+      const container = bannerContainerRef.current;
+      const bannerWidth = container.scrollWidth / banners.length;
+      container.scrollTo({
+        left: bannerWidth * currentBannerIndex,
+        behavior: 'smooth'
+      });
+    }
+  }, [currentBannerIndex, banners.length]);
 
   // Check if user has seen onboarding
   useEffect(() => {
@@ -174,9 +198,8 @@ const Home = () => {
             <div className="absolute bottom-5 left-10 w-24 h-24 bg-accent/10 rounded-full blur-[40px]" />
           </div>
           
-          {/* Theme & Language Toggle in top right */}
-          <div className="absolute top-4 right-4 z-20 flex items-center gap-1">
-            <LanguageToggle variant="hero" />
+          {/* Theme Toggle in top right */}
+          <div className="absolute top-4 right-4 z-20">
             <ThemeToggle variant="hero" />
           </div>
           
@@ -199,7 +222,10 @@ const Home = () => {
         {/* Promotional Banner Section - Dynamic */}
         {banners.length > 0 && (
           <section className="px-6 pt-6">
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            <div 
+              ref={bannerContainerRef}
+              className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
+            >
               {banners.map((banner) => {
                 const IconComponent = ICON_MAP[banner.icon_name] || Sparkles;
                 return (
@@ -261,11 +287,12 @@ const Home = () => {
             {banners.length > 1 && (
               <div className="flex justify-center gap-1.5 pt-2">
                 {banners.map((_, index) => (
-                  <span 
-                    key={index} 
+                  <button 
+                    key={index}
+                    onClick={() => setCurrentBannerIndex(index)}
                     className={cn(
                       "h-1.5 rounded-full transition-all",
-                      index === 0 ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
+                      index === currentBannerIndex ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
                     )} 
                   />
                 ))}
