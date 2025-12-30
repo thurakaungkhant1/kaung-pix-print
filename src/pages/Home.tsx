@@ -91,21 +91,24 @@ const Home = () => {
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const bannerContainerRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
   const { user } = useAuth();
   const { isPremium } = useUserPremiumStatus(user?.id);
   const navigate = useNavigate();
 
-  // Auto-scroll banners
+  // Auto-scroll banners (pauses on hover/touch)
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (banners.length <= 1 || isPaused) return;
     
     const interval = setInterval(() => {
       setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [banners.length]);
+  }, [banners.length, isPaused]);
 
   // Scroll to current banner
   useEffect(() => {
@@ -118,6 +121,34 @@ const Home = () => {
       });
     }
   }, [currentBannerIndex, banners.length]);
+
+  // Swipe gesture handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    setIsPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const swipeThreshold = 50;
+    const diff = touchStartX.current - touchEndX.current;
+
+    if (Math.abs(diff) > swipeThreshold) {
+      if (diff > 0) {
+        // Swiped left - go to next
+        setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+      } else {
+        // Swiped right - go to previous
+        setCurrentBannerIndex((prev) => (prev - 1 + banners.length) % banners.length);
+      }
+    }
+    
+    // Resume auto-scroll after a delay
+    setTimeout(() => setIsPaused(false), 3000);
+  };
 
   // Check if user has seen onboarding
   useEffect(() => {
@@ -225,6 +256,11 @@ const Home = () => {
             <div 
               ref={bannerContainerRef}
               className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
               {banners.map((banner) => {
                 const IconComponent = ICON_MAP[banner.icon_name] || Sparkles;
