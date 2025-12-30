@@ -5,13 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Minus, Plus, ArrowLeft, Sparkles, Star, Crown, Lock, Share2, Wallet } from "lucide-react";
+import { Heart, Minus, Plus, ArrowLeft, Sparkles, Star, Crown, Lock, Share2, Wallet, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import ReviewSection from "@/components/ReviewSection";
 import ImageViewer from "@/components/ImageViewer";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Product {
   id: number;
@@ -37,8 +48,10 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [showInsufficientBalanceDialog, setShowInsufficientBalanceDialog] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { isPremium, loading: premiumLoading } = usePremiumMembership();
 
   // Check if product is premium and user doesn't have subscription
@@ -166,12 +179,7 @@ const ProductDetail = () => {
 
     // Check wallet balance
     if (walletBalance < totalPrice) {
-      toast({
-        title: "Insufficient Balance",
-        description: `You need ${totalPrice.toLocaleString()} MMK but only have ${walletBalance.toLocaleString()} MMK. Please top up your wallet.`,
-        variant: "destructive",
-      });
-      navigate("/wallet-history");
+      setShowInsufficientBalanceDialog(true);
       return;
     }
 
@@ -448,6 +456,43 @@ const ProductDetail = () => {
           open={imageViewerOpen}
           onOpenChange={setImageViewerOpen}
         />
+
+        {/* Insufficient Balance Dialog */}
+        <AlertDialog open={showInsufficientBalanceDialog} onOpenChange={setShowInsufficientBalanceDialog}>
+          <AlertDialogContent className="max-w-sm">
+            <AlertDialogHeader>
+              <div className="flex justify-center mb-4">
+                <div className="p-4 rounded-full bg-destructive/10">
+                  <AlertTriangle className="h-8 w-8 text-destructive" />
+                </div>
+              </div>
+              <AlertDialogTitle className="text-center">{t("insufficientBalance")}</AlertDialogTitle>
+              <AlertDialogDescription className="text-center">
+                {t("depositFirst")}
+                <div className="mt-3 p-3 bg-muted rounded-lg">
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Required: </span>
+                    <span className="font-bold text-foreground">{((product?.price || 0) * quantity).toLocaleString()} Ks</span>
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Your Balance: </span>
+                    <span className="font-bold text-destructive">{walletBalance.toLocaleString()} Ks</span>
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+              <AlertDialogAction 
+                onClick={() => navigate("/top-up")}
+                className="w-full"
+              >
+                <Wallet className="h-4 w-4 mr-2" />
+                {t("deposit")}
+              </AlertDialogAction>
+              <AlertDialogCancel className="w-full">{t("cancel")}</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
