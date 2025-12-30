@@ -82,7 +82,7 @@ const WalletDisplay = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/wallet-history')}
+            onClick={() => navigate('/transaction-history')}
             className="text-muted-foreground hover:text-foreground"
           >
             <History className="h-4 w-4" />

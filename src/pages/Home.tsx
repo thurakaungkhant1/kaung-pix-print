@@ -27,6 +27,7 @@ import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
 
 interface Photo {
   id: number;
@@ -173,8 +174,9 @@ const Home = () => {
             <div className="absolute bottom-5 left-10 w-24 h-24 bg-accent/10 rounded-full blur-[40px]" />
           </div>
           
-          {/* Theme Toggle in top right */}
-          <div className="absolute top-4 right-4 z-20">
+          {/* Theme & Language Toggle in top right */}
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-1">
+            <LanguageToggle variant="hero" />
             <ThemeToggle variant="hero" />
           </div>
           

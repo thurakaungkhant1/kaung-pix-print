@@ -61,6 +61,7 @@ const BannersManage = lazy(() => import("./pages/admin/BannersManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
+const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
 
 const queryClient = new QueryClient();
 
@@ -405,6 +406,14 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <PublicProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/transaction-history"
+                  element={
+                    <ProtectedRoute>
+                      <TransactionHistory />
                     </ProtectedRoute>
                   }
                 />
