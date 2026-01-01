@@ -554,39 +554,43 @@ const Account = () => {
 
   return (
     <MobileLayout className="pb-24">
-      {/* Profile Header - Sleek & Minimal */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/5">
-        <div className="absolute inset-0 bg-gradient-glow opacity-40" />
+      {/* Profile Header - Premium & Animated */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/15 via-background to-accent/10">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 bg-gradient-glow opacity-50" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         
-        <div className="relative z-10 px-6 pt-8 pb-6">
-          {/* Avatar & Info */}
-          <div className="flex items-center gap-4">
+        <div className="relative z-10 px-6 pt-10 pb-8">
+          {/* Avatar & Info - Enhanced */}
+          <div className="flex items-start gap-5">
             <div 
               className="relative cursor-pointer group"
               onClick={() => fileInputRef.current?.click()}
             >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-full blur-md opacity-50 group-hover:opacity-80 transition-opacity scale-105" />
               <Avatar className={cn(
-                "h-20 w-20 border-4 border-border/50",
-                "ring-2 ring-primary/20 transition-all duration-300",
-                "group-hover:ring-primary/40"
+                "h-24 w-24 border-4 border-background shadow-xl relative",
+                "ring-2 ring-primary/30 transition-all duration-500",
+                "group-hover:ring-primary/60 group-hover:scale-105"
               )}>
                 <AvatarImage 
                   src={avatarPreview || profile?.avatar_url || undefined} 
                   alt="Profile"
                   className="object-cover"
                 />
-                <AvatarFallback className="bg-primary/10 text-2xl font-bold text-primary">
-                  {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-8 w-8" />}
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-3xl font-bold text-primary">
+                  {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-10 w-10" />}
                 </AvatarFallback>
               </Avatar>
               
-              {/* Edit overlay */}
+              {/* Edit overlay with animation */}
               <div className={cn(
                 "absolute inset-0 flex items-center justify-center rounded-full",
-                "bg-background/60 backdrop-blur-sm opacity-0 group-hover:opacity-100",
-                "transition-all duration-300"
+                "bg-background/70 backdrop-blur-md opacity-0 group-hover:opacity-100",
+                "transition-all duration-300 scale-90 group-hover:scale-100"
               )}>
-                <Camera className="h-6 w-6 text-primary" />
+                <Camera className="h-7 w-7 text-primary animate-bounce" />
               </div>
               
               <input
@@ -598,134 +602,157 @@ const Account = () => {
               />
             </div>
             
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-foreground">
+            <div className="flex-1 pt-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-display font-bold text-foreground tracking-tight">
                   {profile?.name || "Loading..."}
                 </h1>
                 {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
               </div>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5" />
+                {user?.email}
+              </p>
               
               {avatarFile && (
                 <Button 
                   size="sm"
                   onClick={uploadAvatar}
                   disabled={uploadingAvatar}
-                  className="mt-2 h-8 rounded-full"
+                  className="mt-3 h-9 rounded-full shadow-lg hover:shadow-xl transition-all btn-press"
                 >
-                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
                   Save Photo
                 </Button>
               )}
             </div>
           </div>
 
-          {/* Points Display */}
-          <div className="mt-6 flex items-center justify-between p-4 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/15">
-                <Coins className="h-5 w-5 text-primary" />
+          {/* Points Display - Enhanced Card */}
+          <div className="mt-8 p-5 rounded-3xl bg-gradient-to-br from-primary/15 via-primary/10 to-accent/5 backdrop-blur-sm border border-primary/20 shadow-lg hover-lift">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+                  <Coins className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <p className="text-3xl font-display font-bold text-foreground tracking-tight">
+                    {profile?.points?.toLocaleString() || 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground font-medium">Total Points</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {profile?.points?.toLocaleString() || 0}
-                </p>
-                <p className="text-xs text-muted-foreground">Total Points</p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-10 px-4 rounded-xl border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all btn-press group"
+                  onClick={() => setSpinnerOpen(true)}
+                >
+                  <Gift className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform" />
+                  Spin
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-10 px-4 rounded-xl shadow-md hover:shadow-lg transition-all btn-press group"
+                  onClick={() => navigate("/exchange")}
+                >
+                  <Coins className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                  Exchange
+                </Button>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-9 rounded-xl"
-                onClick={() => setSpinnerOpen(true)}
-              >
-                <Gift className="h-4 w-4 mr-1" />
-                Spin
-              </Button>
-              <Button
-                size="sm"
-                className="h-9 rounded-xl"
-                onClick={() => navigate("/exchange")}
-              >
-                <Coins className="h-4 w-4 mr-1" />
-                Exchange
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabbed Settings */}
-      <div className="p-4">
+      {/* Tabbed Settings - Enhanced */}
+      <div className="p-5">
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="w-full h-12 p-1 rounded-2xl bg-muted/50">
-            <TabsTrigger value="profile" className="flex-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsList className="w-full h-14 p-1.5 rounded-2xl bg-muted/60 backdrop-blur-sm shadow-inner">
+            <TabsTrigger 
+              value="profile" 
+              className="flex-1 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-300 data-[state=active]:scale-[1.02]"
+            >
               <User className="h-4 w-4 mr-1.5" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger 
+              value="security" 
+              className="flex-1 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-300 data-[state=active]:scale-[1.02]"
+            >
               <Shield className="h-4 w-4 mr-1.5" />
               Security
             </TabsTrigger>
-            <TabsTrigger value="billing" className="flex-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger 
+              value="billing" 
+              className="flex-1 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-300 data-[state=active]:scale-[1.02]"
+            >
               <CreditCard className="h-4 w-4 mr-1.5" />
               Billing
             </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger 
+              value="preferences" 
+              className="flex-1 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-300 data-[state=active]:scale-[1.02]"
+            >
               <Settings className="h-4 w-4 mr-1.5" />
               More
             </TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
-          <TabsContent value="profile" className="mt-4 space-y-4 animate-fade-in">
-            <Card className="rounded-2xl border-border/50 shadow-sm">
-              <CardContent className="p-2">
-                <EditableField
-                  icon={User}
-                  label="Name"
-                  value={profile?.name || ""}
-                  editValue={editName}
-                  setEditValue={setEditName}
-                  isEditing={editingName}
-                  setIsEditing={setEditingName}
-                  onSave={handleSaveName}
-                  disabled={!isPremium}
-                  disabledMessage="Only premium members can change their name"
-                />
-                <Separator className="my-1" />
-                <EditableField
-                  icon={Phone}
-                  label="Phone Number"
-                  value={profile?.phone_number || ""}
-                  editValue={editPhone}
-                  setEditValue={setEditPhone}
-                  isEditing={editingPhone}
-                  setIsEditing={setEditingPhone}
-                  onSave={handleSavePhone}
-                />
-                <Separator className="my-1" />
-                <SettingItem 
-                  icon={Mail}
-                  label="Email"
-                  description={user?.email || "Not set"}
-                  onClick={() => {}}
-                  rightElement={<></>}
-                />
+          <TabsContent value="profile" className="mt-5 space-y-4">
+            <Card className="rounded-3xl border-border/40 shadow-lg overflow-hidden hover-lift card-shine">
+              <CardContent className="p-0 divide-y divide-border/30">
+                <div className="animate-fade-in" style={{ animationDelay: '0ms' }}>
+                  <EditableField
+                    icon={User}
+                    label="Name"
+                    value={profile?.name || ""}
+                    editValue={editName}
+                    setEditValue={setEditName}
+                    isEditing={editingName}
+                    setIsEditing={setEditingName}
+                    onSave={handleSaveName}
+                    disabled={!isPremium}
+                    disabledMessage="Only premium members can change their name"
+                  />
+                </div>
+                <div className="animate-fade-in" style={{ animationDelay: '50ms' }}>
+                  <EditableField
+                    icon={Phone}
+                    label="Phone Number"
+                    value={profile?.phone_number || ""}
+                    editValue={editPhone}
+                    setEditValue={setEditPhone}
+                    isEditing={editingPhone}
+                    setIsEditing={setEditingPhone}
+                    onSave={handleSavePhone}
+                  />
+                </div>
+                <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+                  <SettingItem 
+                    icon={Mail}
+                    label="Email"
+                    description={user?.email || "Not set"}
+                    onClick={() => {}}
+                    rightElement={<></>}
+                  />
+                </div>
               </CardContent>
             </Card>
 
             {/* Account Quality */}
             {profile && (
-              <AccountQualityBadge status={profile.account_status || "good"} />
+              <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
+                <AccountQualityBadge status={profile.account_status || "good"} />
+              </div>
             )}
 
             {/* Avatar Management */}
             {profile?.avatar_url && !avatarFile && (
-              <Card className="rounded-2xl border-border/50 shadow-sm">
-                <CardContent className="p-2">
+              <Card className="rounded-3xl border-destructive/20 shadow-lg overflow-hidden animate-fade-in hover:border-destructive/40 transition-colors" style={{ animationDelay: '200ms' }}>
+                <CardContent className="p-0">
                   <SettingItem 
                     icon={Trash2}
                     label="Remove Profile Photo"
