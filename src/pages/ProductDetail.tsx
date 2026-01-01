@@ -249,49 +249,107 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-8">
-      <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-primary-foreground/10 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-xl font-display font-bold">Product Details</h1>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-8">
+      {/* Enhanced Header */}
+      <header className="bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground p-4 sticky top-0 z-40 shadow-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate(-1)}
+              className="p-2.5 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-all duration-300 hover:scale-105 active:scale-95"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-display font-bold tracking-tight">Product Details</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                const shareUrl = `${window.location.origin}/product/${product.id}`;
+                if (navigator.share) {
+                  navigator.share({
+                    title: product.name,
+                    text: `Check out ${product.name} on Kaung Computer!`,
+                    url: shareUrl,
+                  });
+                } else {
+                  navigator.clipboard.writeText(shareUrl);
+                  toast({
+                    title: "Link copied!",
+                    description: "Product link copied to clipboard",
+                  });
+                }
+              }}
+              className="h-10 w-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-all"
+            >
+              <Share2 className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-screen-xl mx-auto p-4 space-y-6">
-        <Card className="overflow-hidden shadow-xl border-0 animate-fade-in">
-          {/* Main Image - Tap to zoom */}
+      <div className="max-w-screen-xl mx-auto space-y-6">
+        {/* Hero Image Section - Larger & More Immersive */}
+        <div className="relative">
           <div 
-            className="aspect-square bg-muted relative group cursor-zoom-in"
+            className="aspect-[4/3] bg-gradient-to-b from-muted to-muted/50 relative group cursor-zoom-in overflow-hidden"
             onClick={() => setImageViewerOpen(true)}
           >
             <img
               src={selectedImage || product.image_url}
               alt={product.name}
-              className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-full object-contain transition-all duration-700 group-hover:scale-110"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent pointer-events-none" />
-            <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-muted-foreground">
+            {/* Gradient overlays for depth */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/10 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+            
+            {/* Zoom indicator */}
+            <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-md px-3 py-2 rounded-full text-sm text-muted-foreground flex items-center gap-2 shadow-lg opacity-80 group-hover:opacity-100 transition-all">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+              </svg>
               Tap to zoom
             </div>
+            
+            {/* Favorite button - Floating */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavourite();
+              }}
+              className={cn(
+                "absolute top-4 right-4 h-12 w-12 rounded-full shadow-lg backdrop-blur-md transition-all duration-300",
+                isFavourite 
+                  ? "bg-primary/90 hover:bg-primary text-primary-foreground scale-110" 
+                  : "bg-background/90 hover:bg-background text-foreground hover:scale-110"
+              )}
+            >
+              <Heart
+                className={cn(
+                  "h-6 w-6 transition-all duration-300",
+                  isFavourite && "fill-current animate-pulse"
+                )}
+              />
+            </Button>
           </div>
           
-          {/* Thumbnail Gallery */}
+          {/* Thumbnail Gallery - Enhanced */}
           {getProductImages().length > 1 && (
-            <div className="p-3 flex gap-2 overflow-x-auto">
+            <div className="p-4 flex gap-3 overflow-x-auto scrollbar-hide bg-gradient-to-t from-background to-transparent">
               {getProductImages().map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(img)}
                   className={cn(
-                    "w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0",
+                    "w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all duration-300 flex-shrink-0 shadow-md hover:shadow-lg",
                     selectedImage === img 
-                      ? "border-primary shadow-lg" 
-                      : "border-transparent hover:border-primary/50"
+                      ? "border-primary ring-2 ring-primary/30 scale-105" 
+                      : "border-transparent hover:border-primary/40 hover:scale-105"
                   )}
                 >
                   <img
@@ -303,151 +361,143 @@ const ProductDetail = () => {
               ))}
             </div>
           )}
-          <CardHeader className="pb-2">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <CardTitle className="text-2xl font-display">{product.name}</CardTitle>
-                <CardDescription className="text-2xl font-bold text-primary mt-2">
-                  {product.price.toLocaleString()} MMK
-                </CardDescription>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    const shareUrl = `${window.location.origin}/product/${product.id}`;
-                    if (navigator.share) {
-                      navigator.share({
-                        title: product.name,
-                        text: `Check out ${product.name} on Kaung Computer!`,
-                        url: shareUrl,
-                      });
-                    } else {
-                      navigator.clipboard.writeText(shareUrl);
-                      toast({
-                        title: "Link copied!",
-                        description: "Product link copied to clipboard",
-                      });
-                    }
-                  }}
-                  className="shrink-0 rounded-full h-12 w-12 transition-all duration-300 hover:bg-muted"
-                >
-                  <Share2 className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleFavourite}
-                  className={`shrink-0 rounded-full h-12 w-12 transition-all duration-300 ${
-                    isFavourite ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-muted"
-                  }`}
-                >
-                  <Heart
-                    className={`h-6 w-6 transition-all duration-300 ${
-                      isFavourite ? "fill-primary text-primary scale-110" : ""
-                    }`}
-                  />
-                </Button>
-              </div>
+        </div>
+        {/* Product Info Card - Enhanced */}
+        <Card className="mx-4 rounded-3xl border-0 shadow-2xl overflow-hidden animate-slide-up">
+          <CardHeader className="pb-4 bg-gradient-to-b from-muted/30 to-transparent">
+            <CardTitle className="text-2xl sm:text-3xl font-display font-bold tracking-tight">{product.name}</CardTitle>
+            <div className="flex items-baseline gap-3 mt-3">
+              <CardDescription className="text-3xl sm:text-4xl font-display font-black text-primary">
+                {product.price.toLocaleString()}
+              </CardDescription>
+              <span className="text-lg text-muted-foreground font-medium">MMK</span>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          
+          <CardContent className="space-y-6 pt-2">
             {product.description && (
               <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
-                <h3 className="font-display font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2">
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  Description
+                </h3>
+                <p className="text-muted-foreground leading-relaxed text-base">{product.description}</p>
               </div>
             )}
 
+            {/* Points Reward - Enhanced */}
             <div 
-              className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20 animate-fade-in"
+              className="p-5 bg-gradient-to-br from-primary/15 via-primary/10 to-accent/5 rounded-2xl border border-primary/20 animate-fade-in shadow-inner"
               style={{ animationDelay: '150ms' }}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <p className="font-display font-semibold text-primary">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-xl bg-primary/20">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <p className="font-display font-bold text-lg text-primary">
                   Earn {product.points_value} points per item!
                 </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Total: <span className="font-bold text-primary">{product.points_value * quantity} points</span> for {quantity} item(s)
+              <p className="text-muted-foreground">
+                Total reward: <span className="font-bold text-primary text-lg">{product.points_value * quantity} points</span> for {quantity} item(s)
               </p>
             </div>
 
+            {/* Quantity Selector - Enhanced */}
             <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <h3 className="font-display font-semibold mb-3">Quantity</h3>
+              <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-primary" />
+                Quantity
+              </h3>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 bg-muted/50 rounded-full p-1">
+                <div className="flex items-center gap-1 bg-muted/50 rounded-2xl p-1.5 shadow-inner">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full hover:bg-background"
+                    className="h-12 w-12 rounded-xl hover:bg-background hover:shadow-md transition-all active:scale-95"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   >
-                    <Minus className="h-4 w-4" />
+                    <Minus className="h-5 w-5" />
                   </Button>
-                  <span className="text-xl font-bold w-12 text-center">{quantity}</span>
+                  <span className="text-2xl font-bold w-14 text-center font-display">{quantity}</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full hover:bg-background"
+                    className="h-12 w-12 rounded-xl hover:bg-background hover:shadow-md transition-all active:scale-95"
                     onClick={() => setQuantity(quantity + 1)}
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                   </Button>
+                </div>
+                <div className="text-muted-foreground">
+                  <span className="text-sm">Total:</span>
+                  <p className="font-bold text-foreground text-lg">{(product.price * quantity).toLocaleString()} MMK</p>
                 </div>
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3 pt-4">
+          
+          {/* Purchase Section - Enhanced CTA */}
+          <CardFooter className="flex flex-col gap-4 p-6 bg-gradient-to-t from-muted/30 to-transparent">
             {/* Wallet Balance Display */}
-            <div className="w-full p-3 bg-muted/50 rounded-lg flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-primary" />
-                <span className="text-sm text-muted-foreground">Your Balance:</span>
+            <div className="w-full p-4 bg-muted/60 rounded-2xl flex items-center justify-between backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Wallet className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-muted-foreground font-medium">Your Balance</span>
               </div>
               <span className={cn(
-                "font-bold",
+                "font-bold text-lg",
                 walletBalance >= (product?.price || 0) * quantity ? "text-primary" : "text-destructive"
               )}>
                 {walletBalance.toLocaleString()} MMK
               </span>
             </div>
             
+            {/* Buy Now Button - Premium CTA */}
             <Button 
-              className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300" 
+              className={cn(
+                "w-full h-14 text-lg font-bold rounded-2xl transition-all duration-300",
+                "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary",
+                "shadow-xl hover:shadow-2xl hover:shadow-primary/25",
+                "active:scale-[0.98]"
+              )}
               size="lg" 
               onClick={handleBuyNow}
               disabled={purchasing}
             >
               {purchasing ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <span className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   Processing...
                 </span>
               ) : (
-                `Buy Now - ${((product?.price || 0) * quantity).toLocaleString()} MMK`
+                <span className="flex items-center gap-2">
+                  Buy Now — {((product?.price || 0) * quantity).toLocaleString()} MMK
+                </span>
               )}
             </Button>
           </CardFooter>
         </Card>
 
-        {/* Product Reviews Section */}
-        <Tabs defaultValue="reviews" className="w-full animate-fade-in" style={{ animationDelay: '250ms' }}>
-          <TabsList className="grid w-full grid-cols-1 bg-muted/50 p-1 rounded-xl">
-            <TabsTrigger 
-              value="reviews"
-              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md flex items-center gap-2"
-            >
-              <Star className="h-4 w-4" />
-              Reviews & Ratings
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="reviews" className="mt-4">
-            <ReviewSection productId={product.id} />
-          </TabsContent>
-        </Tabs>
+        {/* Product Reviews Section - Enhanced */}
+        <div className="px-4">
+          <Tabs defaultValue="reviews" className="w-full animate-fade-in" style={{ animationDelay: '250ms' }}>
+            <TabsList className="grid w-full grid-cols-1 bg-muted/50 p-1.5 rounded-2xl shadow-inner">
+              <TabsTrigger 
+                value="reviews"
+                className="rounded-xl h-12 data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-2 transition-all"
+              >
+                <Star className="h-4 w-4" />
+                Reviews & Ratings
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="reviews" className="mt-5">
+              <ReviewSection productId={product.id} />
+            </TabsContent>
+          </Tabs>
+        </div>
 
         {/* Image Viewer for pinch-to-zoom */}
         <ImageViewer

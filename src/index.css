@@ -419,6 +419,119 @@
 }
 
 @layer components {
+  /* ═══════════════════════════════════════════════════════════
+     MICRO-INTERACTIONS & HOVER EFFECTS
+     ═══════════════════════════════════════════════════════════ */
+  
+  /* Lift on hover - subtle elevation */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  /* Scale on hover - subtle grow */
+  .hover-scale {
+    @apply transition-transform duration-200 ease-out;
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Glow on hover */
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  /* Button press effect */
+  .btn-press {
+    @apply transition-all duration-150 ease-out active:scale-95;
+  }
+  
+  /* Icon bounce on hover */
+  .icon-bounce {
+    @apply transition-transform duration-200;
+  }
+  
+  .group:hover .icon-bounce {
+    animation: bounce 0.5s ease-in-out;
+  }
+  
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  
+  /* Ripple effect */
+  .ripple {
+    @apply relative overflow-hidden;
+  }
+  
+  .ripple::after {
+    content: '';
+    @apply absolute inset-0 rounded-inherit;
+    background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), hsl(var(--primary) / 0.15) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .ripple:hover::after {
+    opacity: 1;
+  }
+  
+  /* Stagger animation children */
+  .stagger-children > * {
+    animation: fade-slide-up 0.4s ease-out forwards;
+    opacity: 0;
+  }
+  
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+  
+  @keyframes fade-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Card shine effect on hover */
+  .card-shine {
+    @apply relative overflow-hidden;
+  }
+  
+  .card-shine::before {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.05),
+      transparent
+    );
+    transition: transform 0.6s ease;
+  }
+  
+  .card-shine:hover::before {
+    transform: translateX(100%);
+  }
+  
   /* Premium Card Style */
   .premium-card {
     @apply relative overflow-hidden rounded-2xl bg-card border border-border/50;
