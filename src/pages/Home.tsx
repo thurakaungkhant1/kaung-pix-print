@@ -92,23 +92,49 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
   const bannerContainerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const { isPremium } = useUserPremiumStatus(user?.id);
   const navigate = useNavigate();
 
-  // Auto-scroll banners (pauses on hover/touch)
+  // Auto-scroll banners with progress bar (pauses on hover/touch)
   useEffect(() => {
-    if (banners.length <= 1 || isPaused) return;
-    
-    const interval = setInterval(() => {
-      setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
-    }, 4000);
+    if (banners.length <= 1) return;
 
-    return () => clearInterval(interval);
-  }, [banners.length, isPaused]);
+    // Clear any existing interval
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
+    if (isPaused) {
+      return;
+    }
+
+    // Reset progress when banner changes
+    setProgress(0);
+    
+    // Progress bar animation - update every 40ms for smooth animation
+    const progressStep = 100 / (4000 / 40); // 4 seconds total
+    progressIntervalRef.current = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
+          return 0;
+        }
+        return prev + progressStep;
+      });
+    }, 40);
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, [banners.length, isPaused, currentBannerIndex]);
 
   // Scroll to current banner
   useEffect(() => {
@@ -319,18 +345,32 @@ const Home = () => {
               })}
             </div>
             
-            {/* Scroll indicator dots */}
+            {/* Progress indicator with dots */}
             {banners.length > 1 && (
-              <div className="flex justify-center gap-1.5 pt-2">
+              <div className="flex justify-center gap-2 pt-3">
                 {banners.map((_, index) => (
                   <button 
                     key={index}
-                    onClick={() => setCurrentBannerIndex(index)}
-                    className={cn(
-                      "h-1.5 rounded-full transition-all",
-                      index === currentBannerIndex ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                    )} 
-                  />
+                    onClick={() => {
+                      setCurrentBannerIndex(index);
+                      setProgress(0);
+                    }}
+                    className="relative h-1.5 rounded-full overflow-hidden transition-all"
+                    style={{ width: index === currentBannerIndex ? '32px' : '8px' }}
+                  >
+                    {/* Background */}
+                    <div className={cn(
+                      "absolute inset-0 rounded-full",
+                      index === currentBannerIndex ? "bg-primary/30" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    )} />
+                    {/* Progress fill - only show on current banner */}
+                    {index === currentBannerIndex && (
+                      <div 
+                        className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-75 ease-linear"
+                        style={{ width: `${progress}%` }}
+                      />
+                    )}
+                  </button>
                 ))}
               </div>
             )}
