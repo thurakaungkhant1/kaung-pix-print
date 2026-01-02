@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { addWatermark } from "@/lib/watermarkUtils";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
 
 interface Photo {
   id: number;
@@ -121,20 +122,47 @@ const Photo = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-screen-xl mx-auto p-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
+      <MobileLayout>
+        {/* Hero Header Skeleton */}
+        <header className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-hero" />
+          <div className="absolute inset-0 bg-gradient-glow opacity-60" />
+          
+          <div className="relative z-10 p-4 pt-6 pb-5">
+            <div className="flex items-center justify-between mb-5">
+              <div className="w-10" />
+              <div className="h-8 w-24 bg-primary-foreground/20 rounded animate-shimmer" />
+              <div className="w-10" />
+            </div>
+            <div className="h-12 bg-primary-foreground/10 rounded-2xl animate-shimmer" />
+          </div>
+        </header>
+
+        <div className="max-w-screen-xl mx-auto p-4 space-y-5">
+          {/* Category skeleton */}
+          <div className="flex gap-2 overflow-hidden">
+            {[...Array(4)].map((_, i) => (
               <div 
+                key={i}
+                className="h-10 px-8 bg-muted rounded-xl animate-shimmer"
+                style={{ animationDelay: `${i * 50}ms` }}
+              />
+            ))}
+          </div>
+          
+          {/* Photo grid skeleton */}
+          <div className="grid grid-cols-3 gap-3">
+            {[...Array(9)].map((_, i) => (
+              <SkeletonCard 
                 key={i} 
-                className="aspect-square rounded-2xl animate-shimmer" 
-                style={{ animationDelay: `${i * 100}ms` }}
+                variant="photo"
+                style={{ animationDelay: `${i * 50}ms` } as React.CSSProperties}
               />
             ))}
           </div>
         </div>
         <BottomNav />
-      </div>
+      </MobileLayout>
     );
   }
 
@@ -195,8 +223,8 @@ const Photo = () => {
               key={category}
               onClick={() => setSelectedCategory(category)}
               className={cn(
-                "px-4 py-2.5 rounded-xl whitespace-nowrap font-medium text-sm",
-                "transition-all duration-300 active:scale-95",
+                "px-4 py-2.5 rounded-xl whitespace-nowrap font-medium text-sm btn-press",
+                "transition-all duration-300",
                 "animate-fade-in",
                 selectedCategory === category
                   ? "bg-primary text-primary-foreground shadow-glow"
@@ -227,7 +255,7 @@ const Photo = () => {
             {filteredPhotos.map((photo, index) => (
               <Card
                 key={photo.id}
-                className="product-card cursor-pointer animate-scale-in overflow-hidden group"
+                className="cursor-pointer animate-scale-in overflow-hidden hover-lift card-shine group rounded-xl border-border/50 hover:border-primary/30 transition-all"
                 style={{ animationDelay: `${index * 50}ms` }}
                 onClick={() => navigate(`/photo/${photo.id}`)}
               >
@@ -236,11 +264,15 @@ const Photo = () => {
                     <img
                       src={watermarkedImages.get(photo.id) || photo.preview_image}
                       alt={photo.client_name}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (
                     <FileArchive className="h-12 w-12 text-muted-foreground" />
                   )}
+                  
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   {/* Favourite button */}
                   <button
@@ -249,31 +281,28 @@ const Photo = () => {
                       toggleFavourite(photo.id);
                     }}
                     className={cn(
-                      "absolute top-2.5 right-2.5 p-2 rounded-full",
-                      "glass border-0 transition-all duration-300",
-                      "hover:scale-110 active:scale-95",
+                      "absolute top-2 right-2 p-2 rounded-full btn-press",
+                      "backdrop-blur-sm border-0 transition-all duration-300",
+                      "hover:scale-110",
                       favourites.has(photo.id) 
                         ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
-                        : "bg-background/80 text-muted-foreground hover:bg-background"
+                        : "bg-background/70 text-muted-foreground hover:bg-background/90"
                     )}
                   >
                     <Heart
                       className={cn(
-                        "h-4 w-4 transition-all duration-300",
+                        "h-3.5 w-3.5 transition-all duration-300 icon-bounce",
                         favourites.has(photo.id) && "fill-current text-white"
                       )}
                     />
                   </button>
-                  
-                  {/* Gradient overlay */}
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
                 </div>
                 
-                <CardContent className="p-3 space-y-1">
-                  <span className="badge-modern text-[10px]">
+                <CardContent className="p-2.5 space-y-1">
+                  <span className="inline-block px-2 py-0.5 text-[10px] font-medium rounded-full bg-primary/10 text-primary">
                     {photo.category || "General"}
                   </span>
-                  <h3 className="font-semibold text-sm truncate">{photo.client_name}</h3>
+                  <h3 className="font-medium text-xs truncate group-hover:text-primary transition-colors">{photo.client_name}</h3>
                 </CardContent>
               </Card>
             ))}

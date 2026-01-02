@@ -12,6 +12,7 @@ import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
+import { SkeletonGrid } from "@/components/ui/skeleton-card";
 
 interface PhysicalCategory {
   id: string;
@@ -101,12 +102,37 @@ const PhysicalProducts = () => {
   if (loading) {
     return (
       <MobileLayout>
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
-            <p className="text-muted-foreground">Loading products...</p>
+        {/* Header Skeleton */}
+        <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="w-9 h-9 rounded-full bg-primary-foreground/20 animate-shimmer" />
+            <div className="flex-1 space-y-2">
+              <div className="h-6 w-40 bg-primary-foreground/20 rounded animate-shimmer" />
+              <div className="h-4 w-24 bg-primary-foreground/20 rounded animate-shimmer" />
+            </div>
+            <div className="w-9 h-9 rounded-full bg-primary-foreground/20 animate-shimmer" />
+          </div>
+        </header>
+
+        {/* Category Filter Skeleton */}
+        <div className="bg-card border-b sticky top-[72px] z-30">
+          <div className="flex p-3 gap-2 overflow-hidden">
+            {[...Array(4)].map((_, i) => (
+              <div 
+                key={i}
+                className="h-8 px-8 bg-muted rounded-full animate-shimmer flex-shrink-0"
+                style={{ animationDelay: `${i * 50}ms` }}
+              />
+            ))}
           </div>
         </div>
+
+        {/* Products Grid Skeleton */}
+        <div className="p-4">
+          <SkeletonGrid count={6} columns={2} variant="product" />
+        </div>
+
+        <BottomNav />
       </MobileLayout>
     );
   }
