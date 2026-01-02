@@ -27,6 +27,7 @@ import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
+import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
 
 interface Photo {
   id: number;
@@ -394,7 +395,11 @@ const Home = () => {
             </Button>
           </div>
           
-          {physicalProducts.length > 0 ? (
+          {loading ? (
+            <div className="px-6">
+              <SkeletonHorizontalList count={4} />
+            </div>
+          ) : physicalProducts.length > 0 ? (
             <div className="flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide">
               {physicalProducts.map((product, index) => (
                 <Card 
@@ -407,6 +412,7 @@ const Home = () => {
                     <img 
                       src={product.image_url} 
                       alt={product.name}
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -419,7 +425,7 @@ const Home = () => {
               ))}
               {/* View All Card */}
               <Card 
-                className="flex-shrink-0 w-40 overflow-hidden border-dashed cursor-pointer hover:border-primary/50 transition-all rounded-2xl"
+                className="flex-shrink-0 w-40 overflow-hidden border-dashed cursor-pointer hover:border-primary/50 transition-all rounded-2xl hover-lift"
                 onClick={() => navigate("/physical-products")}
               >
                 <div className="aspect-[3/4] flex flex-col items-center justify-center text-muted-foreground">
@@ -455,7 +461,13 @@ const Home = () => {
             </Button>
           </div>
           
-          {photos.length > 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-3 gap-3 px-6">
+              {[...Array(6)].map((_, i) => (
+                <SkeletonCard key={i} variant="photo" style={{ animationDelay: `${i * 50}ms` }} />
+              ))}
+            </div>
+          ) : photos.length > 0 ? (
             <div className="grid grid-cols-3 gap-3 px-6">
               {photos.map((photo, index) => (
                 <Card 
@@ -470,7 +482,8 @@ const Home = () => {
                       <img
                         src={photo.preview_image} 
                         alt={photo.client_name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
