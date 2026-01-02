@@ -399,19 +399,20 @@ const Home = () => {
               {physicalProducts.map((product, index) => (
                 <Card 
                   key={product.id}
-                  className="flex-shrink-0 w-40 overflow-hidden border-border/50 hover:border-primary/30 hover:shadow-lg transition-all animate-scale-in cursor-pointer rounded-2xl"
+                  className="flex-shrink-0 w-40 overflow-hidden border-border/50 hover:border-primary/30 transition-all animate-scale-in cursor-pointer rounded-2xl hover-lift card-shine group"
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
-                  <div className="aspect-square bg-muted overflow-hidden rounded-t-2xl">
+                  <div className="aspect-square bg-muted overflow-hidden rounded-t-2xl relative">
                     <img 
                       src={product.image_url} 
                       alt={product.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <CardContent className="p-3 space-y-1">
-                    <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
+                    <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">{product.name}</h3>
                     <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} Ks</p>
                   </CardContent>
                 </Card>
@@ -459,13 +460,14 @@ const Home = () => {
               {photos.map((photo, index) => (
                 <Card 
                   key={photo.id}
-                  className="overflow-hidden border-border/50 hover:border-primary/30 hover:shadow-lg transition-all animate-scale-in cursor-pointer rounded-2xl group"
+                  className="overflow-hidden border-border/50 hover:border-primary/30 transition-all animate-scale-in cursor-pointer rounded-2xl hover-lift card-shine group"
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => navigate("/photo")}
                 >
                   <div className="aspect-square bg-muted overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
                     {photo.preview_image ? (
-                      <img 
+                      <img
                         src={photo.preview_image} 
                         alt={photo.client_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

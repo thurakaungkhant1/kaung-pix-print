@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle, Mail, Eye, EyeOff, ShoppingCart, Camera } from "lucide-react";
+import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle, Mail, Eye, EyeOff, ShoppingCart, Camera, ArrowRight } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
+import { cn } from "@/lib/utils";
 
 const Signup = () => {
   const [searchParams] = useSearchParams();
@@ -230,25 +231,54 @@ const Signup = () => {
   const passwordStrength = getPasswordStrength();
 
   return (
-    <MobileLayout className="flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-primary/5 p-4">
-      {/* Background decoration */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+    <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden min-h-screen">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-background to-primary/20 animate-gradient-shift" />
+      
+      {/* Floating orbs */}
+      <div className="absolute top-1/3 -left-20 w-64 h-64 bg-accent/20 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-1/3 -right-20 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-float-delayed" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+      
+      {/* Sparkle decorations */}
+      <div className="absolute top-16 left-10 text-accent/40">
+        <Sparkles className="h-6 w-6 animate-pulse" />
+      </div>
+      <div className="absolute bottom-24 right-8 text-primary/40">
+        <Sparkles className="h-4 w-4 animate-pulse" style={{ animationDelay: '0.5s' }} />
       </div>
 
-      <Card className="w-full max-w-md relative shadow-2xl border-primary/10 animate-fade-in">
-        <CardHeader className="space-y-1 text-center pb-2">
-          <div className="mx-auto mb-2 p-3 rounded-2xl bg-gradient-primary shadow-lg">
-            <ShoppingCart className="h-8 w-8 text-primary-foreground" />
+      <Card className={cn(
+        "w-full max-w-md relative z-10 my-8",
+        "border-border/30 shadow-2xl backdrop-blur-sm bg-card/95",
+        "animate-fade-in hover-lift"
+      )}>
+        {/* Card shine effect */}
+        <div className="card-shine" />
+        
+        <CardHeader className="space-y-3 text-center pb-2">
+          {/* Logo with glow */}
+          <div className="flex justify-center">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-accent/40 to-primary/40 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity animate-pulse-soft" />
+              <div className="relative p-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-xl transition-transform group-hover:scale-105">
+                <ShoppingCart className="h-10 w-10 text-primary-foreground" />
+              </div>
+            </div>
           </div>
-          <CardTitle className="text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Kaung Computer
-          </CardTitle>
-          <CardDescription className="text-base">
-            Create your account and start earning points!
-          </CardDescription>
+          
+          <div className="space-y-1">
+            <CardTitle className="text-3xl font-display font-bold">
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+                Kaung Computer
+              </span>
+            </CardTitle>
+            <CardDescription className="text-base">
+              Create your account and start earning points!
+            </CardDescription>
+          </div>
         </CardHeader>
+        
         <form onSubmit={handleSignup}>
           <CardContent className="space-y-4">
             {/* Avatar Upload Section */}
@@ -258,13 +288,14 @@ const Signup = () => {
                 className="relative cursor-pointer group"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Avatar className="h-24 w-24 border-4 border-primary/20 group-hover:border-primary/40 transition-colors">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-accent/30 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Avatar className="h-24 w-24 border-4 border-primary/20 group-hover:border-primary/50 transition-all shadow-lg">
                   <AvatarImage src={avatarPreview || undefined} alt="Avatar preview" />
-                  <AvatarFallback className="bg-muted">
+                  <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50">
                     <User className="h-10 w-10 text-muted-foreground" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
                   {uploadingAvatar ? (
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   ) : (
@@ -280,13 +311,13 @@ const Signup = () => {
                 />
               </div>
               {avatarFile && (
-                <p className="text-xs text-primary">{avatarFile.name}</p>
+                <p className="text-xs text-primary font-medium">{avatarFile.name}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium">
+                <User className="h-4 w-4 text-primary" />
                 Name
               </Label>
               <Input 
@@ -296,13 +327,13 @@ const Signup = () => {
                 value={name} 
                 onChange={e => setName(e.target.value)} 
                 required 
-                className="h-12" 
+                className="h-12 border-border/50 focus:border-primary/50 transition-all bg-background/50 backdrop-blur-sm" 
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
+                <Mail className="h-4 w-4 text-primary" />
                 Email Address
               </Label>
               <Input 
@@ -312,13 +343,13 @@ const Signup = () => {
                 value={email} 
                 onChange={e => setEmail(e.target.value)} 
                 required 
-                className="h-12" 
+                className="h-12 border-border/50 focus:border-primary/50 transition-all bg-background/50 backdrop-blur-sm" 
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
+                <Phone className="h-4 w-4 text-primary" />
                 Phone Number
               </Label>
               <Input 
@@ -328,13 +359,13 @@ const Signup = () => {
                 value={phoneNumber} 
                 onChange={e => setPhoneNumber(e.target.value)} 
                 required 
-                className="h-12" 
+                className="h-12 border-border/50 focus:border-primary/50 transition-all bg-background/50 backdrop-blur-sm" 
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="password" className="flex items-center gap-2 text-sm font-medium">
+                <Lock className="h-4 w-4 text-primary" />
                 Password
               </Label>
               <div className="relative">
@@ -344,45 +375,58 @@ const Signup = () => {
                   value={password} 
                   onChange={e => setPassword(e.target.value)} 
                   required 
-                  className="h-12 pr-10" 
+                  className="h-12 pr-12 border-border/50 focus:border-primary/50 transition-all bg-background/50 backdrop-blur-sm" 
                 />
                 <button 
                   type="button" 
                   onClick={() => setShowPassword(!showPassword)} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {password && (
-                <div className="space-y-2">
+                <div className="space-y-2 animate-fade-in">
                   <div className="flex gap-1">
                     {[1, 2, 3, 4].map(level => (
                       <div 
                         key={level} 
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${
+                        className={cn(
+                          "h-1.5 flex-1 rounded-full transition-all duration-300",
                           passwordStrength >= level 
                             ? level <= 2 ? "bg-destructive" : level === 3 ? "bg-yellow-500" : "bg-primary" 
                             : "bg-muted"
-                        }`} 
+                        )} 
                       />
                     ))}
                   </div>
                   <div className="grid grid-cols-2 gap-1 text-xs">
-                    <span className={`flex items-center gap-1 ${password.length >= 8 ? "text-primary" : "text-muted-foreground"}`}>
-                      <CheckCircle className={`h-3 w-3 ${password.length >= 8 ? "opacity-100" : "opacity-30"}`} />
+                    <span className={cn(
+                      "flex items-center gap-1 transition-colors",
+                      password.length >= 8 ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      <CheckCircle className={cn("h-3 w-3", password.length >= 8 ? "opacity-100" : "opacity-30")} />
                       8+ characters
                     </span>
-                    <span className={`flex items-center gap-1 ${/[A-Z]/.test(password) ? "text-primary" : "text-muted-foreground"}`}>
-                      <CheckCircle className={`h-3 w-3 ${/[A-Z]/.test(password) ? "opacity-100" : "opacity-30"}`} />
+                    <span className={cn(
+                      "flex items-center gap-1 transition-colors",
+                      /[A-Z]/.test(password) ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      <CheckCircle className={cn("h-3 w-3", /[A-Z]/.test(password) ? "opacity-100" : "opacity-30")} />
                       1 capital
                     </span>
-                    <span className={`flex items-center gap-1 ${/[0-9]/.test(password) ? "text-primary" : "text-muted-foreground"}`}>
-                      <CheckCircle className={`h-3 w-3 ${/[0-9]/.test(password) ? "opacity-100" : "opacity-30"}`} />
+                    <span className={cn(
+                      "flex items-center gap-1 transition-colors",
+                      /[0-9]/.test(password) ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      <CheckCircle className={cn("h-3 w-3", /[0-9]/.test(password) ? "opacity-100" : "opacity-30")} />
                       1 number
                     </span>
-                    <span className={`flex items-center gap-1 ${/[!@#$%^&*(),.?":{}|<>]/.test(password) ? "text-primary" : "text-muted-foreground"}`}>
-                      <CheckCircle className={`h-3 w-3 ${/[!@#$%^&*(),.?":{}|<>]/.test(password) ? "opacity-100" : "opacity-30"}`} />
+                    <span className={cn(
+                      "flex items-center gap-1 transition-colors",
+                      /[!@#$%^&*(),.?":{}|<>]/.test(password) ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      <CheckCircle className={cn("h-3 w-3", /[!@#$%^&*(),.?":{}|<>]/.test(password) ? "opacity-100" : "opacity-30")} />
                       1 symbol
                     </span>
                   </div>
@@ -391,8 +435,8 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="flex items-center gap-2">
-                <Lock className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="confirmPassword" className="flex items-center gap-2 text-sm font-medium">
+                <Lock className="h-4 w-4 text-primary" />
                 Confirm Password
               </Label>
               <div className="relative">
@@ -402,24 +446,24 @@ const Signup = () => {
                   value={confirmPassword} 
                   onChange={e => setConfirmPassword(e.target.value)} 
                   required 
-                  className="h-12 pr-10" 
+                  className="h-12 pr-12 border-border/50 focus:border-primary/50 transition-all bg-background/50 backdrop-blur-sm" 
                 />
                 <button 
                   type="button" 
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-destructive">Passwords don't match</p>
+                <p className="text-xs text-destructive animate-fade-in">Passwords don't match</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="referralCode" className="flex items-center gap-2">
-                <Gift className="h-4 w-4 text-primary" />
+              <Label htmlFor="referralCode" className="flex items-center gap-2 text-sm font-medium">
+                <Gift className="h-4 w-4 text-accent" />
                 Referral Code (Optional)
               </Label>
               <Input 
@@ -428,9 +472,9 @@ const Signup = () => {
                 placeholder="Enter referral code" 
                 value={referralCode} 
                 onChange={e => setReferralCode(e.target.value.toUpperCase())} 
-                className="h-12 border-dashed" 
+                className="h-12 border-dashed border-accent/50 focus:border-accent transition-all bg-background/50 backdrop-blur-sm" 
               />
-              <p className="text-xs text-primary flex items-center gap-1">
+              <p className="text-xs text-accent flex items-center gap-1">
                 <Sparkles className="h-3 w-3" />
                 Have a referral code? Get 5 bonus points!
               </p>
@@ -440,7 +484,7 @@ const Signup = () => {
           <CardFooter className="flex flex-col space-y-4">
             <Button 
               type="submit" 
-              className="w-full h-12 text-base shadow-lg hover:shadow-xl transition-all" 
+              className="w-full h-12 text-base font-semibold group btn-press bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all" 
               disabled={loading || uploadingAvatar}
             >
               {loading ? (
@@ -449,23 +493,31 @@ const Signup = () => {
                   {uploadingAvatar ? "Uploading photo..." : "Creating account..."}
                 </>
               ) : (
-                "Create Account"
+                <>
+                  Create Account
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </>
               )}
             </Button>
 
+            <div className="relative w-full">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/50" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or</span>
+              </div>
+            </div>
 
             <p className="text-sm text-muted-foreground text-center">
               Already have an account?{" "}
               <button 
                 type="button" 
                 onClick={() => navigate("/auth/login")} 
-                className="text-primary font-semibold hover:underline"
+                className="text-primary font-semibold hover:text-primary/80 hover:underline underline-offset-4 transition-all"
               >
                 Login
               </button>
-            </p>
-            <p className="text-xs text-muted-foreground/60 text-center mt-4">
-              created by Thura Kaung Khant
             </p>
           </CardFooter>
         </form>
