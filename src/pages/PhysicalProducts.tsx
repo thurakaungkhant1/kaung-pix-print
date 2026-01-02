@@ -181,8 +181,8 @@ const PhysicalProducts = () => {
               <Card 
                 key={product.id}
                 className={cn(
-                  "overflow-hidden border-border/50 hover:border-primary/30",
-                  "transition-all animate-scale-in cursor-pointer",
+                  "overflow-hidden border-border/50 hover:border-primary/30 rounded-xl",
+                  "transition-all animate-scale-in cursor-pointer hover-lift card-shine group",
                   product.status === "out_of_stock" && "opacity-60"
                 )}
                 style={{ animationDelay: `${index * 30}ms` }}
@@ -192,24 +192,25 @@ const PhysicalProducts = () => {
                   <img 
                     src={product.image_url} 
                     alt={product.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   {product.original_price && product.original_price > product.price && (
                     <Badge 
                       variant="destructive" 
-                      className="absolute top-2 right-2 text-xs"
+                      className="absolute top-2 right-2 text-xs shadow-lg"
                     >
                       -{getDiscountPercent(product.original_price, product.price)}%
                     </Badge>
                   )}
                   {product.status === "out_of_stock" && (
-                    <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
                       <Badge variant="secondary">Out of Stock</Badge>
                     </div>
                   )}
                 </div>
                 <CardContent className="p-3 space-y-2">
-                  <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
+                  <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">{product.name}</h3>
                   <div className="flex items-baseline gap-2">
                     <p className="text-primary font-bold">
                       {product.price.toLocaleString()} Ks
@@ -222,7 +223,7 @@ const PhysicalProducts = () => {
                   </div>
                   <Button 
                     size="sm" 
-                    className="w-full gap-1" 
+                    className="w-full gap-1 btn-press" 
                     variant="outline"
                     disabled={isAdding === product.id || product.status === "out_of_stock"}
                     onClick={(e) => {
@@ -233,7 +234,7 @@ const PhysicalProducts = () => {
                     {isAdding === product.id ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      <ShoppingCart className="h-3 w-3" />
+                      <ShoppingCart className="h-3 w-3 icon-bounce" />
                     )}
                     {product.status === "out_of_stock" ? "Out of Stock" : "Add to Cart"}
                   </Button>
