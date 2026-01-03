@@ -588,35 +588,51 @@ const GamePage = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {orders.map((order) => (
-                  <Card key={order.id} className="overflow-hidden">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4">
-                        <img
-                          src={order.products.image_url}
-                          alt={order.products.name}
-                          className="h-20 w-20 rounded-lg object-cover flex-shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start gap-2 mb-2">
-                            <h3 className="font-semibold text-sm truncate">{order.products.name}</h3>
-                            {getStatusBadge(order.status)}
-                          </div>
-                          <div className="text-xs text-muted-foreground space-y-0.5">
-                            {order.game_id && (
-                              <p>ID: {order.game_id}{order.server_id ? ` (${order.server_id})` : ''}</p>
-                            )}
-                            {order.phone_number && (
-                              <p>Phone: {order.phone_number}</p>
-                            )}
-                            <p className="font-medium text-foreground">{order.price.toLocaleString()} Ks</p>
-                            <p>{new Date(order.created_at).toLocaleDateString()}</p>
+                {orders.map((order) => {
+                  const isMLBB = order.products.category === "MLBB Diamonds";
+                  const isGame = GAME_CATEGORIES.some(cat => cat.id === order.products.category);
+                  const isMobile = MOBILE_CATEGORIES.some(cat => cat.id === order.products.category);
+                  
+                  return (
+                    <Card key={order.id} className="overflow-hidden">
+                      <CardContent className="p-4">
+                        <div className="flex gap-4">
+                          <img
+                            src={order.products.image_url}
+                            alt={order.products.name}
+                            className="h-20 w-20 rounded-lg object-cover flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start gap-2 mb-2">
+                              <h3 className="font-semibold text-sm truncate">{order.products.name}</h3>
+                              {getStatusBadge(order.status)}
+                            </div>
+                            <div className="text-xs text-muted-foreground space-y-1">
+                              {isGame && order.game_id && (
+                                <div className="flex items-center gap-1.5">
+                                  <Gamepad2 className="h-3 w-3 text-primary" />
+                                  {isMLBB ? (
+                                    <span>ID: {order.game_id} • Server: {order.server_id}</span>
+                                  ) : (
+                                    <span>Player ID: {order.game_id}</span>
+                                  )}
+                                </div>
+                              )}
+                              {isMobile && order.phone_number && (
+                                <div className="flex items-center gap-1.5">
+                                  <Smartphone className="h-3 w-3 text-primary" />
+                                  <span>Phone: {order.phone_number}</span>
+                                </div>
+                              )}
+                              <p className="font-medium text-foreground">{order.price.toLocaleString()} Ks</p>
+                              <p>{new Date(order.created_at).toLocaleDateString()}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
