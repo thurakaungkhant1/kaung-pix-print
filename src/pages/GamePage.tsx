@@ -176,6 +176,11 @@ const GamePage = () => {
     return MOBILE_CATEGORIES.some(cat => cat.id === category);
   };
 
+  // Only MLBB requires Server ID
+  const requiresServerId = (category: string) => {
+    return category === "MLBB Diamonds";
+  };
+
   const getFilteredProducts = () => {
     if (activeCategory === "games") {
       if (selectedGameCategory) {
@@ -209,10 +214,20 @@ const GamePage = () => {
 
     // Validate based on product type
     if (isGameProduct(selectedProduct.category)) {
-      if (!gameId || !serverId) {
+      // All games require Player ID
+      if (!gameId) {
         toast({
           title: "Error",
-          description: "Please enter your Player ID and Server ID",
+          description: "Please enter your Player ID",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Only MLBB requires Server ID
+      if (requiresServerId(selectedProduct.category) && !serverId) {
+        toast({
+          title: "Error",
+          description: "Please enter your Server ID",
           variant: "destructive",
         });
         return;
@@ -258,7 +273,7 @@ const GamePage = () => {
         quantity: 1,
         price: selectedProduct.price,
         game_id: isGameProduct(selectedProduct.category) ? gameId : null,
-        server_id: isGameProduct(selectedProduct.category) ? serverId : null,
+        server_id: requiresServerId(selectedProduct.category) ? serverId : null,
         game_name: selectedProduct.category,
         phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : "",
         status: "pending",
@@ -589,7 +604,7 @@ const GamePage = () => {
                           </div>
                           <div className="text-xs text-muted-foreground space-y-0.5">
                             {order.game_id && (
-                              <p>ID: {order.game_id} ({order.server_id})</p>
+                              <p>ID: {order.game_id}{order.server_id ? ` (${order.server_id})` : ''}</p>
                             )}
                             {order.phone_number && (
                               <p>Phone: {order.phone_number}</p>
@@ -625,7 +640,7 @@ const GamePage = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             {selectedProduct && isGameProduct(selectedProduct.category) ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="gameId">Player ID *</Label>
                   <Input
@@ -635,15 +650,17 @@ const GamePage = () => {
                     onChange={(e) => setGameId(e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="serverId">Server ID *</Label>
-                  <Input
-                    id="serverId"
-                    placeholder="1234"
-                    value={serverId}
-                    onChange={(e) => setServerId(e.target.value)}
-                  />
-                </div>
+                {requiresServerId(selectedProduct.category) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="serverId">Server ID *</Label>
+                    <Input
+                      id="serverId"
+                      placeholder="1234"
+                      value={serverId}
+                      onChange={(e) => setServerId(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-2">
