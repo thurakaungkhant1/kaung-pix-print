@@ -6,7 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, CheckSquare, Square, Check, XCircle, Search, Filter, Calendar, Copy } from "lucide-react";
+import { 
+  ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, 
+  CheckSquare, Square, Check, XCircle, Search, Filter, Calendar, Copy,
+  Gamepad2, Smartphone, Clock, CheckCircle2, Ban, Hourglass
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -47,9 +51,16 @@ interface Order {
   payment_method: string;
   payment_proof_url: string | null;
   transaction_id: string | null;
+  game_id: string | null;
+  server_id: string | null;
+  game_name: string | null;
   profiles: { name: string; phone_number: string };
-  products: { name: string; image_url: string; points_value: number };
+  products: { name: string; image_url: string; points_value: number; category: string };
 }
+
+// Game categories that require game IDs
+const GAME_CATEGORIES = ["MLBB Diamonds", "PUBG UC", "Free Fire", "Genshin", "Gift Cards"];
+const MOBILE_CATEGORIES = ["Phone Top-up", "Data Plans"];
 
 // Track loading and preview states per order
 type LoadingState = { [orderId: string]: boolean };
@@ -293,7 +304,7 @@ const OrdersManage = () => {
       .select(`
         *,
         profiles:user_id(name, phone_number),
-        products:product_id(name, image_url, points_value)
+        products:product_id(name, image_url, points_value, category)
       `)
       .order("created_at", { ascending: false });
 
@@ -323,18 +334,42 @@ const OrdersManage = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "finished":
-        return "bg-green-500";
+        return (
+          <Badge className="bg-green-500/15 text-green-600 border-green-500/30 gap-1">
+            <CheckCircle2 className="h-3 w-3" />
+            Finished
+          </Badge>
+        );
       case "approved":
-        return "bg-blue-500";
+        return (
+          <Badge className="bg-blue-500/15 text-blue-600 border-blue-500/30 gap-1">
+            <Check className="h-3 w-3" />
+            Approved
+          </Badge>
+        );
       case "cancelled":
-        return "bg-red-500";
+        return (
+          <Badge className="bg-red-500/15 text-red-600 border-red-500/30 gap-1">
+            <Ban className="h-3 w-3" />
+            Cancelled
+          </Badge>
+        );
       default:
-        return "bg-yellow-500";
+        return (
+          <Badge className="bg-yellow-500/15 text-yellow-600 border-yellow-500/30 gap-1">
+            <Hourglass className="h-3 w-3" />
+            Pending
+          </Badge>
+        );
     }
   };
+
+  const isGameOrder = (category: string) => GAME_CATEGORIES.includes(category);
+  const isMobileOrder = (category: string) => MOBILE_CATEGORIES.includes(category);
+  const isMLBB = (category: string) => category === "MLBB Diamonds";
 
   const pendingCount = filteredOrders.filter(o => o.status === "pending").length;
 
@@ -583,8 +618,43 @@ const OrdersManage = () => {
                     </p>
                   </div>
                   
-                  <div className="space-y-1 text-sm">
-                    <p><strong>Phone:</strong> {order.phone_number}</p>
+                  <div className="space-y-1.5 text-sm">
+                    {/* Game/Mobile ID Info */}
+                    {isGameOrder(order.products.category) && order.game_id && (
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20">
+                        <Gamepad2 className="h-4 w-4 text-primary shrink-0" />
+                        <div className="text-sm">
+                          {isMLBB(order.products.category) ? (
+                            <span>
+                              <span className="text-muted-foreground">ID:</span> <span className="font-medium">{order.game_id}</span>
+                              <span className="mx-1.5 text-muted-foreground">•</span>
+                              <span className="text-muted-foreground">Server:</span> <span className="font-medium">{order.server_id}</span>
+                            </span>
+                          ) : (
+                            <span>
+                              <span className="text-muted-foreground">Player ID:</span> <span className="font-medium">{order.game_id}</span>
+                            </span>
+                          )}
+                        </div>
+                        <Badge variant="outline" className="ml-auto text-xs shrink-0">
+                          {order.game_name || order.products.category}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {isMobileOrder(order.products.category) && order.phone_number && (
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                        <Smartphone className="h-4 w-4 text-blue-500 shrink-0" />
+                        <span>
+                          <span className="text-muted-foreground">Phone:</span> <span className="font-medium">{order.phone_number}</span>
+                        </span>
+                        <Badge variant="outline" className="ml-auto text-xs shrink-0 border-blue-500/30 text-blue-600">
+                          {order.products.category}
+                        </Badge>
+                      </div>
+                    )}
+
+                    <p><strong>Customer Phone:</strong> {order.profiles.phone_number || order.phone_number}</p>
                     <p><strong>Address:</strong> {order.delivery_address}</p>
                     <p><strong>Payment:</strong> {order.payment_method.toUpperCase()}</p>
                     {order.transaction_id && (
@@ -710,9 +780,7 @@ const OrdersManage = () => {
                     <span className="text-green-600">
                       {order.products.points_value * order.quantity} pts
                     </span>
-                    <Badge className={getStatusColor(order.status)}>
-                      {order.status}
-                    </Badge>
+                    {getStatusBadge(order.status)}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {new Date(order.created_at).toLocaleString()}
