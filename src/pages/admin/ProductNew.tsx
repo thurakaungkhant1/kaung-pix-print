@@ -8,9 +8,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Crown, Package } from "lucide-react";
+import { ArrowLeft, Crown, Package, Gamepad2, Smartphone, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
+
+// Predefined categories
+const GAME_CATEGORIES = [
+  { id: "MLBB Diamonds", name: "Mobile Legends Diamonds", icon: "diamond" },
+  { id: "PUBG UC", name: "PUBG UC", icon: "game" },
+  { id: "Free Fire", name: "Free Fire Diamonds", icon: "game" },
+  { id: "Genshin", name: "Genshin Impact", icon: "game" },
+  { id: "Gift Cards", name: "Gift Cards", icon: "gift" },
+];
+
+const MOBILE_CATEGORIES = [
+  { id: "Phone Top-up", name: "Phone Top-up", icon: "phone" },
+  { id: "Data Plans", name: "Data Plans", icon: "wifi" },
+];
+
+const ALL_CATEGORIES = [...GAME_CATEGORIES, ...MOBILE_CATEGORIES];
 
 interface PhysicalCategory {
   id: string;
@@ -214,15 +230,44 @@ const ProductNew = () => {
 
                 <div>
                   <Label htmlFor="category">Category Type *</Label>
-                  <Input
-                    id="category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    placeholder="e.g., General, diamond, MLBB Diamonds"
-                    required
-                  />
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="General">
+                        <span className="flex items-center gap-2">
+                          <Package className="h-4 w-4" /> General
+                        </span>
+                      </SelectItem>
+                      
+                      {/* Game Categories */}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                        Game Items
+                      </div>
+                      {GAME_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          <span className="flex items-center gap-2">
+                            <Gamepad2 className="h-4 w-4 text-primary" /> {cat.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                      
+                      {/* Mobile Categories */}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                        Mobile Services
+                      </div>
+                      {MOBILE_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          <span className="flex items-center gap-2">
+                            <Smartphone className="h-4 w-4 text-green-500" /> {cat.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Use "diamond", "game", "MLBB Diamonds", etc. for game items
+                    Select a category for Game/Mobile items, or use General for physical products
                   </p>
                 </div>
 
