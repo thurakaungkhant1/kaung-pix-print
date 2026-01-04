@@ -26,7 +26,9 @@ interface Product {
 }
 
 // Category type definitions
-const DIGITAL_CATEGORIES = ['Mobile Legends', 'PUBG UC', 'Free Fire', 'Genshin Impact', 'Gift Cards', 'Phone Top-up', 'Data Plans'];
+const GAME_CATEGORIES = ['MLBB Diamonds', 'PUBG UC', 'Free Fire', 'Genshin', 'Gift Cards'];
+const MOBILE_CATEGORIES = ['Phone Top-up', 'Data Plans'];
+const DIGITAL_CATEGORIES = [...GAME_CATEGORIES, ...MOBILE_CATEGORIES];
 const PHYSICAL_CATEGORIES = ['Electronics', 'Accessories', 'General'];
 
 const ProductsManage = () => {
@@ -35,7 +37,7 @@ const ProductsManage = () => {
   const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "physical">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "physical" | "mobile">("all");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -58,10 +60,12 @@ const ProductsManage = () => {
       // Category filter
       const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
       
-      // Type filter (digital vs physical)
+      // Type filter (digital vs physical vs mobile)
       let matchesType = true;
       if (typeFilter === "digital") {
-        matchesType = DIGITAL_CATEGORIES.includes(product.category);
+        matchesType = GAME_CATEGORIES.includes(product.category);
+      } else if (typeFilter === "mobile") {
+        matchesType = MOBILE_CATEGORIES.includes(product.category);
       } else if (typeFilter === "physical") {
         matchesType = !DIGITAL_CATEGORIES.includes(product.category);
       }
@@ -199,7 +203,7 @@ const ProductsManage = () => {
             {/* Filters */}
             <div className="flex gap-2">
               {/* Type Filter */}
-              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "digital" | "physical")}>
+              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "digital" | "physical" | "mobile")}>
                 <SelectTrigger className="flex-1">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Type" />
@@ -208,7 +212,12 @@ const ProductsManage = () => {
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="digital">
                     <span className="flex items-center gap-2">
-                      <Gamepad2 className="h-4 w-4" /> Digital Items
+                      <Gamepad2 className="h-4 w-4" /> Game Items
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="mobile">
+                    <span className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4" /> Mobile Services
                     </span>
                   </SelectItem>
                   <SelectItem value="physical">
