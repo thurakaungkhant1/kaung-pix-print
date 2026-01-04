@@ -26,7 +26,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import WalletDisplay from "@/components/WalletDisplay";
 import TopUpDialog from "@/components/TopUpDialog";
-import { useTheme } from "@/components/ThemeProvider";
+
 
 import {
   Dialog,
@@ -107,23 +107,8 @@ const GamePage = () => {
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { theme, toggleTheme } = useTheme();
+  
 
-  // Force dark theme on this page
-  useEffect(() => {
-    const root = window.document.documentElement;
-    const wasLight = theme === "light";
-    
-    // Force dark mode
-    root.classList.remove("light");
-    root.classList.add("dark");
-    
-    // Restore original theme on unmount
-    return () => {
-      root.classList.remove("light", "dark");
-      root.classList.add(wasLight ? "light" : "dark");
-    };
-  }, []);
 
   useEffect(() => {
     loadProducts();
@@ -243,8 +228,8 @@ const GamePage = () => {
         return;
       }
     } else if (isMobileProduct(selectedProduct.category)) {
-      // Phone Top-up requires operator selection
-      if (selectedProduct.category === "Phone Top-up" && !selectedOperator) {
+      // Phone Top-up and Data Plans require operator selection
+      if (!selectedOperator) {
         toast({
           title: "Error",
           description: "Please select your mobile operator",
@@ -293,7 +278,7 @@ const GamePage = () => {
         price: selectedProduct.price,
         game_id: isGameProduct(selectedProduct.category) ? gameId : null,
         server_id: requiresServerId(selectedProduct.category) ? serverId : null,
-        game_name: isMobileProduct(selectedProduct.category) && selectedProduct.category === "Phone Top-up" 
+        game_name: isMobileProduct(selectedProduct.category) 
           ? `${selectedProduct.category} (${selectedOperator})`
           : selectedProduct.category,
         phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : "",
@@ -642,7 +627,14 @@ const GamePage = () => {
                               {isMobile && order.phone_number && (
                                 <div className="flex items-center gap-1.5">
                                   <Smartphone className="h-3 w-3 text-primary" />
-                                  <span>Phone: {order.phone_number}</span>
+                                  <span>
+                                    Phone: {order.phone_number}
+                                    {order.game_name?.includes("(") && (
+                                      <span className="ml-1 text-primary font-medium">
+                                        • {order.game_name.match(/\(([^)]+)\)/)?.[1]}
+                                      </span>
+                                    )}
+                                  </span>
                                 </div>
                               )}
                               <p className="font-medium text-foreground">{order.price.toLocaleString()} Ks</p>
@@ -701,31 +693,29 @@ const GamePage = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Operator Selection for Phone Top-up */}
-                {selectedProduct?.category === "Phone Top-up" && (
-                  <div className="space-y-2">
-                    <Label>Select Operator *</Label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {MOBILE_OPERATORS.map((op) => (
-                        <button
-                          key={op.id}
-                          type="button"
-                          onClick={() => setSelectedOperator(op.id)}
-                          className={cn(
-                            "p-3 rounded-xl border-2 text-center transition-all duration-200",
-                            "text-xs font-semibold",
-                            selectedOperator === op.id
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border hover:border-primary/50 hover:bg-muted"
-                          )}
-                        >
-                          <div className={cn("w-3 h-3 rounded-full mx-auto mb-1", op.color)} />
-                          {op.name}
-                        </button>
-                      ))}
-                    </div>
+                {/* Operator Selection for Phone Top-up and Data Plans */}
+                <div className="space-y-2">
+                  <Label>Select Operator *</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {MOBILE_OPERATORS.map((op) => (
+                      <button
+                        key={op.id}
+                        type="button"
+                        onClick={() => setSelectedOperator(op.id)}
+                        className={cn(
+                          "p-3 rounded-xl border-2 text-center transition-all duration-200",
+                          "text-xs font-semibold",
+                          selectedOperator === op.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:border-primary/50 hover:bg-muted"
+                        )}
+                      >
+                        <div className={cn("w-3 h-3 rounded-full mx-auto mb-1", op.color)} />
+                        {op.name}
+                      </button>
+                    ))}
                   </div>
-                )}
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="phoneNumber">Phone Number *</Label>
                   <Input
