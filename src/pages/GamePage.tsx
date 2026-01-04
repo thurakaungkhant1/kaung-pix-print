@@ -82,6 +82,14 @@ const MOBILE_CATEGORIES = [
   { id: "Data Plans", name: "Data Plans", icon: Wifi, color: "text-blue-500", image: "/images/services/data-plan.png" },
 ];
 
+// Mobile operators
+const MOBILE_OPERATORS = [
+  { id: "MPT", name: "MPT", color: "bg-yellow-500" },
+  { id: "Ooredoo", name: "Ooredoo", color: "bg-red-500" },
+  { id: "Mytel", name: "Mytel", color: "bg-green-500" },
+  { id: "Atom", name: "Atom", color: "bg-blue-500" },
+];
+
 const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -92,6 +100,7 @@ const GamePage = () => {
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedOperator, setSelectedOperator] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [activeCategory, setActiveCategory] = useState("games");
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(null);
@@ -207,6 +216,7 @@ const GamePage = () => {
     setGameId("");
     setServerId("");
     setPhoneNumber("");
+    setSelectedOperator("");
   };
 
   const handleQuickBuy = async () => {
@@ -233,6 +243,15 @@ const GamePage = () => {
         return;
       }
     } else if (isMobileProduct(selectedProduct.category)) {
+      // Phone Top-up requires operator selection
+      if (selectedProduct.category === "Phone Top-up" && !selectedOperator) {
+        toast({
+          title: "Error",
+          description: "Please select your mobile operator",
+          variant: "destructive",
+        });
+        return;
+      }
       if (!phoneNumber) {
         toast({
           title: "Error",
@@ -274,7 +293,9 @@ const GamePage = () => {
         price: selectedProduct.price,
         game_id: isGameProduct(selectedProduct.category) ? gameId : null,
         server_id: requiresServerId(selectedProduct.category) ? serverId : null,
-        game_name: selectedProduct.category,
+        game_name: isMobileProduct(selectedProduct.category) && selectedProduct.category === "Phone Top-up" 
+          ? `${selectedProduct.category} (${selectedOperator})`
+          : selectedProduct.category,
         phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : "",
         status: "pending",
         payment_method: "wallet",
@@ -679,14 +700,41 @@ const GamePage = () => {
                 )}
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number *</Label>
-                <Input
-                  id="phoneNumber"
-                  placeholder="09xxxxxxxxx"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                />
+              <div className="space-y-4">
+                {/* Operator Selection for Phone Top-up */}
+                {selectedProduct?.category === "Phone Top-up" && (
+                  <div className="space-y-2">
+                    <Label>Select Operator *</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {MOBILE_OPERATORS.map((op) => (
+                        <button
+                          key={op.id}
+                          type="button"
+                          onClick={() => setSelectedOperator(op.id)}
+                          className={cn(
+                            "p-3 rounded-xl border-2 text-center transition-all duration-200",
+                            "text-xs font-semibold",
+                            selectedOperator === op.id
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border hover:border-primary/50 hover:bg-muted"
+                          )}
+                        >
+                          <div className={cn("w-3 h-3 rounded-full mx-auto mb-1", op.color)} />
+                          {op.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">Phone Number *</Label>
+                  <Input
+                    id="phoneNumber"
+                    placeholder="09xxxxxxxxx"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                </div>
               </div>
             )}
             
