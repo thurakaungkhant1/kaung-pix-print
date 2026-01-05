@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Pencil, Trash2, GripVertical, Smartphone, Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Plus, Pencil, Trash2, GripVertical, Smartphone, Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import {
@@ -39,6 +39,7 @@ interface MobileOperator {
 const MobileOperatorsManage = () => {
   const navigate = useNavigate();
   const { isAdmin, isLoading: adminLoading } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [operators, setOperators] = useState<MobileOperator[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +47,9 @@ const MobileOperatorsManage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedOperator, setSelectedOperator] = useState<MobileOperator | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -78,18 +82,80 @@ const MobileOperatorsManage = () => {
     }
   };
 
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Please select an image under 2MB");
+      return;
+    }
+
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadLogo = async (operatorCode: string): Promise<string | null> => {
+    if (!logoFile) return formData.logo_url || null;
+
+    setUploading(true);
+    try {
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${operatorCode}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('operator-logos')
+        .upload(fileName, logoFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('operator-logos')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error: any) {
+      toast.error("Failed to upload logo");
+      console.error(error);
+      return formData.logo_url || null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const clearLogoPreview = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
+      // Upload logo if file selected
+      const logoUrl = await uploadLogo(formData.code.toLowerCase());
+
       if (selectedOperator) {
         const { error } = await supabase
           .from("mobile_operators")
           .update({
             name: formData.name,
             code: formData.code.toLowerCase(),
-            logo_url: formData.logo_url || null,
+            logo_url: logoUrl,
             is_active: formData.is_active,
             display_order: formData.display_order,
             updated_at: new Date().toISOString(),
@@ -104,7 +170,7 @@ const MobileOperatorsManage = () => {
           .insert({
             name: formData.name,
             code: formData.code.toLowerCase(),
-            logo_url: formData.logo_url || null,
+            logo_url: logoUrl,
             is_active: formData.is_active,
             display_order: formData.display_order,
           });
@@ -165,6 +231,8 @@ const MobileOperatorsManage = () => {
       display_order: operators.length,
     });
     setSelectedOperator(null);
+    setLogoFile(null);
+    setLogoPreview(null);
   };
 
   const openEditDialog = (operator: MobileOperator) => {
@@ -176,6 +244,8 @@ const MobileOperatorsManage = () => {
       is_active: operator.is_active,
       display_order: operator.display_order,
     });
+    setLogoFile(null);
+    setLogoPreview(null);
     setDialogOpen(true);
   };
 
@@ -243,13 +313,58 @@ const MobileOperatorsManage = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="logo_url">Logo URL (optional)</Label>
-                  <Input
-                    id="logo_url"
-                    value={formData.logo_url}
-                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                    placeholder="https://..."
+                  <Label>Logo</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoSelect}
                   />
+                  
+                  {logoPreview || formData.logo_url ? (
+                    <div className="relative w-20 h-20 mx-auto">
+                      <img
+                        src={logoPreview || formData.logo_url}
+                        alt="Logo preview"
+                        className="w-full h-full object-contain rounded-xl border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          clearLogoPreview();
+                          setFormData({ ...formData, logo_url: "" });
+                        }}
+                        className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-20 border-dashed"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Upload Logo</span>
+                      </div>
+                    </Button>
+                  )}
+                  
+                  {!logoPreview && !formData.logo_url && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Or click to select image
+                    </Button>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
