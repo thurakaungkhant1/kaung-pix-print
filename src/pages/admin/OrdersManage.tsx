@@ -645,9 +645,15 @@ const OrdersManage = () => {
                     {isMobileOrder(order.products.category) && order.phone_number && (
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/5 border border-blue-500/20">
                         <Smartphone className="h-4 w-4 text-blue-500 shrink-0" />
-                        <span>
+                        <div className="text-sm">
                           <span className="text-muted-foreground">Phone:</span> <span className="font-medium">{order.phone_number}</span>
-                        </span>
+                          {order.game_name && (
+                            <>
+                              <span className="mx-1.5 text-muted-foreground">•</span>
+                              <span className="text-muted-foreground">Operator:</span> <span className="font-medium">{order.game_name}</span>
+                            </>
+                          )}
+                        </div>
                         <Badge variant="outline" className="ml-auto text-xs shrink-0 border-blue-500/30 text-blue-600">
                           {order.products.category}
                         </Badge>
