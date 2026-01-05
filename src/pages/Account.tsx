@@ -895,32 +895,6 @@ const Account = () => {
 
           {/* Preferences Tab */}
           <TabsContent value="preferences" className="mt-4 space-y-4 animate-fade-in">
-            {/* Language Selector */}
-            <Card className="rounded-2xl border-border/50 shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-muted">
-                      <Globe className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Language</p>
-                      <p className="text-sm text-muted-foreground">Select your preferred language</p>
-                    </div>
-                  </div>
-                  <Select value={language} onValueChange={(value: "en" | "my") => setLanguage(value)}>
-                    <SelectTrigger className="w-32 h-10 rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border rounded-xl">
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="my">မြန်မာ</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Theme Toggle */}
             <Card className="rounded-2xl border-border/50 shadow-sm">
               <CardContent className="p-4">
@@ -944,67 +918,6 @@ const Account = () => {
                     checked={theme === "dark"}
                     onCheckedChange={toggleTheme}
                   />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Notification Preferences */}
-            <Card className="rounded-2xl border-border/50 shadow-sm">
-              <CardContent className="p-4 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2.5 rounded-xl bg-muted">
-                    <Bell className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Notifications</p>
-                    <p className="text-sm text-muted-foreground">Manage how you receive notifications</p>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Email Notifications</p>
-                        <p className="text-xs text-muted-foreground">Receive updates via email</p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={emailNotifications}
-                      onCheckedChange={setEmailNotifications}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      <Bell className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Push Notifications</p>
-                        <p className="text-xs text-muted-foreground">Get instant alerts</p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={pushNotifications}
-                      onCheckedChange={handlePushNotificationToggle}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">SMS Notifications</p>
-                        <p className="text-xs text-muted-foreground">Receive text messages</p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={smsNotifications}
-                      onCheckedChange={setSmsNotifications}
-                    />
-                  </div>
                 </div>
               </CardContent>
             </Card>
