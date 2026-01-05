@@ -82,17 +82,17 @@ const MOBILE_CATEGORIES = [
   { id: "Data Plans", name: "Data Plans", icon: Wifi, color: "text-blue-500", image: "/images/services/data-plan.png" },
 ];
 
-// Mobile operators
-const MOBILE_OPERATORS = [
-  { id: "MPT", name: "MPT", color: "bg-yellow-500" },
-  { id: "Ooredoo", name: "Ooredoo", color: "bg-red-500" },
-  { id: "Mytel", name: "Mytel", color: "bg-green-500" },
-  { id: "Atom", name: "Atom", color: "bg-blue-500" },
-];
+interface MobileOperator {
+  id: string;
+  name: string;
+  code: string;
+  logo_url: string | null;
+}
 
 const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [mobileOperators, setMobileOperators] = useState<MobileOperator[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [showTopUpDialog, setShowTopUpDialog] = useState(false);
@@ -112,11 +112,24 @@ const GamePage = () => {
 
   useEffect(() => {
     loadProducts();
+    loadMobileOperators();
     if (user) {
       loadOrders();
       loadWalletBalance();
     }
   }, [user]);
+
+  const loadMobileOperators = async () => {
+    const { data, error } = await supabase
+      .from("mobile_operators")
+      .select("id, name, code, logo_url")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+
+    if (!error && data) {
+      setMobileOperators(data);
+    }
+  };
 
   const loadWalletBalance = async () => {
     if (!user) return;
@@ -697,20 +710,24 @@ const GamePage = () => {
                 <div className="space-y-2">
                   <Label>Select Operator *</Label>
                   <div className="grid grid-cols-4 gap-2">
-                    {MOBILE_OPERATORS.map((op) => (
+                    {mobileOperators.map((op) => (
                       <button
                         key={op.id}
                         type="button"
-                        onClick={() => setSelectedOperator(op.id)}
+                        onClick={() => setSelectedOperator(op.name)}
                         className={cn(
                           "p-3 rounded-xl border-2 text-center transition-all duration-200",
                           "text-xs font-semibold",
-                          selectedOperator === op.id
+                          selectedOperator === op.name
                             ? "border-primary bg-primary/10 text-primary"
                             : "border-border hover:border-primary/50 hover:bg-muted"
                         )}
                       >
-                        <div className={cn("w-3 h-3 rounded-full mx-auto mb-1", op.color)} />
+                        {op.logo_url ? (
+                          <img src={op.logo_url} alt={op.name} className="w-6 h-6 mx-auto mb-1 object-contain" />
+                        ) : (
+                          <Smartphone className="w-4 h-4 mx-auto mb-1 text-primary" />
+                        )}
                         {op.name}
                       </button>
                     ))}
