@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -521,6 +521,16 @@ const GamePage = () => {
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-6">
+            {/* Selected Operator Badge */}
+            {selectedMobileOperator && (
+              <div className="animate-fade-in">
+                <Badge variant="secondary" className="badge-neon gap-2 px-3 py-1.5">
+                  <Smartphone className="h-3.5 w-3.5" />
+                  {selectedMobileOperator} selected
+                </Badge>
+              </div>
+            )}
+
             {/* Mobile Operators */}
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -617,7 +627,10 @@ const GamePage = () => {
                 <p className="text-sm text-muted-foreground/70 mt-1">Coming soon</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div 
+                key={selectedMobileOperator || 'all'} 
+                className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-fade-in"
+              >
                 {filteredProducts.map((product, index) => (
                   <Card
                     key={product.id}
