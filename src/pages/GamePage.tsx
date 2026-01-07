@@ -518,31 +518,72 @@ const GamePage = () => {
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-6">
+            {/* Mobile Operators */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">Select Operator</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {mobileOperators.map((op, index) => (
+                  <Card
+                    key={op.id}
+                    className={cn(
+                      "card-neon overflow-hidden cursor-pointer transition-all duration-300",
+                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
+                      "animate-scale-in"
+                    )}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted/30 ring-2 ring-primary/20 flex items-center justify-center flex-shrink-0">
+                          {op.logo_url ? (
+                            <img 
+                              src={op.logo_url} 
+                              alt={op.name}
+                              className="w-full h-full object-contain p-1"
+                            />
+                          ) : (
+                            <Smartphone className="h-7 w-7 text-primary" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate">{op.name}</h3>
+                          <p className="text-xs text-muted-foreground">{op.code}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
             {/* Mobile Categories */}
-            <div className="grid grid-cols-2 gap-3">
-              {MOBILE_CATEGORIES.map((cat) => (
-                <Card
-                  key={cat.id}
-                  className={cn(
-                    "card-neon p-4 cursor-pointer transition-all duration-300",
-                    "hover:shadow-glow"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted/50 ring-2 ring-primary/20">
-                      <img 
-                        src={cat.image} 
-                        alt={cat.name}
-                        className="w-full h-full object-cover"
-                      />
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">Services</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {MOBILE_CATEGORIES.map((cat) => (
+                  <Card
+                    key={cat.id}
+                    className={cn(
+                      "card-neon p-4 cursor-pointer transition-all duration-300",
+                      "hover:shadow-glow"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted/50 ring-2 ring-primary/20">
+                        <img 
+                          src={cat.image} 
+                          alt={cat.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm">{cat.name}</h3>
+                        <p className="text-xs text-muted-foreground">Quick recharge</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold">{cat.name}</h3>
-                      <p className="text-xs text-muted-foreground">Quick recharge</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+              </div>
             </div>
 
             {/* Mobile Products */}
