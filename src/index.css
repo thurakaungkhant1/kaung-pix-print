@@ -310,7 +310,58 @@
   }
   
   .animate-scale-in {
-    animation: scale-in 0.3s ease-out;
+    animation: scale-in 0.3s ease-out forwards;
+    opacity: 0;
+  }
+
+  /* Stagger animation for grid items */
+  @keyframes stagger-in {
+    0% { 
+      opacity: 0; 
+      transform: translateY(15px) scale(0.95); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateY(0) scale(1); 
+    }
+  }
+  
+  .animate-stagger-in {
+    animation: stagger-in 0.4s ease-out forwards;
+    opacity: 0;
+  }
+
+  /* Selection pulse effect */
+  @keyframes selection-pulse {
+    0% { 
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.7);
+    }
+    50% { 
+      box-shadow: 0 0 0 12px hsl(var(--primary) / 0);
+    }
+    100% { 
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+    }
+  }
+  
+  .animate-selection-pulse {
+    animation: selection-pulse 0.6s ease-out;
+  }
+
+  /* Ripple effect */
+  @keyframes ripple {
+    0% { 
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% { 
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+  
+  .animate-ripple {
+    animation: ripple 0.6s ease-out;
   }
 
   /* Spring message animation */

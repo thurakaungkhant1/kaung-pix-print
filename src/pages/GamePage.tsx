@@ -552,18 +552,22 @@ const GamePage = () => {
                     key={op.id}
                     onClick={() => setSelectedMobileOperator(selectedMobileOperator === op.name ? null : op.name)}
                     className={cn(
-                      "card-neon overflow-hidden cursor-pointer transition-all duration-300",
+                      "card-neon overflow-hidden cursor-pointer transition-all duration-300 relative",
                       "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
                       "animate-scale-in",
-                      selectedMobileOperator === op.name && "ring-2 ring-primary border-primary"
+                      selectedMobileOperator === op.name && "ring-2 ring-primary border-primary animate-selection-pulse"
                     )}
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <CardContent className="p-4">
+                    {/* Ripple overlay on selection */}
+                    {selectedMobileOperator === op.name && (
+                      <div className="absolute inset-0 bg-primary/10 pointer-events-none" />
+                    )}
+                    <CardContent className="p-4 relative">
                       <div className="flex items-center gap-3">
                         <div className={cn(
-                          "w-14 h-14 rounded-xl overflow-hidden bg-muted/30 ring-2 flex items-center justify-center flex-shrink-0",
-                          selectedMobileOperator === op.name ? "ring-primary" : "ring-primary/20"
+                          "w-14 h-14 rounded-xl overflow-hidden bg-muted/30 ring-2 flex items-center justify-center flex-shrink-0 transition-all duration-300",
+                          selectedMobileOperator === op.name ? "ring-primary scale-110" : "ring-primary/20"
                         )}>
                           {op.logo_url ? (
                             <img 
@@ -579,6 +583,11 @@ const GamePage = () => {
                           <h3 className="font-semibold truncate">{op.name}</h3>
                           <p className="text-xs text-muted-foreground">{op.code}</p>
                         </div>
+                        {selectedMobileOperator === op.name && (
+                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center animate-scale-in">
+                            <Zap className="h-3 w-3 text-primary-foreground" />
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -637,9 +646,9 @@ const GamePage = () => {
                     className={cn(
                       "card-neon overflow-hidden cursor-pointer transition-all duration-300",
                       "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
-                      "animate-scale-in"
+                      "animate-stagger-in"
                     )}
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    style={{ animationDelay: `${index * 80}ms` }}
                     onClick={() => handleBuyClick(product)}
                   >
                     <div className="aspect-square bg-muted/50 overflow-hidden">
