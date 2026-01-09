@@ -481,16 +481,16 @@ const GamePage = () => {
                 <p className="text-sm text-muted-foreground/70 mt-1">Check back soon</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div key={selectedGameCategory} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {filteredProducts.map((product, index) => (
                   <Card
                     key={product.id}
                     className={cn(
                       "card-neon overflow-hidden cursor-pointer transition-all duration-300",
                       "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
-                      "animate-scale-in"
+                      "animate-stagger-in"
                     )}
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    style={{ animationDelay: `${index * 80}ms` }}
                     onClick={() => handleBuyClick(product)}
                   >
                     <div className="aspect-square bg-muted/50 overflow-hidden">
