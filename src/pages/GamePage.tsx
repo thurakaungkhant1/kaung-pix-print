@@ -82,17 +82,10 @@ const MOBILE_CATEGORIES = [
   { id: "Data Plans", name: "Data Plans", icon: Wifi, color: "text-blue-500", image: "/images/services/data-plan.png" },
 ];
 
-interface MobileOperator {
-  id: string;
-  name: string;
-  code: string;
-  logo_url: string | null;
-}
 
 const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [mobileOperators, setMobileOperators] = useState<MobileOperator[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [showTopUpDialog, setShowTopUpDialog] = useState(false);
@@ -100,8 +93,6 @@ const GamePage = () => {
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [selectedOperator, setSelectedOperator] = useState("");
-  const [selectedMobileOperator, setSelectedMobileOperator] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
   const [activeCategory, setActiveCategory] = useState("games");
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(null);
@@ -114,24 +105,11 @@ const GamePage = () => {
 
   useEffect(() => {
     loadProducts();
-    loadMobileOperators();
     if (user) {
       loadOrders();
       loadWalletBalance();
     }
   }, [user]);
-
-  const loadMobileOperators = async () => {
-    const { data, error } = await supabase
-      .from("mobile_operators")
-      .select("id, name, code, logo_url")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
-
-    if (!error && data) {
-      setMobileOperators(data);
-    }
-  };
 
   const loadWalletBalance = async () => {
     if (!user) return;
@@ -221,8 +199,6 @@ const GamePage = () => {
     setGameId("");
     setServerId("");
     setPhoneNumber("");
-    // Auto-select operator if one is already selected in Mobile tab
-    setSelectedOperator(selectedMobileOperator || "");
   };
 
   const handleQuickBuy = async () => {
@@ -249,15 +225,7 @@ const GamePage = () => {
         return;
       }
     } else if (isMobileProduct(selectedProduct.category)) {
-      // Phone Top-up and Data Plans require operator selection
-      if (!selectedOperator) {
-        toast({
-          title: "Error",
-          description: "Please select your mobile operator",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Phone Top-up and Data Plans require phone number
       if (!phoneNumber) {
         toast({
           title: "Error",
@@ -299,9 +267,7 @@ const GamePage = () => {
         price: selectedProduct.price,
         game_id: isGameProduct(selectedProduct.category) ? gameId : null,
         server_id: requiresServerId(selectedProduct.category) ? serverId : null,
-        game_name: isMobileProduct(selectedProduct.category) 
-          ? `${selectedProduct.category} (${selectedOperator})`
-          : selectedProduct.category,
+        game_name: selectedProduct.category,
         phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : "",
         status: "pending",
         payment_method: "wallet",
@@ -526,79 +492,6 @@ const GamePage = () => {
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-6">
-            {/* Selected Operator Badge */}
-            {selectedMobileOperator && (
-              <div className="animate-fade-in">
-                <Badge variant="secondary" className="badge-neon gap-2 px-3 py-1.5">
-                  <Smartphone className="h-3.5 w-3.5" />
-                  {selectedMobileOperator} selected
-                </Badge>
-              </div>
-            )}
-
-            {/* Mobile Operators */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-muted-foreground">Select Operator</h3>
-                {selectedMobileOperator && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedMobileOperator(null)}
-                    className="text-xs h-7"
-                  >
-                    Clear
-                  </Button>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {mobileOperators.map((op, index) => (
-                  <Card
-                    key={op.id}
-                    onClick={() => setSelectedMobileOperator(selectedMobileOperator === op.name ? null : op.name)}
-                    className={cn(
-                      "card-neon overflow-hidden cursor-pointer transition-all duration-300 relative",
-                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
-                      "animate-scale-in",
-                      selectedMobileOperator === op.name && "ring-2 ring-primary border-primary animate-selection-pulse"
-                    )}
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    {/* Ripple overlay on selection */}
-                    {selectedMobileOperator === op.name && (
-                      <div className="absolute inset-0 bg-primary/10 pointer-events-none" />
-                    )}
-                    <CardContent className="p-4 relative">
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-14 h-14 rounded-xl overflow-hidden bg-muted/30 ring-2 flex items-center justify-center flex-shrink-0 transition-all duration-300",
-                          selectedMobileOperator === op.name ? "ring-primary scale-110" : "ring-primary/20"
-                        )}>
-                          {op.logo_url ? (
-                            <img 
-                              src={op.logo_url} 
-                              alt={op.name}
-                              className="w-full h-full object-contain p-1"
-                            />
-                          ) : (
-                            <Smartphone className="h-7 w-7 text-primary" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate">{op.name}</h3>
-                          <p className="text-xs text-muted-foreground">{op.code}</p>
-                        </div>
-                        {selectedMobileOperator === op.name && (
-                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center animate-scale-in">
-                            <Zap className="h-3 w-3 text-primary-foreground" />
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
 
             {/* Mobile Service Categories */}
             <div>
@@ -686,7 +579,7 @@ const GamePage = () => {
               </div>
             ) : (
               <div 
-                key={`${selectedMobileOperator}-${selectedMobileService}` || 'all'} 
+                key={selectedMobileService || 'all'} 
                 className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-fade-in"
               >
                 {filteredProducts.map((product, index) => (
@@ -838,33 +731,7 @@ const GamePage = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Operator Selection for Phone Top-up and Data Plans */}
-                <div className="space-y-2">
-                  <Label>Select Operator *</Label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {mobileOperators.map((op) => (
-                      <button
-                        key={op.id}
-                        type="button"
-                        onClick={() => setSelectedOperator(op.name)}
-                        className={cn(
-                          "p-3 rounded-xl border-2 text-center transition-all duration-200",
-                          "text-xs font-semibold",
-                          selectedOperator === op.name
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border hover:border-primary/50 hover:bg-muted"
-                        )}
-                      >
-                        {op.logo_url ? (
-                          <img src={op.logo_url} alt={op.name} className="w-6 h-6 mx-auto mb-1 object-contain" />
-                        ) : (
-                          <Smartphone className="w-4 h-4 mx-auto mb-1 text-primary" />
-                        )}
-                        {op.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Phone Number Input for Mobile Services */}
                 <div className="space-y-2">
                   <Label htmlFor="phoneNumber">Phone Number *</Label>
                   <Input
