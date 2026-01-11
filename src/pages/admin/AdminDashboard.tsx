@@ -864,7 +864,7 @@ const AdminDashboard = () => {
     { id: "diamond-orders", label: "Game Orders", icon: Gamepad2, badge: pendingDiamondOrders },
     { id: "shop", label: "Shop Management", icon: Package, badge: 0 },
     { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
-    { id: "mobile-operators", label: "Mobile Operators", icon: Phone, badge: 0, route: "/admin/mobile-operators" },
+    { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
     { id: "photos", label: "Photos", icon: Image, badge: 0 },
     { id: "settings", label: "Settings", icon: Settings, badge: 0 },
   ];
