@@ -105,6 +105,7 @@ const GamePage = () => {
   const [purchasing, setPurchasing] = useState(false);
   const [activeCategory, setActiveCategory] = useState("games");
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(null);
+  const [selectedMobileService, setSelectedMobileService] = useState<string | null>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -196,7 +197,11 @@ const GamePage = () => {
       }
       return products.filter(p => isGameProduct(p.category));
     } else if (activeCategory === "mobile") {
-      // If operator is selected, show mobile products (will auto-select operator in dialog)
+      // Filter by selected mobile service (Phone Top-up or Data Plans)
+      if (selectedMobileService) {
+        return products.filter(p => p.category === selectedMobileService);
+      }
+      // If no service selected, show all mobile products
       return products.filter(p => isMobileProduct(p.category));
     }
     return products;
@@ -595,49 +600,93 @@ const GamePage = () => {
               </div>
             </div>
 
-            {/* Mobile Categories */}
+            {/* Mobile Service Categories */}
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground mb-3">Services</h3>
               <div className="grid grid-cols-2 gap-3">
-                {MOBILE_CATEGORIES.map((cat) => (
+                {MOBILE_CATEGORIES.map((cat, index) => (
                   <Card
                     key={cat.id}
+                    onClick={() => setSelectedMobileService(selectedMobileService === cat.id ? null : cat.id)}
                     className={cn(
                       "card-neon p-4 cursor-pointer transition-all duration-300",
-                      "hover:shadow-glow"
+                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
+                      "animate-scale-in",
+                      selectedMobileService === cat.id && "ring-2 ring-primary border-primary animate-selection-pulse"
                     )}
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted/50 ring-2 ring-primary/20">
+                      <div className={cn(
+                        "w-12 h-12 rounded-xl overflow-hidden bg-muted/50 ring-2 flex-shrink-0 transition-all duration-300",
+                        selectedMobileService === cat.id ? "ring-primary scale-110" : "ring-primary/20"
+                      )}>
                         <img 
                           src={cat.image} 
                           alt={cat.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-semibold text-sm">{cat.name}</h3>
                         <p className="text-xs text-muted-foreground">Quick recharge</p>
                       </div>
+                      {selectedMobileService === cat.id && (
+                        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center animate-scale-in">
+                          <Zap className="h-3 w-3 text-primary-foreground" />
+                        </div>
+                      )}
                     </div>
                   </Card>
                 ))}
               </div>
             </div>
 
+            {/* Selected Service Badge */}
+            {selectedMobileService && (
+              <div className="flex items-center gap-2 animate-fade-in">
+                <Badge variant="secondary" className="gap-1.5 px-3 py-1.5">
+                  {selectedMobileService === "Phone Top-up" ? (
+                    <Smartphone className="h-3 w-3" />
+                  ) : (
+                    <Wifi className="h-3 w-3" />
+                  )}
+                  {selectedMobileService}
+                </Badge>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedMobileService(null)}
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Clear
+                </Button>
+              </div>
+            )}
+
             {/* Mobile Products */}
             {filteredProducts.length === 0 ? (
               <div className="text-center py-16">
                 <div className="relative inline-block mb-6">
                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                  <Smartphone className="relative h-16 w-16 text-muted-foreground" />
+                  {selectedMobileService === "Data Plans" ? (
+                    <Wifi className="relative h-16 w-16 text-muted-foreground" />
+                  ) : (
+                    <Smartphone className="relative h-16 w-16 text-muted-foreground" />
+                  )}
                 </div>
-                <p className="text-muted-foreground font-medium">No mobile services available</p>
-                <p className="text-sm text-muted-foreground/70 mt-1">Coming soon</p>
+                <p className="text-muted-foreground font-medium">
+                  {selectedMobileService 
+                    ? `No ${selectedMobileService} available` 
+                    : "No mobile services available"}
+                </p>
+                <p className="text-sm text-muted-foreground/70 mt-1">
+                  {selectedMobileService ? "Check back soon" : "Select a service above"}
+                </p>
               </div>
             ) : (
               <div 
-                key={selectedMobileOperator || 'all'} 
+                key={`${selectedMobileOperator}-${selectedMobileService}` || 'all'} 
                 className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-fade-in"
               >
                 {filteredProducts.map((product, index) => (
