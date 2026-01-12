@@ -46,6 +46,7 @@ import {
   Copy,
   Check,
   Zap,
+  Wallet,
 } from "lucide-react";
 import {
   Dialog,
@@ -858,6 +859,7 @@ const AdminDashboard = () => {
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
     { id: "users", label: "Users", icon: Users, badge: 0 },
+    { id: "deposits", label: "Deposits", icon: Wallet, badge: 0, route: "/admin/deposits" },
     { id: "point-management", label: "Point Management", icon: Coins, badge: 0 },
     { id: "point-history", label: "Point History", icon: History, badge: 0 },
     { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },

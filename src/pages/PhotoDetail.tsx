@@ -166,9 +166,6 @@ const PhotoDetail = () => {
               <div className="flex-1">
                 <CardTitle className="text-2xl">{photo.client_name}</CardTitle>
                 <div className="space-y-1 mt-2">
-                  <p className="text-muted-foreground">
-                    Size: {formatFileSize(photo.file_size)}
-                  </p>
                   {photo.shooting_date && (
                     <p className="text-muted-foreground flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
