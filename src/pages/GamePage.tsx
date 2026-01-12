@@ -502,33 +502,55 @@ const GamePage = () => {
                     key={cat.id}
                     onClick={() => setSelectedMobileService(selectedMobileService === cat.id ? null : cat.id)}
                     className={cn(
-                      "card-neon p-4 cursor-pointer transition-all duration-300",
-                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
+                      "card-neon p-4 cursor-pointer transition-all duration-500 group overflow-hidden relative",
+                      "hover:shadow-glow active:scale-[0.98]",
                       "animate-scale-in",
-                      selectedMobileService === cat.id && "ring-2 ring-primary border-primary animate-selection-pulse"
+                      selectedMobileService === cat.id 
+                        ? "ring-2 ring-primary border-primary bg-gradient-to-br from-primary/10 to-primary/5" 
+                        : "hover:bg-primary/5"
                     )}
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="flex items-center gap-3">
+                    {/* Animated background glow */}
+                    <div className={cn(
+                      "absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent opacity-0 transition-opacity duration-500",
+                      selectedMobileService === cat.id && "opacity-100 animate-pulse"
+                    )} />
+                    
+                    <div className="relative flex items-center gap-3">
                       <div className={cn(
-                        "w-12 h-12 rounded-xl overflow-hidden bg-muted/50 ring-2 flex-shrink-0 transition-all duration-300",
-                        selectedMobileService === cat.id ? "ring-primary scale-110" : "ring-primary/20"
+                        "w-14 h-14 rounded-xl overflow-hidden bg-muted/50 ring-2 flex-shrink-0 transition-all duration-500",
+                        selectedMobileService === cat.id 
+                          ? "ring-primary scale-110 shadow-lg shadow-primary/30" 
+                          : "ring-primary/20 group-hover:ring-primary/40 group-hover:scale-105"
                       )}>
                         <img 
                           src={cat.image} 
                           alt={cat.name}
-                          className="w-full h-full object-cover"
+                          className={cn(
+                            "w-full h-full object-cover transition-transform duration-500",
+                            selectedMobileService === cat.id && "scale-110"
+                          )}
                         />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-sm">{cat.name}</h3>
+                      <div className="flex-1 min-w-0">
+                        <h3 className={cn(
+                          "font-semibold text-sm transition-colors duration-300",
+                          selectedMobileService === cat.id && "text-primary"
+                        )}>{cat.name}</h3>
                         <p className="text-xs text-muted-foreground">Quick recharge</p>
                       </div>
-                      {selectedMobileService === cat.id && (
-                        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center animate-scale-in">
-                          <Zap className="h-3 w-3 text-primary-foreground" />
-                        </div>
-                      )}
+                      <div className={cn(
+                        "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500",
+                        selectedMobileService === cat.id 
+                          ? "bg-primary scale-100 rotate-0 shadow-lg shadow-primary/50" 
+                          : "bg-primary/20 scale-0 rotate-180"
+                      )}>
+                        <Zap className={cn(
+                          "h-3.5 w-3.5 transition-colors duration-300",
+                          selectedMobileService === cat.id ? "text-primary-foreground" : "text-primary"
+                        )} />
+                      </div>
                     </div>
                   </Card>
                 ))}
