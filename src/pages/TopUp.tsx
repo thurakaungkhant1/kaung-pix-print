@@ -42,6 +42,15 @@ interface Deposit {
   transaction_id?: string;
 }
 
+interface PaymentMethod {
+  id: string;
+  name: string;
+  account_name: string | null;
+  account_number: string;
+  icon_name: string;
+  gradient_color: string;
+}
+
 const TopUp = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -57,13 +66,24 @@ const TopUp = () => {
   const [isLoadingDeposits, setIsLoadingDeposits] = useState(true);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [activeStep, setActiveStep] = useState(1);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchDeposits();
       fetchWalletBalance();
     }
+    fetchPaymentMethods();
   }, [user]);
+
+  const fetchPaymentMethods = async () => {
+    const { data } = await supabase
+      .from('payment_methods')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
+    setPaymentMethods(data || []);
+  };
 
   const fetchWalletBalance = async () => {
     if (!user) return;
@@ -194,11 +214,14 @@ const TopUp = () => {
 
   const presetAmounts = [5000, 10000, 20000, 50000, 100000];
 
-  const paymentMethods = [
-    { name: "KBZ Pay", phone: "09694577177", icon: Phone, color: "from-blue-500 to-blue-600" },
-    { name: "Wave Pay", phone: "09694577177", icon: CreditCard, color: "from-yellow-500 to-orange-500" },
-    { name: "CB Pay", phone: "0211600900000647", icon: Wallet, color: "from-emerald-500 to-teal-500" },
-  ];
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'Phone': return Phone;
+      case 'CreditCard': return CreditCard;
+      case 'Wallet': return Wallet;
+      default: return CreditCard;
+    }
+  };
 
   if (!user) {
     return (
@@ -367,46 +390,52 @@ const TopUp = () => {
                   <h2 className="font-semibold">{t('paymentMethod')}</h2>
                 </div>
                 <div className="space-y-3">
-                  {paymentMethods.map((method, index) => (
-                    <Card 
-                      key={method.name} 
-                      className={cn(
-                        "border-border/50 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/30 cursor-pointer group",
-                        "animate-fade-in"
-                      )}
-                      style={{ animationDelay: `${index * 100}ms` }}
-                      onClick={() => copyToClipboard(method.phone)}
-                    >
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className={cn(
-                          "p-3 rounded-xl bg-gradient-to-br transition-transform duration-300 group-hover:scale-110",
-                          method.color
-                        )}>
-                          <method.icon className="h-5 w-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold">{method.name}</p>
-                          <p className="text-sm text-muted-foreground font-mono tracking-wide">
-                            {method.phone}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            "shrink-0 transition-all duration-300",
-                            copiedPhone === method.phone && "text-green-500"
-                          )}
-                        >
-                          {copiedPhone === method.phone ? (
-                            <Check className="h-5 w-5" />
-                          ) : (
-                            <Copy className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                          )}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {paymentMethods.map((method, index) => {
+                    const IconComponent = getIconComponent(method.icon_name);
+                    return (
+                      <Card 
+                        key={method.id} 
+                        className={cn(
+                          "border-border/50 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/30 cursor-pointer group",
+                          "animate-fade-in"
+                        )}
+                        style={{ animationDelay: `${index * 100}ms` }}
+                        onClick={() => copyToClipboard(method.account_number)}
+                      >
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className={cn(
+                            "p-3 rounded-xl bg-gradient-to-br transition-transform duration-300 group-hover:scale-110",
+                            method.gradient_color
+                          )}>
+                            <IconComponent className="h-5 w-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold">{method.name}</p>
+                            {method.account_name && (
+                              <p className="text-xs text-muted-foreground">{method.account_name}</p>
+                            )}
+                            <p className="text-sm text-muted-foreground font-mono tracking-wide">
+                              {method.account_number}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              "shrink-0 transition-all duration-300",
+                              copiedPhone === method.account_number && "text-green-500"
+                            )}
+                          >
+                            {copiedPhone === method.account_number ? (
+                              <Check className="h-5 w-5" />
+                            ) : (
+                              <Copy className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                            )}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
 

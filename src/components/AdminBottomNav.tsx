@@ -38,6 +38,8 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
     { id: "banners", label: "Promo Banners", route: "/admin/banners" },
     { id: "deposits", label: "Deposits", route: "/admin/deposits" },
     { id: "wallets", label: "Wallet Management", route: "/admin/wallets" },
+    { id: "payment-methods", label: "Payment Methods", route: "/admin/payment-methods" },
+    { id: "mobile-services", label: "Mobile Services", route: "/admin/mobile-services" },
     { id: "point-management", label: "Point Management" },
     { id: "point-history", label: "Point History" },
     { id: "diamond-orders", label: "Game Orders" },
