@@ -366,6 +366,45 @@ export type Database = {
           },
         ]
       }
+      payment_methods: {
+        Row: {
+          account_name: string | null
+          account_number: string
+          created_at: string
+          display_order: number | null
+          gradient_color: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number: string
+          created_at?: string
+          display_order?: number | null
+          gradient_color?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string
+          created_at?: string
+          display_order?: number | null
+          gradient_color?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           category: string | null

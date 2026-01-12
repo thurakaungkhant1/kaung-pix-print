@@ -37,6 +37,8 @@ interface UserProfile {
   points: number;
   account_status: string;
   avatar_url: string | null;
+  wallet_balance: number;
+  referred_count?: number;
 }
 
 const UsersManage = () => {
@@ -85,7 +87,17 @@ const UsersManage = () => {
       .order("created_at", { ascending: false });
 
     if (data) {
-      setUsers(data);
+      // Get referred counts for each user
+      const usersWithCounts = await Promise.all(
+        data.map(async (user) => {
+          const { count } = await supabase
+            .from("profiles")
+            .select("*", { count: "exact", head: true })
+            .eq("referred_by", user.id);
+          return { ...user, referred_count: count || 0 };
+        })
+      );
+      setUsers(usersWithCounts);
     }
     setLoading(false);
   };
@@ -258,9 +270,11 @@ const UsersManage = () => {
                       <p className="text-sm text-muted-foreground truncate">
                         {userProfile.email || userProfile.phone_number}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Joined: {format(new Date(userProfile.created_at), "MMM d, yyyy")}
-                      </p>
+                      <div className="flex items-center gap-3 mt-1 text-xs">
+                        <span className="text-primary font-semibold">{userProfile.points.toLocaleString()} pts</span>
+                        <span className="text-emerald-600 font-semibold">{Number(userProfile.wallet_balance || 0).toLocaleString()} Ks</span>
+                        <span className="text-muted-foreground">{userProfile.referred_count || 0} invited</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge
@@ -353,7 +367,15 @@ const UsersManage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Points</span>
-                  <span className="font-bold">{selectedUser.points.toLocaleString()}</span>
+                  <span className="font-bold text-primary">{selectedUser.points.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Wallet Balance</span>
+                  <span className="font-bold text-emerald-600">{Number(selectedUser.wallet_balance || 0).toLocaleString()} Ks</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Invited Users</span>
+                  <span className="font-bold">{selectedUser.referred_count || 0}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Joined</span>

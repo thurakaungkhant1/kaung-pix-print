@@ -197,6 +197,11 @@ const Home = () => {
         .not('category', 'ilike', '%mobile legends%')
         .not('category', 'ilike', '%pubg%')
         .not('category', 'ilike', '%free fire%')
+        .not('category', 'ilike', '%phone%')
+        .not('category', 'ilike', '%data%')
+        .not('category', 'ilike', '%mobile%')
+        .not('category', 'ilike', '%top-up%')
+        .not('category', 'ilike', '%topup%')
         .limit(6);
       
       if (productsData) {
