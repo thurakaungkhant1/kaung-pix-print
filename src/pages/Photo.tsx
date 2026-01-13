@@ -12,6 +12,7 @@ import { addWatermark } from "@/lib/watermarkUtils";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
+import MusicPlayer from "@/components/MusicPlayer";
 
 interface Photo {
   id: number;
@@ -309,6 +310,12 @@ const Photo = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Music Player */}
+      <MusicPlayer 
+        audioSrc="/sounds/message.mp3" 
+        className="bottom-24 right-4"
+      />
 
       <BottomNav />
     </MobileLayout>
