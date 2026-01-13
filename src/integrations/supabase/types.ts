@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      background_music: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          file_url: string
+          id: string
+          is_active: boolean
+          name: string
+          page_location: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          file_url: string
+          id?: string
+          is_active?: boolean
+          name: string
+          page_location?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          file_url?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          page_location?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
