@@ -61,6 +61,7 @@ const BannersManage = lazy(() => import("./pages/admin/BannersManage"));
 const MobileOperatorsManage = lazy(() => import("./pages/admin/MobileOperatorsManage"));
 const MobileServicesManage = lazy(() => import("./pages/admin/MobileServicesManage"));
 const PaymentMethodsManage = lazy(() => import("./pages/admin/PaymentMethodsManage"));
+const BackgroundMusicManage = lazy(() => import("./pages/admin/BackgroundMusicManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
@@ -377,6 +378,14 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <PaymentMethodsManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/background-music"
+                  element={
+                    <ProtectedAdminRoute>
+                      <BackgroundMusicManage />
                     </ProtectedAdminRoute>
                   }
                 />

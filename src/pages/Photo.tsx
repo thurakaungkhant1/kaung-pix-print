@@ -31,14 +31,31 @@ const Photo = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [watermarkedImages, setWatermarkedImages] = useState<Map<number, string>>(new Map());
+  const [backgroundMusic, setBackgroundMusic] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     loadPhotos();
+    loadBackgroundMusic();
     if (user) loadFavourites();
   }, [user]);
+
+  const loadBackgroundMusic = async () => {
+    const { data } = await supabase
+      .from("background_music")
+      .select("file_url")
+      .eq("page_location", "photo_gallery")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
+      .limit(1)
+      .single();
+
+    if (data?.file_url) {
+      setBackgroundMusic(data.file_url);
+    }
+  };
 
   useEffect(() => {
     photos.forEach(async (photo) => {
@@ -311,11 +328,13 @@ const Photo = () => {
         )}
       </div>
 
-      {/* Floating Music Player */}
-      <MusicPlayer 
-        audioSrc="/sounds/message.mp3" 
-        className="bottom-24 right-4"
-      />
+      {/* Floating Music Player - Only show if music is available */}
+      {backgroundMusic && (
+        <MusicPlayer 
+          audioSrc={backgroundMusic} 
+          className="bottom-24 right-4"
+        />
+      )}
 
       <BottomNav />
     </MobileLayout>
