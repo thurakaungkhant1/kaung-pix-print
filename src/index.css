@@ -798,4 +798,267 @@
       linear-gradient(90deg, hsl(var(--primary) / 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     DESKTOP WINDOW PROFESSIONAL STYLING
+     ═══════════════════════════════════════════════════════════ */
+  
+  /* Desktop wrapper background */
+  .desktop-wrapper {
+    @apply bg-muted/30;
+  }
+
+  @media (min-width: 768px) {
+    .desktop-wrapper {
+      background: 
+        linear-gradient(135deg, 
+          hsl(var(--background)) 0%, 
+          hsl(var(--muted) / 0.5) 50%,
+          hsl(var(--background)) 100%
+        );
+    }
+
+    .dark .desktop-wrapper {
+      background: 
+        linear-gradient(135deg, 
+          hsl(220 20% 4%) 0%, 
+          hsl(220 20% 8%) 25%,
+          hsl(220 25% 6%) 50%,
+          hsl(220 20% 8%) 75%,
+          hsl(220 20% 4%) 100%
+        );
+    }
+  }
+
+  /* Animated gradient background for desktop */
+  .desktop-gradient-bg {
+    background: 
+      radial-gradient(ellipse 80% 50% at 20% 30%, hsl(var(--primary) / 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 70%, hsl(var(--accent) / 0.06), transparent),
+      radial-gradient(ellipse 50% 30% at 50% 50%, hsl(175 100% 45% / 0.04), transparent);
+    animation: desktop-bg-shift 20s ease-in-out infinite;
+  }
+
+  .dark .desktop-gradient-bg {
+    background: 
+      radial-gradient(ellipse 80% 50% at 20% 30%, hsl(var(--primary) / 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 70%, hsl(var(--accent) / 0.08), transparent),
+      radial-gradient(ellipse 50% 30% at 50% 50%, hsl(175 100% 45% / 0.06), transparent);
+  }
+
+  @keyframes desktop-bg-shift {
+    0%, 100% {
+      opacity: 0.8;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Device shadow for phone mockup */
+  .shadow-device {
+    box-shadow: 
+      0 50px 100px -20px hsl(var(--foreground) / 0.15),
+      0 30px 60px -30px hsl(var(--foreground) / 0.2),
+      0 0 0 1px hsl(var(--border) / 0.1),
+      inset 0 1px 0 hsl(var(--primary-foreground) / 0.1);
+  }
+
+  .dark .shadow-device {
+    box-shadow: 
+      0 50px 100px -20px hsl(0 0% 0% / 0.5),
+      0 30px 60px -30px hsl(0 0% 0% / 0.4),
+      0 0 0 1px hsl(var(--primary) / 0.1),
+      0 0 80px -10px hsl(var(--primary) / 0.15),
+      inset 0 1px 0 hsl(var(--primary-foreground) / 0.05);
+  }
+
+  /* Grid dots pattern for desktop background */
+  .desktop-dots {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Mesh gradient overlay */
+  .mesh-gradient {
+    background: 
+      linear-gradient(45deg, hsl(var(--primary) / 0.03) 0%, transparent 50%),
+      linear-gradient(-45deg, hsl(var(--accent) / 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, transparent 50%, hsl(175 100% 45% / 0.02) 100%);
+  }
+
+  /* Premium glass panel effect */
+  .glass-panel {
+    @apply backdrop-blur-2xl;
+    background: 
+      linear-gradient(135deg, 
+        hsl(var(--background) / 0.9) 0%, 
+        hsl(var(--background) / 0.95) 100%
+      );
+    border: 1px solid hsl(var(--border) / 0.3);
+  }
+
+  .dark .glass-panel {
+    background: 
+      linear-gradient(135deg, 
+        hsl(220 20% 6% / 0.95) 0%, 
+        hsl(220 20% 8% / 0.9) 100%
+      );
+    border: 1px solid hsl(var(--primary) / 0.1);
+  }
+
+  /* Floating action indicator */
+  .floating-indicator {
+    @apply fixed z-50 transition-all duration-500;
+    animation: float-gentle 6s ease-in-out infinite;
+  }
+
+  @keyframes float-gentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  /* Premium button with gradient */
+  .btn-premium {
+    @apply relative overflow-hidden rounded-xl font-semibold;
+    @apply bg-gradient-to-r from-primary via-primary/90 to-primary;
+    @apply text-primary-foreground shadow-lg;
+    @apply transition-all duration-300;
+    @apply hover:shadow-xl hover:shadow-primary/25;
+    @apply active:scale-[0.98];
+    background-size: 200% 100%;
+  }
+
+  .btn-premium:hover {
+    background-position: 100% 0;
+  }
+
+  .btn-premium::before {
+    content: '';
+    @apply absolute inset-0 opacity-0;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary-foreground) / 0.2), transparent);
+    transition: opacity 0.3s;
+  }
+
+  .btn-premium:hover::before {
+    @apply opacity-100;
+    animation: shimmer 1s ease-out;
+  }
+
+  /* Subtle border glow */
+  .border-glow {
+    position: relative;
+  }
+
+  .border-glow::after {
+    content: '';
+    @apply absolute inset-0 rounded-inherit -z-10;
+    @apply opacity-0 transition-opacity duration-300;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.3), hsl(var(--accent) / 0.2));
+    filter: blur(15px);
+  }
+
+  .border-glow:hover::after {
+    @apply opacity-100;
+  }
+
+  /* Status indicator pulse */
+  .status-pulse {
+    @apply relative;
+  }
+
+  .status-pulse::after {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    @apply animate-ping opacity-75;
+    background: inherit;
+  }
+
+  /* Subtle entrance animation for pages */
+  .page-enter {
+    animation: page-enter 0.4s ease-out;
+  }
+
+  @keyframes page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Interactive card with depth */
+  .card-depth {
+    @apply relative rounded-2xl bg-card transition-all duration-300;
+    box-shadow: 
+      0 1px 2px hsl(var(--foreground) / 0.04),
+      0 4px 8px hsl(var(--foreground) / 0.04),
+      0 8px 16px hsl(var(--foreground) / 0.04);
+  }
+
+  .card-depth:hover {
+    box-shadow: 
+      0 2px 4px hsl(var(--foreground) / 0.04),
+      0 8px 16px hsl(var(--foreground) / 0.06),
+      0 16px 32px hsl(var(--foreground) / 0.08);
+    transform: translateY(-2px);
+  }
+
+  .dark .card-depth {
+    box-shadow: 
+      0 1px 2px hsl(0 0% 0% / 0.2),
+      0 4px 8px hsl(0 0% 0% / 0.2),
+      0 8px 16px hsl(0 0% 0% / 0.2),
+      inset 0 1px 0 hsl(var(--primary) / 0.05);
+  }
+
+  .dark .card-depth:hover {
+    box-shadow: 
+      0 2px 4px hsl(0 0% 0% / 0.3),
+      0 8px 16px hsl(0 0% 0% / 0.3),
+      0 16px 32px hsl(0 0% 0% / 0.3),
+      0 0 40px hsl(var(--primary) / 0.1),
+      inset 0 1px 0 hsl(var(--primary) / 0.1);
+  }
+
+  /* Section divider with gradient */
+  .divider-gradient {
+    @apply h-px w-full;
+    background: linear-gradient(90deg, 
+      transparent, 
+      hsl(var(--border)), 
+      hsl(var(--primary) / 0.3), 
+      hsl(var(--border)), 
+      transparent
+    );
+  }
+
+  /* Smooth scrollbar for desktop */
+  @media (min-width: 768px) {
+    .scrollbar-thin {
+      scrollbar-width: thin;
+      scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: hsl(var(--primary) / 0.3);
+      border-radius: 3px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+      background: hsl(var(--primary) / 0.5);
+    }
+  }
 }
