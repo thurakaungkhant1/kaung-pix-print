@@ -202,6 +202,23 @@ const Home = () => {
         .not('category', 'ilike', '%mobile%')
         .not('category', 'ilike', '%top-up%')
         .not('category', 'ilike', '%topup%')
+        .not('category', 'ilike', '%bill%')
+        .not('category', 'ilike', '%prepaid%')
+        .not('category', 'ilike', '%airtime%')
+        .not('category', 'ilike', '%recharge%')
+        .not('name', 'ilike', '%phone%')
+        .not('name', 'ilike', '%data%')
+        .not('name', 'ilike', '%mobile%')
+        .not('name', 'ilike', '%top-up%')
+        .not('name', 'ilike', '%topup%')
+        .not('name', 'ilike', '%bill%')
+        .not('name', 'ilike', '%prepaid%')
+        .not('name', 'ilike', '%airtime%')
+        .not('name', 'ilike', '%recharge%')
+        .not('name', 'ilike', '%mpt%')
+        .not('name', 'ilike', '%ooredoo%')
+        .not('name', 'ilike', '%mytel%')
+        .not('name', 'ilike', '%atom%')
         .limit(6);
       
       if (productsData) {
