@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_placements: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          is_active: boolean
+          name: string
+          page_location: string
+          placement_type: string
+          position: string
+          script_code: string | null
+          updated_at: string
+          zone_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          page_location: string
+          placement_type?: string
+          position?: string
+          script_code?: string | null
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          page_location?: string
+          placement_type?: string
+          position?: string
+          script_code?: string | null
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Relationships: []
+      }
       background_music: {
         Row: {
           created_at: string

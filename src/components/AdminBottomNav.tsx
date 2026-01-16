@@ -40,6 +40,7 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
     { id: "wallets", label: "Wallet Management", route: "/admin/wallets" },
     { id: "payment-methods", label: "Payment Methods", route: "/admin/payment-methods" },
     { id: "mobile-services", label: "Mobile Services", route: "/admin/mobile-services" },
+    { id: "ads", label: "Ads Management", route: "/admin/ads" },
     { id: "point-management", label: "Point Management" },
     { id: "point-history", label: "Point History" },
     { id: "diamond-orders", label: "Game Orders" },

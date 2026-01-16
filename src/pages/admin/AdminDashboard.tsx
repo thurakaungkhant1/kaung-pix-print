@@ -47,6 +47,7 @@ import {
   Check,
   Zap,
   Wallet,
+  Megaphone,
 } from "lucide-react";
 import {
   Dialog,
@@ -869,6 +870,7 @@ const AdminDashboard = () => {
     { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
     { id: "photos", label: "Photos", icon: Image, badge: 0 },
     { id: "background-music", label: "Background Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
+    { id: "ads", label: "Ads Management", icon: Megaphone, badge: 0, route: "/admin/ads" },
     { id: "settings", label: "Settings", icon: Settings, badge: 0 },
   ];
 
