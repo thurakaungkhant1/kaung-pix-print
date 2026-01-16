@@ -67,6 +67,7 @@ const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
 const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
+import InterstitialAd from "@/components/InterstitialAd";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>
+              <InterstitialAd frequency={3} cooldownSeconds={60} />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />
