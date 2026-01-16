@@ -1,20 +1,51 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Music2, SkipForward, Heart } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Music2, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { Slider } from "@/components/ui/slider";
 
 interface MusicPlayerProps {
   audioSrc: string;
   className?: string;
+  autoPlay?: boolean;
 }
 
-const MusicPlayer = ({ audioSrc, className }: MusicPlayerProps) => {
+const MusicPlayer = ({ audioSrc, className, autoPlay = false }: MusicPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [volume, setVolume] = useState(70);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [hasAutoPlayed, setHasAutoPlayed] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Auto-play when page loads
+  useEffect(() => {
+    if (autoPlay && audioSrc && !hasAutoPlayed) {
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      // Set initial volume
+      audio.volume = volume / 100;
+
+      // Try to auto-play
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setHasAutoPlayed(true);
+          })
+          .catch(() => {
+            // Auto-play was prevented by browser
+            setIsPlaying(false);
+            setHasAutoPlayed(true);
+          });
+      }
+    }
+  }, [audioSrc, autoPlay, hasAutoPlayed, volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -55,6 +86,23 @@ const MusicPlayer = ({ audioSrc, className }: MusicPlayerProps) => {
 
     audio.muted = !isMuted;
     setIsMuted(!isMuted);
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const newVolume = value[0];
+    setVolume(newVolume);
+    audio.volume = newVolume / 100;
+    
+    if (newVolume === 0) {
+      setIsMuted(true);
+      audio.muted = true;
+    } else if (isMuted) {
+      setIsMuted(false);
+      audio.muted = false;
+    }
   };
 
   return (
@@ -230,18 +278,61 @@ const MusicPlayer = ({ audioSrc, className }: MusicPlayerProps) => {
                       </AnimatePresence>
                     </motion.button>
 
-                    {/* Volume button */}
-                    <motion.button
-                      onClick={toggleMute}
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      {isMuted ? (
-                        <VolumeX className="h-5 w-5" />
-                      ) : (
-                        <Volume2 className="h-5 w-5" />
-                      )}
-                    </motion.button>
+                    {/* Volume control with slider */}
+                    <div className="relative">
+                      <motion.button
+                        onClick={() => setShowVolumeSlider(!showVolumeSlider)}
+                        onMouseEnter={() => setShowVolumeSlider(true)}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        {isMuted || volume === 0 ? (
+                          <VolumeX className="h-5 w-5" />
+                        ) : (
+                          <Volume2 className="h-5 w-5" />
+                        )}
+                      </motion.button>
+                      
+                      {/* Volume Slider Popup */}
+                      <AnimatePresence>
+                        {showVolumeSlider && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 p-3 bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-xl"
+                            onMouseEnter={() => setShowVolumeSlider(true)}
+                            onMouseLeave={() => setShowVolumeSlider(false)}
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-xs font-medium text-muted-foreground">{volume}%</span>
+                              <div className="h-24 flex items-center">
+                                <Slider
+                                  orientation="vertical"
+                                  value={[volume]}
+                                  onValueChange={handleVolumeChange}
+                                  max={100}
+                                  step={1}
+                                  className="h-full"
+                                />
+                              </div>
+                              <motion.button
+                                onClick={toggleMute}
+                                className="w-8 h-8 rounded-full flex items-center justify-center bg-muted/50 hover:bg-muted transition-colors"
+                                whileTap={{ scale: 0.9 }}
+                              >
+                                {isMuted || volume === 0 ? (
+                                  <VolumeX className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <Volume2 className="h-4 w-4 text-foreground" />
+                                )}
+                              </motion.button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
 
                   {/* Collapse hint */}

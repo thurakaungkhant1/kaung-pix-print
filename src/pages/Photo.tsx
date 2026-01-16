@@ -328,11 +328,12 @@ const Photo = () => {
         )}
       </div>
 
-      {/* Floating Music Player - Only show if music is available */}
+      {/* Floating Music Player - Only show if music is available, auto-play on page load */}
       {backgroundMusic && (
         <MusicPlayer 
           audioSrc={backgroundMusic} 
           className="bottom-24 right-4"
+          autoPlay={true}
         />
       )}
 
