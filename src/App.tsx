@@ -94,7 +94,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>
-              <InterstitialAd frequency={3} cooldownSeconds={60} />
+              <InterstitialAd />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />
