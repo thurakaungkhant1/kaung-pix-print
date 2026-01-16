@@ -10,17 +10,35 @@ interface InterstitialAdData {
   script_code: string | null;
 }
 
-interface InterstitialAdProps {
-  frequency?: number; // Show ad every N page navigations (default: 3)
-  cooldownSeconds?: number; // Minimum seconds between ads (default: 30)
-}
-
-const InterstitialAd = ({ frequency = 3, cooldownSeconds = 30 }: InterstitialAdProps) => {
+const InterstitialAd = () => {
   const [adData, setAdData] = useState<InterstitialAdData | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [countdown, setCountdown] = useState(5);
   const [canClose, setCanClose] = useState(false);
+  const [settings, setSettings] = useState({ frequency: 3, cooldown: 60 });
   const location = useLocation();
+
+  // Load settings from database
+  useEffect(() => {
+    const loadSettings = async () => {
+      const { data } = await supabase
+        .from("ad_settings")
+        .select("setting_key, setting_value");
+      
+      if (data) {
+        const settingsObj: Record<string, string> = {};
+        data.forEach((s) => {
+          settingsObj[s.setting_key] = s.setting_value;
+        });
+        setSettings({
+          frequency: parseInt(settingsObj.interstitial_frequency || "3"),
+          cooldown: parseInt(settingsObj.interstitial_cooldown || "60"),
+        });
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   // Track page navigations
   useEffect(() => {
@@ -29,16 +47,16 @@ const InterstitialAd = ({ frequency = 3, cooldownSeconds = 30 }: InterstitialAdP
 
     const lastAdTime = parseInt(sessionStorage.getItem("last_ad_time") || "0");
     const now = Date.now();
-    const cooldownPassed = (now - lastAdTime) / 1000 >= cooldownSeconds;
+    const cooldownPassed = (now - lastAdTime) / 1000 >= settings.cooldown;
 
     // Show ad every N navigations if cooldown passed
-    if (navigationCount % frequency === 0 && cooldownPassed && adData) {
+    if (navigationCount % settings.frequency === 0 && cooldownPassed && adData) {
       setIsVisible(true);
       setCountdown(5);
       setCanClose(false);
       sessionStorage.setItem("last_ad_time", now.toString());
     }
-  }, [location.pathname, frequency, cooldownSeconds, adData]);
+  }, [location.pathname, settings.frequency, settings.cooldown, adData]);
 
   // Countdown timer
   useEffect(() => {
