@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
+import AdBanner from "@/components/AdBanner";
 
 interface PremiumPlan {
   id: string;
@@ -204,6 +205,9 @@ const PremiumShop = () => {
             </div>
           </div>
         </header>
+
+        {/* Top Ad Banner */}
+        <AdBanner pageLocation="shop" position="top" className="px-4" />
 
         <div className="p-4 space-y-6">
           {/* Pending Request Notice */}

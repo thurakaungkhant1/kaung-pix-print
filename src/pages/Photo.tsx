@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import MusicPlayer from "@/components/MusicPlayer";
+import AdBanner from "@/components/AdBanner";
 
 interface Photo {
   id: number;
@@ -232,6 +233,9 @@ const Photo = () => {
           </div>
         </div>
       </header>
+
+      {/* Top Ad Banner */}
+      <AdBanner pageLocation="photo" position="top" className="px-4 pt-4" />
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-5">
         {/* Category Tabs */}
