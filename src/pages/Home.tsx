@@ -28,6 +28,7 @@ import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
 import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
+import AdBanner from "@/components/AdBanner";
 
 interface Photo {
   id: number;
@@ -627,6 +628,9 @@ const Home = () => {
             ))}
           </div>
         </section>
+
+        {/* Ad Banner */}
+        <AdBanner pageLocation="home" position="inline" className="px-6 mb-6" />
 
         {/* Footer credit */}
         <div className="text-center py-6 pb-28">
