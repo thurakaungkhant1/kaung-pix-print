@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import LoadingScreen from "@/components/LoadingScreen";
-import AppLayout from "@/components/AppLayout";
+
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import("./pages/Home"));
