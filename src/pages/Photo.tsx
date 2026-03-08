@@ -13,6 +13,8 @@ import MobileLayout from "@/components/MobileLayout";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import MusicPlayer from "@/components/MusicPlayer";
 import AdBanner from "@/components/AdBanner";
+import AnimatedPage from "@/components/animations/AnimatedPage";
+import AnimatedSection from "@/components/animations/AnimatedSection";
 
 interface Photo {
   id: number;
@@ -193,6 +195,7 @@ const Photo = () => {
     });
 
   return (
+    <AnimatedPage>
     <MobileLayout>
       {/* Hero Header */}
       <header className="relative overflow-hidden">
@@ -237,6 +240,7 @@ const Photo = () => {
       {/* Top Ad Banner */}
       <AdBanner pageLocation="photo" position="top" className="px-4 pt-4" />
 
+      <AnimatedSection>
       <div className="max-w-screen-xl mx-auto p-4 space-y-5">
         {/* Category Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
@@ -331,6 +335,7 @@ const Photo = () => {
           </div>
         )}
       </div>
+      </AnimatedSection>
 
       {/* Floating Music Player - Only show if music is available, auto-play on page load */}
       {backgroundMusic && (
@@ -343,6 +348,7 @@ const Photo = () => {
 
       
     </MobileLayout>
+    </AnimatedPage>
   );
 };
 

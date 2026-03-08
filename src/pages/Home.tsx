@@ -26,6 +26,9 @@ import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
 import AdBanner from "@/components/AdBanner";
+import AnimatedPage from "@/components/animations/AnimatedPage";
+import AnimatedSection from "@/components/animations/AnimatedSection";
+import StaggerContainer, { StaggerItem } from "@/components/animations/StaggerContainer";
 
 interface Photo {
   id: number;
@@ -266,6 +269,7 @@ const Home = () => {
       {/* Onboarding Flow for new users */}
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       
+      <AnimatedPage>
       <MobileLayout className="max-w-screen-xl mx-auto">
         {/* Wallet Display */}
         {user && (
@@ -376,6 +380,7 @@ const Home = () => {
         )}
 
         {/* Physical Products Section */}
+        <AnimatedSection>
         <section className="py-6 space-y-4">
           <div className="flex items-center justify-between px-6">
             <div className="flex items-center gap-2">
@@ -440,8 +445,10 @@ const Home = () => {
             </div>
           )}
         </section>
+        </AnimatedSection>
 
         {/* Photo Gallery Section */}
+        <AnimatedSection delay={0.1}>
         <section className="py-6 space-y-4">
           <div className="flex items-center justify-between px-6">
             <div className="flex items-center gap-2">
@@ -526,30 +533,33 @@ const Home = () => {
             </Card>
           </div>
         </section>
+        </AnimatedSection>
 
 
 
 
         {/* Stats Section */}
+        <AnimatedSection delay={0.2}>
         <section className="p-6 pb-28">
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+          <StaggerContainer className="grid grid-cols-3 md:grid-cols-6 gap-4">
             {[
               { value: "10K+", label: "Happy Users", icon: Users },
               { value: "50K+", label: "Orders", icon: ShoppingBag },
               { value: "24/7", label: "Support", icon: Shield },
-            ].map((stat, index) => (
+            ].map((stat) => (
+              <StaggerItem key={stat.label}>
               <Card 
-                key={stat.label}
-                className="text-center p-4 animate-scale-in rounded-2xl"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="text-center p-4 rounded-2xl hover-lift transition-all duration-300"
               >
                 <stat.icon className="h-5 w-5 mx-auto mb-2 text-primary" />
                 <p className="text-xl font-display font-bold text-primary">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </Card>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </section>
+        </AnimatedSection>
 
         {/* Ad Banner */}
         <AdBanner pageLocation="home" position="inline" className="px-6 mb-6" />
@@ -563,6 +573,7 @@ const Home = () => {
 
         
       </MobileLayout>
+      </AnimatedPage>
     </>
   );
 };
