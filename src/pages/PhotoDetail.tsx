@@ -260,11 +260,31 @@ const PhotoDetail = () => {
               </div>
             </motion.div>
 
+            {/* VPN Notice */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.45, duration: 0.5 }}
+              className="rounded-2xl bg-accent/10 border border-accent/20 p-4 mb-6"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center shrink-0 mt-0.5">
+                  <ShieldAlert className="h-4 w-4 text-accent" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-sm font-semibold text-foreground">VPN လိုအပ်နိုင်ပါသည်</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Download link မဖွင့်နိုင်ပါက VPN ချိတ်ဆက်ပြီး ထပ်မံကြိုးစားပါ။
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
             {/* Download Button */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
+              transition={{ delay: 0.55, duration: 0.5 }}
               className="pb-8"
             >
               <Button
