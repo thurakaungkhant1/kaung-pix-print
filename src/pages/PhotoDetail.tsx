@@ -125,6 +125,7 @@ const PhotoDetail = () => {
   }
 
   return (
+    <AnimatedPage>
     <div className="min-h-screen bg-background pb-8">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
         <div className="flex items-center gap-4">
