@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import BottomNav from "@/components/BottomNav";
+import MobileLayout from "@/components/MobileLayout";
 import MobileLayout from "@/components/MobileLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -337,7 +337,8 @@ const GamePage = () => {
             </div>
           </div>
         </div>
-        <BottomNav />
+
+
       </MobileLayout>
     );
   }
@@ -795,7 +796,7 @@ const GamePage = () => {
         </DialogContent>
       </Dialog>
 
-      <BottomNav />
+      
     </MobileLayout>
   );
 };

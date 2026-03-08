@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, FileArchive, ShoppingBag, ImageIcon, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import BottomNav from "@/components/BottomNav";
+import CartHeader from "@/components/CartHeader";
 import CartHeader from "@/components/CartHeader";
 import { Button } from "@/components/ui/button";
 import MobileLayout from "@/components/MobileLayout";
@@ -102,7 +102,7 @@ const Favourite = () => {
 
   return (
     <MobileLayout>
-      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
+      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-8">
         {/* Enhanced Header */}
         <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent animate-gradient-shift" />
@@ -270,7 +270,7 @@ const Favourite = () => {
           </Tabs>
         </div>
 
-        <BottomNav />
+        
       </div>
     </MobileLayout>
   );
