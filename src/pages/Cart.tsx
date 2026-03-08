@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PointsDisplay from "@/components/PointsDisplay";
-import PointsDisplay from "@/components/PointsDisplay";
 import CheckoutDialog from "@/components/CheckoutDialog";
 import MobileLayout from "@/components/MobileLayout";
 

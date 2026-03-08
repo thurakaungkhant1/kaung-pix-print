@@ -9,7 +9,6 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ArrowLeft, ShoppingCart, Package, Loader2, Filter } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import CartHeader from "@/components/CartHeader";
-import CartHeader from "@/components/CartHeader";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
 import { SkeletonGrid } from "@/components/ui/skeleton-card";

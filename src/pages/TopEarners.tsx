@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getRelativeTimeString } from "@/lib/timeUtils";
 import VerificationBadge from "@/components/VerificationBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface LeaderboardUser {
   id: string;

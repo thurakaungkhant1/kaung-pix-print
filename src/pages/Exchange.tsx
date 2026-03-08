@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Lock, Coins, CheckCircle, Gift, Sparkles, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PointsDisplay from "@/components/PointsDisplay";
-import PointsDisplay from "@/components/PointsDisplay";
 import MobileLayout from "@/components/MobileLayout";
 
 interface WithdrawalItem {

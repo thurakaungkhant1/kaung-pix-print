@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import MobileLayout from "@/components/MobileLayout";
-import MobileLayout from "@/components/MobileLayout";
 import { useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

@@ -29,7 +29,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import MobileLayout from "@/components/MobileLayout";
 import { toast } from "sonner";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";

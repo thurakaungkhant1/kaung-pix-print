@@ -7,7 +7,6 @@ import { ArrowLeft, User, Coins, Calendar, Trophy, Users, Download, Loader2, Fla
 import { useAuth } from "@/contexts/AuthContext";
 import VerificationBadge, { VERIFICATION_THRESHOLD } from "@/components/VerificationBadge";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import ReportDialog from "@/components/ReportDialog";

@@ -28,7 +28,6 @@ import { useTheme } from "@/components/ThemeProvider";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import SpinnerWheel from "@/components/SpinnerWheel";
-import SpinnerWheel from "@/components/SpinnerWheel";
 import ReferralSection from "@/components/ReferralSection";
 
 import { cn } from "@/lib/utils";
