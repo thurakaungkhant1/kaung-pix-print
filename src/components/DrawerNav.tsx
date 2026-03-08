@@ -185,9 +185,8 @@ const DrawerNav = () => {
             <span className="text-primary">Computer</span>
           </h1>
 
-          <div className="ml-auto flex items-center gap-2">
-            <ThemeToggle />
-          </div>
+          <div className="ml-auto" />
+
         </div>
       </header>
     </>
