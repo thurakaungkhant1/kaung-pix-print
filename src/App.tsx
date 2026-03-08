@@ -107,7 +107,7 @@ const App = () => {
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <AppLayout><Home /></AppLayout>
+                      <Home />
                     </ProtectedRoute>
                   }
                 />
