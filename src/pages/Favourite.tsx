@@ -167,7 +167,7 @@ const Favourite = () => {
               ) : products.length === 0 ? (
                 <EmptyState type="products" />
               ) : (
-                <div className="grid grid-cols-2 gap-4 stagger-children">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 stagger-children">
                   {products.map((product, index) => (
                     <Card
                       key={product.id}
@@ -217,7 +217,7 @@ const Favourite = () => {
               ) : photos.length === 0 ? (
                 <EmptyState type="photos" />
               ) : (
-                <div className="grid grid-cols-2 gap-4 stagger-children">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 stagger-children">
                   {photos.map((photo, index) => (
                     <Card
                       key={photo.id}
