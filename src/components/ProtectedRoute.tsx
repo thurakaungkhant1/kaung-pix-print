@@ -2,6 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import DrawerNav from "@/components/DrawerNav";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -14,7 +15,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   useEffect(() => {
     if (!loading && !user) {
-      // Encode the current path as redirectTo parameter
       const redirectTo = encodeURIComponent(location.pathname + location.search);
       navigate(`/auth/login?redirectTo=${redirectTo}`);
     }
@@ -28,7 +28,12 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  return user ? <>{children}</> : null;
+  return user ? (
+    <>
+      <DrawerNav />
+      {children}
+    </>
+  ) : null;
 };
 
 export default ProtectedRoute;

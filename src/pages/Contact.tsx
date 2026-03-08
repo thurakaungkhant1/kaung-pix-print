@@ -2,7 +2,6 @@ import { ArrowLeft, Phone, Mail, MapPin, Send, MessageCircle, Clock, Headphones,
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import BottomNav from "@/components/BottomNav";
 import MobileLayout from "@/components/MobileLayout";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -244,7 +243,7 @@ const Contact = () => {
           </p>
         </div>
       </div>
-      <BottomNav />
+      
     </MobileLayout>
   );
 };

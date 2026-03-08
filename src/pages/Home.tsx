@@ -19,14 +19,12 @@ import {
   Flame
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
-import ThemeToggle from "@/components/ThemeToggle";
 import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
 import AdBanner from "@/components/AdBanner";
 
@@ -271,28 +269,6 @@ const Home = () => {
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       
       <MobileLayout className="max-w-screen-xl mx-auto">
-        {/* Simple Header with Brand Name */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 py-8">
-          {/* Subtle pattern */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-5 right-10 w-32 h-32 bg-primary/10 rounded-full blur-[60px]" />
-            <div className="absolute bottom-5 left-10 w-24 h-24 bg-accent/10 rounded-full blur-[40px]" />
-          </div>
-          
-          {/* Theme Toggle in top right */}
-          <div className="absolute top-4 right-4 z-20">
-            <ThemeToggle variant="hero" />
-          </div>
-          
-          {/* Brand Name Only */}
-          <div className="relative z-10 text-center px-6">
-            <h1 className="text-3xl sm:text-4xl font-display font-black text-foreground">
-              <span>Kaung </span>
-              <span className="text-primary">Computer</span>
-            </h1>
-          </div>
-        </section>
-
         {/* Wallet Display */}
         {user && (
           <section className="px-6 pt-6">
@@ -639,7 +615,7 @@ const Home = () => {
           </p>
         </div>
 
-        <BottomNav />
+        
       </MobileLayout>
     </>
   );

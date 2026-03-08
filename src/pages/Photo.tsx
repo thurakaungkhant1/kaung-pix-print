@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Heart, FileArchive, Search, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 import { Input } from "@/components/ui/input";
 import { addWatermark } from "@/lib/watermarkUtils";
@@ -180,7 +179,8 @@ const Photo = () => {
             ))}
           </div>
         </div>
-        <BottomNav />
+
+
       </MobileLayout>
     );
   }
@@ -341,7 +341,7 @@ const Photo = () => {
         />
       )}
 
-      <BottomNav />
+      
     </MobileLayout>
   );
 };

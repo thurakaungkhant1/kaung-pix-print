@@ -11,6 +11,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import LoadingScreen from "@/components/LoadingScreen";
 
+
 // Lazy load pages for code splitting
 const Home = lazy(() => import("./pages/Home"));
 const Photo = lazy(() => import("./pages/Photo"));

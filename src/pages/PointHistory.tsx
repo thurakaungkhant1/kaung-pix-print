@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, History, ShoppingBag, Wallet, Sparkles, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
-import BottomNav from "@/components/BottomNav";
+
 
 interface Transaction {
   id: string;
@@ -197,7 +197,7 @@ const PointHistory = () => {
         </Card>
       </div>
 
-      <BottomNav />
+      
     </div>
   );
 };

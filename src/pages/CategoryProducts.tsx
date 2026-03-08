@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Heart, ArrowLeft, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import BottomNav from "@/components/BottomNav";
 import CartHeader from "@/components/CartHeader";
 
 interface Product {
@@ -102,7 +101,8 @@ const CategoryProducts = () => {
             ))}
           </div>
         </div>
-        <BottomNav />
+
+
       </div>
     );
   }
@@ -166,7 +166,7 @@ const CategoryProducts = () => {
         )}
       </div>
 
-      <BottomNav />
+      
     </div>
   );
 };

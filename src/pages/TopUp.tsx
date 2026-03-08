@@ -28,7 +28,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import MobileLayout from "@/components/MobileLayout";
-import BottomNav from "@/components/BottomNav";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -247,7 +246,8 @@ const TopUp = () => {
             </CardContent>
           </Card>
         </div>
-        <BottomNav />
+
+
       </MobileLayout>
     );
   }
@@ -691,7 +691,7 @@ const TopUp = () => {
           )}
         </div>
       </div>
-      <BottomNav />
+      
     </MobileLayout>
   );
 };
