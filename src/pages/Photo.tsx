@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Heart, FileArchive, Search, Camera } from "lucide-react";
+import { Heart, FileArchive, Search, Camera, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import CartHeader from "@/components/CartHeader";
@@ -14,7 +13,7 @@ import { SkeletonCard } from "@/components/ui/skeleton-card";
 import MusicPlayer from "@/components/MusicPlayer";
 import AdBanner from "@/components/AdBanner";
 import AnimatedPage from "@/components/animations/AnimatedPage";
-import AnimatedSection from "@/components/animations/AnimatedSection";
+import { motion } from "framer-motion";
 
 interface Photo {
   id: number;
@@ -53,10 +52,7 @@ const Photo = () => {
       .order("display_order", { ascending: true })
       .limit(1)
       .single();
-
-    if (data?.file_url) {
-      setBackgroundMusic(data.file_url);
-    }
+    if (data?.file_url) setBackgroundMusic(data.file_url);
   };
 
   useEffect(() => {
@@ -77,13 +73,9 @@ const Photo = () => {
       .from("photos")
       .select("*")
       .order("created_at", { ascending: false });
-
     if (!error && data) {
       setPhotos(data);
-      
-      const uniqueCategories = Array.from(
-        new Set(data.map((photo) => photo.category || "General"))
-      );
+      const uniqueCategories = Array.from(new Set(data.map((p) => p.category || "General")));
       setCategories(["All", ...uniqueCategories.sort()]);
     }
     setLoading(false);
@@ -91,134 +83,95 @@ const Photo = () => {
 
   const loadFavourites = async () => {
     if (!user) return;
-
-    const { data } = await supabase
-      .from("favourite_photos")
-      .select("photo_id")
-      .eq("user_id", user.id);
-
-    if (data) {
-      setFavourites(new Set(data.map((f) => f.photo_id)));
-    }
+    const { data } = await supabase.from("favourite_photos").select("photo_id").eq("user_id", user.id);
+    if (data) setFavourites(new Set(data.map((f) => f.photo_id)));
   };
 
   const toggleFavourite = async (photoId: number) => {
     if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to add favourites",
-        variant: "destructive",
-      });
+      toast({ title: "Login required", description: "Please login to add favourites", variant: "destructive" });
       return;
     }
-
-    const isFav = favourites.has(photoId);
-
-    if (isFav) {
-      await supabase
-        .from("favourite_photos")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("photo_id", photoId);
-
-      setFavourites((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(photoId);
-        return newSet;
-      });
+    if (favourites.has(photoId)) {
+      await supabase.from("favourite_photos").delete().eq("user_id", user.id).eq("photo_id", photoId);
+      setFavourites((prev) => { const s = new Set(prev); s.delete(photoId); return s; });
     } else {
-      await supabase
-        .from("favourite_photos")
-        .insert({ user_id: user.id, photo_id: photoId });
-
+      await supabase.from("favourite_photos").insert({ user_id: user.id, photo_id: photoId });
       setFavourites((prev) => new Set(prev).add(photoId));
     }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (!bytes || bytes === 0) return "N/A";
-    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
   };
 
   if (loading) {
     return (
       <MobileLayout>
-        {/* Hero Header Skeleton */}
         <header className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-hero" />
-          <div className="absolute inset-0 bg-gradient-glow opacity-60" />
-          
           <div className="relative z-10 p-4 pt-6 pb-5">
             <div className="flex items-center justify-between mb-5">
               <div className="w-10" />
-              <div className="h-8 w-24 bg-primary-foreground/20 rounded animate-shimmer" />
+              <div className="h-8 w-24 bg-primary-foreground/20 rounded animate-pulse" />
               <div className="w-10" />
             </div>
-            <div className="h-12 bg-primary-foreground/10 rounded-2xl animate-shimmer" />
+            <div className="h-12 bg-primary-foreground/10 rounded-2xl animate-pulse" />
           </div>
         </header>
-
         <div className="max-w-screen-xl mx-auto p-4 space-y-5">
-          {/* Category skeleton */}
           <div className="flex gap-2 overflow-hidden">
             {[...Array(4)].map((_, i) => (
-              <div 
-                key={i}
-                className="h-10 px-8 bg-muted rounded-xl animate-shimmer"
-                style={{ animationDelay: `${i * 50}ms` }}
-              />
+              <div key={i} className="h-10 px-8 bg-muted rounded-xl animate-pulse" />
             ))}
           </div>
-          
-          {/* Photo grid skeleton */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {[...Array(9)].map((_, i) => (
-              <SkeletonCard 
-                key={i} 
-                variant="photo"
-                style={{ animationDelay: `${i * 50}ms` } as React.CSSProperties}
-              />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {[...Array(6)].map((_, i) => (
+              <SkeletonCard key={i} variant="photo" />
             ))}
           </div>
         </div>
-
-
       </MobileLayout>
     );
   }
 
-  const filteredPhotos = photos
-    .filter((photo) => {
-      const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
-      const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
+  const filteredPhotos = photos.filter((photo) => {
+    const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
+    const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <AnimatedPage>
-    <MobileLayout>
-      {/* Hero Header */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
-        
-        <div className="relative z-10 p-4 pt-6 pb-5">
-          {/* Top row */}
-          <div className="flex items-center justify-between mb-5">
-            <div className="w-10" /> {/* Spacer */}
-            
-            <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
-              Photos
-            </h1>
-            
-            <CartHeader />
-          </div>
-          
-          {/* Search bar */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-primary-foreground/10 rounded-2xl blur group-focus-within:blur-lg transition-all duration-300" />
-            <div className="relative flex items-center">
-              <Search className="absolute left-4 h-5 w-5 text-primary-foreground/50 transition-colors group-focus-within:text-primary-foreground/80" />
+      <MobileLayout>
+        {/* Hero Header */}
+        <header className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-hero" />
+          <div className="absolute inset-0 bg-gradient-glow opacity-60" />
+          {/* Decorative circles */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary-foreground/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary-foreground/5 rounded-full blur-2xl" />
+
+          <div className="relative z-10 p-4 pt-6 pb-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="w-10" />
+              <motion.div
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="flex items-center gap-2"
+              >
+                <Camera className="h-5 w-5 text-primary-foreground/80" />
+                <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
+                  Gallery
+                </h1>
+              </motion.div>
+              <CartHeader />
+            </div>
+
+            {/* Search */}
+            <motion.div
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="relative"
+            >
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-primary-foreground/50 z-10" />
               <Input
                 type="text"
                 placeholder="Search by client name..."
@@ -232,122 +185,155 @@ const Photo = () => {
                   "transition-all duration-300"
                 )}
               />
-            </div>
+            </motion.div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Top Ad Banner */}
-      <AdBanner pageLocation="photo" position="top" className="px-4 pt-4" />
+        <AdBanner pageLocation="photo" position="top" className="px-4 pt-4" />
 
-      <AnimatedSection>
-      <div className="max-w-screen-xl mx-auto p-4 space-y-5">
-        {/* Category Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-          {categories.map((category, index) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={cn(
-                "px-4 py-2.5 rounded-xl whitespace-nowrap font-medium text-sm btn-press",
-                "transition-all duration-300",
-                "animate-fade-in",
-                selectedCategory === category
-                  ? "bg-primary text-primary-foreground shadow-glow"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-              )}
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
-        {filteredPhotos.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <div className="relative inline-block mb-6">
-              <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse-soft" />
-              <Camera className="relative h-20 w-20 text-muted-foreground" />
-            </div>
-            <p className="text-lg text-muted-foreground font-medium">
-              {selectedCategory === "All"
-                ? "No photos available yet"
-                : `No photos in ${selectedCategory} category`}
-            </p>
-            <p className="text-sm text-muted-foreground/70 mt-1">Check back soon for new uploads</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {filteredPhotos.map((photo, index) => (
-              <Card
-                key={photo.id}
-                className="cursor-pointer animate-scale-in overflow-hidden hover-lift card-shine group rounded-xl border-border/50 hover:border-primary/30 transition-all"
-                style={{ animationDelay: `${index * 50}ms` }}
-                onClick={() => navigate(`/photo/${photo.id}`)}
+        <div className="max-w-screen-xl mx-auto p-4 space-y-5">
+          {/* Category Pills */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+          >
+            {categories.map((category, index) => (
+              <motion.button
+                key={category}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 + index * 0.04 }}
+                onClick={() => setSelectedCategory(category)}
+                className={cn(
+                  "px-4 py-2.5 rounded-xl whitespace-nowrap font-medium text-sm",
+                  "transition-all duration-300 active:scale-95",
+                  selectedCategory === category
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                )}
               >
-                <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden rounded-t-xl">
-                  {photo.preview_image ? (
-                    <img
-                      src={watermarkedImages.get(photo.id) || photo.preview_image}
-                      alt={photo.client_name}
-                      loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                  ) : (
-                    <FileArchive className="h-12 w-12 text-muted-foreground" />
-                  )}
-                  
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  {/* Favourite button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavourite(photo.id);
-                    }}
-                    className={cn(
-                      "absolute top-2 right-2 p-2 rounded-full btn-press",
-                      "backdrop-blur-sm border-0 transition-all duration-300",
-                      "hover:scale-110",
-                      favourites.has(photo.id) 
-                        ? "bg-red-500 text-white shadow-lg shadow-red-500/30" 
-                        : "bg-background/70 text-muted-foreground hover:bg-background/90"
-                    )}
-                  >
-                    <Heart
-                      className={cn(
-                        "h-3.5 w-3.5 transition-all duration-300 icon-bounce",
-                        favourites.has(photo.id) && "fill-current text-white"
-                      )}
-                    />
-                  </button>
-                </div>
-                
-                <CardContent className="p-2.5 space-y-1">
-                  <span className="inline-block px-2 py-0.5 text-[10px] font-medium rounded-full bg-primary/10 text-primary">
-                    {photo.category || "General"}
-                  </span>
-                  <h3 className="font-medium text-xs truncate group-hover:text-primary transition-colors">{photo.client_name}</h3>
-                </CardContent>
-              </Card>
+                {category}
+              </motion.button>
             ))}
-          </div>
+          </motion.div>
+
+          {/* Results Count */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex items-center justify-between"
+          >
+            <p className="text-xs text-muted-foreground font-medium">
+              {filteredPhotos.length} photo{filteredPhotos.length !== 1 ? "s" : ""} found
+            </p>
+            {selectedCategory !== "All" && (
+              <button
+                onClick={() => setSelectedCategory("All")}
+                className="text-xs text-primary font-medium hover:underline"
+              >
+                Clear filter
+              </button>
+            )}
+          </motion.div>
+
+          {/* Content */}
+          {filteredPhotos.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-20"
+            >
+              <div className="relative inline-flex items-center justify-center w-24 h-24 mb-5">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl animate-pulse" />
+                <Camera className="relative h-12 w-12 text-muted-foreground/50" />
+              </div>
+              <p className="text-lg text-foreground font-semibold mb-1">No photos found</p>
+              <p className="text-sm text-muted-foreground">
+                {selectedCategory === "All"
+                  ? "Check back soon for new uploads"
+                  : `No photos in "${selectedCategory}" category`}
+              </p>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {filteredPhotos.map((photo, index) => (
+                <motion.div
+                  key={photo.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 * Math.min(index, 12), duration: 0.4 }}
+                  onClick={() => navigate(`/photo/${photo.id}`)}
+                  className="group cursor-pointer"
+                >
+                  <div className="relative rounded-2xl overflow-hidden bg-card border border-border/50 hover:border-primary/30 shadow-sm hover:shadow-md transition-all duration-300">
+                    {/* Image */}
+                    <div className="relative aspect-[3/4] bg-muted overflow-hidden">
+                      {photo.preview_image ? (
+                        <img
+                          src={watermarkedImages.get(photo.id) || photo.preview_image}
+                          alt={photo.client_name}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <FileArchive className="h-10 w-10 text-muted-foreground/30" />
+                        </div>
+                      )}
+
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                      {/* Favourite button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavourite(photo.id);
+                        }}
+                        className={cn(
+                          "absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center",
+                          "backdrop-blur-md transition-all duration-300 active:scale-90",
+                          favourites.has(photo.id)
+                            ? "bg-destructive text-destructive-foreground shadow-lg"
+                            : "bg-background/60 text-foreground/70 hover:bg-background/80"
+                        )}
+                      >
+                        <Heart
+                          className={cn(
+                            "h-3.5 w-3.5 transition-all",
+                            favourites.has(photo.id) && "fill-current"
+                          )}
+                        />
+                      </button>
+
+                      {/* Category badge */}
+                      <div className="absolute bottom-2.5 left-2.5">
+                        <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-background/70 backdrop-blur-md text-foreground/80">
+                          {photo.category || "General"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="p-3">
+                      <h3 className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+                        {photo.client_name}
+                      </h3>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {backgroundMusic && (
+          <MusicPlayer audioSrc={backgroundMusic} className="bottom-24 right-4" autoPlay={true} />
         )}
-      </div>
-      </AnimatedSection>
-
-      {/* Floating Music Player - Only show if music is available, auto-play on page load */}
-      {backgroundMusic && (
-        <MusicPlayer 
-          audioSrc={backgroundMusic} 
-          className="bottom-24 right-4"
-          autoPlay={true}
-        />
-      )}
-
-      
-    </MobileLayout>
+      </MobileLayout>
     </AnimatedPage>
   );
 };
