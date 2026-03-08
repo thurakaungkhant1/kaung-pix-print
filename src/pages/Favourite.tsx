@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, FileArchive, ShoppingBag, ImageIcon, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import CartHeader from "@/components/CartHeader";
-import CartHeader from "@/components/CartHeader";
 import { Button } from "@/components/ui/button";
 import MobileLayout from "@/components/MobileLayout";
 import { SkeletonGrid } from "@/components/ui/skeleton-card";
