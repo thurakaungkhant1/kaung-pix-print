@@ -98,7 +98,6 @@ const Home = () => {
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
-  const navigate = useNavigate();
 
   // Auto-scroll banners with progress bar (pauses on hover/touch)
   useEffect(() => {
