@@ -169,8 +169,7 @@ const DrawerNav = () => {
               </nav>
 
               {/* Drawer Footer */}
-              <div className="p-4 border-t border-border/50 flex items-center justify-between">
-                <ThemeToggle />
+              <div className="p-4 border-t border-border/50 flex items-center justify-end">
                 <p className="text-xs text-muted-foreground/50">v1.0</p>
               </div>
             </SheetContent>
