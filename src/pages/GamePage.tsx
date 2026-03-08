@@ -326,7 +326,7 @@ const GamePage = () => {
       <MobileLayout>
         <div className="min-h-screen bg-background pb-24">
           <div className="max-w-screen-xl mx-auto p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {[...Array(6)].map((_, i) => (
                 <div 
                   key={i} 
@@ -452,7 +452,7 @@ const GamePage = () => {
                 <p className="text-sm text-muted-foreground/70 mt-1">Check back soon</p>
               </div>
             ) : (
-              <div key={selectedGameCategory} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div key={selectedGameCategory} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {filteredProducts.map((product, index) => (
                   <Card
                     key={product.id}
@@ -602,7 +602,7 @@ const GamePage = () => {
             ) : (
               <div 
                 key={selectedMobileService || 'all'} 
-                className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-fade-in"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 animate-fade-in"
               >
                 {filteredProducts.map((product, index) => (
                   <Card

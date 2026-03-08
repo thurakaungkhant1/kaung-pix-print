@@ -270,7 +270,7 @@ const Home = () => {
       {/* Onboarding Flow for new users */}
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       
-      <MobileLayout>
+      <MobileLayout className="max-w-screen-xl mx-auto">
         {/* Simple Header with Brand Name */}
         <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 py-8">
           {/* Subtle pattern */}
@@ -485,13 +485,13 @@ const Home = () => {
           </div>
           
           {loading ? (
-            <div className="grid grid-cols-3 gap-3 px-6">
+             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 px-6">
               {[...Array(6)].map((_, i) => (
                 <SkeletonCard key={i} variant="photo" style={{ animationDelay: `${i * 50}ms` }} />
               ))}
             </div>
           ) : photos.length > 0 ? (
-            <div className="grid grid-cols-3 gap-3 px-6">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 px-6">
               {photos.map((photo, index) => (
                 <Card 
                   key={photo.id}
@@ -610,7 +610,7 @@ const Home = () => {
 
         {/* Stats Section */}
         <section className="p-6 pb-28">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
             {[
               { value: "10K+", label: "Happy Users", icon: Users },
               { value: "50K+", label: "Orders", icon: ShoppingBag },

@@ -170,7 +170,7 @@ const Photo = () => {
           </div>
           
           {/* Photo grid skeleton */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {[...Array(9)].map((_, i) => (
               <SkeletonCard 
                 key={i} 
@@ -273,7 +273,7 @@ const Photo = () => {
             <p className="text-sm text-muted-foreground/70 mt-1">Check back soon for new uploads</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {filteredPhotos.map((photo, index) => (
               <Card
                 key={photo.id}
