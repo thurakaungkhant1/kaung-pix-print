@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import BottomNav from "@/components/BottomNav";
+import PointsDisplay from "@/components/PointsDisplay";
 import PointsDisplay from "@/components/PointsDisplay";
 import CheckoutDialog from "@/components/CheckoutDialog";
 import MobileLayout from "@/components/MobileLayout";
@@ -132,7 +132,8 @@ const Cart = () => {
               <p className="text-muted-foreground font-medium animate-pulse">Loading your cart...</p>
             </div>
           </div>
-          <BottomNav />
+
+
         </div>
       </MobileLayout>
     );
@@ -314,7 +315,7 @@ const Cart = () => {
         )}
       </div>
 
-      <BottomNav />
+      
 
       {cartItems.length > 0 && (
         <CheckoutDialog

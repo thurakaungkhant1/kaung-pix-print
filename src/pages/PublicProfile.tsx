@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Coins, Calendar, Trophy, Users, Download, Loader2, Flag } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import VerificationBadge, { VERIFICATION_THRESHOLD } from "@/components/VerificationBadge";
-import BottomNav from "@/components/BottomNav";
+import { cn } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -364,7 +364,7 @@ const PublicProfile = () => {
         reportType="account"
       />
 
-      <BottomNav />
+      
     </div>
   );
 };

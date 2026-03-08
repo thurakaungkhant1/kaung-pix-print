@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ArrowLeft, ShoppingCart, Package, Loader2, Filter } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
-import BottomNav from "@/components/BottomNav";
+import CartHeader from "@/components/CartHeader";
 import CartHeader from "@/components/CartHeader";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
@@ -132,7 +132,8 @@ const PhysicalProducts = () => {
           <SkeletonGrid count={6} columns={2} variant="product" />
         </div>
 
-        <BottomNav />
+
+
       </MobileLayout>
     );
   }
@@ -271,7 +272,7 @@ const PhysicalProducts = () => {
         )}
       </div>
 
-      <BottomNav />
+      
     </MobileLayout>
   );
 };

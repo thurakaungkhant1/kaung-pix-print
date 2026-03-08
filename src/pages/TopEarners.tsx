@@ -6,7 +6,7 @@ import { ArrowLeft, Trophy, Medal, Award, Coins, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getRelativeTimeString } from "@/lib/timeUtils";
 import VerificationBadge from "@/components/VerificationBadge";
-import BottomNav from "@/components/BottomNav";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface LeaderboardUser {
@@ -131,7 +131,7 @@ const TopEarners = () => {
         </Card>
       </div>
 
-      <BottomNav />
+      
     </div>
   );
 };

@@ -27,7 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import BottomNav from "@/components/BottomNav";
+import SpinnerWheel from "@/components/SpinnerWheel";
 import SpinnerWheel from "@/components/SpinnerWheel";
 import ReferralSection from "@/components/ReferralSection";
 
@@ -1048,7 +1048,7 @@ const Account = () => {
       {/* Premium Features Dialog */}
       <PremiumFeaturesDialog open={premiumDialogOpen} onOpenChange={setPremiumDialogOpen} />
 
-      <BottomNav />
+      
     </MobileLayout>
   );
 };

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Lock, Coins, CheckCircle, Gift, Sparkles, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import BottomNav from "@/components/BottomNav";
+import PointsDisplay from "@/components/PointsDisplay";
 import PointsDisplay from "@/components/PointsDisplay";
 import MobileLayout from "@/components/MobileLayout";
 
@@ -412,7 +412,7 @@ const Exchange = () => {
         </div>
       </div>
 
-      <BottomNav />
+      
       </div>
     </MobileLayout>
   );
