@@ -87,8 +87,16 @@ const PhotoDetail = () => {
 
   const handleDownload = () => {
     if (!photo?.file_url) return;
-    window.open(photo.file_url, '_blank');
-    toast({ title: "Download started", description: "Your download will begin in your browser" });
+    const width = 900;
+    const height = 600;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+    window.open(
+      photo.file_url,
+      'download_popup',
+      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=yes,status=no,scrollbars=yes,resizable=yes`
+    );
+    toast({ title: "Download opened", description: "Download window has been opened" });
   };
 
   const handleShare = () => {
