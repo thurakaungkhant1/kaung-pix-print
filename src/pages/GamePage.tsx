@@ -19,6 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileLayout from "@/components/MobileLayout";
+import AnimatedPage from "@/components/animations/AnimatedPage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -345,6 +346,7 @@ const GamePage = () => {
   const filteredProducts = getFilteredProducts();
 
   return (
+    <AnimatedPage>
     <MobileLayout>
       {/* Hero Header - Gaming Neon Style */}
       <header className="hero-gaming relative overflow-hidden">
@@ -797,6 +799,7 @@ const GamePage = () => {
 
       
     </MobileLayout>
+    </AnimatedPage>
   );
 };
 

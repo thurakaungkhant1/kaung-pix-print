@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
+import { motion } from "framer-motion";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -99,10 +100,16 @@ const Login = () => {
         <Sparkles className="h-4 w-4 animate-pulse" style={{ animationDelay: '0.5s' }} />
       </div>
       
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="w-full max-w-md relative z-10"
+      >
       <Card className={cn(
-        "w-full max-w-md relative z-10",
+        "w-full",
         "border-border/30 shadow-2xl backdrop-blur-sm bg-card/95",
-        "animate-fade-in hover-lift"
+        "hover-lift"
       )}>
         {/* Card shine effect */}
         <div className="card-shine" />
@@ -235,6 +242,7 @@ const Login = () => {
           </CardFooter>
         </form>
       </Card>
+      </motion.div>
     </MobileLayout>
   );
 };

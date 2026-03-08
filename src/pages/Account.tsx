@@ -36,6 +36,7 @@ import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import PremiumFeaturesDialog from "@/components/PremiumFeaturesDialog";
 import PremiumBadge from "@/components/PremiumBadge";
 import MobileLayout from "@/components/MobileLayout";
+import AnimatedPage from "@/components/animations/AnimatedPage";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
   AlertDialog,
@@ -552,6 +553,7 @@ const Account = () => {
   );
 
   return (
+    <AnimatedPage>
     <MobileLayout className="pb-24">
       {/* Profile Header - Premium & Animated */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary/15 via-background to-accent/10">
@@ -1049,6 +1051,7 @@ const Account = () => {
 
       
     </MobileLayout>
+    </AnimatedPage>
   );
 };
 
