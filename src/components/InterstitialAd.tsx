@@ -18,13 +18,12 @@ const InterstitialAd = () => {
   const [settings, setSettings] = useState({ frequency: 3, cooldown: 60 });
   const location = useLocation();
 
-  // Load settings from database
   useEffect(() => {
     const loadSettings = async () => {
       const { data } = await supabase
         .from("ad_settings")
         .select("setting_key, setting_value");
-      
+
       if (data) {
         const settingsObj: Record<string, string> = {};
         data.forEach((s) => {
@@ -36,11 +35,9 @@ const InterstitialAd = () => {
         });
       }
     };
-
     loadSettings();
   }, []);
 
-  // Track page navigations
   useEffect(() => {
     const navigationCount = parseInt(sessionStorage.getItem("nav_count") || "0") + 1;
     sessionStorage.setItem("nav_count", navigationCount.toString());
@@ -49,7 +46,6 @@ const InterstitialAd = () => {
     const now = Date.now();
     const cooldownPassed = (now - lastAdTime) / 1000 >= settings.cooldown;
 
-    // Show ad every N navigations if cooldown passed
     if (navigationCount % settings.frequency === 0 && cooldownPassed && adData) {
       setIsVisible(true);
       setCountdown(5);
@@ -58,10 +54,8 @@ const InterstitialAd = () => {
     }
   }, [location.pathname, settings.frequency, settings.cooldown, adData]);
 
-  // Countdown timer
   useEffect(() => {
     if (!isVisible) return;
-
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -72,11 +66,9 @@ const InterstitialAd = () => {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [isVisible]);
 
-  // Load interstitial ad configuration
   useEffect(() => {
     const loadInterstitialAd = async () => {
       const { data } = await supabase
@@ -91,7 +83,6 @@ const InterstitialAd = () => {
         setAdData(data);
       }
     };
-
     loadInterstitialAd();
   }, []);
 
@@ -101,23 +92,18 @@ const InterstitialAd = () => {
     }
   }, [canClose]);
 
-  // Execute ad script when visible
   useEffect(() => {
     if (!isVisible || !adData) return;
 
     const container = document.getElementById("interstitial-ad-content");
     if (!container) return;
-
-    // Clear previous content
     container.innerHTML = "";
 
     if (adData.script_code) {
-      // Custom script code
       const scriptContainer = document.createElement("div");
       scriptContainer.innerHTML = adData.script_code;
       container.appendChild(scriptContainer);
 
-      // Execute any scripts
       const scripts = scriptContainer.getElementsByTagName("script");
       Array.from(scripts).forEach((script) => {
         const newScript = document.createElement("script");
@@ -129,11 +115,21 @@ const InterstitialAd = () => {
         document.head.appendChild(newScript);
       });
     } else if (adData.zone_id) {
-      // PropellerAds zone
-      const script = document.createElement("script");
-      script.src = `//pl25847210.cpmrevenuegate.com/${adData.zone_id}.js`;
-      script.async = true;
-      document.head.appendChild(script);
+      // Google AdSense interstitial
+      const ins = document.createElement("ins");
+      ins.className = "adsbygoogle";
+      ins.style.display = "block";
+      ins.setAttribute("data-ad-client", adData.zone_id.split("/")[0] || "");
+      ins.setAttribute("data-ad-slot", adData.zone_id.split("/")[1] || adData.zone_id);
+      ins.setAttribute("data-ad-format", "auto");
+      ins.setAttribute("data-full-width-responsive", "true");
+      container.appendChild(ins);
+
+      try {
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+      } catch (e) {
+        console.log("AdSense interstitial push error:", e);
+      }
     }
   }, [isVisible, adData]);
 
@@ -141,7 +137,6 @@ const InterstitialAd = () => {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center animate-fade-in">
-      {/* Close button */}
       <button
         onClick={handleClose}
         disabled={!canClose}
@@ -162,7 +157,6 @@ const InterstitialAd = () => {
         )}
       </button>
 
-      {/* Ad content */}
       <div className="w-full max-w-lg mx-4">
         <div
           id="interstitial-ad-content"
