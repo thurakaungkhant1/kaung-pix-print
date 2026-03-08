@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Home, Image, Heart, User, Settings, Gamepad2, Wallet } from "lucide-react";
+import { motion } from "framer-motion";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,22 +54,33 @@ const BottomNav = () => {
                 "relative flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-2xl",
                 "text-muted-foreground transition-all duration-300 ease-smooth",
                 "hover:text-primary hover:bg-primary/5",
-                "active:scale-95"
               )}
               activeClassName="text-primary bg-primary/10"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {({ isActive }) => (
-                <div className="relative flex flex-col items-center gap-1">
+                <motion.div 
+                  className="relative flex flex-col items-center gap-1"
+                  whileTap={{ scale: 0.85 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
                   {/* Active indicator dot */}
                   {isActive && (
-                    <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full animate-scale-in" />
+                    <motion.span 
+                      className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"
+                      layoutId="nav-indicator"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
                   )}
                   
-                  <div className={cn(
-                    "relative p-2 rounded-xl transition-all duration-300",
-                    isActive && "bg-primary/15"
-                  )}>
+                  <motion.div 
+                    className={cn(
+                      "relative p-2 rounded-xl transition-colors duration-300",
+                      isActive && "bg-primary/15"
+                    )}
+                    animate={isActive ? { scale: 1.1 } : { scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
                     <item.icon className={cn(
                       "h-5 w-5 transition-all duration-300",
                       isActive ? "stroke-[2.5] text-primary" : "stroke-[1.5]"
@@ -76,9 +88,14 @@ const BottomNav = () => {
                     
                     {/* Glow effect */}
                     {isActive && (
-                      <div className="absolute inset-0 rounded-xl bg-primary/20 blur-lg animate-pulse-soft" />
+                      <motion.div 
+                        className="absolute inset-0 rounded-xl bg-primary/20 blur-lg"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      />
                     )}
-                  </div>
+                  </motion.div>
                   
                   <span className={cn(
                     "text-[10px] font-medium transition-all duration-300",
@@ -86,7 +103,7 @@ const BottomNav = () => {
                   )}>
                     {item.label}
                   </span>
-                </div>
+                </motion.div>
               )}
             </NavLink>
           ))}

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import PointsDisplay from "@/components/PointsDisplay";
 import CheckoutDialog from "@/components/CheckoutDialog";
 import MobileLayout from "@/components/MobileLayout";
+import AnimatedPage from "@/components/animations/AnimatedPage";
 
 interface CartItem {
   id: string;
@@ -139,6 +140,7 @@ const Cart = () => {
   }
 
   return (
+    <AnimatedPage>
     <MobileLayout>
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-4">
@@ -326,6 +328,7 @@ const Cart = () => {
         />
       )}
     </MobileLayout>
+    </AnimatedPage>
   );
 };
 

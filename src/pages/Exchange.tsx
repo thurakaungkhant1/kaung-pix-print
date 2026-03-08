@@ -9,6 +9,8 @@ import { ArrowLeft, Lock, Coins, CheckCircle, Gift, Sparkles, TrendingUp } from 
 import { useToast } from "@/hooks/use-toast";
 import PointsDisplay from "@/components/PointsDisplay";
 import MobileLayout from "@/components/MobileLayout";
+import AnimatedPage from "@/components/animations/AnimatedPage";
+import AnimatedSection from "@/components/animations/AnimatedSection";
 
 interface WithdrawalItem {
   id: number;
@@ -223,6 +225,7 @@ const Exchange = () => {
   }
 
   return (
+    <AnimatedPage>
     <MobileLayout>
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-20">
       {/* Hero Header */}
@@ -414,6 +417,7 @@ const Exchange = () => {
       
       </div>
     </MobileLayout>
+    </AnimatedPage>
   );
 };
 

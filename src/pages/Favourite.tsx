@@ -9,6 +9,7 @@ import CartHeader from "@/components/CartHeader";
 import { Button } from "@/components/ui/button";
 import MobileLayout from "@/components/MobileLayout";
 import { SkeletonGrid } from "@/components/ui/skeleton-card";
+import AnimatedPage from "@/components/animations/AnimatedPage";
 
 interface Product {
   id: number;
@@ -100,6 +101,7 @@ const Favourite = () => {
   );
 
   return (
+    <AnimatedPage>
     <MobileLayout>
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30 pb-8">
         {/* Enhanced Header */}
@@ -272,6 +274,7 @@ const Favourite = () => {
         
       </div>
     </MobileLayout>
+    </AnimatedPage>
   );
 };
 
