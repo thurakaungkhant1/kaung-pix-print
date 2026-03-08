@@ -237,6 +237,7 @@ const PhotoDetail = () => {
         />
       </div>
     </div>
+    </AnimatedPage>
   );
 };
 

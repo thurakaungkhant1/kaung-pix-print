@@ -547,6 +547,7 @@ const ProductDetail = () => {
         </AlertDialog>
       </div>
     </div>
+    </AnimatedPage>
   );
 };
 
