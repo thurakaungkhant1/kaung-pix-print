@@ -96,7 +96,11 @@ const PhotoDetail = () => {
       'download_popup',
       `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=yes,status=no,scrollbars=yes,resizable=yes`
     );
-    toast({ title: "Download opened", description: "Download window has been opened" });
+    toast({
+      title: "Download opened",
+      description: "Link မဖွင့်နိုင်ပါက VPN ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။",
+      duration: 6000,
+    });
   };
 
   const handleShare = () => {
