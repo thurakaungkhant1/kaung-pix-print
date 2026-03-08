@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AnimatedPage from "@/components/animations/AnimatedPage";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -249,6 +250,7 @@ const ProductDetail = () => {
   }
 
   return (
+    <AnimatedPage>
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-8">
       {/* Enhanced Header */}
       <header className="bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground p-4 sticky top-0 z-40 shadow-xl">
@@ -545,6 +547,7 @@ const ProductDetail = () => {
         </AlertDialog>
       </div>
     </div>
+    </AnimatedPage>
   );
 };
 
