@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Heart, User, Settings, Gamepad2, Wallet, Menu, X, Crown, ShoppingBag, Camera, History, ArrowRightLeft, Phone } from "lucide-react";
+import { Home, Heart, User, Settings, Gamepad2, Wallet, Menu, ShoppingBag, Camera, History, ArrowRightLeft, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import ThemeToggle from "@/components/ThemeToggle";
+
 
 const DrawerNav = () => {
   const { user } = useAuth();
@@ -169,8 +169,7 @@ const DrawerNav = () => {
               </nav>
 
               {/* Drawer Footer */}
-              <div className="p-4 border-t border-border/50 flex items-center justify-between">
-                <ThemeToggle />
+              <div className="p-4 border-t border-border/50 flex items-center justify-end">
                 <p className="text-xs text-muted-foreground/50">v1.0</p>
               </div>
             </SheetContent>
@@ -185,9 +184,8 @@ const DrawerNav = () => {
             <span className="text-primary">Computer</span>
           </h1>
 
-          <div className="ml-auto flex items-center gap-2">
-            <ThemeToggle />
-          </div>
+
+
         </div>
       </header>
     </>
