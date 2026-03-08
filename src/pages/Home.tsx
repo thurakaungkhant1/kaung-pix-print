@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ShoppingBag, 
+  Crown,
+  Star,
   ChevronRight,
   Sparkles,
   Users,
@@ -20,7 +22,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import OnboardingFlow from "@/components/OnboardingFlow";
-import WalletDisplay from "@/components/WalletDisplay";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
@@ -96,7 +97,7 @@ const Home = () => {
   const touchEndX = useRef<number>(0);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
-  const { isPremium } = useUserPremiumStatus(user?.id);
+  const navigate = useNavigate();
   const navigate = useNavigate();
 
   // Auto-scroll banners with progress bar (pauses on hover/touch)
