@@ -3,7 +3,7 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Heart, Download, ArrowLeft, FileArchive, Calendar, Share2, Eye } from "lucide-react";
+import { Heart, Download, ArrowLeft, FileArchive, Calendar, Share2, Eye, ShieldAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { addWatermark } from "@/lib/watermarkUtils";
