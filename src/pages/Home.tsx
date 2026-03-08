@@ -20,13 +20,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
-import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
 import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
 import AdBanner from "@/components/AdBanner";
 
