@@ -85,7 +85,8 @@ const AdsManage = () => {
   const [formData, setFormData] = useState({
     name: "",
     placement_type: "banner",
-    zone_id: "",
+    ad_client_id: "",
+    ad_slot_id: "",
     script_code: "",
     page_location: "home",
     position: "bottom",
@@ -173,10 +174,15 @@ const AdsManage = () => {
       return;
     }
 
+    // Combine ad_client_id and ad_slot_id into zone_id format
+    const zoneId = formData.ad_client_id && formData.ad_slot_id 
+      ? `${formData.ad_client_id}/${formData.ad_slot_id}` 
+      : formData.ad_client_id || formData.ad_slot_id || null;
+
     const placementData = {
       name: formData.name,
       placement_type: formData.placement_type,
-      zone_id: formData.zone_id || null,
+      zone_id: zoneId,
       script_code: formData.script_code || null,
       page_location: formData.page_location,
       position: formData.position,
@@ -227,10 +233,13 @@ const AdsManage = () => {
 
   const handleEdit = (placement: AdPlacement) => {
     setSelectedPlacement(placement);
+    // Parse zone_id back into client_id and slot_id
+    const parts = placement.zone_id?.split("/") || [];
     setFormData({
       name: placement.name,
       placement_type: placement.placement_type,
-      zone_id: placement.zone_id || "",
+      ad_client_id: parts[0] || "",
+      ad_slot_id: parts[1] || "",
       script_code: placement.script_code || "",
       page_location: placement.page_location,
       position: placement.position,
@@ -285,7 +294,8 @@ const AdsManage = () => {
     setFormData({
       name: "",
       placement_type: "banner",
-      zone_id: "",
+      ad_client_id: "",
+      ad_slot_id: "",
       script_code: "",
       page_location: "home",
       position: "bottom",
@@ -328,7 +338,7 @@ const AdsManage = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-lg font-bold">PropellerAds Management</h1>
+              <h1 className="text-lg font-bold">Google AdSense Management</h1>
               <p className="text-xs text-muted-foreground">Manage ad placements</p>
             </div>
             <Button onClick={openCreateDialog} size="sm" className="gap-2">
@@ -362,16 +372,16 @@ const AdsManage = () => {
                       <Megaphone className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">PropellerAds Integration</h3>
+                      <h3 className="font-semibold text-sm">Google AdSense Integration</h3>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Add your PropellerAds Zone IDs or script codes here. Get your Zone ID from{" "}
+                        Add your Google AdSense Ad Client ID (ca-pub-xxx) and Ad Slot IDs here. Get them from{" "}
                         <a 
-                          href="https://partners.propellerads.com" 
+                          href="https://www.google.com/adsense" 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-primary underline"
                         >
-                          PropellerAds Dashboard
+                          Google AdSense Dashboard
                         </a>
                       </p>
                     </div>
@@ -424,7 +434,7 @@ const AdsManage = () => {
                           </div>
                           {placement.zone_id && (
                             <p className="text-xs text-muted-foreground mt-1 font-mono">
-                              Zone: {placement.zone_id}
+                              {placement.zone_id}
                             </p>
                           )}
                         </div>
@@ -592,12 +602,27 @@ const AdsManage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Zone ID (PropellerAds)</Label>
+              <Label>Ad Client ID</Label>
               <Input
-                value={formData.zone_id}
-                onChange={(e) => setFormData({ ...formData, zone_id: e.target.value })}
-                placeholder="Enter your PropellerAds Zone ID"
+                value={formData.ad_client_id}
+                onChange={(e) => setFormData({ ...formData, ad_client_id: e.target.value })}
+                placeholder="ca-pub-xxxxxxxxxxxxxxxx"
               />
+              <p className="text-xs text-muted-foreground">
+                Your Google AdSense publisher ID (e.g., ca-pub-9040383811157106)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Ad Slot ID</Label>
+              <Input
+                value={formData.ad_slot_id}
+                onChange={(e) => setFormData({ ...formData, ad_slot_id: e.target.value })}
+                placeholder="1234567890"
+              />
+              <p className="text-xs text-muted-foreground">
+                The ad unit slot ID from your AdSense dashboard
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -775,7 +800,7 @@ const AdsManage = () => {
                 </div>
                 {previewPlacement.zone_id && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Zone ID:</span>
+                    <span className="text-muted-foreground">AdSense:</span>
                     <span className="font-mono text-xs">{previewPlacement.zone_id}</span>
                   </div>
                 )}
