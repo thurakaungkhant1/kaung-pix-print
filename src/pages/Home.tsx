@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ShoppingBag, 
-  Crown, 
-  Shield,
-  Star,
   ChevronRight,
   Sparkles,
   Users,
@@ -16,13 +13,14 @@ import {
   Percent,
   Clock,
   ArrowRight,
-  Flame
+  Flame,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import OnboardingFlow from "@/components/OnboardingFlow";
-import { useUserPremiumStatus } from "@/hooks/useUserPremiumStatus";
+import WalletDisplay from "@/components/WalletDisplay";
 import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
