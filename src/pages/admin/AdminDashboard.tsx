@@ -857,22 +857,50 @@ const AdminDashboard = () => {
 
   if (!isAdmin) return null;
 
-  const sidebarItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
-    { id: "users", label: "Users", icon: Users, badge: 0 },
-    { id: "deposits", label: "Deposits", icon: Wallet, badge: 0, route: "/admin/deposits" },
-    { id: "point-management", label: "Point Management", icon: Coins, badge: 0 },
-    { id: "point-history", label: "Point History", icon: History, badge: 0 },
-    { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
-    { id: "diamond-orders", label: "Game Orders", icon: Gamepad2, badge: pendingDiamondOrders },
-    { id: "shop", label: "Shop Management", icon: Package, badge: 0 },
-    { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
-    { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
-    { id: "photos", label: "Photos", icon: Image, badge: 0 },
-    { id: "background-music", label: "Background Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
-    { id: "ads", label: "Ads Management", icon: Megaphone, badge: 0, route: "/admin/ads" },
-    { id: "settings", label: "Settings", icon: Settings, badge: 0 },
+  const sidebarGroups = [
+    {
+      label: "Overview",
+      items: [
+        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: 0 },
+      ]
+    },
+    {
+      label: "Users & Orders",
+      items: [
+        { id: "users", label: "Users", icon: Users, badge: 0 },
+        { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
+        { id: "diamond-orders", label: "Game Orders", icon: Gamepad2, badge: pendingDiamondOrders },
+      ]
+    },
+    {
+      label: "Finance",
+      items: [
+        { id: "deposits", label: "Deposits", icon: Wallet, badge: 0, route: "/admin/deposits" },
+        { id: "point-management", label: "Points", icon: Coins, badge: 0 },
+        { id: "point-history", label: "Point History", icon: History, badge: 0 },
+      ]
+    },
+    {
+      label: "Content",
+      items: [
+        { id: "shop", label: "Shop", icon: Package, badge: 0 },
+        { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
+        { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
+        { id: "photos", label: "Photos", icon: Image, badge: 0 },
+      ]
+    },
+    {
+      label: "Settings",
+      items: [
+        { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
+        { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
+        { id: "settings", label: "Settings", icon: Settings, badge: 0 },
+      ]
+    },
   ];
+
+  // Flat list for compatibility
+  const sidebarItems = sidebarGroups.flatMap(g => g.items);
 
   return (
     <div className="min-h-screen bg-background flex pb-16 lg:pb-0">
@@ -891,41 +919,47 @@ const AdminDashboard = () => {
           </button>
         </div>
 
-        <nav className="p-4 space-y-2">
-          {sidebarItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                if ((item as any).route) {
-                  navigate((item as any).route);
-                } else {
-                  setActiveTab(item.id);
-                }
-                setSidebarOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center justify-between px-4 py-3 rounded-xl",
-                "transition-all duration-200",
-                activeTab === item.id
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className="h-5 w-5" />
-                {item.label}
+        <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
+          {sidebarGroups.map((group) => (
+            <div key={group.label} className="mb-3">
+              <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                {group.label}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if ((item as any).route) navigate((item as any).route);
+                      else setActiveTab(item.id);
+                      setSidebarOpen(false);
+                    }}
+                    className={cn(
+                      "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm",
+                      "transition-all duration-200",
+                      activeTab === item.id
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </div>
+                    {item.badge > 0 && (
+                      <span className={cn(
+                        "h-4.5 min-w-4.5 px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full",
+                        activeTab === item.id
+                          ? "bg-primary-foreground text-primary"
+                          : "bg-destructive text-destructive-foreground"
+                      )}>
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
-              {item.badge > 0 && (
-                <span className={cn(
-                  "h-5 min-w-5 px-1.5 flex items-center justify-center text-xs font-bold rounded-full",
-                  activeTab === item.id
-                    ? "bg-primary-foreground text-primary"
-                    : "bg-destructive text-destructive-foreground"
-                )}>
-                  {item.badge > 99 ? '99+' : item.badge}
-                </span>
-              )}
-            </button>
+            </div>
           ))}
         </nav>
 

@@ -4,7 +4,6 @@ import {
   Users, 
   ShoppingCart, 
   Package, 
-  Settings,
   MoreHorizontal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,6 +12,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 
 interface AdminBottomNavProps {
@@ -31,87 +32,102 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
     { id: "shop", label: "Shop", icon: Package },
   ];
 
-  const moreNavItems = [
-    { id: "products", label: "Products", route: "/admin/products" },
-    { id: "categories", label: "Shop Categories", route: "/admin/categories" },
-    { id: "physical-categories", label: "Physical Categories", route: "/admin/physical-categories" },
-    { id: "banners", label: "Promo Banners", route: "/admin/banners" },
-    { id: "deposits", label: "Deposits", route: "/admin/deposits" },
-    { id: "wallets", label: "Wallet Management", route: "/admin/wallets" },
-    { id: "payment-methods", label: "Payment Methods", route: "/admin/payment-methods" },
-    { id: "mobile-services", label: "Mobile Services", route: "/admin/mobile-services" },
-    { id: "ads", label: "Ads Management", route: "/admin/ads" },
-    { id: "point-management", label: "Point Management" },
-    { id: "point-history", label: "Point History" },
-    { id: "diamond-orders", label: "Game Orders" },
-    { id: "photos", label: "Photos" },
-    { id: "settings", label: "Settings" },
+  const moreGroups = [
+    {
+      label: "Finance",
+      items: [
+        { id: "deposits", label: "Deposits", route: "/admin/deposits" },
+        { id: "point-management", label: "Points" },
+        { id: "point-history", label: "Point History" },
+      ]
+    },
+    {
+      label: "Content",
+      items: [
+        { id: "products", label: "Products", route: "/admin/products" },
+        { id: "categories", label: "Shop Categories", route: "/admin/categories" },
+        { id: "physical-categories", label: "Physical Categories", route: "/admin/physical-categories" },
+        { id: "photos", label: "Photos" },
+        { id: "banners", label: "Promo Banners", route: "/admin/banners" },
+      ]
+    },
+    {
+      label: "Orders",
+      items: [
+        { id: "diamond-orders", label: "Game Orders" },
+        { id: "wallets", label: "Wallet Management", route: "/admin/wallets" },
+      ]
+    },
+    {
+      label: "Settings",
+      items: [
+        { id: "payment-methods", label: "Payment Methods", route: "/admin/payment-methods" },
+        { id: "mobile-services", label: "Mobile Services", route: "/admin/mobile-services" },
+        { id: "ads", label: "Ads", route: "/admin/ads" },
+        { id: "settings", label: "Settings" },
+      ]
+    },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border lg:hidden">
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-center justify-around h-14 px-2">
         {mainNavItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onTabChange(item.id)}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg min-w-[60px]",
+              "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg min-w-[56px]",
               "transition-all duration-200",
-              activeTab === item.id
-                ? "text-primary"
-                : "text-muted-foreground"
+              activeTab === item.id ? "text-primary" : "text-muted-foreground"
             )}
           >
             <div className="relative">
-              <item.icon className="h-5 w-5" />
+              <item.icon className="h-4.5 w-4.5" />
               {item.badge && item.badge > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground">
+                <span className="absolute -top-1 -right-1.5 h-3.5 min-w-3.5 px-1 flex items-center justify-center text-[8px] font-bold rounded-full bg-destructive text-destructive-foreground">
                   {item.badge > 99 ? '99+' : item.badge}
                 </span>
               )}
             </div>
-            <span className="text-[10px] font-medium">{item.label}</span>
+            <span className="text-[9px] font-medium">{item.label}</span>
           </button>
         ))}
         
-        {/* More Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg min-w-[60px]",
-                "transition-all duration-200 text-muted-foreground"
-              )}
-            >
-              <MoreHorizontal className="h-5 w-5" />
-              <span className="text-[10px] font-medium">More</span>
+            <button className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg min-w-[56px] text-muted-foreground">
+              <MoreHorizontal className="h-4.5 w-4.5" />
+              <span className="text-[9px] font-medium">More</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
             align="end" 
-            className="w-48 mb-2 bg-card border border-border z-[60]"
+            className="w-52 mb-2 bg-card border border-border z-[60] max-h-80 overflow-y-auto"
             sideOffset={8}
           >
-            {moreNavItems.map((item) => (
-              <DropdownMenuItem
-                key={item.id}
-                onClick={() => {
-                  if (item.route) {
-                    navigate(item.route);
-                  } else {
-                    onTabChange(item.id);
-                  }
-                }}
-                className="cursor-pointer"
-              >
-                {item.label}
-              </DropdownMenuItem>
+            {moreGroups.map((group, gi) => (
+              <div key={group.label}>
+                {gi > 0 && <DropdownMenuSeparator />}
+                <DropdownMenuLabel className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                  {group.label}
+                </DropdownMenuLabel>
+                {group.items.map((item) => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    onClick={() => {
+                      if (item.route) navigate(item.route);
+                      else onTabChange(item.id);
+                    }}
+                    className="cursor-pointer text-sm"
+                  >
+                    {item.label}
+                  </DropdownMenuItem>
+                ))}
+              </div>
             ))}
-            <DropdownMenuItem
-              onClick={() => navigate("/account")}
-              className="cursor-pointer text-primary"
-            >
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/account")} className="cursor-pointer text-primary text-sm font-medium">
               Back to App
             </DropdownMenuItem>
           </DropdownMenuContent>
