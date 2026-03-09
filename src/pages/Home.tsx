@@ -16,7 +16,9 @@ import {
   Clock,
   ArrowRight,
   Flame,
-  Shield
+  Shield,
+  TrendingUp,
+  Zap
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -29,6 +31,7 @@ import AdBanner from "@/components/AdBanner";
 import AnimatedPage from "@/components/animations/AnimatedPage";
 import AnimatedSection from "@/components/animations/AnimatedSection";
 import StaggerContainer, { StaggerItem } from "@/components/animations/StaggerContainer";
+import { motion } from "framer-motion";
 
 interface Photo {
   id: number;
@@ -102,24 +105,14 @@ const Home = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Auto-scroll banners with progress bar (pauses on hover/touch)
+  // Auto-scroll banners with progress bar
   useEffect(() => {
     if (banners.length <= 1) return;
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    if (isPaused) return;
 
-    // Clear any existing interval
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-    }
-
-    if (isPaused) {
-      return;
-    }
-
-    // Reset progress when banner changes
     setProgress(0);
-    
-    // Progress bar animation - update every 40ms for smooth animation
-    const progressStep = 100 / (4000 / 40); // 4 seconds total
+    const progressStep = 100 / (4000 / 40);
     progressIntervalRef.current = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -131,64 +124,41 @@ const Home = () => {
     }, 40);
 
     return () => {
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
   }, [banners.length, isPaused, currentBannerIndex]);
 
-  // Scroll to current banner
   useEffect(() => {
     if (bannerContainerRef.current && banners.length > 1) {
       const container = bannerContainerRef.current;
       const bannerWidth = container.scrollWidth / banners.length;
-      container.scrollTo({
-        left: bannerWidth * currentBannerIndex,
-        behavior: 'smooth'
-      });
+      container.scrollTo({ left: bannerWidth * currentBannerIndex, behavior: 'smooth' });
     }
   }, [currentBannerIndex, banners.length]);
 
-  // Swipe gesture handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.targetTouches[0].clientX;
     setIsPaused(true);
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.targetTouches[0].clientX;
   };
-
   const handleTouchEnd = () => {
-    const swipeThreshold = 50;
     const diff = touchStartX.current - touchEndX.current;
-
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0) {
-        // Swiped left - go to next
-        setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
-      } else {
-        // Swiped right - go to previous
-        setCurrentBannerIndex((prev) => (prev - 1 + banners.length) % banners.length);
-      }
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+      else setCurrentBannerIndex((prev) => (prev - 1 + banners.length) % banners.length);
     }
-    
-    // Resume auto-scroll after a delay
     setTimeout(() => setIsPaused(false), 3000);
   };
 
-  // Check if user has seen onboarding
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
-    if (!hasSeenOnboarding) {
-      setShowOnboarding(true);
-    }
+    if (!hasSeenOnboarding) setShowOnboarding(true);
   }, []);
 
-  // Load physical products, photos, and banners
   useEffect(() => {
     const loadData = async () => {
-      // Load physical products
       const { data: productsData } = await supabase
         .from('products')
         .select('*')
@@ -220,32 +190,21 @@ const Home = () => {
         .not('name', 'ilike', '%mytel%')
         .not('name', 'ilike', '%atom%')
         .limit(6);
-      
-      if (productsData) {
-        setPhysicalProducts(productsData);
-      }
+      if (productsData) setPhysicalProducts(productsData);
 
-      // Load photos
       const { data: photosData } = await supabase
         .from('photos')
         .select('id, client_name, preview_image, category')
         .order('created_at', { ascending: false })
         .limit(6);
+      if (photosData) setPhotos(photosData);
 
-      if (photosData) {
-        setPhotos(photosData);
-      }
-
-      // Load promotional banners
       const { data: bannersData } = await supabase
         .from('promotional_banners')
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
-
-      if (bannersData) {
-        setBanners(bannersData);
-      }
+      if (bannersData) setBanners(bannersData);
 
       setLoading(false);
     };
@@ -257,30 +216,66 @@ const Home = () => {
     setShowOnboarding(false);
   }, []);
 
-  const getGradientClass = (from: string, via: string | null, to: string) => {
-    if (via) {
-      return `bg-gradient-to-br from-${from} via-${via} to-${to}`;
-    }
-    return `bg-gradient-to-br from-${from} to-${to}`;
-  };
-
   return (
     <>
-      {/* Onboarding Flow for new users */}
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       
       <AnimatedPage>
       <MobileLayout className="max-w-screen-xl mx-auto">
-        {/* Wallet Display */}
+        {/* ── Hero Header ── */}
+        <header className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-hero" />
+          <div className="absolute inset-0 bg-gradient-glow opacity-70" />
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary-foreground/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-primary-foreground/5 rounded-full blur-2xl" />
+
+          <div className="relative z-10 p-5 pt-8 pb-7">
+            <motion.div
+              initial={{ y: -15, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="flex items-center justify-between mb-1"
+            >
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles className="h-4 w-4 text-primary-foreground/70" />
+                  <span className="text-xs font-medium text-primary-foreground/60 uppercase tracking-widest">
+                    Welcome to
+                  </span>
+                </div>
+                <h1 className="text-3xl font-display font-black text-primary-foreground tracking-tight">
+                  Kaung Computer
+                </h1>
+                <p className="text-sm text-primary-foreground/60 mt-1">
+                  Your trusted digital marketplace
+                </p>
+              </div>
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="p-3 bg-primary-foreground/10 rounded-2xl backdrop-blur-md border border-primary-foreground/10"
+              >
+                <Zap className="h-7 w-7 text-primary-foreground/80" />
+              </motion.div>
+            </motion.div>
+          </div>
+        </header>
+
+        {/* Wallet */}
         {user && (
-          <section className="px-6 pt-6">
+          <motion.section
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.15 }}
+            className="px-5 -mt-3 relative z-20"
+          >
             <WalletDisplay />
-          </section>
+          </motion.section>
         )}
 
-        {/* Promotional Banner Section - Dynamic */}
+        {/* ── Promotional Banners ── */}
         {banners.length > 0 && (
-          <section className="px-6 pt-6">
+          <section className="px-5 pt-5">
             <div 
               ref={bannerContainerRef}
               className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
@@ -295,20 +290,13 @@ const Home = () => {
                 return (
                   <Card 
                     key={banner.id}
-                    className={cn(
-                      "flex-shrink-0 w-[85%] overflow-hidden rounded-2xl border-0 cursor-pointer hover:shadow-xl transition-all group",
-                      getGradientClass(banner.gradient_from, banner.gradient_via, banner.gradient_to)
-                    )}
+                    className="flex-shrink-0 w-[85%] overflow-hidden rounded-2xl border-0 cursor-pointer hover:shadow-xl transition-all group"
                     style={{
-                      background: `linear-gradient(to bottom right, var(--tw-gradient-from), ${banner.gradient_via ? 'var(--tw-gradient-via),' : ''} var(--tw-gradient-to))`,
-                      ['--tw-gradient-from' as any]: getBannerColor(banner.gradient_from),
-                      ['--tw-gradient-via' as any]: banner.gradient_via ? getBannerColor(banner.gradient_via) : undefined,
-                      ['--tw-gradient-to' as any]: getBannerColor(banner.gradient_to),
+                      background: `linear-gradient(135deg, ${getBannerColor(banner.gradient_from)}, ${banner.gradient_via ? getBannerColor(banner.gradient_via) + ',' : ''} ${getBannerColor(banner.gradient_to)})`,
                     }}
                     onClick={() => navigate(banner.link_url)}
                   >
                     <CardContent className="p-5 relative">
-                      {/* Decorative elements */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl" />
                       
@@ -316,29 +304,27 @@ const Home = () => {
                         <div className="space-y-2">
                           {banner.badge_text && (
                             <div className="flex items-center gap-2">
-                              <IconComponent className="h-5 w-5 text-yellow-200 animate-pulse" />
-                              <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
+                              <IconComponent className="h-4 w-4 text-yellow-200 animate-pulse" />
+                              <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm text-[10px]">
                                 {banner.badge_text}
                               </Badge>
                             </div>
                           )}
-                          <h3 className="text-2xl font-display font-black text-white">
+                          <h3 className="text-xl font-display font-black text-white leading-tight">
                             {banner.title}
                           </h3>
                           {banner.description && (
-                            <p className="text-white/80 text-sm">
-                              {banner.description}
-                            </p>
+                            <p className="text-white/70 text-xs leading-relaxed">{banner.description}</p>
                           )}
-                          <div className="flex items-center gap-2 pt-2">
-                            <span className="text-white font-semibold text-sm group-hover:underline">
+                          <div className="flex items-center gap-1.5 pt-1">
+                            <span className="text-white font-semibold text-xs group-hover:underline">
                               {banner.link_text}
                             </span>
-                            <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform" />
+                            <ArrowRight className="h-3.5 w-3.5 text-white group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
-                        <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                          <IconComponent className="h-10 w-10 text-white" />
+                        <div className="p-3.5 bg-white/15 rounded-2xl backdrop-blur-sm flex-shrink-0">
+                          <IconComponent className="h-8 w-8 text-white" />
                         </div>
                       </div>
                     </CardContent>
@@ -347,25 +333,19 @@ const Home = () => {
               })}
             </div>
             
-            {/* Progress indicator with dots */}
             {banners.length > 1 && (
-              <div className="flex justify-center gap-2 pt-3">
+              <div className="flex justify-center gap-1.5 pt-3">
                 {banners.map((_, index) => (
                   <button 
                     key={index}
-                    onClick={() => {
-                      setCurrentBannerIndex(index);
-                      setProgress(0);
-                    }}
+                    onClick={() => { setCurrentBannerIndex(index); setProgress(0); }}
                     className="relative h-1.5 rounded-full overflow-hidden transition-all"
-                    style={{ width: index === currentBannerIndex ? '32px' : '8px' }}
+                    style={{ width: index === currentBannerIndex ? '28px' : '8px' }}
                   >
-                    {/* Background */}
                     <div className={cn(
                       "absolute inset-0 rounded-full",
-                      index === currentBannerIndex ? "bg-primary/30" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                      index === currentBannerIndex ? "bg-primary/25" : "bg-muted-foreground/25"
                     )} />
-                    {/* Progress fill - only show on current banner */}
                     {index === currentBannerIndex && (
                       <div 
                         className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-75 ease-linear"
@@ -379,199 +359,240 @@ const Home = () => {
           </section>
         )}
 
-        {/* Physical Products Section */}
+        <AdBanner pageLocation="home" position="top" className="px-5 pt-4" />
+
+        {/* ── Products Section ── */}
         <AnimatedSection>
-        <section className="py-6 space-y-4">
-          <div className="flex items-center justify-between px-6">
-            <div className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-display font-bold">Products</h2>
+        <section className="pt-6 pb-2 space-y-4">
+          <div className="flex items-center justify-between px-5">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-primary/10">
+                <Package className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-display font-bold leading-tight">Products</h2>
+                <p className="text-[11px] text-muted-foreground">Browse our latest items</p>
+              </div>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="gap-1 text-primary"
+              className="gap-1 text-primary text-xs h-8 px-3"
               onClick={() => navigate("/physical-products")}
             >
-              View All <ChevronRight className="h-4 w-4" />
+              View All <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
           
           {loading ? (
-            <div className="px-6">
+            <div className="px-5">
               <SkeletonHorizontalList count={4} />
             </div>
           ) : physicalProducts.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide">
+            <div className="flex gap-3 overflow-x-auto px-5 pb-3 scrollbar-hide">
               {physicalProducts.map((product, index) => (
-                <Card 
+                <motion.div
                   key={product.id}
-                  className="flex-shrink-0 w-40 overflow-hidden border-border/50 hover:border-primary/30 transition-all animate-scale-in cursor-pointer rounded-2xl hover-lift card-shine group"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 * index, duration: 0.4 }}
                   onClick={() => navigate(`/product/${product.id}`)}
+                  className="flex-shrink-0 w-36 cursor-pointer group"
                 >
-                  <div className="aspect-square bg-muted overflow-hidden rounded-t-2xl relative">
-                    <img 
-                      src={product.image_url} 
-                      alt={product.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <CardContent className="p-3 space-y-1">
-                    <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">{product.name}</h3>
-                    <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} Ks</p>
-                  </CardContent>
-                </Card>
+                  <Card className="overflow-hidden border-border/50 hover:border-primary/30 transition-all rounded-2xl hover:shadow-md">
+                    <div className="aspect-square bg-muted overflow-hidden relative">
+                      <img 
+                        src={product.image_url} 
+                        alt={product.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {product.original_price && product.original_price > product.price && (
+                        <div className="absolute top-2 left-2">
+                          <Badge className="bg-destructive text-destructive-foreground border-0 text-[9px] px-1.5 py-0.5 font-bold">
+                            -{Math.round((1 - product.price / product.original_price) * 100)}%
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-2.5 space-y-1">
+                      <h3 className="font-medium text-xs line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-baseline gap-1.5">
+                        <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} Ks</p>
+                        {product.original_price && product.original_price > product.price && (
+                          <p className="text-muted-foreground text-[10px] line-through">
+                            {product.original_price.toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
               {/* View All Card */}
-              <Card 
-                className="flex-shrink-0 w-40 overflow-hidden border-dashed cursor-pointer hover:border-primary/50 transition-all rounded-2xl hover-lift"
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.35 }}
+                className="flex-shrink-0 w-36 cursor-pointer"
                 onClick={() => navigate("/physical-products")}
               >
-                <div className="aspect-[3/4] flex flex-col items-center justify-center text-muted-foreground">
-                  <ChevronRight className="h-8 w-8 mb-2" />
-                  <span className="text-sm font-medium">View All</span>
-                </div>
-              </Card>
+                <Card className="overflow-hidden border-dashed hover:border-primary/50 transition-all rounded-2xl h-full">
+                  <div className="aspect-[3/4] flex flex-col items-center justify-center text-muted-foreground gap-2">
+                    <div className="p-3 rounded-full bg-muted">
+                      <ChevronRight className="h-5 w-5" />
+                    </div>
+                    <span className="text-xs font-medium">View All</span>
+                  </div>
+                </Card>
+              </motion.div>
             </div>
           ) : (
-            <div className="px-6">
+            <div className="px-5">
               <Card className="p-8 text-center border-dashed rounded-2xl">
-                <Package className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No products available yet</p>
+                <Package className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+                <p className="text-sm text-muted-foreground">No products available yet</p>
               </Card>
             </div>
           )}
         </section>
         </AnimatedSection>
 
-        {/* Photo Gallery Section */}
+        {/* ── Photo Gallery Section ── */}
         <AnimatedSection delay={0.1}>
-        <section className="py-6 space-y-4">
-          <div className="flex items-center justify-between px-6">
-            <div className="flex items-center gap-2">
-              <Camera className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-display font-bold">Photo Gallery</h2>
+        <section className="py-5 space-y-4">
+          <div className="flex items-center justify-between px-5">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-primary/10">
+                <Camera className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-display font-bold leading-tight">Photo Gallery</h2>
+                <p className="text-[11px] text-muted-foreground">Our latest photography work</p>
+              </div>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="gap-1 text-primary"
+              className="gap-1 text-primary text-xs h-8 px-3"
               onClick={() => navigate("/photo")}
             >
-              View All <ChevronRight className="h-4 w-4" />
+              View All <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
           
           {loading ? (
-             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 px-6">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 px-5">
               {[...Array(6)].map((_, i) => (
                 <SkeletonCard key={i} variant="photo" style={{ animationDelay: `${i * 50}ms` }} />
               ))}
             </div>
           ) : photos.length > 0 ? (
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 px-6">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 px-5">
               {photos.map((photo, index) => (
-                <Card 
+                <motion.div
                   key={photo.id}
-                  className="overflow-hidden border-border/50 hover:border-primary/30 transition-all animate-scale-in cursor-pointer rounded-2xl hover-lift card-shine group"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.04 * index, duration: 0.35 }}
                   onClick={() => navigate("/photo")}
+                  className="cursor-pointer group"
                 >
-                  <div className="aspect-square bg-muted overflow-hidden relative">
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                    {photo.preview_image ? (
-                      <img
-                        src={photo.preview_image} 
-                        alt={photo.client_name}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Camera className="h-8 w-8 text-muted-foreground/50" />
+                  <Card className="overflow-hidden border-border/40 hover:border-primary/30 transition-all rounded-xl hover:shadow-md">
+                    <div className="aspect-square bg-muted overflow-hidden relative">
+                      {photo.preview_image ? (
+                        <img
+                          src={photo.preview_image} 
+                          alt={photo.client_name}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Camera className="h-6 w-6 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute bottom-1.5 left-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p className="text-white text-[10px] font-medium truncate drop-shadow-md">{photo.client_name}</p>
                       </div>
-                    )}
-                    {/* Overlay gradient */}
-                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-white text-xs font-medium truncate">{photo.client_name}</p>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
+                </motion.div>
               ))}
             </div>
           ) : (
-            <div className="px-6">
+            <div className="px-5">
               <Card className="p-8 text-center border-dashed rounded-2xl">
-                <Camera className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No photos available yet</p>
+                <Camera className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+                <p className="text-sm text-muted-foreground">No photos available yet</p>
               </Card>
             </div>
           )}
 
-          {/* Browse Gallery Card */}
-          <div className="px-6">
+          {/* Browse Gallery CTA */}
+          <div className="px-5">
             <Card 
-              className="p-4 cursor-pointer hover:border-primary/50 transition-all rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5"
+              className="p-3.5 cursor-pointer hover:border-primary/40 transition-all rounded-2xl bg-gradient-to-r from-primary/5 via-transparent to-accent/5 hover:shadow-sm"
               onClick={() => navigate("/photo")}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-primary/10">
-                    <Camera className="h-6 w-6 text-primary" />
+                  <div className="p-2.5 rounded-xl bg-primary/10">
+                    <Camera className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Browse Full Gallery</h3>
-                    <p className="text-sm text-muted-foreground">View all photos & categories</p>
+                    <h3 className="font-semibold text-sm">Browse Full Gallery</h3>
+                    <p className="text-[11px] text-muted-foreground">View all photos & categories</p>
                   </div>
                 </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
             </Card>
           </div>
         </section>
         </AnimatedSection>
 
-
-
-
-        {/* Stats Section */}
+        {/* ── Stats Section ── */}
         <AnimatedSection delay={0.2}>
-        <section className="p-6 pb-28">
-          <StaggerContainer className="grid grid-cols-3 md:grid-cols-6 gap-4">
+        <section className="px-5 pb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <TrendingUp className="h-4 w-4 text-primary" />
+            </div>
+            <h2 className="text-lg font-display font-bold">Our Impact</h2>
+          </div>
+          <StaggerContainer className="grid grid-cols-3 gap-3">
             {[
-              { value: "10K+", label: "Happy Users", icon: Users },
-              { value: "50K+", label: "Orders", icon: ShoppingBag },
-              { value: "24/7", label: "Support", icon: Shield },
+              { value: "10K+", label: "Happy Users", icon: Users, color: "text-primary" },
+              { value: "50K+", label: "Orders", icon: ShoppingBag, color: "text-accent" },
+              { value: "24/7", label: "Support", icon: Shield, color: "text-primary" },
             ].map((stat) => (
               <StaggerItem key={stat.label}>
-              <Card 
-                className="text-center p-4 rounded-2xl hover-lift transition-all duration-300"
-              >
-                <stat.icon className="h-5 w-5 mx-auto mb-2 text-primary" />
-                <p className="text-xl font-display font-bold text-primary">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-              </Card>
+                <Card className="text-center p-4 rounded-2xl hover:shadow-md transition-all duration-300 border-border/50">
+                  <div className="p-2 rounded-xl bg-primary/10 w-fit mx-auto mb-2.5">
+                    <stat.icon className={cn("h-4 w-4", stat.color)} />
+                  </div>
+                  <p className="text-xl font-display font-bold text-foreground">{stat.value}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
+                </Card>
               </StaggerItem>
             ))}
           </StaggerContainer>
         </section>
         </AnimatedSection>
 
-        {/* Ad Banner */}
-        <AdBanner pageLocation="home" position="inline" className="px-6 mb-6" />
+        <AdBanner pageLocation="home" position="inline" className="px-5 mb-6" />
 
-        {/* Footer credit */}
+        {/* Footer */}
         <div className="text-center py-6 pb-28">
-          <p className="text-xs text-muted-foreground/60">
+          <p className="text-[10px] text-muted-foreground/50 tracking-wide">
             created by thurakaungkhant
           </p>
         </div>
-
-        
       </MobileLayout>
       </AnimatedPage>
     </>
