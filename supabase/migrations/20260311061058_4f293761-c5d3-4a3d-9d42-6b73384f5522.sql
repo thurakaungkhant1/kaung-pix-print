@@ -1,0 +1,1 @@
+ALTER TABLE public.photos ADD COLUMN download_pin TEXT DEFAULT NULL;
