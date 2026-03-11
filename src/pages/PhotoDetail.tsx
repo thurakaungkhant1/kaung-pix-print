@@ -3,12 +3,14 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Heart, Download, ArrowLeft, FileArchive, Calendar, Share2, Eye, ShieldAlert } from "lucide-react";
+import { Heart, Download, ArrowLeft, FileArchive, Calendar, Share2, Eye, ShieldAlert, Lock, KeyRound, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { addWatermark } from "@/lib/watermarkUtils";
 import ImageViewer from "@/components/ImageViewer";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface Photo {
   id: number;
@@ -17,6 +19,7 @@ interface Photo {
   file_size: number;
   preview_image: string | null;
   shooting_date: string | null;
+  download_pin: string | null;
 }
 
 const PhotoDetail = () => {
@@ -27,6 +30,10 @@ const PhotoDetail = () => {
   const [isFavourite, setIsFavourite] = useState(false);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
+  const [pinValue, setPinValue] = useState("");
+  const [pinError, setPinError] = useState(false);
+  const [showForgetPin, setShowForgetPin] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -46,7 +53,7 @@ const PhotoDetail = () => {
       .single();
 
     if (!error && data) {
-      setPhoto(data);
+      setPhoto(data as Photo);
       if (data.preview_image) {
         try {
           const watermarked = await addWatermark(data.preview_image);
@@ -85,7 +92,36 @@ const PhotoDetail = () => {
     setIsFavourite(!isFavourite);
   };
 
-  const handleDownload = () => {
+  const handleDownloadClick = () => {
+    if (!photo) return;
+    
+    // If photo has a pin, show pin dialog
+    if (photo.download_pin) {
+      setPinValue("");
+      setPinError(false);
+      setShowForgetPin(false);
+      setPinDialogOpen(true);
+    } else {
+      // No pin required, download directly
+      performDownload();
+    }
+  };
+
+  const handlePinSubmit = () => {
+    if (!photo?.download_pin) return;
+    
+    if (pinValue === photo.download_pin) {
+      setPinDialogOpen(false);
+      performDownload();
+      toast({ title: "✅ PIN Correct", description: "Download started!" });
+    } else {
+      setPinError(true);
+      setPinValue("");
+      setShowForgetPin(true);
+    }
+  };
+
+  const performDownload = () => {
     if (!photo?.file_url) return;
     const width = 900;
     const height = 600;
@@ -112,6 +148,11 @@ const PhotoDetail = () => {
       navigator.clipboard.writeText(shareUrl);
       toast({ title: "Link copied!", description: "Photo link copied to clipboard" });
     }
+  };
+
+  const handleForgetPin = () => {
+    setPinDialogOpen(false);
+    navigate("/contact");
   };
 
   if (!photo) {
@@ -175,13 +216,7 @@ const PhotoDetail = () => {
         >
           {imageSrc ? (
             <>
-              {/* Blurred background fill */}
-              <img
-                src={imageSrc}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40"
-              />
-              {/* Main image */}
+              <img src={imageSrc} alt="" className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40" />
               <motion.img
                 src={imageSrc}
                 alt={photo.client_name}
@@ -191,7 +226,6 @@ const PhotoDetail = () => {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 onLoad={() => setImageLoaded(true)}
               />
-              {/* Zoom hint */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -207,7 +241,6 @@ const PhotoDetail = () => {
               <FileArchive className="h-24 w-24 text-muted-foreground/40" />
             </div>
           )}
-          {/* Bottom gradient overlay */}
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
         </motion.div>
 
@@ -219,7 +252,6 @@ const PhotoDetail = () => {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="px-5"
           >
-            {/* Title Section */}
             <div className="space-y-3 mb-6">
               <h1 className="text-2xl font-display font-bold text-foreground tracking-tight leading-tight">
                 {photo.client_name}
@@ -231,9 +263,7 @@ const PhotoDetail = () => {
                   </div>
                   <span className="text-sm font-medium">
                     {new Date(photo.shooting_date).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
+                      year: "numeric", month: "long", day: "numeric",
                     })}
                   </span>
                 </div>
@@ -254,11 +284,33 @@ const PhotoDetail = () => {
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-foreground">ZIP Archive Ready</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Your high-resolution photos are packaged and ready for download. Tap the button below to get started.
+                    Your high-resolution photos are packaged and ready for download.
                   </p>
                 </div>
               </div>
             </motion.div>
+
+            {/* PIN Notice */}
+            {photo.download_pin && (
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.42, duration: 0.5 }}
+                className="rounded-2xl bg-primary/5 border border-primary/20 p-4 mb-6"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                    <Lock className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-semibold text-foreground">PIN Code Required</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      ဤ photo ကို download လုပ်ရန် 6 digit PIN code လိုအပ်ပါသည်။
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* VPN Notice */}
             <motion.div
@@ -290,14 +342,97 @@ const PhotoDetail = () => {
               <Button
                 className="w-full h-14 rounded-2xl text-base font-semibold shadow-lg hover:shadow-xl transition-all"
                 size="lg"
-                onClick={handleDownload}
+                onClick={handleDownloadClick}
               >
-                <Download className="mr-2 h-5 w-5" />
-                Download Photos
+                {photo.download_pin ? (
+                  <>
+                    <Lock className="mr-2 h-5 w-5" />
+                    Enter PIN & Download
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-5 w-5" />
+                    Download Photos
+                  </>
+                )}
               </Button>
             </motion.div>
           </motion.div>
         </div>
+
+        {/* PIN Dialog */}
+        <Dialog open={pinDialogOpen} onOpenChange={setPinDialogOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader className="text-center items-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
+                <KeyRound className="h-8 w-8 text-primary" />
+              </div>
+              <DialogTitle className="text-lg">Enter Download PIN</DialogTitle>
+              <DialogDescription>
+                6 digit PIN code ထည့်သွင်းပါ
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex flex-col items-center gap-4 py-4">
+              <InputOTP
+                maxLength={6}
+                value={pinValue}
+                onChange={(value) => {
+                  setPinValue(value);
+                  setPinError(false);
+                }}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+
+              <AnimatePresence>
+                {pinError && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-destructive font-medium"
+                  >
+                    ❌ PIN code မှားနေပါသည်
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              <Button
+                className="w-full h-12 rounded-xl font-semibold"
+                onClick={handlePinSubmit}
+                disabled={pinValue.length !== 6}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Verify & Download
+              </Button>
+
+              {showForgetPin && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 rounded-xl text-sm"
+                    onClick={handleForgetPin}
+                  >
+                    <Phone className="mr-2 h-4 w-4" />
+                    Forget PIN? Contact Admin
+                  </Button>
+                </motion.div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Image Viewer */}
         <ImageViewer

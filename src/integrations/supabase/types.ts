@@ -512,6 +512,7 @@ export type Database = {
           category: string | null
           client_name: string
           created_at: string | null
+          download_pin: string | null
           file_size: number
           file_url: string
           id: number
@@ -522,6 +523,7 @@ export type Database = {
           category?: string | null
           client_name: string
           created_at?: string | null
+          download_pin?: string | null
           file_size: number
           file_url: string
           id?: number
@@ -532,6 +534,7 @@ export type Database = {
           category?: string | null
           client_name?: string
           created_at?: string | null
+          download_pin?: string | null
           file_size?: number
           file_url?: string
           id?: number

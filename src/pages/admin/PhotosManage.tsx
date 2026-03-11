@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Trash2, FileArchive, Pencil, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, FileArchive, Pencil, Upload, Loader2, Lock, LockOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileLayout from "@/components/MobileLayout";
@@ -25,6 +25,7 @@ interface Photo {
   preview_image: string | null;
   category: string;
   shooting_date: string | null;
+  download_pin: string | null;
 }
 
 const CATEGORIES = ["General", "Wedding", "Portrait", "Event", "Product", "Nature", "Other"];
@@ -37,6 +38,7 @@ const PhotosManage = () => {
     client_name: "",
     category: "",
     shooting_date: "",
+    download_pin: "",
   });
   const [newPreviewImage, setNewPreviewImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -51,21 +53,14 @@ const PhotosManage = () => {
   }, [user]);
 
   const checkAdmin = async () => {
-    if (!user) {
-      navigate("/");
-      return;
-    }
-
+    if (!user) { navigate("/"); return; }
     const { data } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle();
-
-    if (!data) {
-      navigate("/");
-    }
+    if (!data) navigate("/");
   };
 
   const loadPhotos = async () => {
@@ -73,28 +68,16 @@ const PhotosManage = () => {
       .from("photos")
       .select("*")
       .order("created_at", { ascending: false });
-
-    if (data) {
-      setPhotos(data);
-    }
+    if (data) setPhotos(data as Photo[]);
   };
 
   const deletePhoto = async (id: number) => {
     if (!confirm("Are you sure you want to delete this photo?")) return;
-
     const { error } = await supabase.from("photos").delete().eq("id", id);
-
     if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete photo",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to delete photo", variant: "destructive" });
     } else {
-      toast({
-        title: "Success",
-        description: "Photo deleted successfully",
-      });
+      toast({ title: "Success", description: "Photo deleted successfully" });
       loadPhotos();
     }
   };
@@ -105,6 +88,7 @@ const PhotosManage = () => {
       client_name: photo.client_name,
       category: photo.category || "General",
       shooting_date: photo.shooting_date || "",
+      download_pin: photo.download_pin || "",
     });
     setNewPreviewImage(null);
     setPreviewUrl(photo.preview_image);
@@ -115,36 +99,34 @@ const PhotosManage = () => {
     const file = e.target.files?.[0];
     if (file) {
       setNewPreviewImage(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
   const handleUpdatePhoto = async () => {
     if (!selectedPhoto) return;
 
+    if (editForm.download_pin && !/^\d{6}$/.test(editForm.download_pin)) {
+      toast({ title: "Error", description: "PIN must be exactly 6 digits", variant: "destructive" });
+      return;
+    }
+
     setIsUpdating(true);
     try {
-      let updateData: Partial<Photo> = {
+      let updateData: Record<string, any> = {
         client_name: editForm.client_name,
         category: editForm.category,
         shooting_date: editForm.shooting_date || null,
+        download_pin: editForm.download_pin || null,
       };
 
-      // If a new preview image was selected, upload it
       if (newPreviewImage) {
-        const fileExt = newPreviewImage.name.split(".").pop();
-        const fileName = `preview_${selectedPhoto.id}_${Date.now()}.${fileExt}`;
-        
-        // Convert to base64 for preview_image field
         const reader = new FileReader();
         const base64Promise = new Promise<string>((resolve) => {
           reader.onload = () => resolve(reader.result as string);
           reader.readAsDataURL(newPreviewImage);
         });
-        
-        const base64Image = await base64Promise;
-        updateData.preview_image = base64Image;
+        updateData.preview_image = await base64Promise;
       }
 
       const { error } = await supabase
@@ -154,27 +136,17 @@ const PhotosManage = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Photo updated successfully",
-      });
-
+      toast({ title: "Success", description: "Photo updated successfully" });
       setEditDialogOpen(false);
       loadPhotos();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update photo",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message || "Failed to update photo", variant: "destructive" });
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-  };
+  const formatFileSize = (bytes: number) => (bytes / (1024 * 1024)).toFixed(2) + " MB";
 
   return (
     <MobileLayout className="pb-8">
@@ -198,45 +170,39 @@ const PhotosManage = () => {
               <div className="flex gap-4 items-center">
                 <div className="w-24 h-24 bg-muted rounded flex items-center justify-center overflow-hidden">
                   {photo.preview_image ? (
-                    <img
-                      src={photo.preview_image}
-                      alt={photo.client_name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={photo.preview_image} alt={photo.client_name} className="w-full h-full object-cover" />
                   ) : (
                     <FileArchive className="h-12 w-12 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1">
-                  <div className="mb-1">
+                  <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                       {photo.category || "General"}
                     </span>
+                    {photo.download_pin ? (
+                      <span className="text-xs bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Lock className="h-3 w-3" /> PIN
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <LockOpen className="h-3 w-3" /> Free
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-bold">{photo.client_name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {formatFileSize(photo.file_size)}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{formatFileSize(photo.file_size)}</p>
                   {photo.shooting_date && (
                     <p className="text-xs text-muted-foreground">
                       Date: {new Date(photo.shooting_date).toLocaleDateString()}
                     </p>
                   )}
-                  <p className="text-xs text-muted-foreground truncate">{photo.file_url}</p>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => openEditDialog(photo)}
-                  >
+                  <Button variant="outline" size="icon" onClick={() => openEditDialog(photo)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => deletePhoto(photo.id)}
-                  >
+                  <Button variant="destructive" size="icon" onClick={() => deletePhoto(photo.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -256,101 +222,67 @@ const PhotosManage = () => {
             {/* Preview Image */}
             <div className="space-y-2">
               <Label>Preview Image</Label>
-              <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden relative">
+              <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
                 {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
                   <FileArchive className="h-16 w-16 text-muted-foreground" />
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  id="preview-image-input"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => document.getElementById("preview-image-input")?.click()}
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Replace Preview Image
-                </Button>
-              </div>
+              <Input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="preview-image-input" />
+              <Button type="button" variant="outline" className="w-full" onClick={() => document.getElementById("preview-image-input")?.click()}>
+                <Upload className="h-4 w-4 mr-2" /> Replace Preview Image
+              </Button>
             </div>
 
-            {/* Client Name */}
             <div className="space-y-2">
               <Label htmlFor="client_name">Client Name / Title</Label>
-              <Input
-                id="client_name"
-                value={editForm.client_name}
-                onChange={(e) => setEditForm({ ...editForm, client_name: e.target.value })}
-                placeholder="Enter client name"
-              />
+              <Input id="client_name" value={editForm.client_name} onChange={(e) => setEditForm({ ...editForm, client_name: e.target.value })} />
             </div>
 
-            {/* Category */}
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select
-                value={editForm.category}
-                onValueChange={(value) => setEditForm({ ...editForm, category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
+              <Select value={editForm.category} onValueChange={(value) => setEditForm({ ...editForm, category: value })}>
+                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>
                   {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Shooting Date */}
             <div className="space-y-2">
               <Label htmlFor="shooting_date">Shooting Date</Label>
-              <Input
-                id="shooting_date"
-                type="date"
-                value={editForm.shooting_date}
-                onChange={(e) => setEditForm({ ...editForm, shooting_date: e.target.value })}
-              />
+              <Input id="shooting_date" type="date" value={editForm.shooting_date} onChange={(e) => setEditForm({ ...editForm, shooting_date: e.target.value })} />
             </div>
 
-            {/* Actions */}
+            {/* Download PIN */}
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-primary" />
+                <Label htmlFor="download_pin" className="text-sm font-semibold">Download PIN (6 digits)</Label>
+              </div>
+              <Input
+                id="download_pin"
+                value={editForm.download_pin}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  setEditForm({ ...editForm, download_pin: val });
+                }}
+                placeholder="Leave empty for free download"
+                maxLength={6}
+                inputMode="numeric"
+              />
+              <p className="text-xs text-muted-foreground">
+                PIN ဖယ်ရှားလိုပါက field ကို ရှင်းလင်းပါ။
+              </p>
+            </div>
+
             <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setEditDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleUpdatePhoto}
-                disabled={isUpdating || !editForm.client_name}
-              >
-                {isUpdating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Photo"
-                )}
+              <Button variant="outline" className="flex-1" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button className="flex-1" onClick={handleUpdatePhoto} disabled={isUpdating || !editForm.client_name}>
+                {isUpdating ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" />Updating...</>) : "Update Photo"}
               </Button>
             </div>
           </div>
