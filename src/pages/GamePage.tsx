@@ -463,6 +463,12 @@ const GamePage = () => {
                     </div>
                     <CardContent className="p-3 space-y-2">
                       <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
+                      {(product as any).points_value > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-amber-500 font-medium">
+                          <Sparkles className="h-3 w-3" />
+                          +{(product as any).points_value} coins
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <p className="text-primary font-bold text-lg text-neon">
                           {product.price.toLocaleString()}
