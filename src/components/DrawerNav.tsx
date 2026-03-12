@@ -55,6 +55,7 @@ const DrawerNav = () => {
   ];
 
   const secondaryNavItems = [
+    { to: "/point-history", icon: Coins, label: "Coin History" },
     { to: "/exchange", icon: ArrowRightLeft, label: "Exchange Points" },
     { to: "/transaction-history", icon: History, label: "Transaction History" },
     { to: "/contact", icon: Phone, label: "Contact Us" },

@@ -47,6 +47,7 @@ interface Product {
   image_url: string;
   description: string | null;
   category: string;
+  points_value: number;
 }
 
 interface Order {

@@ -15,7 +15,7 @@ const MusicPlayer = ({ audioSrc, className, autoPlay = false }: MusicPlayerProps
   const [isMuted, setIsMuted] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(50);
+  const [volume, setVolume] = useState(10);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [hasAutoPlayed, setHasAutoPlayed] = useState(false);
