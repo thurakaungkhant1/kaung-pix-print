@@ -470,6 +470,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              </MusicProvider>
             </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>
