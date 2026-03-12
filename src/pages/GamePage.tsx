@@ -368,14 +368,10 @@ const GamePage = () => {
           setActiveCategory(v);
           setSelectedGameCategory(null);
         }}>
-          <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-card/50 border border-border/50">
+          <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-card/50 border border-border/50">
             <TabsTrigger value="games" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <Gamepad2 className="h-4 w-4" />
               Games
-            </TabsTrigger>
-            <TabsTrigger value="mobile" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
-              <Smartphone className="h-4 w-4" />
-              Mobile
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <History className="h-4 w-4" />
