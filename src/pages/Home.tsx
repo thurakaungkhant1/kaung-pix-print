@@ -84,7 +84,7 @@ const getBannerColor = (colorName: string): string => {
 const Home = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [physicalProducts, setPhysicalProducts] = useState<any[]>([]);
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
