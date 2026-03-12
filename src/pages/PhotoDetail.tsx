@@ -38,6 +38,7 @@ const PhotoDetail = () => {
   const [showForgetPin, setShowForgetPin] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { currentSrc: musicSrc, isPlaying: musicIsPlaying } = useMusic();
 
   useEffect(() => {
     loadPhoto();
