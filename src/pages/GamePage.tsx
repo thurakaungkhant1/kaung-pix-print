@@ -381,7 +381,7 @@ const GamePage = () => {
 
           <TabsContent value="games" className="space-y-6">
             {/* Game Categories */}
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {GAME_CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
