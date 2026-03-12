@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { MusicProvider } from "@/contexts/MusicContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -95,6 +96,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>
+              <MusicProvider>
               <InterstitialAd />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -468,6 +470,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              </MusicProvider>
             </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>

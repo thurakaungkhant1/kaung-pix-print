@@ -15,16 +15,10 @@ import MobileLayout from "@/components/MobileLayout";
 // Predefined categories
 const GAME_CATEGORIES = [
   { id: "MLBB Diamonds", name: "Mobile Legends Diamonds", icon: "diamond" },
-  { id: "PUBG UC", name: "PUBG UC", icon: "game" },
-  { id: "Free Fire", name: "Free Fire Diamonds", icon: "game" },
-  { id: "Genshin", name: "Genshin Impact", icon: "game" },
-  { id: "Gift Cards", name: "Gift Cards", icon: "gift" },
+  { id: "PUBG UC", name: "PUBG Mobile UC", icon: "game" },
 ];
 
-const MOBILE_CATEGORIES = [
-  { id: "Phone Top-up", name: "Phone Top-up", icon: "phone" },
-  { id: "Data Plans", name: "Data Plans", icon: "wifi" },
-];
+const MOBILE_CATEGORIES: { id: string; name: string; icon: string }[] = [];
 
 const ALL_CATEGORIES = [...GAME_CATEGORIES, ...MOBILE_CATEGORIES];
 

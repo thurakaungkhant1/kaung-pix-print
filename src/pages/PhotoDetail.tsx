@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Heart, Download, ArrowLeft, FileArchive, Calendar, Share2, Eye, ShieldAlert, Lock, KeyRound, Phone } from "lucide-react";
+import { useMusic } from "@/contexts/MusicContext";
+import MusicPlayer from "@/components/MusicPlayer";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { addWatermark } from "@/lib/watermarkUtils";
@@ -36,6 +38,7 @@ const PhotoDetail = () => {
   const [showForgetPin, setShowForgetPin] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { currentSrc: musicSrc } = useMusic();
 
   useEffect(() => {
     loadPhoto();
@@ -441,6 +444,10 @@ const PhotoDetail = () => {
           open={imageViewerOpen}
           onOpenChange={setImageViewerOpen}
         />
+        {/* Music Player - continues from Photo gallery */}
+        {musicSrc && (
+          <MusicPlayer audioSrc={musicSrc} className="bottom-4 right-4" />
+        )}
       </div>
     </AnimatedPage>
   );

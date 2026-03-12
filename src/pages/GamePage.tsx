@@ -47,6 +47,7 @@ interface Product {
   image_url: string;
   description: string | null;
   category: string;
+  points_value: number;
 }
 
 interface Order {
@@ -70,16 +71,7 @@ interface Order {
 // Game categories with icons and images
 const GAME_CATEGORIES = [
   { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500", image: "/images/games/mobile-legends.png" },
-  { id: "PUBG UC", name: "PUBG", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
-  { id: "Free Fire", name: "Free Fire", icon: Zap, color: "text-orange-500", image: "/images/games/free-fire.png" },
-  { id: "Genshin", name: "Genshin", icon: Sparkles, color: "text-purple-500", image: "/images/games/genshin-impact.png" },
-  { id: "Gift Cards", name: "Gift Cards", icon: Gift, color: "text-green-500", image: "/images/services/gift-card.png" },
-];
-
-// Mobile service categories with images
-const MOBILE_CATEGORIES = [
-  { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone, color: "text-primary", image: "/images/services/phone-topup.png" },
-  { id: "Data Plans", name: "Data Plans", icon: Wifi, color: "text-blue-500", image: "/images/services/data-plan.png" },
+  { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
 ];
 
 
@@ -159,8 +151,8 @@ const GamePage = () => {
     return GAME_CATEGORIES.some(cat => cat.id === category);
   };
 
-  const isMobileProduct = (category: string) => {
-    return MOBILE_CATEGORIES.some(cat => cat.id === category);
+  const isMobileProduct = (_category: string) => {
+    return false;
   };
 
   // Only MLBB requires Server ID
@@ -377,14 +369,10 @@ const GamePage = () => {
           setActiveCategory(v);
           setSelectedGameCategory(null);
         }}>
-          <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-card/50 border border-border/50">
+          <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-card/50 border border-border/50">
             <TabsTrigger value="games" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <Gamepad2 className="h-4 w-4" />
               Games
-            </TabsTrigger>
-            <TabsTrigger value="mobile" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
-              <Smartphone className="h-4 w-4" />
-              Mobile
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <History className="h-4 w-4" />
@@ -394,7 +382,7 @@ const GamePage = () => {
 
           <TabsContent value="games" className="space-y-6">
             {/* Game Categories */}
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {GAME_CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
@@ -476,157 +464,12 @@ const GamePage = () => {
                     </div>
                     <CardContent className="p-3 space-y-2">
                       <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
-                      <div className="flex items-center justify-between">
-                        <p className="text-primary font-bold text-lg text-neon">
-                          {product.price.toLocaleString()}
-                          <span className="text-xs font-medium ml-1 text-muted-foreground">Ks</span>
-                        </p>
-                        <Button size="sm" className="btn-neon h-8 px-3 text-xs gap-1">
-                          <Zap className="h-3 w-3" />
-                          Buy
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="mobile" className="space-y-6">
-
-            {/* Mobile Service Categories */}
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3">Services</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {MOBILE_CATEGORIES.map((cat, index) => (
-                  <Card
-                    key={cat.id}
-                    onClick={() => setSelectedMobileService(selectedMobileService === cat.id ? null : cat.id)}
-                    className={cn(
-                      "card-neon p-4 cursor-pointer transition-all duration-500 group overflow-hidden relative",
-                      "hover:shadow-glow active:scale-[0.98]",
-                      "animate-scale-in",
-                      selectedMobileService === cat.id 
-                        ? "ring-2 ring-primary border-primary bg-gradient-to-br from-primary/10 to-primary/5" 
-                        : "hover:bg-primary/5"
-                    )}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    {/* Animated background glow */}
-                    <div className={cn(
-                      "absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent opacity-0 transition-opacity duration-500",
-                      selectedMobileService === cat.id && "opacity-100 animate-pulse"
-                    )} />
-                    
-                    <div className="relative flex items-center gap-3">
-                      <div className={cn(
-                        "w-14 h-14 rounded-xl overflow-hidden bg-muted/50 ring-2 flex-shrink-0 transition-all duration-500",
-                        selectedMobileService === cat.id 
-                          ? "ring-primary scale-110 shadow-lg shadow-primary/30" 
-                          : "ring-primary/20 group-hover:ring-primary/40 group-hover:scale-105"
-                      )}>
-                        <img 
-                          src={cat.image} 
-                          alt={cat.name}
-                          className={cn(
-                            "w-full h-full object-cover transition-transform duration-500",
-                            selectedMobileService === cat.id && "scale-110"
-                          )}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className={cn(
-                          "font-semibold text-sm transition-colors duration-300",
-                          selectedMobileService === cat.id && "text-primary"
-                        )}>{cat.name}</h3>
-                        <p className="text-xs text-muted-foreground">Quick recharge</p>
-                      </div>
-                      <div className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500",
-                        selectedMobileService === cat.id 
-                          ? "bg-primary scale-100 rotate-0 shadow-lg shadow-primary/50" 
-                          : "bg-primary/20 scale-0 rotate-180"
-                      )}>
-                        <Zap className={cn(
-                          "h-3.5 w-3.5 transition-colors duration-300",
-                          selectedMobileService === cat.id ? "text-primary-foreground" : "text-primary"
-                        )} />
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Selected Service Badge */}
-            {selectedMobileService && (
-              <div className="flex items-center gap-2 animate-fade-in">
-                <Badge variant="secondary" className="gap-1.5 px-3 py-1.5">
-                  {selectedMobileService === "Phone Top-up" ? (
-                    <Smartphone className="h-3 w-3" />
-                  ) : (
-                    <Wifi className="h-3 w-3" />
-                  )}
-                  {selectedMobileService}
-                </Badge>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setSelectedMobileService(null)}
-                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Clear
-                </Button>
-              </div>
-            )}
-
-            {/* Mobile Products */}
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="relative inline-block mb-6">
-                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                  {selectedMobileService === "Data Plans" ? (
-                    <Wifi className="relative h-16 w-16 text-muted-foreground" />
-                  ) : (
-                    <Smartphone className="relative h-16 w-16 text-muted-foreground" />
-                  )}
-                </div>
-                <p className="text-muted-foreground font-medium">
-                  {selectedMobileService 
-                    ? `No ${selectedMobileService} available` 
-                    : "No mobile services available"}
-                </p>
-                <p className="text-sm text-muted-foreground/70 mt-1">
-                  {selectedMobileService ? "Check back soon" : "Select a service above"}
-                </p>
-              </div>
-            ) : (
-              <div 
-                key={selectedMobileService || 'all'} 
-                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 animate-fade-in"
-              >
-                {filteredProducts.map((product, index) => (
-                  <Card
-                    key={product.id}
-                    className={cn(
-                      "card-neon overflow-hidden cursor-pointer transition-all duration-300",
-                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
-                      "animate-stagger-in"
-                    )}
-                    style={{ animationDelay: `${index * 80}ms` }}
-                    onClick={() => handleBuyClick(product)}
-                  >
-                    <div className="aspect-square bg-muted/50 overflow-hidden">
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                        loading="lazy"
-                      />
-                    </div>
-                    <CardContent className="p-3 space-y-2">
-                      <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
+                      {(product as any).points_value > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-amber-500 font-medium">
+                          <Sparkles className="h-3 w-3" />
+                          +{(product as any).points_value} coins
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <p className="text-primary font-bold text-lg text-neon">
                           {product.price.toLocaleString()}
@@ -659,7 +502,7 @@ const GamePage = () => {
                 {orders.map((order) => {
                   const isMLBB = order.products.category === "MLBB Diamonds";
                   const isGame = GAME_CATEGORIES.some(cat => cat.id === order.products.category);
-                  const isMobile = MOBILE_CATEGORIES.some(cat => cat.id === order.products.category);
+                  const isMobile = false;
                   
                   return (
                     <Card key={order.id} className="overflow-hidden">

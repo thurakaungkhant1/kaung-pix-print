@@ -17,7 +17,6 @@ import {
   ArrowRight,
   Flame,
   Shield,
-  TrendingUp,
   Zap
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,15 +29,8 @@ import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-c
 import AdBanner from "@/components/AdBanner";
 import AnimatedPage from "@/components/animations/AnimatedPage";
 import AnimatedSection from "@/components/animations/AnimatedSection";
-import StaggerContainer, { StaggerItem } from "@/components/animations/StaggerContainer";
 import { motion } from "framer-motion";
 
-interface Photo {
-  id: number;
-  client_name: string;
-  preview_image: string | null;
-  category: string | null;
-}
 
 interface PromotionalBanner {
   id: string;
@@ -92,7 +84,7 @@ const getBannerColor = (colorName: string): string => {
 const Home = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [physicalProducts, setPhysicalProducts] = useState<any[]>([]);
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
@@ -192,12 +184,6 @@ const Home = () => {
         .limit(6);
       if (productsData) setPhysicalProducts(productsData);
 
-      const { data: photosData } = await supabase
-        .from('photos')
-        .select('id, client_name, preview_image, category')
-        .order('created_at', { ascending: false })
-        .limit(6);
-      if (photosData) setPhotos(photosData);
 
       const { data: bannersData } = await supabase
         .from('promotional_banners')
@@ -458,130 +444,6 @@ const Home = () => {
               </Card>
             </div>
           )}
-        </section>
-        </AnimatedSection>
-
-        {/* ── Photo Gallery Section ── */}
-        <AnimatedSection delay={0.1}>
-        <section className="py-5 space-y-4">
-          <div className="flex items-center justify-between px-5">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Camera className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-lg font-display font-bold leading-tight">Photo Gallery</h2>
-                <p className="text-[11px] text-muted-foreground">Our latest photography work</p>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-1 text-primary text-xs h-8 px-3"
-              onClick={() => navigate("/photo")}
-            >
-              View All <ChevronRight className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-          
-          {loading ? (
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 px-5">
-              {[...Array(6)].map((_, i) => (
-                <SkeletonCard key={i} variant="photo" style={{ animationDelay: `${i * 50}ms` }} />
-              ))}
-            </div>
-          ) : photos.length > 0 ? (
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 px-5">
-              {photos.map((photo, index) => (
-                <motion.div
-                  key={photo.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.04 * index, duration: 0.35 }}
-                  onClick={() => navigate("/photo")}
-                  className="cursor-pointer group"
-                >
-                  <Card className="overflow-hidden border-border/40 hover:border-primary/30 transition-all rounded-xl hover:shadow-md">
-                    <div className="aspect-square bg-muted overflow-hidden relative">
-                      {photo.preview_image ? (
-                        <img
-                          src={photo.preview_image} 
-                          alt={photo.client_name}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Camera className="h-6 w-6 text-muted-foreground/30" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="absolute bottom-1.5 left-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <p className="text-white text-[10px] font-medium truncate drop-shadow-md">{photo.client_name}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-5">
-              <Card className="p-8 text-center border-dashed rounded-2xl">
-                <Camera className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-                <p className="text-sm text-muted-foreground">No photos available yet</p>
-              </Card>
-            </div>
-          )}
-
-          {/* Browse Gallery CTA */}
-          <div className="px-5">
-            <Card 
-              className="p-3.5 cursor-pointer hover:border-primary/40 transition-all rounded-2xl bg-gradient-to-r from-primary/5 via-transparent to-accent/5 hover:shadow-sm"
-              onClick={() => navigate("/photo")}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-primary/10">
-                    <Camera className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm">Browse Full Gallery</h3>
-                    <p className="text-[11px] text-muted-foreground">View all photos & categories</p>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </Card>
-          </div>
-        </section>
-        </AnimatedSection>
-
-        {/* ── Stats Section ── */}
-        <AnimatedSection delay={0.2}>
-        <section className="px-5 pb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <TrendingUp className="h-4 w-4 text-primary" />
-            </div>
-            <h2 className="text-lg font-display font-bold">Our Impact</h2>
-          </div>
-          <StaggerContainer className="grid grid-cols-3 gap-3">
-            {[
-              { value: "10K+", label: "Happy Users", icon: Users, color: "text-primary" },
-              { value: "50K+", label: "Orders", icon: ShoppingBag, color: "text-accent" },
-              { value: "24/7", label: "Support", icon: Shield, color: "text-primary" },
-            ].map((stat) => (
-              <StaggerItem key={stat.label}>
-                <Card className="text-center p-4 rounded-2xl hover:shadow-md transition-all duration-300 border-border/50">
-                  <div className="p-2 rounded-xl bg-primary/10 w-fit mx-auto mb-2.5">
-                    <stat.icon className={cn("h-4 w-4", stat.color)} />
-                  </div>
-                  <p className="text-xl font-display font-bold text-foreground">{stat.value}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
-                </Card>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
         </section>
         </AnimatedSection>
 

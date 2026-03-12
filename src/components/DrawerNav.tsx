@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Heart, User, Settings, Gamepad2, Wallet, Menu, ShoppingBag, Camera, History, ArrowRightLeft, Phone, ChevronRight, Sparkles } from "lucide-react";
+import { Home, Heart, User, Settings, Gamepad2, Wallet, Menu, ShoppingBag, Camera, History, ArrowRightLeft, Phone, ChevronRight, Sparkles, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +55,7 @@ const DrawerNav = () => {
   ];
 
   const secondaryNavItems = [
+    { to: "/point-history", icon: Coins, label: "Coin History" },
     { to: "/exchange", icon: ArrowRightLeft, label: "Exchange Points" },
     { to: "/transaction-history", icon: History, label: "Transaction History" },
     { to: "/contact", icon: Phone, label: "Contact Us" },
