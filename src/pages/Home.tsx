@@ -31,12 +31,6 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 import AnimatedSection from "@/components/animations/AnimatedSection";
 import { motion } from "framer-motion";
 
-interface Photo {
-  id: number;
-  client_name: string;
-  preview_image: string | null;
-  category: string | null;
-}
 
 interface PromotionalBanner {
   id: string;
