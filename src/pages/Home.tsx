@@ -9,15 +9,11 @@ import {
   Star,
   ChevronRight,
   Sparkles,
-  Users,
   Package,
-  Camera,
   Percent,
   Clock,
   ArrowRight,
   Flame,
-  Shield,
-  TrendingUp,
   Zap
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
