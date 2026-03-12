@@ -184,12 +184,6 @@ const Home = () => {
         .limit(6);
       if (productsData) setPhysicalProducts(productsData);
 
-      const { data: photosData } = await supabase
-        .from('photos')
-        .select('id, client_name, preview_image, category')
-        .order('created_at', { ascending: false })
-        .limit(6);
-      if (photosData) setPhotos(photosData);
 
       const { data: bannersData } = await supabase
         .from('promotional_banners')
