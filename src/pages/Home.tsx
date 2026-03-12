@@ -26,7 +26,6 @@ import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-c
 import AdBanner from "@/components/AdBanner";
 import AnimatedPage from "@/components/animations/AnimatedPage";
 import AnimatedSection from "@/components/animations/AnimatedSection";
-import StaggerContainer, { StaggerItem } from "@/components/animations/StaggerContainer";
 import { motion } from "framer-motion";
 
 interface Photo {
