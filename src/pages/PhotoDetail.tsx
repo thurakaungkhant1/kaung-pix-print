@@ -27,8 +27,6 @@ interface Photo {
 const PhotoDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { id } = useParams();
-  const navigate = useNavigate();
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [watermarkedImage, setWatermarkedImage] = useState<string | null>(null);
   const [isFavourite, setIsFavourite] = useState(false);
