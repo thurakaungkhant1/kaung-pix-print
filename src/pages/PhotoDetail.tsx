@@ -444,6 +444,10 @@ const PhotoDetail = () => {
           open={imageViewerOpen}
           onOpenChange={setImageViewerOpen}
         />
+        {/* Music Player - continues from Photo gallery */}
+        {musicSrc && (
+          <MusicPlayer audioSrc={musicSrc} className="bottom-4 right-4" />
+        )}
       </div>
     </AnimatedPage>
   );
