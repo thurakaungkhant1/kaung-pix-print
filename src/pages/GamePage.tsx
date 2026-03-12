@@ -150,8 +150,8 @@ const GamePage = () => {
     return GAME_CATEGORIES.some(cat => cat.id === category);
   };
 
-  const isMobileProduct = (category: string) => {
-    return MOBILE_CATEGORIES.some(cat => cat.id === category);
+  const isMobileProduct = (_category: string) => {
+    return false;
   };
 
   // Only MLBB requires Server ID
