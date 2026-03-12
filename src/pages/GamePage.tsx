@@ -502,7 +502,7 @@ const GamePage = () => {
                 {orders.map((order) => {
                   const isMLBB = order.products.category === "MLBB Diamonds";
                   const isGame = GAME_CATEGORIES.some(cat => cat.id === order.products.category);
-                  const isMobile = MOBILE_CATEGORIES.some(cat => cat.id === order.products.category);
+                  const isMobile = false;
                   
                   return (
                     <Card key={order.id} className="overflow-hidden">
