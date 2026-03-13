@@ -2348,6 +2348,14 @@ const AdminDashboard = () => {
                     <Gem className="h-5 w-5" />
                     Diamond Packages
                   </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/pubg-uc-packages")} className="h-auto py-4 flex-col gap-2">
+                    <Gamepad2 className="h-5 w-5" />
+                    PUBG UC Packages
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/api-settings")} className="h-auto py-4 flex-col gap-2">
+                    <Zap className="h-5 w-5" />
+                    API Settings
+                  </Button>
                 </CardContent>
               </Card>
 
