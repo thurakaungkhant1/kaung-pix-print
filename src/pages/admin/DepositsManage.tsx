@@ -58,7 +58,7 @@ const DepositsManage = () => {
 
   useEffect(() => {
     loadDeposits();
-
+    loadDepositStats();
     // Real-time subscription
     const channel = supabase
       .channel('deposits-changes')
