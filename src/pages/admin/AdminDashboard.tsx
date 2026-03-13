@@ -889,14 +889,15 @@ const AdminDashboard = () => {
         { id: "photos", label: "Photos", icon: Image, badge: 0 },
       ]
     },
-    {
-      label: "Settings",
-      items: [
-        { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
-        { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
-        { id: "settings", label: "Settings", icon: Settings, badge: 0 },
-      ]
-    },
+      {
+        label: "Settings",
+        items: [
+          { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
+          { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
+          { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
+          { id: "settings", label: "Settings", icon: Settings, badge: 0 },
+        ]
+      },
   ];
 
   // Flat list for compatibility
@@ -2269,6 +2270,10 @@ const AdminDashboard = () => {
                     <Gem className="mr-2 h-4 w-4" />
                     MLBB Diamond Packages
                   </Button>
+                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/admin/pubg-uc-packages")}>
+                    <Gamepad2 className="mr-2 h-4 w-4" />
+                    PUBG UC Packages
+                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -2346,6 +2351,14 @@ const AdminDashboard = () => {
                   <Button variant="outline" onClick={() => navigate("/admin/diamond-packages")} className="h-auto py-4 flex-col gap-2">
                     <Gem className="h-5 w-5" />
                     Diamond Packages
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/pubg-uc-packages")} className="h-auto py-4 flex-col gap-2">
+                    <Gamepad2 className="h-5 w-5" />
+                    PUBG UC Packages
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/api-settings")} className="h-auto py-4 flex-col gap-2">
+                    <Zap className="h-5 w-5" />
+                    API Settings
                   </Button>
                 </CardContent>
               </Card>
