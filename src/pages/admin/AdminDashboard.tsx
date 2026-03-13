@@ -889,14 +889,15 @@ const AdminDashboard = () => {
         { id: "photos", label: "Photos", icon: Image, badge: 0 },
       ]
     },
-    {
-      label: "Settings",
-      items: [
-        { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
-        { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
-        { id: "settings", label: "Settings", icon: Settings, badge: 0 },
-      ]
-    },
+      {
+        label: "Settings",
+        items: [
+          { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
+          { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
+          { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
+          { id: "settings", label: "Settings", icon: Settings, badge: 0 },
+        ]
+      },
   ];
 
   // Flat list for compatibility
