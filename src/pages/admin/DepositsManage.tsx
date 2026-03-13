@@ -54,6 +54,7 @@ const DepositsManage = () => {
   const [processing, setProcessing] = useState(false);
   const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
   const [showScreenshot, setShowScreenshot] = useState(false);
+  const [depositStats, setDepositStats] = useState({ totalApproved: 0, totalPending: 0, totalRejected: 0, count: 0 });
 
   useEffect(() => {
     loadDeposits();
