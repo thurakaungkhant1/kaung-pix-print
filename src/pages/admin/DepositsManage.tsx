@@ -78,6 +78,20 @@ const DepositsManage = () => {
     };
   }, [statusFilter]);
 
+  const loadDepositStats = async () => {
+    const [approved, pending, rejected] = await Promise.all([
+      supabase.from('wallet_deposits').select('amount').eq('status', 'approved'),
+      supabase.from('wallet_deposits').select('amount').eq('status', 'pending'),
+      supabase.from('wallet_deposits').select('amount').eq('status', 'rejected'),
+    ]);
+    setDepositStats({
+      totalApproved: approved.data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0,
+      totalPending: pending.data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0,
+      totalRejected: rejected.data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0,
+      count: (approved.data?.length || 0) + (pending.data?.length || 0) + (rejected.data?.length || 0),
+    });
+  };
+
   const loadDeposits = async () => {
     try {
       let query = supabase
