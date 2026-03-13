@@ -320,8 +320,24 @@ const DepositsManage = () => {
           </div>
         </div>
 
+        {/* Deposit Stats */}
+        <div className="p-4 -mt-4 grid grid-cols-3 gap-2 mb-2">
+          <div className="card-neon p-3 text-center">
+            <p className="text-xs text-muted-foreground">Approved</p>
+            <p className="text-sm font-bold text-green-400">{depositStats.totalApproved.toLocaleString()} Ks</p>
+          </div>
+          <div className="card-neon p-3 text-center">
+            <p className="text-xs text-muted-foreground">Pending</p>
+            <p className="text-sm font-bold text-yellow-400">{depositStats.totalPending.toLocaleString()} Ks</p>
+          </div>
+          <div className="card-neon p-3 text-center">
+            <p className="text-xs text-muted-foreground">Rejected</p>
+            <p className="text-sm font-bold text-red-400">{depositStats.totalRejected.toLocaleString()} Ks</p>
+          </div>
+        </div>
+
         {/* Deposits List */}
-        <div className="p-4 -mt-4 space-y-3">
+        <div className="p-4 -mt-2 space-y-3">
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Loading...</div>
           ) : filteredDeposits.length === 0 ? (
