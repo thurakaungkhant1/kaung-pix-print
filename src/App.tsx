@@ -263,7 +263,38 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/admin/photos"
+                  path="/admin/pubg-uc-packages"
+                  element={
+                    <ProtectedAdminRoute>
+                      <PubgUcPackages />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/pubg-uc-packages/new"
+                  element={
+                    <ProtectedAdminRoute>
+                      <PubgUcPackageForm />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/pubg-uc-packages/edit/:id"
+                  element={
+                    <ProtectedAdminRoute>
+                      <PubgUcPackageForm />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/api-settings"
+                  element={
+                    <ProtectedAdminRoute>
+                      <ApiSettings />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
                   element={
                     <ProtectedAdminRoute>
                       <PhotosManage />
