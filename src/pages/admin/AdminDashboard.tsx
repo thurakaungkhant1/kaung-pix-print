@@ -2270,6 +2270,10 @@ const AdminDashboard = () => {
                     <Gem className="mr-2 h-4 w-4" />
                     MLBB Diamond Packages
                   </Button>
+                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/admin/pubg-uc-packages")}>
+                    <Gamepad2 className="mr-2 h-4 w-4" />
+                    PUBG UC Packages
+                  </Button>
                 </CardContent>
               </Card>
             </div>
