@@ -84,6 +84,7 @@ const getBannerColor = (colorName: string): string => {
 const Home = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [physicalProducts, setPhysicalProducts] = useState<any[]>([]);
+  const [recentPhotos, setRecentPhotos] = useState<any[]>([]);
   
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -183,6 +184,13 @@ const Home = () => {
         .not('name', 'ilike', '%atom%')
         .limit(6);
       if (productsData) setPhysicalProducts(productsData);
+
+      const { data: photosData } = await supabase
+        .from('photos')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(6);
+      if (photosData) setRecentPhotos(photosData);
 
 
       const { data: bannersData } = await supabase
@@ -446,6 +454,52 @@ const Home = () => {
           )}
         </section>
         </AnimatedSection>
+
+        {/* Photo Gallery Preview */}
+        {recentPhotos.length > 0 && (
+          <AnimatedSection delay={0.4}>
+            <section className="mb-6">
+              <div className="flex items-center justify-between px-5 mb-3">
+                <div className="flex items-center gap-2">
+                  <Camera className="h-4 w-4 text-primary" />
+                  <h2 className="font-bold text-sm">Photo Gallery</h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-primary gap-1 h-7"
+                  onClick={() => navigate("/photo")}
+                >
+                  View All <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-5 pb-2">
+                {recentPhotos.map((photo, index) => (
+                  <motion.div
+                    key={photo.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex-shrink-0 w-28 cursor-pointer group"
+                    onClick={() => navigate(`/photo/${photo.id}`)}
+                  >
+                    <div className="aspect-square rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/30 transition-all shadow-sm group-hover:shadow-md">
+                      <img
+                        src={photo.preview_image || photo.file_url}
+                        alt={photo.client_name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1 truncate text-center">
+                      {photo.client_name}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          </AnimatedSection>
+        )}
 
         <AdBanner pageLocation="home" position="inline" className="px-5 mb-6" />
 
