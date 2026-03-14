@@ -83,6 +83,66 @@ const getBannerColor = (colorName: string): string => {
   return colorMap[colorName] || colorMap['rose-500'];
 };
 
+// Mobile Services Preview Component
+const MobileServicesPreview = () => {
+  const [mobileProducts, setMobileProducts] = useState<any[]>([]);
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('*')
+        .in('category', ['Phone Top-up', 'Data Plans'])
+        .eq('status', 'available')
+        .order('price', { ascending: true })
+        .limit(6);
+      if (data) setMobileProducts(data);
+    };
+    load();
+  }, []);
+
+  if (mobileProducts.length === 0) return null;
+
+  return (
+    <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-5 pb-2">
+      {mobileProducts.map((product, index) => (
+        <motion.div
+          key={product.id}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.05 }}
+          className="flex-shrink-0 w-32 cursor-pointer group"
+          onClick={() => navigate("/game")}
+        >
+          <Card className="overflow-hidden border-border/50 group-hover:border-primary/30 transition-all rounded-2xl hover:shadow-md">
+            <div className="aspect-[4/3] bg-muted overflow-hidden relative">
+              <img 
+                src={product.image_url} 
+                alt={product.name}
+                loading="lazy"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute top-1.5 left-1.5">
+                <Badge className="bg-primary/80 text-primary-foreground border-0 text-[8px] px-1 py-0">
+                  {product.category === 'Phone Top-up' ? <Smartphone className="h-2 w-2 mr-0.5" /> : <Wifi className="h-2 w-2 mr-0.5" />}
+                  {product.category === 'Phone Top-up' ? 'Top-up' : 'Data'}
+                </Badge>
+              </div>
+            </div>
+            <CardContent className="p-2 space-y-0.5">
+              <h3 className="font-medium text-[10px] line-clamp-1 leading-tight group-hover:text-primary transition-colors">
+                {product.name}
+              </h3>
+              <p className="text-primary font-bold text-xs">{product.price.toLocaleString()} Ks</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
 const Home = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [physicalProducts, setPhysicalProducts] = useState<any[]>([]);

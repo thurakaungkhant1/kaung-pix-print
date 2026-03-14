@@ -2353,15 +2353,19 @@ const AdminDashboard = () => {
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/products")} className="h-auto py-4 flex-col gap-2">
                     <Package className="h-5 w-5" />
-                    Manage Products
+                    All Products
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/diamond-packages")} className="h-auto py-4 flex-col gap-2">
                     <Gem className="h-5 w-5" />
-                    Diamond Packages
+                    MLBB Diamonds
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/pubg-uc-packages")} className="h-auto py-4 flex-col gap-2">
                     <Gamepad2 className="h-5 w-5" />
-                    PUBG UC Packages
+                    PUBG UC
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/mobile-services")} className="h-auto py-4 flex-col gap-2">
+                    <Phone className="h-5 w-5" />
+                    Mobile Services
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/api-settings")} className="h-auto py-4 flex-col gap-2">
                     <Zap className="h-5 w-5" />
