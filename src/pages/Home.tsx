@@ -17,7 +17,9 @@ import {
   ArrowRight,
   Flame,
   Shield,
-  Zap
+  Zap,
+  Smartphone,
+  Wifi
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
