@@ -881,23 +881,30 @@ const AdminDashboard = () => {
       ]
     },
     {
+      label: "Shop & Products",
+      items: [
+        { id: "shop", label: "Shop Overview", icon: Package, badge: 0 },
+        { id: "products", label: "All Products", icon: Package, badge: 0, route: "/admin/products" },
+        { id: "diamond-packages", label: "MLBB Packages", icon: Gem, badge: 0, route: "/admin/diamond-packages" },
+        { id: "pubg-packages", label: "PUBG Packages", icon: Gamepad2, badge: 0, route: "/admin/pubg-uc-packages" },
+        { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
+      ]
+    },
+    {
       label: "Content",
       items: [
-        { id: "shop", label: "Shop", icon: Package, badge: 0 },
-        { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
-        { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
         { id: "photos", label: "Photos", icon: Image, badge: 0 },
       ]
     },
-      {
-        label: "Settings",
-        items: [
-          { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
-          { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
-          { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
-          { id: "settings", label: "Settings", icon: Settings, badge: 0 },
-        ]
-      },
+    {
+      label: "Settings",
+      items: [
+        { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
+        { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
+        { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
+        { id: "settings", label: "Settings", icon: Settings, badge: 0 },
+      ]
+    },
   ];
 
   // Flat list for compatibility
