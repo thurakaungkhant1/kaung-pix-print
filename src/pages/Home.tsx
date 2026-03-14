@@ -501,6 +501,27 @@ const Home = () => {
           </AnimatedSection>
         )}
 
+        {/* Mobile Services Section */}
+        <AnimatedSection delay={0.5}>
+          <section className="mb-6">
+            <div className="flex items-center justify-between px-5 mb-3">
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-primary" />
+                <h2 className="font-bold text-sm">Mobile Services</h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-primary gap-1 h-7"
+                onClick={() => navigate("/game")}
+              >
+                View All <ArrowRight className="h-3 w-3" />
+              </Button>
+            </div>
+            <MobileServicesPreview />
+          </section>
+        </AnimatedSection>
+
         <AdBanner pageLocation="home" position="inline" className="px-5 mb-6" />
 
         {/* Footer */}
