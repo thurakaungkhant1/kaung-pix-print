@@ -881,23 +881,30 @@ const AdminDashboard = () => {
       ]
     },
     {
+      label: "Shop & Products",
+      items: [
+        { id: "shop", label: "Shop Overview", icon: Package, badge: 0 },
+        { id: "products", label: "All Products", icon: Package, badge: 0, route: "/admin/products" },
+        { id: "diamond-packages", label: "MLBB Packages", icon: Gem, badge: 0, route: "/admin/diamond-packages" },
+        { id: "pubg-packages", label: "PUBG Packages", icon: Gamepad2, badge: 0, route: "/admin/pubg-uc-packages" },
+        { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
+      ]
+    },
+    {
       label: "Content",
       items: [
-        { id: "shop", label: "Shop", icon: Package, badge: 0 },
-        { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
-        { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
         { id: "photos", label: "Photos", icon: Image, badge: 0 },
       ]
     },
-      {
-        label: "Settings",
-        items: [
-          { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
-          { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
-          { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
-          { id: "settings", label: "Settings", icon: Settings, badge: 0 },
-        ]
-      },
+    {
+      label: "Settings",
+      items: [
+        { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
+        { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
+        { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
+        { id: "settings", label: "Settings", icon: Settings, badge: 0 },
+      ]
+    },
   ];
 
   // Flat list for compatibility
@@ -2346,15 +2353,19 @@ const AdminDashboard = () => {
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/products")} className="h-auto py-4 flex-col gap-2">
                     <Package className="h-5 w-5" />
-                    Manage Products
+                    All Products
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/diamond-packages")} className="h-auto py-4 flex-col gap-2">
                     <Gem className="h-5 w-5" />
-                    Diamond Packages
+                    MLBB Diamonds
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/pubg-uc-packages")} className="h-auto py-4 flex-col gap-2">
                     <Gamepad2 className="h-5 w-5" />
-                    PUBG UC Packages
+                    PUBG UC
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/mobile-services")} className="h-auto py-4 flex-col gap-2">
+                    <Phone className="h-5 w-5" />
+                    Mobile Services
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/api-settings")} className="h-auto py-4 flex-col gap-2">
                     <Zap className="h-5 w-5" />
