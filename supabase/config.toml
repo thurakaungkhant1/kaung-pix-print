@@ -14,9 +14,3 @@ verify_jwt = true
 
 [functions.transcribe-audio]
 verify_jwt = true
-
-[functions.auto-topup]
-verify_jwt = true
-
-[functions.verify-mlbb-player]
-verify_jwt = true

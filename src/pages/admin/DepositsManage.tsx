@@ -54,11 +54,10 @@ const DepositsManage = () => {
   const [processing, setProcessing] = useState(false);
   const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
   const [showScreenshot, setShowScreenshot] = useState(false);
-  const [depositStats, setDepositStats] = useState({ totalApproved: 0, totalPending: 0, totalRejected: 0, count: 0 });
 
   useEffect(() => {
     loadDeposits();
-    loadDepositStats();
+
     // Real-time subscription
     const channel = supabase
       .channel('deposits-changes')
@@ -77,20 +76,6 @@ const DepositsManage = () => {
       supabase.removeChannel(channel);
     };
   }, [statusFilter]);
-
-  const loadDepositStats = async () => {
-    const [approved, pending, rejected] = await Promise.all([
-      supabase.from('wallet_deposits').select('amount').eq('status', 'approved'),
-      supabase.from('wallet_deposits').select('amount').eq('status', 'pending'),
-      supabase.from('wallet_deposits').select('amount').eq('status', 'rejected'),
-    ]);
-    setDepositStats({
-      totalApproved: approved.data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0,
-      totalPending: pending.data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0,
-      totalRejected: rejected.data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0,
-      count: (approved.data?.length || 0) + (pending.data?.length || 0) + (rejected.data?.length || 0),
-    });
-  };
 
   const loadDeposits = async () => {
     try {
@@ -320,24 +305,8 @@ const DepositsManage = () => {
           </div>
         </div>
 
-        {/* Deposit Stats */}
-        <div className="p-4 -mt-4 grid grid-cols-3 gap-2 mb-2">
-          <div className="card-neon p-3 text-center">
-            <p className="text-xs text-muted-foreground">Approved</p>
-            <p className="text-sm font-bold text-green-400">{depositStats.totalApproved.toLocaleString()} Ks</p>
-          </div>
-          <div className="card-neon p-3 text-center">
-            <p className="text-xs text-muted-foreground">Pending</p>
-            <p className="text-sm font-bold text-yellow-400">{depositStats.totalPending.toLocaleString()} Ks</p>
-          </div>
-          <div className="card-neon p-3 text-center">
-            <p className="text-xs text-muted-foreground">Rejected</p>
-            <p className="text-sm font-bold text-red-400">{depositStats.totalRejected.toLocaleString()} Ks</p>
-          </div>
-        </div>
-
         {/* Deposits List */}
-        <div className="p-4 -mt-2 space-y-3">
+        <div className="p-4 -mt-4 space-y-3">
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Loading...</div>
           ) : filteredDeposits.length === 0 ? (
