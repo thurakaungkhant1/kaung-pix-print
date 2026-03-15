@@ -65,6 +65,9 @@ const MobileServicesManage = lazy(() => import("./pages/admin/MobileServicesMana
 const PaymentMethodsManage = lazy(() => import("./pages/admin/PaymentMethodsManage"));
 const BackgroundMusicManage = lazy(() => import("./pages/admin/BackgroundMusicManage"));
 const AdsManage = lazy(() => import("./pages/admin/AdsManage"));
+const PubgUcPackages = lazy(() => import("./pages/admin/PubgUcPackages"));
+const PubgUcPackageForm = lazy(() => import("./pages/admin/PubgUcPackageForm"));
+const ApiSettings = lazy(() => import("./pages/admin/ApiSettings"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
@@ -260,7 +263,38 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/admin/photos"
+                  path="/admin/pubg-uc-packages"
+                  element={
+                    <ProtectedAdminRoute>
+                      <PubgUcPackages />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/pubg-uc-packages/new"
+                  element={
+                    <ProtectedAdminRoute>
+                      <PubgUcPackageForm />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/pubg-uc-packages/edit/:id"
+                  element={
+                    <ProtectedAdminRoute>
+                      <PubgUcPackageForm />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/api-settings"
+                  element={
+                    <ProtectedAdminRoute>
+                      <ApiSettings />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
                   element={
                     <ProtectedAdminRoute>
                       <PhotosManage />
