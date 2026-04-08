@@ -68,11 +68,13 @@ const AdsManage = lazy(() => import("./pages/admin/AdsManage"));
 const PubgUcPackages = lazy(() => import("./pages/admin/PubgUcPackages"));
 const PubgUcPackageForm = lazy(() => import("./pages/admin/PubgUcPackageForm"));
 const ApiSettings = lazy(() => import("./pages/admin/ApiSettings"));
+const NotificationsManage = lazy(() => import("./pages/admin/NotificationsManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
 const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
 import InterstitialAd from "@/components/InterstitialAd";
+import NotificationDialog from "@/components/NotificationDialog";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +103,7 @@ const App = () => {
             <LanguageProvider>
               <MusicProvider>
               <InterstitialAd />
+              <NotificationDialog />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />
@@ -435,6 +438,14 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <AdsManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/notifications"
+                  element={
+                    <ProtectedAdminRoute>
+                      <NotificationsManage />
                     </ProtectedAdminRoute>
                   }
                 />
