@@ -442,6 +442,13 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/admin/notifications"
+                  element={
+                    <ProtectedAdminRoute>
+                      <NotificationsManage />
+                    </ProtectedAdminRoute>
+                  }
+                <Route
                   path="/wallet-history"
                   element={
                     <ProtectedRoute>
