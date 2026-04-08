@@ -295,6 +295,7 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/admin/photos"
                   element={
                     <ProtectedAdminRoute>
                       <PhotosManage />
