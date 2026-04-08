@@ -890,6 +890,12 @@ const AdminDashboard = () => {
       ]
     },
       {
+        label: "Engagement",
+        items: [
+          { id: "notifications", label: "Notifications", icon: Bell, badge: 0, route: "/admin/notifications" },
+        ]
+      },
+      {
         label: "Settings",
         items: [
           { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
