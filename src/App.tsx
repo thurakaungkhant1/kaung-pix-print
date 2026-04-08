@@ -448,6 +448,7 @@ const App = () => {
                       <NotificationsManage />
                     </ProtectedAdminRoute>
                   }
+                />
                 <Route
                   path="/wallet-history"
                   element={
