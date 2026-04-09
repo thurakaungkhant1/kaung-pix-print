@@ -196,6 +196,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_missions: {
+        Row: {
+          bonus_claimed: boolean
+          created_at: string
+          games_played: number
+          games_won: number
+          id: string
+          mission_date: string
+          missions_completed: boolean
+          user_id: string
+        }
+        Insert: {
+          bonus_claimed?: boolean
+          created_at?: string
+          games_played?: number
+          games_won?: number
+          id?: string
+          mission_date?: string
+          missions_completed?: boolean
+          user_id: string
+        }
+        Update: {
+          bonus_claimed?: boolean
+          created_at?: string
+          games_played?: number
+          games_won?: number
+          id?: string
+          mission_date?: string
+          missions_completed?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       favourite_photos: {
         Row: {
           created_at: string | null
@@ -278,6 +311,63 @@ export type Database = {
           sender_id?: string
           status?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      game_scores: {
+        Row: {
+          created_at: string
+          game_name: string
+          id: string
+          is_win: boolean
+          points_earned: number
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_name: string
+          id?: string
+          is_win?: boolean
+          points_earned?: number
+          score?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_name?: string
+          id?: string
+          is_win?: boolean
+          points_earned?: number
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      game_streaks: {
+        Row: {
+          current_streak: number
+          id: string
+          last_played_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          id?: string
+          last_played_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          id?: string
+          last_played_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -935,6 +1025,7 @@ export type Database = {
           created_at: string | null
           download_pin: string | null
           email: string | null
+          game_points: number
           id: string
           is_active_visible: boolean | null
           language: string | null
@@ -951,6 +1042,7 @@ export type Database = {
           created_at?: string | null
           download_pin?: string | null
           email?: string | null
+          game_points?: number
           id: string
           is_active_visible?: boolean | null
           language?: string | null
@@ -967,6 +1059,7 @@ export type Database = {
           created_at?: string | null
           download_pin?: string | null
           email?: string | null
+          game_points?: number
           id?: string
           is_active_visible?: boolean | null
           language?: string | null
@@ -978,6 +1071,13 @@ export type Database = {
           wallet_balance?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "game_leaderboard"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_referred_by_fkey"
             columns: ["referred_by"]
@@ -1381,6 +1481,17 @@ export type Database = {
       }
     }
     Views: {
+      game_leaderboard: {
+        Row: {
+          avatar_url: string | null
+          game_points: number | null
+          id: string | null
+          name: string | null
+          total_games: number | null
+          total_wins: number | null
+        }
+        Relationships: []
+      }
       leaderboard: {
         Row: {
           created_at: string | null
@@ -1405,6 +1516,7 @@ export type Database = {
     }
     Functions: {
       generate_referral_code: { Args: never; Returns: string }
+      get_daily_game_points: { Args: { p_user_id: string }; Returns: number }
       get_daily_points_earned: {
         Args: { exclude_spin?: boolean; user_id_param: string }
         Returns: number
