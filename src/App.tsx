@@ -171,6 +171,14 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/games"
+                  element={
+                    <ProtectedRoute>
+                      <GamesPortal />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/terms"
                   element={
                     <ProtectedRoute>
