@@ -23,6 +23,7 @@ const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const PhotoDetail = lazy(() => import("./pages/PhotoDetail"));
 const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
 const GamePage = lazy(() => import("./pages/GamePage"));
+const GamesPortal = lazy(() => import("./pages/GamesPortal"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Exchange = lazy(() => import("./pages/Exchange"));
