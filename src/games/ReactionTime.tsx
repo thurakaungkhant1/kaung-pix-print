@@ -11,7 +11,7 @@ const ReactionTime = ({ onGameEnd }: Props) => {
   const [times, setTimes] = useState<number[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
   const startRef = useRef(0);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const startRound = () => {
     setPhase("ready");

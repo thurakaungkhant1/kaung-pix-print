@@ -9,7 +9,7 @@ const ClickSpeed = ({ onGameEnd }: Props) => {
   const [timeLeft, setTimeLeft] = useState(10);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const start = () => {
     setClicks(0);

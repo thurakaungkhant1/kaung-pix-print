@@ -10,8 +10,8 @@ const WhackAMole = ({ onGameEnd }: Props) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
-  const moleTimer = useRef<NodeJS.Timeout>();
-  const gameTimer = useRef<NodeJS.Timeout>();
+  const moleTimer = useRef<ReturnType<typeof setInterval>>();
+  const gameTimer = useRef<ReturnType<typeof setInterval>>();
 
   const start = () => {
     setScore(0);
