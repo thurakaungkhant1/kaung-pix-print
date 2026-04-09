@@ -66,7 +66,7 @@ const GamesPortal = () => {
   const [hasSpunToday, setHasSpunToday] = useState(false);
 
   // Load leaderboard
-  useState(() => {
+  useEffect(() => {
     if (isOnline) {
       supabase
         .from("profiles")
@@ -75,7 +75,7 @@ const GamesPortal = () => {
         .limit(10)
         .then(({ data }) => { if (data) setLeaderboard(data); });
     }
-  });
+  }, [isOnline]);
 
   const handleGameEnd = async (gameName: string, score: number, isWin: boolean) => {
     if (!isOnline) {
