@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   ShoppingBag, 
   Crown,
   Star,
@@ -17,7 +17,8 @@ import {
   ArrowRight,
   Flame,
   Shield,
-  Zap
+  Zap,
+  Gamepad2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -500,6 +501,57 @@ const Home = () => {
             </section>
           </AnimatedSection>
         )}
+
+        {/* Mini Games Preview */}
+        <AnimatedSection delay={0.5}>
+          <section className="mb-6">
+            <div className="flex items-center justify-between px-5 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Gamepad2 className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-display font-bold leading-tight">Mini Games</h2>
+                  <p className="text-[11px] text-muted-foreground">Play & earn game points</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1 text-primary text-xs h-8 px-3"
+                onClick={() => navigate("/games")}
+              >
+                Play All <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <div className="flex gap-3 overflow-x-auto px-5 pb-3 scrollbar-hide">
+              {[
+                { name: "Tic Tac Toe", icon: "🎯", color: "from-blue-500/20 to-cyan-500/20", border: "border-blue-500/30" },
+                { name: "Snake", icon: "🐍", color: "from-green-500/20 to-emerald-500/20", border: "border-green-500/30" },
+                { name: "2048", icon: "🧮", color: "from-amber-500/20 to-orange-500/20", border: "border-amber-500/30" },
+                { name: "Flappy Bird", icon: "🐦", color: "from-teal-500/20 to-cyan-500/20", border: "border-teal-500/30" },
+                { name: "Memory", icon: "🧠", color: "from-purple-500/20 to-violet-500/20", border: "border-purple-500/30" },
+                { name: "Quiz", icon: "❓", color: "from-indigo-500/20 to-blue-500/20", border: "border-indigo-500/30" },
+              ].map((game, index) => (
+                <motion.div
+                  key={game.name}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex-shrink-0 cursor-pointer group"
+                  onClick={() => navigate("/games")}
+                >
+                  <div className={`w-24 h-28 rounded-2xl bg-gradient-to-br ${game.color} border ${game.border}
+                    flex flex-col items-center justify-center gap-2 group-hover:scale-105 transition-all duration-300
+                    group-hover:shadow-md`}>
+                    <span className="text-3xl">{game.icon}</span>
+                    <span className="text-[10px] font-semibold text-foreground">{game.name}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        </AnimatedSection>
 
         <AdBanner pageLocation="home" position="inline" className="px-5 mb-6" />
 

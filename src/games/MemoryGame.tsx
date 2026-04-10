@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { RotateCcw, Trophy } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const EMOJIS = ["🎮", "🎯", "🎲", "🎪", "🎨", "🎭", "🎸", "🎺"];
 
@@ -19,11 +21,7 @@ const MemoryGame = ({ onGameEnd }: Props) => {
       const j = Math.floor(Math.random() * (i + 1));
       [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
     }
-    setCards(pairs);
-    setFlipped([]);
-    setMatched([]);
-    setMoves(0);
-    setGameOver(false);
+    setCards(pairs); setFlipped([]); setMatched([]); setMoves(0); setGameOver(false);
   };
 
   useEffect(() => { shuffle(); }, []);
@@ -31,20 +29,15 @@ const MemoryGame = ({ onGameEnd }: Props) => {
   useEffect(() => {
     if (matched.length === cards.length && cards.length > 0) {
       setGameOver(true);
-      const score = Math.max(0, 200 - moves * 5);
-      onGameEnd(score, true);
+      onGameEnd(Math.max(0, 200 - moves * 5), true);
     }
   }, [matched, cards]);
 
   useEffect(() => {
     if (flipped.length === 2) {
       const [a, b] = flipped;
-      if (cards[a] === cards[b]) {
-        setMatched(prev => [...prev, a, b]);
-        setFlipped([]);
-      } else {
-        setTimeout(() => setFlipped([]), 800);
-      }
+      if (cards[a] === cards[b]) { setMatched(prev => [...prev, a, b]); setFlipped([]); }
+      else { setTimeout(() => setFlipped([]), 800); }
     }
   }, [flipped, cards]);
 
@@ -55,32 +48,63 @@ const MemoryGame = ({ onGameEnd }: Props) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex gap-6 text-sm">
-        <span className="text-muted-foreground">Moves: <span className="font-bold text-foreground">{moves}</span></span>
-        <span className="text-muted-foreground">Matched: <span className="font-bold text-primary">{matched.length / 2}/{EMOJIS.length}</span></span>
+    <div className="flex flex-col items-center gap-5">
+      {/* Stats */}
+      <div className="flex gap-3">
+        <Badge variant="secondary" className="text-xs px-3 py-1.5">
+          👆 Moves: <span className="font-bold ml-1">{moves}</span>
+        </Badge>
+        <Badge variant="secondary" className="text-xs px-3 py-1.5">
+          ✅ Matched: <span className="font-bold text-primary ml-1">{matched.length / 2}/{EMOJIS.length}</span>
+        </Badge>
       </div>
-      {gameOver && <p className="text-lg font-bold text-primary">🎉 You found all pairs!</p>}
-      <div className="grid grid-cols-4 gap-2 w-fit">
+
+      {gameOver && (
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="flex items-center gap-2 text-primary"
+        >
+          <Trophy className="h-5 w-5" />
+          <p className="text-lg font-display font-bold">🎉 All pairs found!</p>
+        </motion.div>
+      )}
+
+      {/* Card Grid */}
+      <div className="grid grid-cols-4 gap-2.5 w-fit">
         {cards.map((emoji, i) => {
           const isFlipped = flipped.includes(i) || matched.includes(i);
+          const isMatched = matched.includes(i);
           return (
-            <button
+            <motion.button
               key={i}
               onClick={() => handleClick(i)}
-              className={`w-16 h-16 rounded-xl text-2xl flex items-center justify-center transition-all duration-300
-                ${isFlipped 
-                  ? "bg-primary/10 border-2 border-primary/50 scale-100" 
-                  : "bg-card border-2 border-border/50 hover:bg-primary/5 hover:scale-105"}
-                ${matched.includes(i) ? "opacity-60" : ""}
-                active:scale-95`}
+              whileHover={!isFlipped ? { scale: 1.05 } : {}}
+              whileTap={!isFlipped ? { scale: 0.95 } : {}}
+              className={`w-16 h-16 rounded-2xl text-2xl flex items-center justify-center transition-all duration-300 font-medium
+                ${isFlipped
+                  ? isMatched
+                    ? "bg-primary/10 border-2 border-primary/40 shadow-[0_0_10px_hsl(var(--primary)/0.15)]"
+                    : "bg-accent/10 border-2 border-accent/40"
+                  : "bg-card border-2 border-border/50 hover:bg-primary/5 hover:border-primary/20 cursor-pointer"
+                }
+                ${isMatched ? "opacity-70" : ""}`}
             >
-              {isFlipped ? emoji : "?"}
-            </button>
+              <AnimatePresence mode="wait">
+                {isFlipped ? (
+                  <motion.span key="emoji" initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} exit={{ rotateY: 90 }} transition={{ duration: 0.2 }}>
+                    {emoji}
+                  </motion.span>
+                ) : (
+                  <motion.span key="q" className="text-muted-foreground/40 text-lg">?</motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
           );
         })}
       </div>
-      <Button onClick={shuffle} variant="outline" size="sm" className="gap-2">
+
+      <Button onClick={shuffle} variant="outline" size="sm" className="gap-2 rounded-xl">
         <RotateCcw className="h-4 w-4" /> Reset
       </Button>
     </div>
