@@ -1,6 +1,9 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { RotateCcw, Trophy, Minus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Cell = "X" | "O" | null;
 const LINES = [
@@ -15,18 +18,19 @@ const TicTacToe = ({ onGameEnd }: Props) => {
   const [board, setBoard] = useState<Cell[]>(Array(9).fill(null));
   const [isX, setIsX] = useState(true);
   const [gameOver, setGameOver] = useState(false);
+  const [winLine, setWinLine] = useState<number[] | null>(null);
 
-  const checkWinner = (b: Cell[]): Cell => {
+  const checkWinner = (b: Cell[]): { winner: Cell; line: number[] | null } => {
     for (const [a, bb, c] of LINES) {
-      if (b[a] && b[a] === b[bb] && b[a] === b[c]) return b[a];
+      if (b[a] && b[a] === b[bb] && b[a] === b[c]) return { winner: b[a], line: [a, bb, c] };
     }
-    return null;
+    return { winner: null, line: null };
   };
 
   const minimax = (b: Cell[], isMax: boolean): number => {
-    const w = checkWinner(b);
-    if (w === "O") return 1;
-    if (w === "X") return -1;
+    const { winner } = checkWinner(b);
+    if (winner === "O") return 1;
+    if (winner === "X") return -1;
     if (b.every(c => c !== null)) return 0;
     if (isMax) {
       let best = -Infinity;
@@ -66,58 +70,98 @@ const TicTacToe = ({ onGameEnd }: Props) => {
     const newBoard = [...board];
     newBoard[i] = "X";
 
-    const winner = checkWinner(newBoard);
+    const { winner, line } = checkWinner(newBoard);
     if (winner || newBoard.every(c => c !== null)) {
       setBoard(newBoard);
       setGameOver(true);
+      setWinLine(line);
       onGameEnd(winner === "X" ? 100 : 0, winner === "X");
       return;
     }
 
-    // AI turn
     const afterAi = aiMove(newBoard);
-    const aiWinner = checkWinner(afterAi);
-    if (aiWinner || afterAi.every(c => c !== null)) {
+    const aiResult = checkWinner(afterAi);
+    if (aiResult.winner || afterAi.every(c => c !== null)) {
       setBoard(afterAi);
       setGameOver(true);
-      onGameEnd(aiWinner === "X" ? 100 : 0, aiWinner === "X");
+      setWinLine(aiResult.line);
+      onGameEnd(aiResult.winner === "X" ? 100 : 0, aiResult.winner === "X");
       return;
     }
     setBoard(afterAi);
   };
 
-  const reset = () => { setBoard(Array(9).fill(null)); setIsX(true); setGameOver(false); };
-  const winner = checkWinner(board);
+  const reset = () => { setBoard(Array(9).fill(null)); setIsX(true); setGameOver(false); setWinLine(null); };
+  const { winner } = checkWinner(board);
   const isDraw = !winner && board.every(c => c !== null);
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-5">
+      {/* Status */}
       <div className="text-center">
-        {winner ? (
-          <p className="text-lg font-bold text-primary">{winner === "X" ? "🎉 You Win!" : "AI Wins!"}</p>
-        ) : isDraw ? (
-          <p className="text-lg font-bold text-muted-foreground">Draw!</p>
-        ) : (
-          <p className="text-sm text-muted-foreground">{isX ? "Your turn (X)" : "AI thinking..."}</p>
-        )}
+        <AnimatePresence mode="wait">
+          {winner ? (
+            <motion.div key="win" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-1">
+              <div className="p-2.5 rounded-xl bg-primary/10 mb-1">
+                <Trophy className="h-6 w-6 text-primary" />
+              </div>
+              <p className="text-lg font-display font-bold text-primary">
+                {winner === "X" ? "🎉 You Win!" : "AI Wins!"}
+              </p>
+            </motion.div>
+          ) : isDraw ? (
+            <motion.div key="draw" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex items-center gap-2">
+              <Minus className="h-5 w-5 text-muted-foreground" />
+              <p className="text-lg font-bold text-muted-foreground">Draw!</p>
+            </motion.div>
+          ) : (
+            <motion.div key="turn" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Badge variant="secondary" className="text-xs px-3 py-1">
+                {isX ? "🎯 Your turn (X)" : "🤖 AI thinking..."}
+              </Badge>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      <div className="grid grid-cols-3 gap-2 w-fit">
-        {board.map((cell, i) => (
-          <button
-            key={i}
-            onClick={() => handleClick(i)}
-            className="w-20 h-20 rounded-xl bg-card border-2 border-border/50 text-3xl font-bold
-              hover:bg-primary/10 transition-all flex items-center justify-center
-              active:scale-95 disabled:opacity-50"
-            disabled={!!cell || gameOver}
-          >
-            <span className={cell === "X" ? "text-primary" : "text-accent"}>
-              {cell}
-            </span>
-          </button>
-        ))}
+
+      {/* Board */}
+      <div className="grid grid-cols-3 gap-2.5 w-fit">
+        {board.map((cell, i) => {
+          const isWinCell = winLine?.includes(i);
+          return (
+            <motion.button
+              key={i}
+              onClick={() => handleClick(i)}
+              whileHover={!cell && !gameOver ? { scale: 1.05 } : {}}
+              whileTap={!cell && !gameOver ? { scale: 0.95 } : {}}
+              className={`w-[4.5rem] h-[4.5rem] rounded-2xl text-3xl font-bold
+                flex items-center justify-center transition-all duration-200
+                ${isWinCell
+                  ? "bg-primary/15 border-2 border-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                  : cell
+                    ? "bg-card border-2 border-border/50"
+                    : "bg-card border-2 border-border/50 hover:bg-primary/5 hover:border-primary/30 cursor-pointer"
+                }
+                disabled:cursor-default`}
+              disabled={!!cell || gameOver}
+            >
+              <AnimatePresence>
+                {cell && (
+                  <motion.span
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    className={cell === "X" ? "text-primary" : "text-accent"}
+                  >
+                    {cell}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          );
+        })}
       </div>
-      <Button onClick={reset} variant="outline" size="sm" className="gap-2">
+
+      <Button onClick={reset} variant="outline" size="sm" className="gap-2 rounded-xl">
         <RotateCcw className="h-4 w-4" /> New Game
       </Button>
     </div>
