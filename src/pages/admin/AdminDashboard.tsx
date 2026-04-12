@@ -893,6 +893,7 @@ const AdminDashboard = () => {
         label: "Engagement",
         items: [
           { id: "notifications", label: "Notifications", icon: Bell, badge: 0, route: "/admin/notifications" },
+          { id: "game-points", label: "Game Points", icon: Gamepad2, badge: 0, route: "/admin/game-points" },
         ]
       },
       {
