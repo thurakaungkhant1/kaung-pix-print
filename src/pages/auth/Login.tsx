@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import AuthAnimatedBackground from "@/components/AuthAnimatedBackground";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
@@ -84,13 +85,8 @@ const Login = () => {
 
   return (
     <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden min-h-screen">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20 animate-gradient-shift" />
-      
-      {/* Floating orbs */}
-      <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-accent/20 rounded-full blur-3xl animate-float-delayed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      {/* Canvas animated background */}
+      <AuthAnimatedBackground />
       
       {/* Sparkle decorations */}
       <div className="absolute top-20 right-10 text-primary/40">

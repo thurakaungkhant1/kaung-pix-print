@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle, Mail, Eye, EyeOff, ShoppingCart, Camera, ArrowRight } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { cn } from "@/lib/utils";
+import AuthAnimatedBackground from "@/components/AuthAnimatedBackground";
 import { motion } from "framer-motion";
 
 const Signup = () => {
@@ -233,13 +234,8 @@ const Signup = () => {
 
   return (
     <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden min-h-screen">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-background to-primary/20 animate-gradient-shift" />
-      
-      {/* Floating orbs */}
-      <div className="absolute top-1/3 -left-20 w-64 h-64 bg-accent/20 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-1/3 -right-20 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-float-delayed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+      {/* Canvas animated background */}
+      <AuthAnimatedBackground />
       
       {/* Sparkle decorations */}
       <div className="absolute top-16 left-10 text-accent/40">
