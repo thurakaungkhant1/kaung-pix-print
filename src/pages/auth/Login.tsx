@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import AuthAnimatedBackground from "@/components/AuthAnimatedBackground";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
@@ -84,21 +85,10 @@ const Login = () => {
 
   return (
     <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden min-h-screen">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20 animate-gradient-shift" />
+      {/* Canvas animated background */}
+      <AuthAnimatedBackground />
       
-      {/* Floating orbs */}
-      <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-accent/20 rounded-full blur-3xl animate-float-delayed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       
-      {/* Sparkle decorations */}
-      <div className="absolute top-20 right-10 text-primary/40">
-        <Sparkles className="h-6 w-6 animate-pulse" />
-      </div>
-      <div className="absolute bottom-32 left-8 text-accent/40">
-        <Sparkles className="h-4 w-4 animate-pulse" style={{ animationDelay: '0.5s' }} />
-      </div>
       
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
