@@ -1,4 +1,6 @@
 import { useState, lazy, Suspense } from "react";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import OfflineGame from "@/components/OfflineGame";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -89,6 +91,11 @@ const PageLoader = () => (
 
 const App = () => {
   const [showLoading, setShowLoading] = useState(true);
+  const isOnline = useNetworkStatus();
+
+  if (!isOnline) {
+    return <OfflineGame />;
+  }
 
   if (showLoading) {
     return <LoadingScreen onLoadComplete={() => setShowLoading(false)} />;
