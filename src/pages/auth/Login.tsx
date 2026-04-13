@@ -88,13 +88,7 @@ const Login = () => {
       {/* Canvas animated background */}
       <AuthAnimatedBackground />
       
-      {/* Sparkle decorations */}
-      <div className="absolute top-20 right-10 text-primary/40">
-        <Sparkles className="h-6 w-6 animate-pulse" />
-      </div>
-      <div className="absolute bottom-32 left-8 text-accent/40">
-        <Sparkles className="h-4 w-4 animate-pulse" style={{ animationDelay: '0.5s' }} />
-      </div>
+      
       
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}

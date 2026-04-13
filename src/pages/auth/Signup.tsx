@@ -237,13 +237,7 @@ const Signup = () => {
       {/* Canvas animated background */}
       <AuthAnimatedBackground />
       
-      {/* Sparkle decorations */}
-      <div className="absolute top-16 left-10 text-accent/40">
-        <Sparkles className="h-6 w-6 animate-pulse" />
-      </div>
-      <div className="absolute bottom-24 right-8 text-primary/40">
-        <Sparkles className="h-4 w-4 animate-pulse" style={{ animationDelay: '0.5s' }} />
-      </div>
+
 
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
