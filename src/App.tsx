@@ -91,6 +91,11 @@ const PageLoader = () => (
 
 const App = () => {
   const [showLoading, setShowLoading] = useState(true);
+  const isOnline = useNetworkStatus();
+
+  if (!isOnline) {
+    return <OfflineGame />;
+  }
 
   if (showLoading) {
     return <LoadingScreen onLoadComplete={() => setShowLoading(false)} />;
