@@ -2,7 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
-import DrawerNav from "@/components/DrawerNav";
+import BottomNav from "@/components/BottomNav";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -30,8 +30,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   return user ? (
     <>
-      <DrawerNav />
       {children}
+      <BottomNav />
     </>
   ) : null;
 };
