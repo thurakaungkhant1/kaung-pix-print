@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, ArrowLeft, CheckCircle, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
+import AuthAnimatedBackground from "@/components/AuthAnimatedBackground";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -34,7 +35,6 @@ const ForgotPassword = () => {
         description: "Check your inbox for the password reset link",
       });
     } catch (error: any) {
-      // For security, show generic message
       setEmailSent(true);
       toast({
         title: "Request received",
@@ -48,14 +48,14 @@ const ForgotPassword = () => {
   if (emailSent) {
     return (
       <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
+        <AuthAnimatedBackground />
         <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
 
         <Card className={cn(
           "w-full max-w-md relative z-10",
-          "border-border/50 shadow-xl",
+          "border-border/50 shadow-xl backdrop-blur-sm bg-card/90",
           "animate-slide-up"
         )}>
           <CardHeader className="space-y-4 text-center pb-2">
@@ -104,14 +104,14 @@ const ForgotPassword = () => {
 
   return (
     <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
+      <AuthAnimatedBackground />
       <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
 
       <Card className={cn(
         "w-full max-w-md relative z-10",
-        "border-border/50 shadow-xl",
+        "border-border/50 shadow-xl backdrop-blur-sm bg-card/90",
         "animate-slide-up"
       )}>
         <CardHeader className="space-y-4 text-center pb-2">
