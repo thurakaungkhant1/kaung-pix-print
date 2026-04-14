@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { WifiOff, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { WifiOff, RotateCcw, Volume2, VolumeX, Trophy, Zap, Gamepad2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const CANVAS_WIDTH = 400;
 const CANVAS_HEIGHT = 200;
@@ -28,7 +29,6 @@ interface Particle {
   type: "jump" | "land" | "score" | "crash" | "trail";
 }
 
-// Web Audio sound generator
 class SoundEngine {
   private ctx: AudioContext | null = null;
   public muted = false;
@@ -46,7 +46,6 @@ class SoundEngine {
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
-
       const now = ctx.currentTime;
       switch (type) {
         case "jump":
@@ -55,8 +54,7 @@ class SoundEngine {
           osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
           gain.gain.setValueAtTime(0.15, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-          osc.start(now);
-          osc.stop(now + 0.15);
+          osc.start(now); osc.stop(now + 0.15);
           break;
         case "land":
           osc.type = "triangle";
@@ -64,8 +62,7 @@ class SoundEngine {
           osc.frequency.exponentialRampToValueAtTime(100, now + 0.08);
           gain.gain.setValueAtTime(0.08, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-          osc.start(now);
-          osc.stop(now + 0.1);
+          osc.start(now); osc.stop(now + 0.1);
           break;
         case "score":
           osc.type = "sine";
@@ -73,8 +70,7 @@ class SoundEngine {
           osc.frequency.setValueAtTime(659, now + 0.05);
           gain.gain.setValueAtTime(0.1, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-          osc.start(now);
-          osc.stop(now + 0.12);
+          osc.start(now); osc.stop(now + 0.12);
           break;
         case "crash":
           osc.type = "sawtooth";
@@ -82,8 +78,7 @@ class SoundEngine {
           osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
           gain.gain.setValueAtTime(0.2, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-          osc.start(now);
-          osc.stop(now + 0.4);
+          osc.start(now); osc.stop(now + 0.4);
           break;
         case "milestone":
           osc.type = "sine";
@@ -92,8 +87,7 @@ class SoundEngine {
           osc.frequency.setValueAtTime(784, now + 0.16);
           gain.gain.setValueAtTime(0.12, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-          osc.start(now);
-          osc.stop(now + 0.3);
+          osc.start(now); osc.stop(now + 0.3);
           break;
       }
     } catch {}
@@ -106,9 +100,9 @@ const OfflineGame = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>(0);
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("kaung_offline_highscore") || "0");
-  });
+  const [highScore, setHighScore] = useState(() =>
+    parseInt(localStorage.getItem("kaung_offline_highscore") || "0")
+  );
   const [gameOver, setGameOver] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
@@ -132,15 +126,13 @@ const OfflineGame = () => {
     const state = gameState.current;
     for (let i = 0; i < count; i++) {
       state.particles.push({
-        x,
-        y,
+        x, y,
         vx: (Math.random() - 0.5) * (type === "crash" ? 6 : 3),
         vy: (Math.random() - 1) * (type === "crash" ? 5 : 2),
         life: type === "trail" ? 10 : 20 + Math.random() * 20,
         maxLife: type === "trail" ? 10 : 20 + Math.random() * 20,
         size: type === "crash" ? 2 + Math.random() * 4 : 1 + Math.random() * 3,
-        color,
-        type,
+        color, type,
       });
     }
   }, []);
@@ -151,7 +143,6 @@ const OfflineGame = () => {
     ctx.fillRect(x, y, 24, 20);
     ctx.fillStyle = "hsl(var(--primary-foreground))";
     ctx.fillRect(x + 3, y + 3, 18, 12);
-    // Screen glow
     ctx.shadowColor = "hsl(var(--primary))";
     ctx.shadowBlur = 4;
     ctx.fillRect(x + 3, y + 3, 18, 12);
@@ -207,7 +198,6 @@ const OfflineGame = () => {
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Ground
     ctx.strokeStyle = "hsl(var(--border))";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -215,18 +205,15 @@ const OfflineGame = () => {
     ctx.lineTo(CANVAS_WIDTH, GROUND_Y + 30);
     ctx.stroke();
 
-    // Ground dots
     ctx.fillStyle = "hsl(var(--muted-foreground))";
     for (let i = 0; i < 20; i++) {
       const dotX = ((i * 25 - state.frameCount * state.gameSpeed * 0.5) % CANVAS_WIDTH + CANVAS_WIDTH) % CANVAS_WIDTH;
       ctx.fillRect(dotX, GROUND_Y + 32, 2, 1);
     }
 
-    // Update player
     state.playerVelocity += GRAVITY;
     state.playerY += state.playerVelocity;
 
-    // Trail particles while jumping
     if (state.isJumping && state.frameCount % 3 === 0) {
       spawnParticles(55, state.playerY + 30, 1, "trail", "hsl(var(--primary))");
     }
@@ -241,11 +228,9 @@ const OfflineGame = () => {
       state.isJumping = false;
     }
     state.wasJumping = state.isJumping;
-
     state.frameCount++;
     if (state.frameCount % 8 === 0) state.playerFrame++;
 
-    // Spawn obstacles
     if (state.frameCount % Math.max(60, 120 - Math.floor(state.score / 5)) === 0) {
       const types: Obstacle["type"][] = ["monitor", "keyboard", "mouse"];
       const type = types[Math.floor(Math.random() * types.length)];
@@ -258,7 +243,6 @@ const OfflineGame = () => {
       return obs.x > -50;
     });
 
-    // Collision
     const playerBox = { x: 50, y: state.playerY, w: 24, h: 30 };
     for (const obs of state.obstacles) {
       const obsBox = { x: obs.x, y: GROUND_Y - obs.height, w: obs.width, h: obs.height };
@@ -268,25 +252,19 @@ const OfflineGame = () => {
         soundEngine.play("crash");
         spawnParticles(62, state.playerY + 15, 20, "crash", "hsl(var(--destructive))");
         spawnParticles(obs.x + obs.width / 2, GROUND_Y - obs.height / 2, 10, "crash", "hsl(var(--primary))");
-        
         const newHigh = Math.max(state.score, highScore);
         setHighScore(newHigh);
         localStorage.setItem("kaung_offline_highscore", String(newHigh));
-        
-        // Save score for sync
         const pending = JSON.parse(localStorage.getItem("kaung_offline_pending_scores") || "[]");
         pending.push({ score: state.score, timestamp: Date.now() });
         localStorage.setItem("kaung_offline_pending_scores", JSON.stringify(pending));
-        
         setGameOver(true);
-        // Draw final frame with particles
         drawPlayer(ctx, state.playerY, state.playerFrame);
         state.obstacles.forEach((o) => drawObstacle(ctx, o));
         return;
       }
     }
 
-    // Score
     if (state.frameCount % 10 === 0) {
       state.score++;
       setScore(state.score);
@@ -305,7 +283,6 @@ const OfflineGame = () => {
     }
     state.gameSpeed = GAME_SPEED_INITIAL + state.score * GAME_SPEED_INCREMENT;
 
-    // Update & draw particles
     state.particles = state.particles.filter((p) => {
       p.x += p.vx;
       p.y += p.vy;
@@ -328,7 +305,6 @@ const OfflineGame = () => {
     drawPlayer(ctx, state.playerY, state.playerFrame);
     state.obstacles.forEach((obs) => drawObstacle(ctx, obs));
 
-    // Score on canvas
     ctx.fillStyle = "hsl(var(--foreground))";
     ctx.font = "bold 14px monospace";
     ctx.textAlign = "right";
@@ -339,8 +315,7 @@ const OfflineGame = () => {
 
   const jump = useCallback(() => {
     if (!gameState.current.isRunning) {
-      if (gameOver) startGame();
-      else startGame();
+      startGame();
       return;
     }
     if (!gameState.current.isJumping) {
@@ -350,7 +325,7 @@ const OfflineGame = () => {
       soundEngine.play("jump");
       spawnParticles(55, GROUND_Y, 4, "jump", "hsl(var(--primary))");
     }
-  }, [gameOver, spawnParticles]);
+  }, [spawnParticles]);
 
   const startGame = useCallback(() => {
     const state = gameState.current;
@@ -391,65 +366,180 @@ const OfflineGame = () => {
   }, [jump]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 select-none">
-      <div className="text-center mb-6">
-        <WifiOff className="w-12 h-12 mx-auto mb-3 text-muted-foreground animate-pulse" />
-        <h1 className="text-2xl font-bold text-foreground mb-1">အင်တာနက် မရှိပါ</h1>
-        <p className="text-sm text-muted-foreground">No Internet Connection</p>
-      </div>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 select-none relative overflow-hidden">
+      {/* Glassmorphism background effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse-soft" />
+      <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-accent/8 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: "1.5s" }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
 
-      <div className="relative bg-card rounded-2xl border border-border p-4 shadow-lg max-w-full overflow-hidden">
-        <div className="flex justify-between items-center mb-2 px-1">
-          <span className="text-xs font-bold text-primary">🖥️ KAUNG COMPUTER</span>
-          <div className="flex items-center gap-3">
-            <button onClick={toggleSound} className="text-muted-foreground hover:text-foreground transition-colors">
-              {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-            <span className="text-xs text-muted-foreground">HI {String(highScore).padStart(5, "0")}</span>
+      {/* Header */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="text-center mb-8 relative z-10"
+      >
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary/10 backdrop-blur-sm border border-primary/20 mb-4 shadow-lg">
+          <WifiOff className="w-9 h-9 text-primary" />
+        </div>
+        <h1 className="text-2xl font-display font-bold text-foreground mb-1">
+          အင်တာနက် မရှိပါ
+        </h1>
+        <p className="text-sm text-muted-foreground">No Internet Connection</p>
+      </motion.div>
+
+      {/* Game Container - Glassmorphism */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
+        className="relative w-full max-w-md z-10"
+      >
+        <div className="rounded-3xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-xl overflow-hidden">
+          {/* Game Header */}
+          <div className="flex justify-between items-center px-5 py-3 border-b border-border/30 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                <Gamepad2 className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <span className="text-xs font-bold text-foreground tracking-wide">KAUNG RUNNER</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={toggleSound}
+                className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+              </button>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20">
+                <Trophy className="w-3 h-3 text-primary" />
+                <span className="text-[10px] font-bold text-primary">{String(highScore).padStart(5, "0")}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Score Display */}
+          {gameStarted && (
+            <div className="flex justify-center py-2 bg-muted/20">
+              <div className="flex items-center gap-2 px-4 py-1 rounded-full bg-primary/10 border border-primary/15">
+                <Zap className="w-3 h-3 text-primary" />
+                <span className="text-sm font-mono font-bold text-foreground">{String(score).padStart(5, "0")}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Canvas */}
+          <div className="px-4 py-3">
+            <canvas
+              ref={canvasRef}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
+              className="w-full rounded-2xl bg-background/80 border border-border/30 cursor-pointer shadow-inner"
+              onClick={jump}
+              onTouchStart={(e) => { e.preventDefault(); jump(); }}
+              style={{ imageRendering: "pixelated" }}
+            />
+          </div>
+
+          {/* Start Overlay */}
+          <AnimatePresence>
+            {!gameStarted && !gameOver && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-md rounded-3xl"
+              >
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="text-center px-8"
+                >
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center shadow-lg">
+                    <span className="text-4xl">🖥️</span>
+                  </div>
+                  <p className="text-base font-display font-bold text-foreground mb-1">Kaung Runner</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Monitor, Keyboard, Mouse တွေကို ခုန်ကျော်ပါ!
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm font-medium animate-pulse">
+                    <span>Tap or Space to Start</span>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Game Over Overlay */}
+          <AnimatePresence>
+            {gameOver && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-md rounded-3xl"
+              >
+                <motion.div
+                  initial={{ scale: 0.8, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                  className="text-center px-8"
+                >
+                  <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-destructive/15 border border-destructive/20 flex items-center justify-center">
+                    <span className="text-3xl">💥</span>
+                  </div>
+                  <p className="text-lg font-display font-bold text-foreground mb-1">GAME OVER</p>
+                  <p className="text-4xl font-mono font-black text-primary mb-1">{score}</p>
+                  {score >= highScore && score > 0 && (
+                    <motion.p
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="text-xs font-bold text-accent mb-2"
+                    >
+                      🏆 New High Score!
+                    </motion.p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground mb-4">
+                    Online ပြန်ဖြစ်ရင် points sync လုပ်ပါမယ်
+                  </p>
+                  <button
+                    onClick={startGame}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-all shadow-lg hover:shadow-xl"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    ထပ်ကစားမယ်
+                  </button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Tips Footer */}
+          <div className="px-5 py-3 border-t border-border/30 bg-muted/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                <span className="text-[10px] text-muted-foreground">Offline Mode</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground/60">
+                Space / Tap to Jump
+              </span>
+            </div>
           </div>
         </div>
+      </motion.div>
 
-        <canvas
-          ref={canvasRef}
-          width={CANVAS_WIDTH}
-          height={CANVAS_HEIGHT}
-          className="w-full max-w-[400px] rounded-lg bg-background border border-border cursor-pointer"
-          onClick={jump}
-          onTouchStart={(e) => { e.preventDefault(); jump(); }}
-          style={{ imageRendering: "pixelated" }}
-        />
-
-        {!gameStarted && !gameOver && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-2xl backdrop-blur-sm">
-            <div className="text-center">
-              <div className="text-4xl mb-2 animate-bounce">🖥️</div>
-              <p className="text-sm font-semibold text-foreground mb-1">Tap or Space to Start</p>
-              <p className="text-xs text-muted-foreground">Monitor, Keyboard, Mouse တွေကို ခုန်ကျော်ပါ!</p>
-            </div>
-          </div>
-        )}
-
-        {gameOver && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/70 rounded-2xl backdrop-blur-sm">
-            <div className="text-center animate-scale-in">
-              <p className="text-lg font-bold text-foreground mb-1">GAME OVER</p>
-              <p className="text-3xl font-bold text-primary mb-1">{score}</p>
-              <p className="text-xs text-muted-foreground mb-3">Online ပြန်ဖြစ်ရင် points sync လုပ်ပါမယ်</p>
-              <button
-                onClick={startGame}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-95 transition-transform shadow-lg"
-              >
-                <RotateCcw className="w-4 h-4" />
-                ထပ်ကစားမယ်
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <p className="mt-4 text-xs text-muted-foreground text-center max-w-[300px]">
+      {/* Footer text */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mt-6 text-xs text-muted-foreground/60 text-center max-w-[300px] relative z-10"
+      >
         အင်တာနက် ပြန်ရရင် အလိုအလျောက် ပြန်သွားပါမယ်
-      </p>
+      </motion.p>
     </div>
   );
 };

@@ -556,7 +556,7 @@ const Home = () => {
         <AdBanner pageLocation="home" position="inline" className="px-5 mb-6" />
 
         {/* Footer */}
-        <div className="text-center py-6 pb-28">
+        <div className="text-center py-6 pb-24">
           <p className="text-[10px] text-muted-foreground/50 tracking-wide">
             created by thurakaungkhant
           </p>

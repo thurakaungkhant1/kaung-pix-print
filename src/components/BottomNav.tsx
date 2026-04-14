@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Home, Image, Heart, User, Settings, Gamepad2, Wallet } from "lucide-react";
+import { Home, Gamepad2, Heart, User, Settings, ShoppingBag, Wallet } from "lucide-react";
 import { motion } from "framer-motion";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
@@ -12,93 +12,66 @@ const BottomNav = () => {
 
   useEffect(() => {
     if (user) {
-      checkAdmin();
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle()
+        .then(({ data }) => setIsAdmin(!!data));
     }
   }, [user]);
 
-  const checkAdmin = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    setIsAdmin(!!data);
-  };
-
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
-    { to: "/game", icon: Gamepad2, label: "Shop" },
-    { to: "/favourite", icon: Heart, label: "Favorites" },
-    { to: "/top-up", icon: Wallet, label: "Wallet" },
+    { to: "/game", icon: ShoppingBag, label: "Shop" },
+    { to: "/games", icon: Gamepad2, label: "Games" },
+    { to: "/favourite", icon: Heart, label: "Saves" },
     { 
       to: isAdmin ? "/admin" : "/account", 
       icon: isAdmin ? Settings : User, 
-      label: isAdmin ? "Admin" : "Account" 
+      label: isAdmin ? "Admin" : "Me" 
     },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50">
-      <div className="absolute inset-0 bg-gradient-glow opacity-50 pointer-events-none" />
-      <div className="max-w-screen-2xl mx-auto px-4">
-        <div className="flex justify-around items-center h-18 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/30 bg-background/80 backdrop-blur-xl">
+      <div className="max-w-screen-xl mx-auto">
+        <div className="flex justify-around items-center h-16 px-1">
           {navItems.map((item, index) => (
             <NavLink
               key={item.to}
               to={item.to}
+              end={item.to === "/"}
               className={cn(
-                "relative flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-2xl",
-                "text-muted-foreground transition-all duration-300 ease-smooth",
-                "hover:text-primary hover:bg-primary/5",
+                "relative flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl",
+                "text-muted-foreground transition-all duration-200",
               )}
-              activeClassName="text-primary bg-primary/10"
-              style={{ animationDelay: `${index * 50}ms` }}
+              activeClassName="text-primary"
             >
               {({ isActive }) => (
                 <motion.div 
-                  className="relative flex flex-col items-center gap-1"
-                  whileTap={{ scale: 0.85 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="flex flex-col items-center gap-0.5"
+                  whileTap={{ scale: 0.9 }}
                 >
-                  {/* Active indicator dot */}
-                  {isActive && (
-                    <motion.span 
-                      className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"
-                      layoutId="nav-indicator"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                  
-                  <motion.div 
-                    className={cn(
-                      "relative p-2 rounded-xl transition-colors duration-300",
-                      isActive && "bg-primary/15"
-                    )}
-                    animate={isActive ? { scale: 1.1 } : { scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
+                  <div className={cn(
+                    "relative p-2 rounded-xl transition-all duration-200",
+                    isActive && "bg-primary/10"
+                  )}>
                     <item.icon className={cn(
-                      "h-5 w-5 transition-all duration-300",
+                      "h-5 w-5 transition-all duration-200",
                       isActive ? "stroke-[2.5] text-primary" : "stroke-[1.5]"
                     )} />
-                    
-                    {/* Glow effect */}
                     {isActive && (
                       <motion.div 
-                        className="absolute inset-0 rounded-xl bg-primary/20 blur-lg"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
+                        layoutId="bottomnav-glow"
+                        className="absolute inset-0 rounded-xl bg-primary/15 blur-md"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
-                  </motion.div>
-                  
+                  </div>
                   <span className={cn(
-                    "text-[10px] font-medium transition-all duration-300",
+                    "text-[10px] font-medium",
                     isActive && "font-semibold text-primary"
                   )}>
                     {item.label}
@@ -109,8 +82,6 @@ const BottomNav = () => {
           ))}
         </div>
       </div>
-      
-      {/* Bottom safe area */}
       <div className="h-safe-area-inset-bottom bg-background/80" />
     </nav>
   );
