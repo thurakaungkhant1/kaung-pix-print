@@ -158,11 +158,12 @@ const Photo = () => {
     );
   }
 
-  const filteredPhotos = photos
+  const filteredPhotos = useMemo(() => photos
     .filter((photo) => {
       const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
       const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
+      const matchesFav = !favouritesOnly || favourites.has(photo.id);
+      return matchesCategory && matchesSearch && matchesFav;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -172,7 +173,22 @@ const Photo = () => {
         case "size_desc": return (b.file_size || 0) - (a.file_size || 0);
         default: return 0;
       }
-    });
+    }), [photos, selectedCategory, searchQuery, favouritesOnly, favourites, sortBy]);
+
+  const visiblePhotos = filteredPhotos.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredPhotos.length;
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMore) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((c) => Math.min(c + PAGE_SIZE, filteredPhotos.length));
+      }
+    }, { rootMargin: "400px" });
+    obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [hasMore, filteredPhotos.length]);
 
   return (
     <AnimatedPage>
