@@ -293,24 +293,31 @@ const Photo = () => {
             ))}
           </motion.div>
 
-          {/* Results Count */}
+          {/* Results Count + Favourites toggle */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="flex items-center justify-between"
+            className="flex items-center justify-between gap-3 flex-wrap"
           >
             <p className="text-xs text-muted-foreground font-medium">
-              {filteredPhotos.length} photo{filteredPhotos.length !== 1 ? "s" : ""} found
+              Showing {visiblePhotos.length} of {filteredPhotos.length} photo{filteredPhotos.length !== 1 ? "s" : ""}
             </p>
-            {selectedCategory !== "All" && (
-              <button
-                onClick={() => setSelectedCategory("All")}
-                className="text-xs text-primary font-medium hover:underline"
-              >
-                Clear filter
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted">
+                <Heart className={cn("h-3.5 w-3.5", favouritesOnly && "fill-destructive text-destructive")} />
+                <Label htmlFor="fav-only" className="text-xs cursor-pointer">Favourites only</Label>
+                <Switch id="fav-only" checked={favouritesOnly} onCheckedChange={setFavouritesOnly} />
+              </div>
+              {(selectedCategory !== "All" || searchQuery || favouritesOnly) && (
+                <button
+                  onClick={() => { setSearchParams({}, { replace: true }); setVisibleCount(PAGE_SIZE); }}
+                  className="text-xs text-primary font-medium hover:underline"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
           </motion.div>
 
           {/* Content */}
