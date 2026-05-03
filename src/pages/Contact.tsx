@@ -73,7 +73,7 @@ const Contact = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/account")}
               className="mb-4 text-foreground hover:bg-background/50"
             >
               <ArrowLeft className="h-5 w-5" />
