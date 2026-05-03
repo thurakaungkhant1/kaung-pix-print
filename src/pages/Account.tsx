@@ -532,6 +532,8 @@ const Account = () => {
                     <Separator className="my-0.5" />
                   </>
                 )}
+                <SettingItem icon={Camera} label="Photo Gallery" description="Browse all photos" onClick={() => navigate("/photo")} />
+                <Separator className="my-0.5" />
                 <SettingItem icon={FileText} label="Terms & Policy" onClick={() => navigate("/terms")} />
                 <Separator className="my-0.5" />
                 <SettingItem icon={Mail} label="Contact Us" onClick={() => navigate("/contact")} />
