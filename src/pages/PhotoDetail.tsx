@@ -152,7 +152,7 @@ const PhotoDetail = () => {
           if (total > 0) setDownloadProgress(Math.min(99, Math.round((received / total) * 100)));
         }
       }
-      const blob = new Blob(chunks);
+      const blob = new Blob(chunks as BlobPart[]);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
