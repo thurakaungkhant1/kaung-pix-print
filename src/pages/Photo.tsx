@@ -28,16 +28,38 @@ interface Photo {
   category: string;
 }
 
+const PAGE_SIZE = 18;
+
 const Photo = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [favourites, setFavourites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [categories, setCategories] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [watermarkedImages, setWatermarkedImages] = useState<Map<number, string>>(new Map());
   const [backgroundMusic, setBackgroundMusic] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"newest" | "name_asc" | "name_desc" | "size_asc" | "size_desc">("newest");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // URL-driven state
+  const searchQuery = searchParams.get("q") ?? "";
+  const selectedCategory = searchParams.get("cat") ?? "All";
+  const sortBy = (searchParams.get("sort") as "newest" | "name_asc" | "name_desc" | "size_asc" | "size_desc") || "newest";
+  const favouritesOnly = searchParams.get("fav") === "1";
+
+  const updateParam = (key: string, value: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (!value || value === "All" || value === "newest" || value === "") next.delete(key);
+    else next.set(key, value);
+    setSearchParams(next, { replace: true });
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const setSearchQuery = (v: string) => updateParam("q", v);
+  const setSelectedCategory = (v: string) => updateParam("cat", v);
+  const setSortBy = (v: string) => updateParam("sort", v);
+  const setFavouritesOnly = (v: boolean) => updateParam("fav", v ? "1" : null);
+
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
