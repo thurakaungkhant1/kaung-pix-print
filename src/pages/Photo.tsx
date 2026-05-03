@@ -163,14 +163,6 @@ const Photo = () => {
 
           <div className="relative z-10 p-4 pt-6 pb-6">
             <div className="flex items-center justify-between mb-5">
-              <div className="w-10" />
-              <motion.div
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="flex items-center gap-2"
-              >
-                <Camera className="h-5 w-5 text-primary-foreground/80" />
-            <div className="flex items-center justify-between mb-5">
               <Button
                 variant="ghost"
                 size="icon"
@@ -227,20 +219,6 @@ const Photo = () => {
                   <SelectItem value="size_desc">Size: Large</SelectItem>
                 </SelectContent>
               </Select>
-            </motion.div>
-              <Input
-                type="text"
-                placeholder="Search by client name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={cn(
-                  "w-full pl-11 pr-4 py-3 h-12 rounded-2xl",
-                  "bg-primary-foreground/10 border-primary-foreground/20",
-                  "text-primary-foreground placeholder:text-primary-foreground/50",
-                  "focus:bg-primary-foreground/15 focus:border-primary-foreground/30",
-                  "transition-all duration-300"
-                )}
-              />
             </motion.div>
           </div>
         </header>
