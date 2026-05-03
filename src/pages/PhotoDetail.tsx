@@ -38,6 +38,9 @@ const PhotoDetail = () => {
   const [pinValue, setPinValue] = useState("");
   const [pinError, setPinError] = useState(false);
   const [showForgetPin, setShowForgetPin] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
   const { currentSrc: musicSrc } = useMusic();
