@@ -12,6 +12,8 @@ import { addWatermark } from "@/lib/watermarkUtils";
 import ImageViewer from "@/components/ImageViewer";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface Photo {
@@ -36,6 +38,9 @@ const PhotoDetail = () => {
   const [pinValue, setPinValue] = useState("");
   const [pinError, setPinError] = useState(false);
   const [showForgetPin, setShowForgetPin] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
   const { currentSrc: musicSrc } = useMusic();
@@ -97,26 +102,28 @@ const PhotoDetail = () => {
 
   const handleDownloadClick = () => {
     if (!photo) return;
-    
-    // If photo has a pin, show pin dialog
+    setConfirmOpen(true);
+  };
+
+  const proceedAfterConfirm = () => {
+    setConfirmOpen(false);
+    if (!photo) return;
     if (photo.download_pin) {
       setPinValue("");
       setPinError(false);
       setShowForgetPin(false);
       setPinDialogOpen(true);
     } else {
-      // No pin required, download directly
       performDownload();
     }
   };
 
   const handlePinSubmit = () => {
     if (!photo?.download_pin) return;
-    
     if (pinValue === photo.download_pin) {
       setPinDialogOpen(false);
       performDownload();
-      toast({ title: "✅ PIN Correct", description: "Download started!" });
+      toast({ title: "✅ PIN Correct", description: "Download starting..." });
     } else {
       setPinError(true);
       setPinValue("");
@@ -124,22 +131,54 @@ const PhotoDetail = () => {
     }
   };
 
-  const performDownload = () => {
+  const performDownload = async () => {
     if (!photo?.file_url) return;
-    const width = 900;
-    const height = 600;
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
-    window.open(
-      photo.file_url,
-      'download_popup',
-      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=yes,status=no,scrollbars=yes,resizable=yes`
-    );
-    toast({
-      title: "Download opened",
-      description: "Link မဖွင့်နိုင်ပါက VPN ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။",
-      duration: 6000,
-    });
+    setDownloading(true);
+    setDownloadProgress(0);
+    try {
+      const response = await fetch(photo.file_url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const total = Number(response.headers.get("content-length")) || photo.file_size || 0;
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Stream not supported");
+      const chunks: Uint8Array[] = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.length;
+          if (total > 0) setDownloadProgress(Math.min(99, Math.round((received / total) * 100)));
+        }
+      }
+      const blob = new Blob(chunks as BlobPart[]);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const ext = photo.file_url.split("?")[0].split(".").pop() || "zip";
+      a.download = `${photo.client_name || "photo"}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setDownloadProgress(100);
+      toast({ title: "✅ Download complete", description: "File saved to your device." });
+    } catch (err: any) {
+      console.error(err);
+      // Fallback to popup window if fetch blocked (CORS)
+      const width = 900, height = 600;
+      const left = (window.screen.width - width) / 2;
+      const top = (window.screen.height - height) / 2;
+      window.open(photo.file_url, "download_popup", `width=${width},height=${height},left=${left},top=${top}`);
+      toast({
+        title: "Direct download unavailable",
+        description: "Opened in a new window. VPN လိုအပ်ပါက ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။",
+        duration: 6000,
+      });
+    } finally {
+      setTimeout(() => { setDownloading(false); setDownloadProgress(0); }, 1500);
+    }
   };
 
   const handleShare = () => {
@@ -436,6 +475,55 @@ const PhotoDetail = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Confirm download dialog */}
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>ZIP Download စတင်မလား?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {photo?.client_name} • {photo?.file_size ? `${(photo.file_size / 1024 / 1024).toFixed(2)} MB` : "ZIP archive"}
+                {photo?.download_pin && " • PIN code လိုအပ်ပါမည်"}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={proceedAfterConfirm}>
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Download progress overlay */}
+        <AnimatePresence>
+          {downloading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm flex items-center justify-center p-6"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                className="w-full max-w-sm rounded-2xl border border-border/50 bg-card p-6 shadow-2xl"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Download className="h-5 w-5 text-primary animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">Downloading…</p>
+                    <p className="text-xs text-muted-foreground">{downloadProgress}% complete</p>
+                  </div>
+                </div>
+                <Progress value={downloadProgress} className="h-2" />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Image Viewer */}
         <ImageViewer

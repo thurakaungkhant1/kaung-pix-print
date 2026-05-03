@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, FileArchive, Search, Camera, Sparkles, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import CartHeader from "@/components/CartHeader";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,16 +28,38 @@ interface Photo {
   category: string;
 }
 
+const PAGE_SIZE = 18;
+
 const Photo = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [favourites, setFavourites] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [categories, setCategories] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [watermarkedImages, setWatermarkedImages] = useState<Map<number, string>>(new Map());
   const [backgroundMusic, setBackgroundMusic] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"newest" | "name_asc" | "name_desc" | "size_asc" | "size_desc">("newest");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // URL-driven state
+  const searchQuery = searchParams.get("q") ?? "";
+  const selectedCategory = searchParams.get("cat") ?? "All";
+  const sortBy = (searchParams.get("sort") as "newest" | "name_asc" | "name_desc" | "size_asc" | "size_desc") || "newest";
+  const favouritesOnly = searchParams.get("fav") === "1";
+
+  const updateParam = (key: string, value: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (!value || value === "All" || value === "newest" || value === "") next.delete(key);
+    else next.set(key, value);
+    setSearchParams(next, { replace: true });
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const setSearchQuery = (v: string) => updateParam("q", v);
+  const setSelectedCategory = (v: string) => updateParam("cat", v);
+  const setSortBy = (v: string) => updateParam("sort", v);
+  const setFavouritesOnly = (v: boolean) => updateParam("fav", v ? "1" : null);
+
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -104,6 +128,38 @@ const Photo = () => {
     }
   };
 
+  const filteredPhotos = useMemo(() => photos
+    .filter((photo) => {
+      const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
+      const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFav = !favouritesOnly || favourites.has(photo.id);
+      return matchesCategory && matchesSearch && matchesFav;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "name_asc": return a.client_name.localeCompare(b.client_name);
+        case "name_desc": return b.client_name.localeCompare(a.client_name);
+        case "size_asc": return (a.file_size || 0) - (b.file_size || 0);
+        case "size_desc": return (b.file_size || 0) - (a.file_size || 0);
+        default: return 0;
+      }
+    }), [photos, selectedCategory, searchQuery, favouritesOnly, favourites, sortBy]);
+
+  const visiblePhotos = filteredPhotos.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredPhotos.length;
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMore) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((c) => Math.min(c + PAGE_SIZE, filteredPhotos.length));
+      }
+    }, { rootMargin: "400px" });
+    obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [hasMore, filteredPhotos.length]);
+
   if (loading) {
     return (
       <MobileLayout>
@@ -133,22 +189,6 @@ const Photo = () => {
       </MobileLayout>
     );
   }
-
-  const filteredPhotos = photos
-    .filter((photo) => {
-      const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
-      const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "name_asc": return a.client_name.localeCompare(b.client_name);
-        case "name_desc": return b.client_name.localeCompare(a.client_name);
-        case "size_asc": return (a.file_size || 0) - (b.file_size || 0);
-        case "size_desc": return (b.file_size || 0) - (a.file_size || 0);
-        default: return 0;
-      }
-    });
 
   return (
     <AnimatedPage>
@@ -253,24 +293,31 @@ const Photo = () => {
             ))}
           </motion.div>
 
-          {/* Results Count */}
+          {/* Results Count + Favourites toggle */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="flex items-center justify-between"
+            className="flex items-center justify-between gap-3 flex-wrap"
           >
             <p className="text-xs text-muted-foreground font-medium">
-              {filteredPhotos.length} photo{filteredPhotos.length !== 1 ? "s" : ""} found
+              Showing {visiblePhotos.length} of {filteredPhotos.length} photo{filteredPhotos.length !== 1 ? "s" : ""}
             </p>
-            {selectedCategory !== "All" && (
-              <button
-                onClick={() => setSelectedCategory("All")}
-                className="text-xs text-primary font-medium hover:underline"
-              >
-                Clear filter
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted">
+                <Heart className={cn("h-3.5 w-3.5", favouritesOnly && "fill-destructive text-destructive")} />
+                <Label htmlFor="fav-only" className="text-xs cursor-pointer">Favourites only</Label>
+                <Switch id="fav-only" checked={favouritesOnly} onCheckedChange={setFavouritesOnly} />
+              </div>
+              {(selectedCategory !== "All" || searchQuery || favouritesOnly) && (
+                <button
+                  onClick={() => { setSearchParams({}, { replace: true }); setVisibleCount(PAGE_SIZE); }}
+                  className="text-xs text-primary font-medium hover:underline"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
           </motion.div>
 
           {/* Content */}
@@ -293,7 +340,7 @@ const Photo = () => {
             </motion.div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {filteredPhotos.map((photo, index) => (
+              {visiblePhotos.map((photo, index) => (
                 <motion.div
                   key={photo.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -360,6 +407,11 @@ const Photo = () => {
                   </div>
                 </motion.div>
               ))}
+            </div>
+          )}
+          {hasMore && (
+            <div ref={sentinelRef} className="flex justify-center py-6">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
           )}
         </div>
