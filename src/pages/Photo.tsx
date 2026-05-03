@@ -340,7 +340,7 @@ const Photo = () => {
             </motion.div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {filteredPhotos.map((photo, index) => (
+              {visiblePhotos.map((photo, index) => (
                 <motion.div
                   key={photo.id}
                   initial={{ opacity: 0, y: 20 }}
