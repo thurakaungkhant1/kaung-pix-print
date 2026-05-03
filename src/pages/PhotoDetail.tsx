@@ -102,26 +102,28 @@ const PhotoDetail = () => {
 
   const handleDownloadClick = () => {
     if (!photo) return;
-    
-    // If photo has a pin, show pin dialog
+    setConfirmOpen(true);
+  };
+
+  const proceedAfterConfirm = () => {
+    setConfirmOpen(false);
+    if (!photo) return;
     if (photo.download_pin) {
       setPinValue("");
       setPinError(false);
       setShowForgetPin(false);
       setPinDialogOpen(true);
     } else {
-      // No pin required, download directly
       performDownload();
     }
   };
 
   const handlePinSubmit = () => {
     if (!photo?.download_pin) return;
-    
     if (pinValue === photo.download_pin) {
       setPinDialogOpen(false);
       performDownload();
-      toast({ title: "✅ PIN Correct", description: "Download started!" });
+      toast({ title: "✅ PIN Correct", description: "Download starting..." });
     } else {
       setPinError(true);
       setPinValue("");
@@ -129,22 +131,54 @@ const PhotoDetail = () => {
     }
   };
 
-  const performDownload = () => {
+  const performDownload = async () => {
     if (!photo?.file_url) return;
-    const width = 900;
-    const height = 600;
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
-    window.open(
-      photo.file_url,
-      'download_popup',
-      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=yes,status=no,scrollbars=yes,resizable=yes`
-    );
-    toast({
-      title: "Download opened",
-      description: "Link မဖွင့်နိုင်ပါက VPN ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။",
-      duration: 6000,
-    });
+    setDownloading(true);
+    setDownloadProgress(0);
+    try {
+      const response = await fetch(photo.file_url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const total = Number(response.headers.get("content-length")) || photo.file_size || 0;
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Stream not supported");
+      const chunks: Uint8Array[] = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.length;
+          if (total > 0) setDownloadProgress(Math.min(99, Math.round((received / total) * 100)));
+        }
+      }
+      const blob = new Blob(chunks);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const ext = photo.file_url.split("?")[0].split(".").pop() || "zip";
+      a.download = `${photo.client_name || "photo"}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setDownloadProgress(100);
+      toast({ title: "✅ Download complete", description: "File saved to your device." });
+    } catch (err: any) {
+      console.error(err);
+      // Fallback to popup window if fetch blocked (CORS)
+      const width = 900, height = 600;
+      const left = (window.screen.width - width) / 2;
+      const top = (window.screen.height - height) / 2;
+      window.open(photo.file_url, "download_popup", `width=${width},height=${height},left=${left},top=${top}`);
+      toast({
+        title: "Direct download unavailable",
+        description: "Opened in a new window. VPN လိုအပ်ပါက ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။",
+        duration: 6000,
+      });
+    } finally {
+      setTimeout(() => { setDownloading(false); setDownloadProgress(0); }, 1500);
+    }
   };
 
   const handleShare = () => {
