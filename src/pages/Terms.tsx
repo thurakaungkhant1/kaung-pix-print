@@ -9,7 +9,7 @@ const Terms = () => {
     <div className="min-h-screen bg-background pb-8">
       <header className="bg-gradient-primary text-primary-foreground p-4 sticky top-0 z-40">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
+          <button onClick={() => navigate("/account")} aria-label="Back to account">
             <ArrowLeft className="h-6 w-6" />
           </button>
           <h1 className="text-xl font-bold">Terms & Conditions</h1>
