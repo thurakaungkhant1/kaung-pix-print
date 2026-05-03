@@ -476,6 +476,55 @@ const PhotoDetail = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Confirm download dialog */}
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>ZIP Download စတင်မလား?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {photo?.client_name} • {photo?.file_size ? `${(photo.file_size / 1024 / 1024).toFixed(2)} MB` : "ZIP archive"}
+                {photo?.download_pin && " • PIN code လိုအပ်ပါမည်"}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={proceedAfterConfirm}>
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Download progress overlay */}
+        <AnimatePresence>
+          {downloading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm flex items-center justify-center p-6"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                className="w-full max-w-sm rounded-2xl border border-border/50 bg-card p-6 shadow-2xl"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Download className="h-5 w-5 text-primary animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">Downloading…</p>
+                    <p className="text-xs text-muted-foreground">{downloadProgress}% complete</p>
+                  </div>
+                </div>
+                <Progress value={downloadProgress} className="h-2" />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Image Viewer */}
         <ImageViewer
           src={imageSrc || ""}
