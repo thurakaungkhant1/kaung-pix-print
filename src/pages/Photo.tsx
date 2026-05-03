@@ -134,11 +134,21 @@ const Photo = () => {
     );
   }
 
-  const filteredPhotos = photos.filter((photo) => {
-    const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
-    const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredPhotos = photos
+    .filter((photo) => {
+      const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
+      const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "name_asc": return a.client_name.localeCompare(b.client_name);
+        case "name_desc": return b.client_name.localeCompare(a.client_name);
+        case "size_asc": return (a.file_size || 0) - (b.file_size || 0);
+        case "size_desc": return (b.file_size || 0) - (a.file_size || 0);
+        default: return 0;
+      }
+    });
 
   return (
     <AnimatedPage>
