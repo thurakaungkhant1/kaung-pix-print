@@ -35,6 +35,7 @@ const Photo = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [watermarkedImages, setWatermarkedImages] = useState<Map<number, string>>(new Map());
   const [backgroundMusic, setBackgroundMusic] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"newest" | "name_asc" | "name_desc" | "size_asc" | "size_desc">("newest");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
