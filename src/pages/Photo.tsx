@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, FileArchive, Search, Camera, Sparkles } from "lucide-react";
+import { Heart, FileArchive, Search, Camera, Sparkles, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 import CartHeader from "@/components/CartHeader";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addWatermark } from "@/lib/watermarkUtils";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
