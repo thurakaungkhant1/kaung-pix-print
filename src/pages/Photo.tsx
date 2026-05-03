@@ -170,6 +170,21 @@ const Photo = () => {
                 className="flex items-center gap-2"
               >
                 <Camera className="h-5 w-5 text-primary-foreground/80" />
+            <div className="flex items-center justify-between mb-5">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/account")}
+                className="text-primary-foreground hover:bg-primary-foreground/10 rounded-full"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <motion.div
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="flex items-center gap-2"
+              >
+                <Camera className="h-5 w-5 text-primary-foreground/80" />
                 <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
                   Gallery
                 </h1>
@@ -177,14 +192,42 @@ const Photo = () => {
               <CartHeader />
             </div>
 
-            {/* Search */}
+            {/* Search + Sort */}
             <motion.div
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.15 }}
-              className="relative"
+              className="flex gap-2"
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-primary-foreground/50 z-10" />
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/50 z-10" />
+                <Input
+                  type="text"
+                  placeholder="Search by client name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={cn(
+                    "w-full pl-11 pr-4 py-3 h-12 rounded-2xl",
+                    "bg-primary-foreground/10 border-primary-foreground/20",
+                    "text-primary-foreground placeholder:text-primary-foreground/50",
+                    "focus:bg-primary-foreground/15 focus:border-primary-foreground/30",
+                    "transition-all duration-300"
+                  )}
+                />
+              </div>
+              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+                <SelectTrigger className="h-12 w-[130px] rounded-2xl bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="name_asc">Name A-Z</SelectItem>
+                  <SelectItem value="name_desc">Name Z-A</SelectItem>
+                  <SelectItem value="size_asc">Size: Small</SelectItem>
+                  <SelectItem value="size_desc">Size: Large</SelectItem>
+                </SelectContent>
+              </Select>
+            </motion.div>
               <Input
                 type="text"
                 placeholder="Search by client name..."
