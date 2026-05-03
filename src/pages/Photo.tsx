@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, FileArchive, Search, Camera, Sparkles } from "lucide-react";
+import { Heart, FileArchive, Search, Camera, Sparkles, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 import CartHeader from "@/components/CartHeader";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addWatermark } from "@/lib/watermarkUtils";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
@@ -33,6 +35,7 @@ const Photo = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [watermarkedImages, setWatermarkedImages] = useState<Map<number, string>>(new Map());
   const [backgroundMusic, setBackgroundMusic] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"newest" | "name_asc" | "name_desc" | "size_asc" | "size_desc">("newest");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -131,11 +134,21 @@ const Photo = () => {
     );
   }
 
-  const filteredPhotos = photos.filter((photo) => {
-    const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
-    const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredPhotos = photos
+    .filter((photo) => {
+      const matchesCategory = selectedCategory === "All" || photo.category === selectedCategory;
+      const matchesSearch = photo.client_name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "name_asc": return a.client_name.localeCompare(b.client_name);
+        case "name_desc": return b.client_name.localeCompare(a.client_name);
+        case "size_asc": return (a.file_size || 0) - (b.file_size || 0);
+        case "size_desc": return (b.file_size || 0) - (a.file_size || 0);
+        default: return 0;
+      }
+    });
 
   return (
     <AnimatedPage>
@@ -150,7 +163,14 @@ const Photo = () => {
 
           <div className="relative z-10 p-4 pt-6 pb-6">
             <div className="flex items-center justify-between mb-5">
-              <div className="w-10" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/account")}
+                className="text-primary-foreground hover:bg-primary-foreground/10 rounded-full"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
               <motion.div
                 initial={{ y: -10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -164,27 +184,41 @@ const Photo = () => {
               <CartHeader />
             </div>
 
-            {/* Search */}
+            {/* Search + Sort */}
             <motion.div
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.15 }}
-              className="relative"
+              className="flex gap-2"
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-primary-foreground/50 z-10" />
-              <Input
-                type="text"
-                placeholder="Search by client name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={cn(
-                  "w-full pl-11 pr-4 py-3 h-12 rounded-2xl",
-                  "bg-primary-foreground/10 border-primary-foreground/20",
-                  "text-primary-foreground placeholder:text-primary-foreground/50",
-                  "focus:bg-primary-foreground/15 focus:border-primary-foreground/30",
-                  "transition-all duration-300"
-                )}
-              />
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/50 z-10" />
+                <Input
+                  type="text"
+                  placeholder="Search by client name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={cn(
+                    "w-full pl-11 pr-4 py-3 h-12 rounded-2xl",
+                    "bg-primary-foreground/10 border-primary-foreground/20",
+                    "text-primary-foreground placeholder:text-primary-foreground/50",
+                    "focus:bg-primary-foreground/15 focus:border-primary-foreground/30",
+                    "transition-all duration-300"
+                  )}
+                />
+              </div>
+              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+                <SelectTrigger className="h-12 w-[130px] rounded-2xl bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="name_asc">Name A-Z</SelectItem>
+                  <SelectItem value="name_desc">Name Z-A</SelectItem>
+                  <SelectItem value="size_asc">Size: Small</SelectItem>
+                  <SelectItem value="size_desc">Size: Large</SelectItem>
+                </SelectContent>
+              </Select>
             </motion.div>
           </div>
         </header>
