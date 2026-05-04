@@ -29,6 +29,8 @@ const GamePage = lazy(() => import("./pages/GamePage"));
 const GamesPortal = lazy(() => import("./pages/GamesPortal"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Contact = lazy(() => import("./pages/Contact"));
+const About = lazy(() => import("./pages/About"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const Exchange = lazy(() => import("./pages/Exchange"));
 const Cart = lazy(() => import("./pages/Cart"));
 const PointHistory = lazy(() => import("./pages/PointHistory"));
