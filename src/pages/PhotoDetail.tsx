@@ -145,6 +145,7 @@ const PhotoDetail = () => {
   const performDownload = async () => {
     if (!photo?.file_url) return;
     setDownloading(true);
+    setDownloadStage("fetching");
     setDownloadProgress(0);
     try {
       const response = await fetch(photo.file_url);
@@ -160,24 +161,48 @@ const PhotoDetail = () => {
         if (value) {
           chunks.push(value);
           received += value.length;
-          if (total > 0) setDownloadProgress(Math.min(99, Math.round((received / total) * 100)));
+          if (total > 0) setDownloadProgress(Math.min(95, Math.round((received / total) * 95)));
         }
       }
       const blob = new Blob(chunks as BlobPart[]);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const ext = photo.file_url.split("?")[0].split(".").pop() || "zip";
-      a.download = `${photo.client_name || "photo"}.${ext}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+
+      // Try to extract the ZIP and present a picker
+      setDownloadStage("extracting");
+      setDownloadProgress(97);
+      try {
+        const zip = await JSZip.loadAsync(blob);
+        const entries: ZipPhoto[] = [];
+        const fileNames = Object.keys(zip.files).filter((n) => {
+          const f = zip.files[n];
+          if (f.dir) return false;
+          return /\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(n);
+        });
+        for (const name of fileNames) {
+          const fileBlob = await zip.files[name].async("blob");
+          const ext = name.split(".").pop()?.toLowerCase() || "jpg";
+          const mime = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
+          const typed = new Blob([fileBlob], { type: mime });
+          entries.push({ name: name.split("/").pop() || name, blob: typed, url: URL.createObjectURL(typed) });
+        }
+
+        if (entries.length === 0) {
+          // Not images inside; fall back to direct ZIP download
+          downloadBlob(blob, `${photo.client_name || "photo"}.zip`);
+          toast({ title: "✅ Download complete", description: "ZIP file saved to your device." });
+        } else {
+          setZipPhotos(entries);
+          setPickerOpen(true);
+          toast({ title: "✅ Photos ready", description: `${entries.length} photos available — pick one to download.` });
+        }
+      } catch (zipErr) {
+        // Not a zip, save raw file
+        const ext = photo.file_url.split("?")[0].split(".").pop() || "jpg";
+        downloadBlob(blob, `${photo.client_name || "photo"}.${ext}`);
+        toast({ title: "✅ Download complete", description: "File saved to your device." });
+      }
       setDownloadProgress(100);
-      toast({ title: "✅ Download complete", description: "File saved to your device." });
     } catch (err: any) {
       console.error(err);
-      // Fallback to popup window if fetch blocked (CORS)
       const width = 900, height = 600;
       const left = (window.screen.width - width) / 2;
       const top = (window.screen.height - height) / 2;
@@ -188,9 +213,45 @@ const PhotoDetail = () => {
         duration: 6000,
       });
     } finally {
-      setTimeout(() => { setDownloading(false); setDownloadProgress(0); }, 1500);
+      setTimeout(() => { setDownloading(false); setDownloadProgress(0); setDownloadStage("idle"); }, 800);
     }
   };
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const downloadSingle = (zp: ZipPhoto) => {
+    downloadBlob(zp.blob, zp.name);
+    toast({ title: "✅ Photo saved", description: zp.name });
+  };
+
+  const downloadAllZip = () => {
+    // Re-zip selected? Just refetch original ZIP and save it
+    if (!photo?.file_url) return;
+    fetch(photo.file_url).then((r) => r.blob()).then((b) => {
+      downloadBlob(b, `${photo.client_name || "photos"}.zip`);
+      toast({ title: "✅ Full ZIP saved" });
+    });
+  };
+
+  // Cleanup object URLs when picker closes
+  useEffect(() => {
+    if (!pickerOpen && zipPhotos.length > 0) {
+      const t = setTimeout(() => {
+        zipPhotos.forEach((p) => URL.revokeObjectURL(p.url));
+        setZipPhotos([]);
+      }, 500);
+      return () => clearTimeout(t);
+    }
+  }, [pickerOpen]);
 
   const handleShare = () => {
     if (!photo) return;
