@@ -48,6 +48,10 @@ const PhotoDetail = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadStage, setDownloadStage] = useState<"idle" | "fetching" | "extracting">("idle");
+  const [zipPhotos, setZipPhotos] = useState<ZipPhoto[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState<ZipPhoto | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { currentSrc: musicSrc } = useMusic();
