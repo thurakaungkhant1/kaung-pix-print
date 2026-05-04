@@ -178,6 +178,7 @@ const ForgotPassword = () => {
           </CardFooter>
         </form>
       </Card>
+      <AppFooter />
     </MobileLayout>
   );
 };
