@@ -587,7 +587,9 @@ const PhotoDetail = () => {
                     <Download className="h-5 w-5 text-primary animate-pulse" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold">Downloading…</p>
+                    <p className="text-sm font-semibold">
+                      {downloadStage === "extracting" ? "Extracting photos…" : "Downloading…"}
+                    </p>
                     <p className="text-xs text-muted-foreground">{downloadProgress}% complete</p>
                   </div>
                 </div>
