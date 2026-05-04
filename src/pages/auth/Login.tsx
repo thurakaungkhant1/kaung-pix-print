@@ -233,6 +233,7 @@ const Login = () => {
         </form>
       </Card>
       </motion.div>
+      <AppFooter />
     </MobileLayout>
   );
 };
