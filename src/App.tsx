@@ -223,22 +223,10 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/terms"
-                  element={
-                    <ProtectedRoute>
-                      <Terms />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/contact"
-                  element={
-                    <ProtectedRoute>
-                      <Contact />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route
                   path="/admin"
                   element={
