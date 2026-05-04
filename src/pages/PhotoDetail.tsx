@@ -3,7 +3,7 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Heart, Download, ArrowLeft, FileArchive, Calendar, Share2, Eye, ShieldAlert, Lock, KeyRound, Phone } from "lucide-react";
+import { Heart, Download, ArrowLeft, FileArchive, Calendar, Share2, Eye, ShieldAlert, Lock, KeyRound, Phone, Image as ImageIcon, X } from "lucide-react";
 import { useMusic } from "@/contexts/MusicContext";
 import MusicPlayer from "@/components/MusicPlayer";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import JSZip from "jszip";
+
+interface ZipPhoto {
+  name: string;
+  blob: Blob;
+  url: string;
+}
 
 interface Photo {
   id: number;
