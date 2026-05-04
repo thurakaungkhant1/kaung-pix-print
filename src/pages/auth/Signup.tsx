@@ -521,6 +521,7 @@ const Signup = () => {
         </form>
       </Card>
       </motion.div>
+      <AppFooter />
     </MobileLayout>
   );
 };
