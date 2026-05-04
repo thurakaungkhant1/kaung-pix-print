@@ -99,6 +99,7 @@ const ForgotPassword = () => {
             </button>
           </CardFooter>
         </Card>
+        <AppFooter />
       </MobileLayout>
     );
   }
