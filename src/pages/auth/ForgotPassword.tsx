@@ -10,6 +10,7 @@ import { Loader2, Mail, ArrowLeft, CheckCircle, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MobileLayout from "@/components/MobileLayout";
 import AuthAnimatedBackground from "@/components/AuthAnimatedBackground";
+import AppFooter from "@/components/AppFooter";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -98,6 +99,7 @@ const ForgotPassword = () => {
             </button>
           </CardFooter>
         </Card>
+        <AppFooter />
       </MobileLayout>
     );
   }
@@ -176,6 +178,7 @@ const ForgotPassword = () => {
           </CardFooter>
         </form>
       </Card>
+      <AppFooter />
     </MobileLayout>
   );
 };

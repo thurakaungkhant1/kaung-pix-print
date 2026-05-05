@@ -29,6 +29,8 @@ const GamePage = lazy(() => import("./pages/GamePage"));
 const GamesPortal = lazy(() => import("./pages/GamesPortal"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Contact = lazy(() => import("./pages/Contact"));
+const About = lazy(() => import("./pages/About"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const Exchange = lazy(() => import("./pages/Exchange"));
 const Cart = lazy(() => import("./pages/Cart"));
 const PointHistory = lazy(() => import("./pages/PointHistory"));
@@ -221,22 +223,10 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/terms"
-                  element={
-                    <ProtectedRoute>
-                      <Terms />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/contact"
-                  element={
-                    <ProtectedRoute>
-                      <Contact />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route
                   path="/admin"
                   element={

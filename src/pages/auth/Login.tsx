@@ -10,6 +10,7 @@ import { Loader2, Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-r
 import { cn } from "@/lib/utils";
 import AuthAnimatedBackground from "@/components/AuthAnimatedBackground";
 import MobileLayout from "@/components/MobileLayout";
+import AppFooter from "@/components/AppFooter";
 import { motion } from "framer-motion";
 
 const Login = () => {
@@ -233,6 +234,7 @@ const Login = () => {
         </form>
       </Card>
       </motion.div>
+      <AppFooter />
     </MobileLayout>
   );
 };

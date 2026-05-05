@@ -344,6 +344,42 @@ export type Database = {
         }
         Relationships: []
       }
+      game_settings: {
+        Row: {
+          base_play_points: number
+          cooldown_seconds: number
+          daily_limit: number
+          high_score_bonus_points: number
+          high_score_threshold: number
+          id: string
+          updated_at: string
+          updated_by: string | null
+          win_bonus_points: number
+        }
+        Insert: {
+          base_play_points?: number
+          cooldown_seconds?: number
+          daily_limit?: number
+          high_score_bonus_points?: number
+          high_score_threshold?: number
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          win_bonus_points?: number
+        }
+        Update: {
+          base_play_points?: number
+          cooldown_seconds?: number
+          daily_limit?: number
+          high_score_bonus_points?: number
+          high_score_threshold?: number
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          win_bonus_points?: number
+        }
+        Relationships: []
+      }
       game_streaks: {
         Row: {
           current_streak: number

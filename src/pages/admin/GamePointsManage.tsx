@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Search, Gamepad2, Trophy, Users, TrendingUp,
-  Edit, Loader2, BarChart3, Target,
+  Edit, Loader2, BarChart3, Target, Settings, Save,
 } from "lucide-react";
 
 interface GameUser {
@@ -52,6 +52,32 @@ const GamePointsManage = () => {
   const [operation, setOperation] = useState<"add" | "subtract" | "set">("add");
   const [updating, setUpdating] = useState(false);
   const [stats, setStats] = useState({ totalPlayers: 0, totalGamesPlayed: 0, totalPointsAwarded: 0, topGame: "" });
+  const [settings, setSettings] = useState<any>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  useEffect(() => {
+    if (isAdmin) {
+      supabase.from("game_settings").select("*").order("updated_at", { ascending: false }).limit(1).maybeSingle()
+        .then(({ data }) => { if (data) setSettings(data); });
+    }
+  }, [isAdmin]);
+
+  const saveSettings = async () => {
+    if (!settings) return;
+    setSavingSettings(true);
+    const payload = {
+      base_play_points: Number(settings.base_play_points),
+      win_bonus_points: Number(settings.win_bonus_points),
+      high_score_bonus_points: Number(settings.high_score_bonus_points),
+      high_score_threshold: Number(settings.high_score_threshold),
+      daily_limit: Number(settings.daily_limit),
+      cooldown_seconds: Number(settings.cooldown_seconds),
+    };
+    const { error } = await supabase.from("game_settings").update(payload).eq("id", settings.id);
+    setSavingSettings(false);
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "✅ Settings saved", description: "Game points configuration updated" });
+  };
 
   useEffect(() => {
     if (isAdmin) {
@@ -181,12 +207,15 @@ const GamePointsManage = () => {
           </div>
 
           <Tabs defaultValue="users">
-            <TabsList className="grid w-full grid-cols-2 mb-4 h-11 rounded-xl">
+            <TabsList className="grid w-full grid-cols-3 mb-4 h-11 rounded-xl">
               <TabsTrigger value="users" className="text-xs gap-1.5 rounded-lg">
                 <Users className="h-3.5 w-3.5" /> Users
               </TabsTrigger>
               <TabsTrigger value="history" className="text-xs gap-1.5 rounded-lg">
-                <BarChart3 className="h-3.5 w-3.5" /> Game History
+                <BarChart3 className="h-3.5 w-3.5" /> History
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="text-xs gap-1.5 rounded-lg">
+                <Settings className="h-3.5 w-3.5" /> Settings
               </TabsTrigger>
             </TabsList>
 
@@ -267,6 +296,44 @@ const GamePointsManage = () => {
                   </TableBody>
                 </Table>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="settings">
+              {!settings ? (
+                <Card className="rounded-2xl"><CardContent className="p-8 text-center text-sm text-muted-foreground">Loading…</CardContent></Card>
+              ) : (
+                <Card className="rounded-2xl border-border/50">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2"><Settings className="h-4 w-4" /> Game Points Configuration</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {[
+                      { key: "base_play_points", label: "Base play points", help: "Per game played" },
+                      { key: "win_bonus_points", label: "Win bonus points", help: "Extra when player wins" },
+                      { key: "high_score_bonus_points", label: "High score bonus", help: "Extra when score > threshold" },
+                      { key: "high_score_threshold", label: "High score threshold", help: "Score required for bonus" },
+                      { key: "daily_limit", label: "Daily earning cap", help: "Max points per day per user" },
+                      { key: "cooldown_seconds", label: "Cooldown (seconds)", help: "Between plays of same game" },
+                    ].map((f) => (
+                      <div key={f.key} className="space-y-1.5">
+                        <Label className="text-sm">{f.label}</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={settings[f.key] ?? 0}
+                          onChange={(e) => setSettings({ ...settings, [f.key]: e.target.value })}
+                          className="rounded-xl"
+                        />
+                        <p className="text-[11px] text-muted-foreground">{f.help}</p>
+                      </div>
+                    ))}
+                    <Button onClick={saveSettings} disabled={savingSettings} className="w-full rounded-xl">
+                      {savingSettings ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                      Save Settings
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </div>

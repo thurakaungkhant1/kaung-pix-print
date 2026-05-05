@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, 
   Lock, Coins, Gift, Trophy, ChevronRight, Sparkles, Camera, Loader2, 
-  Trash2, Crown, Settings, History, AlertTriangle,
+  Trash2, Crown, Settings, History, AlertTriangle, Info, ShieldCheck,
   Check, X, Pencil, CreditCard, Zap
 } from "lucide-react";
 import AccountQualityBadge from "@/components/AccountQualityBadge";
@@ -534,7 +534,11 @@ const Account = () => {
                 )}
                 <SettingItem icon={Camera} label="Photo Gallery" description="Browse all photos" onClick={() => navigate("/photo")} />
                 <Separator className="my-0.5" />
-                <SettingItem icon={FileText} label="Terms & Policy" onClick={() => navigate("/terms")} />
+                <SettingItem icon={Info} label="About Us" onClick={() => navigate("/about")} />
+                <Separator className="my-0.5" />
+                <SettingItem icon={ShieldCheck} label="Privacy Policy" onClick={() => navigate("/privacy")} />
+                <Separator className="my-0.5" />
+                <SettingItem icon={FileText} label="Terms & Conditions" onClick={() => navigate("/terms")} />
                 <Separator className="my-0.5" />
                 <SettingItem icon={Mail} label="Contact Us" onClick={() => navigate("/contact")} />
               </CardContent>

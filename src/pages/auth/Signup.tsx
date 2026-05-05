@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Phone, Lock, Gift, Sparkles, CheckCircle, Mail, Eye, EyeOff, ShoppingCart, Camera, ArrowRight } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
+import AppFooter from "@/components/AppFooter";
 import { cn } from "@/lib/utils";
 import AuthAnimatedBackground from "@/components/AuthAnimatedBackground";
 import { motion } from "framer-motion";
@@ -520,6 +521,7 @@ const Signup = () => {
         </form>
       </Card>
       </motion.div>
+      <AppFooter />
     </MobileLayout>
   );
 };

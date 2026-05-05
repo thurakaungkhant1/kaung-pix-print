@@ -2,8 +2,23 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-const DAILY_LIMIT = 500;
-const COOLDOWN_MS = 30000; // 30 seconds
+interface GameSettings {
+  base_play_points: number;
+  win_bonus_points: number;
+  high_score_bonus_points: number;
+  high_score_threshold: number;
+  daily_limit: number;
+  cooldown_seconds: number;
+}
+
+const DEFAULT_SETTINGS: GameSettings = {
+  base_play_points: 5,
+  win_bonus_points: 20,
+  high_score_bonus_points: 10,
+  high_score_threshold: 100,
+  daily_limit: 500,
+  cooldown_seconds: 30,
+};
 
 export const useGamePoints = () => {
   const { user } = useAuth();
@@ -12,12 +27,31 @@ export const useGamePoints = () => {
   const [streak, setStreak] = useState(0);
   const [lastGameTime, setLastGameTime] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
+    loadSettings();
     if (user) {
       loadGameData();
     }
   }, [user]);
+
+  const loadSettings = async () => {
+    const { data } = await supabase
+      .from("game_settings")
+      .select("*")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data) setSettings({
+      base_play_points: data.base_play_points,
+      win_bonus_points: data.win_bonus_points,
+      high_score_bonus_points: data.high_score_bonus_points,
+      high_score_threshold: data.high_score_threshold,
+      daily_limit: data.daily_limit,
+      cooldown_seconds: data.cooldown_seconds,
+    });
+  };
 
   const loadGameData = async () => {
     if (!user) return;
@@ -40,14 +74,14 @@ export const useGamePoints = () => {
 
   const canPlay = useCallback((gameName: string) => {
     const last = lastGameTime[gameName] || 0;
-    return Date.now() - last >= COOLDOWN_MS;
-  }, [lastGameTime]);
+    return Date.now() - last >= settings.cooldown_seconds * 1000;
+  }, [lastGameTime, settings.cooldown_seconds]);
 
   const getCooldownRemaining = useCallback((gameName: string) => {
     const last = lastGameTime[gameName] || 0;
-    const remaining = COOLDOWN_MS - (Date.now() - last);
+    const remaining = settings.cooldown_seconds * 1000 - (Date.now() - last);
     return Math.max(0, Math.ceil(remaining / 1000));
-  }, [lastGameTime]);
+  }, [lastGameTime, settings.cooldown_seconds]);
 
   const submitScore = useCallback(async (gameName: string, score: number, isWin: boolean) => {
     if (!user) return { success: false, pointsEarned: 0 };
@@ -56,13 +90,13 @@ export const useGamePoints = () => {
       return { success: false, pointsEarned: 0, cooldown: true };
     }
 
-    let pointsEarned = 5; // base play points
-    if (isWin) pointsEarned += 20;
-    if (score > 100) pointsEarned += 10; // high score bonus
+    let pointsEarned = settings.base_play_points;
+    if (isWin) pointsEarned += settings.win_bonus_points;
+    if (score > settings.high_score_threshold) pointsEarned += settings.high_score_bonus_points;
 
     // Check daily limit
-    if (dailyEarned + pointsEarned > DAILY_LIMIT) {
-      pointsEarned = Math.max(0, DAILY_LIMIT - dailyEarned);
+    if (dailyEarned + pointsEarned > settings.daily_limit) {
+      pointsEarned = Math.max(0, settings.daily_limit - dailyEarned);
     }
 
     if (pointsEarned === 0) {
@@ -158,17 +192,18 @@ export const useGamePoints = () => {
       console.error("Error submitting score:", e);
       return { success: false, pointsEarned: 0 };
     }
-  }, [user, gamePoints, dailyEarned, canPlay]);
+  }, [user, gamePoints, dailyEarned, canPlay, settings]);
 
   return {
     gamePoints,
     dailyEarned,
-    dailyLimit: DAILY_LIMIT,
+    dailyLimit: settings.daily_limit,
     streak,
     loading,
     canPlay,
     getCooldownRemaining,
     submitScore,
     refreshData: loadGameData,
+    settings,
   };
 };
