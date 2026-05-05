@@ -192,17 +192,18 @@ export const useGamePoints = () => {
       console.error("Error submitting score:", e);
       return { success: false, pointsEarned: 0 };
     }
-  }, [user, gamePoints, dailyEarned, canPlay]);
+  }, [user, gamePoints, dailyEarned, canPlay, settings]);
 
   return {
     gamePoints,
     dailyEarned,
-    dailyLimit: DAILY_LIMIT,
+    dailyLimit: settings.daily_limit,
     streak,
     loading,
     canPlay,
     getCooldownRemaining,
     submitScore,
     refreshData: loadGameData,
+    settings,
   };
 };
