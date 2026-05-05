@@ -98,8 +98,10 @@ const PhotoDetail = () => {
   };
 
   const toggleFavourite = async () => {
-    if (!user) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
       toast({ title: "Login required", description: "Please login to add favourites", variant: "destructive" });
+      navigate(`/auth/login?redirectTo=${encodeURIComponent(`/photo/${id}`)}`);
       return;
     }
     const photoId = parseInt(id!);
@@ -111,8 +113,19 @@ const PhotoDetail = () => {
     setIsFavourite(!isFavourite);
   };
 
-  const handleDownloadClick = () => {
+  const handleDownloadClick = async () => {
     if (!photo) return;
+    // Enforce authentication before any download flow
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({
+        title: "Login required",
+        description: "Photo download လုပ်ရန် login ဝင်ရန် လိုအပ်ပါသည်။",
+        variant: "destructive",
+      });
+      navigate(`/auth/login?redirectTo=${encodeURIComponent(`/photo/${photo.id}`)}`);
+      return;
+    }
     setConfirmOpen(true);
   };
 
@@ -144,6 +157,13 @@ const PhotoDetail = () => {
 
   const performDownload = async () => {
     if (!photo?.file_url) return;
+    // Re-verify session right before fetching the file
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({ title: "Session expired", description: "Please login again.", variant: "destructive" });
+      navigate(`/auth/login?redirectTo=${encodeURIComponent(`/photo/${photo.id}`)}`);
+      return;
+    }
     setDownloading(true);
     setDownloadStage("fetching");
     setDownloadProgress(0);
