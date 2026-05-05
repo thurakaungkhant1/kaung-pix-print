@@ -207,12 +207,15 @@ const GamePointsManage = () => {
           </div>
 
           <Tabs defaultValue="users">
-            <TabsList className="grid w-full grid-cols-2 mb-4 h-11 rounded-xl">
+            <TabsList className="grid w-full grid-cols-3 mb-4 h-11 rounded-xl">
               <TabsTrigger value="users" className="text-xs gap-1.5 rounded-lg">
                 <Users className="h-3.5 w-3.5" /> Users
               </TabsTrigger>
               <TabsTrigger value="history" className="text-xs gap-1.5 rounded-lg">
-                <BarChart3 className="h-3.5 w-3.5" /> Game History
+                <BarChart3 className="h-3.5 w-3.5" /> History
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="text-xs gap-1.5 rounded-lg">
+                <Settings className="h-3.5 w-3.5" /> Settings
               </TabsTrigger>
             </TabsList>
 
