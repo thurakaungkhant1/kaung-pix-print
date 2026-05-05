@@ -2,8 +2,23 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-const DAILY_LIMIT = 500;
-const COOLDOWN_MS = 30000; // 30 seconds
+interface GameSettings {
+  base_play_points: number;
+  win_bonus_points: number;
+  high_score_bonus_points: number;
+  high_score_threshold: number;
+  daily_limit: number;
+  cooldown_seconds: number;
+}
+
+const DEFAULT_SETTINGS: GameSettings = {
+  base_play_points: 5,
+  win_bonus_points: 20,
+  high_score_bonus_points: 10,
+  high_score_threshold: 100,
+  daily_limit: 500,
+  cooldown_seconds: 30,
+};
 
 export const useGamePoints = () => {
   const { user } = useAuth();
@@ -12,12 +27,31 @@ export const useGamePoints = () => {
   const [streak, setStreak] = useState(0);
   const [lastGameTime, setLastGameTime] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
+    loadSettings();
     if (user) {
       loadGameData();
     }
   }, [user]);
+
+  const loadSettings = async () => {
+    const { data } = await supabase
+      .from("game_settings")
+      .select("*")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data) setSettings({
+      base_play_points: data.base_play_points,
+      win_bonus_points: data.win_bonus_points,
+      high_score_bonus_points: data.high_score_bonus_points,
+      high_score_threshold: data.high_score_threshold,
+      daily_limit: data.daily_limit,
+      cooldown_seconds: data.cooldown_seconds,
+    });
+  };
 
   const loadGameData = async () => {
     if (!user) return;
