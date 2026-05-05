@@ -234,19 +234,19 @@ const Signup = () => {
   const passwordStrength = getPasswordStrength();
 
   return (
-    <MobileLayout className="flex items-center justify-center sm:p-4 relative overflow-hidden min-h-screen">
+    <MobileLayout className="flex flex-col items-center justify-start sm:justify-center sm:p-4 relative overflow-hidden min-h-screen">
       <AuthAnimatedBackground />
 
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="w-full max-w-md relative z-10 sm:my-8"
+        className="w-full max-w-md relative z-10 sm:my-8 flex-1 sm:flex-none flex items-start sm:items-center"
       >
       <Card className={cn(
         "w-full",
-        "rounded-none border-0 shadow-none bg-transparent backdrop-blur-0",
-        "sm:rounded-2xl sm:border sm:border-border/30 sm:shadow-2xl sm:bg-card/95 sm:backdrop-blur-sm",
+        "rounded-none border-0 shadow-none bg-transparent backdrop-blur-0 px-2 py-6",
+        "sm:rounded-2xl sm:border sm:border-border/30 sm:shadow-2xl sm:bg-card/95 sm:backdrop-blur-sm sm:px-0 sm:py-0",
         "hover-lift"
       )}>
         <div className="card-shine hidden sm:block" />
