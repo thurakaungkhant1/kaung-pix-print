@@ -52,6 +52,32 @@ const GamePointsManage = () => {
   const [operation, setOperation] = useState<"add" | "subtract" | "set">("add");
   const [updating, setUpdating] = useState(false);
   const [stats, setStats] = useState({ totalPlayers: 0, totalGamesPlayed: 0, totalPointsAwarded: 0, topGame: "" });
+  const [settings, setSettings] = useState<any>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  useEffect(() => {
+    if (isAdmin) {
+      supabase.from("game_settings").select("*").order("updated_at", { ascending: false }).limit(1).maybeSingle()
+        .then(({ data }) => { if (data) setSettings(data); });
+    }
+  }, [isAdmin]);
+
+  const saveSettings = async () => {
+    if (!settings) return;
+    setSavingSettings(true);
+    const payload = {
+      base_play_points: Number(settings.base_play_points),
+      win_bonus_points: Number(settings.win_bonus_points),
+      high_score_bonus_points: Number(settings.high_score_bonus_points),
+      high_score_threshold: Number(settings.high_score_threshold),
+      daily_limit: Number(settings.daily_limit),
+      cooldown_seconds: Number(settings.cooldown_seconds),
+    };
+    const { error } = await supabase.from("game_settings").update(payload).eq("id", settings.id);
+    setSavingSettings(false);
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "✅ Settings saved", description: "Game points configuration updated" });
+  };
 
   useEffect(() => {
     if (isAdmin) {
