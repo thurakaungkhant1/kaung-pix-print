@@ -106,9 +106,9 @@ const PhotoDetail = () => {
     }
     const photoId = parseInt(id!);
     if (isFavourite) {
-      await supabase.from("favourite_photos").delete().eq("user_id", user.id).eq("photo_id", photoId);
+      await supabase.from("favourite_photos").delete().eq("user_id", session.user.id).eq("photo_id", photoId);
     } else {
-      await supabase.from("favourite_photos").insert({ user_id: user.id, photo_id: photoId });
+      await supabase.from("favourite_photos").insert({ user_id: session.user.id, photo_id: photoId });
     }
     setIsFavourite(!isFavourite);
   };
