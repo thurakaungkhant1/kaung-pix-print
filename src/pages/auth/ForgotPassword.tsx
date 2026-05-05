@@ -48,7 +48,7 @@ const ForgotPassword = () => {
 
   if (emailSent) {
     return (
-      <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden">
+      <MobileLayout className="flex items-center justify-center sm:p-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
         <AuthAnimatedBackground />
         <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
@@ -56,7 +56,8 @@ const ForgotPassword = () => {
 
         <Card className={cn(
           "w-full max-w-md relative z-10",
-          "border-border/50 shadow-xl backdrop-blur-sm bg-card/90",
+          "rounded-none border-0 shadow-none bg-transparent",
+          "sm:rounded-2xl sm:border sm:border-border/50 sm:shadow-xl sm:bg-card/90 sm:backdrop-blur-sm",
           "animate-slide-up"
         )}>
           <CardHeader className="space-y-4 text-center pb-2">
@@ -105,7 +106,7 @@ const ForgotPassword = () => {
   }
 
   return (
-    <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden">
+    <MobileLayout className="flex items-center justify-center sm:p-4 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
       <AuthAnimatedBackground />
       <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
@@ -113,7 +114,8 @@ const ForgotPassword = () => {
 
       <Card className={cn(
         "w-full max-w-md relative z-10",
-        "border-border/50 shadow-xl backdrop-blur-sm bg-card/90",
+        "rounded-none border-0 shadow-none bg-transparent",
+        "sm:rounded-2xl sm:border sm:border-border/50 sm:shadow-xl sm:bg-card/90 sm:backdrop-blur-sm",
         "animate-slide-up"
       )}>
         <CardHeader className="space-y-4 text-center pb-2">
