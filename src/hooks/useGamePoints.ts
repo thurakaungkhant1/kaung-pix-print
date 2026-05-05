@@ -74,14 +74,14 @@ export const useGamePoints = () => {
 
   const canPlay = useCallback((gameName: string) => {
     const last = lastGameTime[gameName] || 0;
-    return Date.now() - last >= COOLDOWN_MS;
-  }, [lastGameTime]);
+    return Date.now() - last >= settings.cooldown_seconds * 1000;
+  }, [lastGameTime, settings.cooldown_seconds]);
 
   const getCooldownRemaining = useCallback((gameName: string) => {
     const last = lastGameTime[gameName] || 0;
-    const remaining = COOLDOWN_MS - (Date.now() - last);
+    const remaining = settings.cooldown_seconds * 1000 - (Date.now() - last);
     return Math.max(0, Math.ceil(remaining / 1000));
-  }, [lastGameTime]);
+  }, [lastGameTime, settings.cooldown_seconds]);
 
   const submitScore = useCallback(async (gameName: string, score: number, isWin: boolean) => {
     if (!user) return { success: false, pointsEarned: 0 };
@@ -90,13 +90,13 @@ export const useGamePoints = () => {
       return { success: false, pointsEarned: 0, cooldown: true };
     }
 
-    let pointsEarned = 5; // base play points
-    if (isWin) pointsEarned += 20;
-    if (score > 100) pointsEarned += 10; // high score bonus
+    let pointsEarned = settings.base_play_points;
+    if (isWin) pointsEarned += settings.win_bonus_points;
+    if (score > settings.high_score_threshold) pointsEarned += settings.high_score_bonus_points;
 
     // Check daily limit
-    if (dailyEarned + pointsEarned > DAILY_LIMIT) {
-      pointsEarned = Math.max(0, DAILY_LIMIT - dailyEarned);
+    if (dailyEarned + pointsEarned > settings.daily_limit) {
+      pointsEarned = Math.max(0, settings.daily_limit - dailyEarned);
     }
 
     if (pointsEarned === 0) {
