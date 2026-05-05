@@ -599,6 +599,96 @@ const PhotoDetail = () => {
           )}
         </AnimatePresence>
 
+        {/* Photo Picker Dialog */}
+        <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+            <DialogHeader className="px-5 pt-5 pb-3 border-b">
+              <DialogTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-primary" />
+                Select a photo to download
+              </DialogTitle>
+              <DialogDescription>
+                {zipPhotos.length} photos ပါဝင်ပါသည်။ ကြိုက်နှစ်သက်သော photo တစ်ပုံကို နှိပ်ပြီး download လုပ်နိုင်ပါသည်။
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {zipPhotos.map((zp, idx) => (
+                  <motion.div
+                    key={zp.name + idx}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: Math.min(idx * 0.03, 0.3) }}
+                    className="group relative rounded-xl overflow-hidden bg-muted border border-border/50 hover:border-primary/50 hover:shadow-lg transition-all"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setPreviewPhoto(zp)}
+                      className="block w-full aspect-square overflow-hidden"
+                    >
+                      <img
+                        src={zp.url}
+                        alt={zp.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </button>
+                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 to-transparent flex items-end justify-between gap-2">
+                      <p className="text-[10px] text-white/90 truncate flex-1" title={zp.name}>{zp.name}</p>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-7 w-7 shrink-0"
+                        onClick={(e) => { e.stopPropagation(); downloadSingle(zp); }}
+                        aria-label="Download this photo"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t p-4 flex items-center justify-between gap-2 bg-muted/30">
+              <p className="text-xs text-muted-foreground">
+                Tap any photo to preview, or use the download icon to save.
+              </p>
+              <Button variant="outline" size="sm" onClick={downloadAllZip}>
+                <FileArchive className="h-4 w-4 mr-2" />
+                Download All (ZIP)
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Single photo preview from picker */}
+        <Dialog open={!!previewPhoto} onOpenChange={(o) => !o && setPreviewPhoto(null)}>
+          <DialogContent className="max-w-2xl p-0 overflow-hidden">
+            {previewPhoto && (
+              <div className="flex flex-col">
+                <div className="relative bg-black flex items-center justify-center max-h-[70vh]">
+                  <img src={previewPhoto.url} alt={previewPhoto.name} className="max-w-full max-h-[70vh] object-contain" />
+                  <button
+                    onClick={() => setPreviewPhoto(null)}
+                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="p-4 flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium truncate">{previewPhoto.name}</p>
+                  <Button onClick={() => downloadSingle(previewPhoto)}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Image Viewer */}
         <ImageViewer
           src={imageSrc || ""}
