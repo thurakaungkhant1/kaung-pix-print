@@ -85,26 +85,25 @@ const Login = () => {
 
 
   return (
-    <MobileLayout className="flex items-center justify-center p-4 relative overflow-hidden min-h-screen">
-      {/* Canvas animated background */}
+    <MobileLayout className="flex items-center justify-center sm:p-4 relative overflow-hidden min-h-screen">
       <AuthAnimatedBackground />
-      
-      
-      
+
       <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        initial={{ opacity: 0, y: 30, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="w-full max-w-md relative z-10"
       >
       <Card className={cn(
         "w-full",
-        "border-border/30 shadow-2xl backdrop-blur-sm bg-card/95",
+        // Edge-to-edge on mobile, rounded card on tablet+
+        "rounded-none border-0 shadow-none bg-transparent backdrop-blur-0",
+        "sm:rounded-2xl sm:border sm:border-border/30 sm:shadow-2xl sm:bg-card/95 sm:backdrop-blur-sm",
         "hover-lift"
       )}>
         {/* Card shine effect */}
-        <div className="card-shine" />
-        
+        <div className="card-shine hidden sm:block" />
+
         <CardHeader className="space-y-4 text-center pb-2">
           {/* Logo with glow */}
           <div className="flex justify-center">
