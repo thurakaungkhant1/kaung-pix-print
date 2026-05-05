@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Search, Gamepad2, Trophy, Users, TrendingUp,
-  Edit, Loader2, BarChart3, Target,
+  Edit, Loader2, BarChart3, Target, Settings, Save,
 } from "lucide-react";
 
 interface GameUser {
