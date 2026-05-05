@@ -297,6 +297,44 @@ const GamePointsManage = () => {
                 </Table>
               </Card>
             </TabsContent>
+
+            <TabsContent value="settings">
+              {!settings ? (
+                <Card className="rounded-2xl"><CardContent className="p-8 text-center text-sm text-muted-foreground">Loading…</CardContent></Card>
+              ) : (
+                <Card className="rounded-2xl border-border/50">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2"><Settings className="h-4 w-4" /> Game Points Configuration</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {[
+                      { key: "base_play_points", label: "Base play points", help: "Per game played" },
+                      { key: "win_bonus_points", label: "Win bonus points", help: "Extra when player wins" },
+                      { key: "high_score_bonus_points", label: "High score bonus", help: "Extra when score > threshold" },
+                      { key: "high_score_threshold", label: "High score threshold", help: "Score required for bonus" },
+                      { key: "daily_limit", label: "Daily earning cap", help: "Max points per day per user" },
+                      { key: "cooldown_seconds", label: "Cooldown (seconds)", help: "Between plays of same game" },
+                    ].map((f) => (
+                      <div key={f.key} className="space-y-1.5">
+                        <Label className="text-sm">{f.label}</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={settings[f.key] ?? 0}
+                          onChange={(e) => setSettings({ ...settings, [f.key]: e.target.value })}
+                          className="rounded-xl"
+                        />
+                        <p className="text-[11px] text-muted-foreground">{f.help}</p>
+                      </div>
+                    ))}
+                    <Button onClick={saveSettings} disabled={savingSettings} className="w-full rounded-xl">
+                      {savingSettings ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                      Save Settings
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
           </Tabs>
         </div>
 
