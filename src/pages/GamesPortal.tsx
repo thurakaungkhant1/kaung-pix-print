@@ -99,16 +99,10 @@ const GameComponents: Record<string, React.ComponentType<{ onGameEnd: (score: nu
   tower: TowerStack,
 };
 
-const REWARDS = [
-  { id: 1, name: "500 Ks Top-up", cost: 200, emoji: "📱", desc: "Any operator" },
-  { id: 2, name: "1,000 Ks Top-up", cost: 380, emoji: "📱", desc: "Any operator" },
-  { id: 3, name: "2,000 Ks Top-up", cost: 700, emoji: "📱", desc: "Any operator" },
-  { id: 4, name: "5,000 Ks Top-up", cost: 1600, emoji: "📱", desc: "Any operator" },
-  { id: 5, name: "10,000 Ks Top-up", cost: 3000, emoji: "💎", desc: "Premium reward" },
-  { id: 6, name: "Shop 500 Points", cost: 250, emoji: "🪙", desc: "Convert to coins" },
-  { id: 7, name: "Shop 1,000 Points", cost: 450, emoji: "🪙", desc: "Convert to coins" },
-  { id: 8, name: "Premium 1 Week", cost: 5000, emoji: "👑", desc: "VIP access" },
-];
+interface RewardItem {
+  id: string; name: string; description: string | null; emoji: string | null;
+  cost_points: number; reward_type: string; reward_value: number;
+}
 
 const GamesPortal = () => {
   const { user } = useAuth();
@@ -119,7 +113,8 @@ const GamesPortal = () => {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [hasSpunToday, setHasSpunToday] = useState(false);
   const [filter, setFilter] = useState("All");
-  const [redeeming, setRedeeming] = useState<number | null>(null);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
+  const [rewards, setRewards] = useState<RewardItem[]>([]);
 
   const TAGS = ["All", ...Array.from(new Set(GAMES.map(g => g.tag)))];
 
@@ -128,6 +123,8 @@ const GamesPortal = () => {
       supabase.from("profiles").select("id, name, avatar_url, game_points")
         .order("game_points", { ascending: false }).limit(10)
         .then(({ data }) => { if (data) setLeaderboard(data); });
+      supabase.from("game_reward_items").select("*").eq("is_active", true).order("display_order")
+        .then(({ data }) => { if (data) setRewards(data as RewardItem[]); });
     }
   }, [isOnline]);
 
@@ -159,29 +156,44 @@ const GamesPortal = () => {
     setHasSpunToday(true);
   };
 
-  const handleRedeem = async (reward: typeof REWARDS[0]) => {
+  const handleRedeem = async (reward: RewardItem) => {
     if (!user || redeeming) return;
-    if (gamePoints < reward.cost) {
-      toast({ title: "Not enough points!", description: `You need ${reward.cost} game points.`, variant: "destructive" });
+    if (gamePoints < reward.cost_points) {
+      toast({ title: "Not enough points!", description: `You need ${reward.cost_points} game points.`, variant: "destructive" });
       return;
     }
     setRedeeming(reward.id);
     try {
-      const newPoints = gamePoints - reward.cost;
+      const newPoints = gamePoints - reward.cost_points;
       await supabase.from("profiles").update({ game_points: newPoints }).eq("id", user.id);
-      
-      // If it's a shop points conversion
-      if (reward.emoji === "🪙") {
-        const shopPoints = reward.name.includes("500") ? 500 : 1000;
+
+      // Apply reward effect
+      if (reward.reward_type === "shop_coins") {
         const { data: profile } = await supabase.from("profiles").select("points").eq("id", user.id).single();
         if (profile) {
-          await supabase.from("profiles").update({ points: profile.points + shopPoints }).eq("id", user.id);
+          await supabase.from("profiles").update({ points: profile.points + Number(reward.reward_value) }).eq("id", user.id);
           await supabase.from("point_transactions").insert({
-            user_id: user.id, amount: shopPoints, transaction_type: "game_reward",
-            description: `Converted ${reward.cost} game points to ${shopPoints} shop coins`,
+            user_id: user.id, amount: Number(reward.reward_value), transaction_type: "game_reward",
+            description: `Converted ${reward.cost_points} game points to ${reward.reward_value} shop coins`,
           });
         }
+      } else if (reward.reward_type === "wallet_credit") {
+        const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("id", user.id).single();
+        if (profile) {
+          await supabase.from("profiles").update({ wallet_balance: Number(profile.wallet_balance || 0) + Number(reward.reward_value) }).eq("id", user.id);
+        }
       }
+
+      // Log redemption
+      await supabase.from("game_redemptions").insert({
+        user_id: user.id,
+        reward_item_id: reward.id,
+        reward_name: reward.name,
+        cost_points: reward.cost_points,
+        reward_type: reward.reward_type,
+        reward_value: reward.reward_value,
+        status: reward.reward_type === "manual" || reward.reward_type === "premium_days" ? "pending" : "delivered",
+      });
 
       toast({ title: "🎉 Reward Redeemed!", description: `${reward.name} — check your account!` });
       refreshData();
@@ -190,6 +202,7 @@ const GamesPortal = () => {
     }
     setRedeeming(null);
   };
+
 
   const filteredGames = filter === "All" ? GAMES : GAMES.filter(g => g.tag === filter);
 
@@ -375,26 +388,30 @@ const GamesPortal = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {REWARDS.map(r => (
-                    <Card key={r.id} className="p-4 rounded-2xl border-border/50 bg-card/80">
+                  {rewards.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-8">No rewards available yet</p>
+                  )}
+                  {rewards.map(r => (
+                    <Card key={r.id} className="p-4 rounded-2xl border-border/50 bg-card/80 hover:shadow-lg transition-all">
                       <div className="flex items-center gap-3">
                         <div className="text-3xl">{r.emoji}</div>
                         <div className="flex-1">
                           <h4 className="text-sm font-bold">{r.name}</h4>
-                          <p className="text-[11px] text-muted-foreground">{r.desc}</p>
+                          <p className="text-[11px] text-muted-foreground">{r.description}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-primary">{r.cost.toLocaleString()}</p>
+                          <p className="text-sm font-bold text-primary">{r.cost_points.toLocaleString()}</p>
                           <Button size="sm" className="h-7 text-[10px] rounded-lg mt-1 px-3"
-                            disabled={gamePoints < r.cost || redeeming === r.id}
+                            disabled={gamePoints < r.cost_points || redeeming === r.id}
                             onClick={() => handleRedeem(r)}>
-                            {redeeming === r.id ? "..." : gamePoints >= r.cost ? "Redeem" : "Need more"}
+                            {redeeming === r.id ? "..." : gamePoints >= r.cost_points ? "Redeem" : "Need more"}
                           </Button>
                         </div>
                       </div>
                     </Card>
                   ))}
                 </div>
+
               </AnimatedSection>
             </TabsContent>
 

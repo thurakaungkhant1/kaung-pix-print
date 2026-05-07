@@ -66,20 +66,34 @@ const CarDodge = ({ onGameEnd }: Props) => {
       }
       // Road edges
       ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fillRect(0, 0, 3, H); ctx.fillRect(W - 3, 0, 3, H);
-      // Obstacles
-      s.obstacles.forEach(o => {
-        const ox = laneX(o.lane);
-        ctx.fillStyle = "#e74c3c"; drawRoundRect(ox, o.y, CAR_W, CAR_H, 6);
-        ctx.fillStyle = "#c0392b"; drawRoundRect(ox + 5, o.y + 5, CAR_W - 10, 15, 3);
-        ctx.fillStyle = "#e74c3c77"; drawRoundRect(ox + 8, o.y + CAR_H - 15, CAR_W - 16, 8, 2);
-      });
-      // Player car
-      ctx.fillStyle = "#3498db"; drawRoundRect(playerX, playerY, CAR_W, CAR_H, 6);
-      ctx.fillStyle = "#2980b9"; drawRoundRect(playerX + 5, playerY + 5, CAR_W - 10, 15, 3);
-      ctx.fillStyle = "#3498db77"; drawRoundRect(playerX + 8, playerY + CAR_H - 15, CAR_W - 16, 8, 2);
-      // Headlights
-      ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(playerX + 8, playerY + CAR_H - 3, 3, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(playerX + CAR_W - 8, playerY + CAR_H - 3, 3, 0, Math.PI * 2); ctx.fill();
+      // Realistic car renderer (top-down with depth)
+      const drawCar = (x: number, y: number, color: string, accent: string) => {
+        // Shadow
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        drawRoundRect(x + 3, y + 5, CAR_W, CAR_H, 8);
+        // Body gradient
+        const bodyGrad = ctx.createLinearGradient(x, y, x + CAR_W, y);
+        bodyGrad.addColorStop(0, accent); bodyGrad.addColorStop(0.5, color); bodyGrad.addColorStop(1, accent);
+        ctx.fillStyle = bodyGrad; drawRoundRect(x, y, CAR_W, CAR_H, 8);
+        // Hood line
+        ctx.fillStyle = "rgba(255,255,255,0.08)"; drawRoundRect(x + 3, y + 3, CAR_W - 6, CAR_H - 6, 6);
+        // Windshield
+        ctx.fillStyle = "rgba(20,30,50,0.85)"; drawRoundRect(x + 6, y + 8, CAR_W - 12, 14, 4);
+        // Rear window
+        ctx.fillStyle = "rgba(20,30,50,0.7)"; drawRoundRect(x + 6, y + CAR_H - 20, CAR_W - 12, 10, 4);
+        // Roof highlight
+        ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fillRect(x + 8, y + 24, CAR_W - 16, 2);
+        // Wheels
+        ctx.fillStyle = "#111"; drawRoundRect(x - 2, y + 8, 5, 12, 2); drawRoundRect(x + CAR_W - 3, y + 8, 5, 12, 2);
+        drawRoundRect(x - 2, y + CAR_H - 20, 5, 12, 2); drawRoundRect(x + CAR_W - 3, y + CAR_H - 20, 5, 12, 2);
+        // Headlights
+        ctx.fillStyle = "#fff8c4"; ctx.beginPath(); ctx.arc(x + 8, y + 4, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x + CAR_W - 8, y + 4, 2.5, 0, Math.PI * 2); ctx.fill();
+        // Taillights
+        ctx.fillStyle = "#ff3b3b"; ctx.fillRect(x + 5, y + CAR_H - 4, 6, 2); ctx.fillRect(x + CAR_W - 11, y + CAR_H - 4, 6, 2);
+      };
+      s.obstacles.forEach(o => drawCar(laneX(o.lane), o.y, "#c0392b", "#e74c3c"));
+      drawCar(playerX, playerY, "#2980b9", "#3498db");
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
