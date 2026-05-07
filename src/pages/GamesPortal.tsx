@@ -388,26 +388,30 @@ const GamesPortal = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {REWARDS.map(r => (
-                    <Card key={r.id} className="p-4 rounded-2xl border-border/50 bg-card/80">
+                  {rewards.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-8">No rewards available yet</p>
+                  )}
+                  {rewards.map(r => (
+                    <Card key={r.id} className="p-4 rounded-2xl border-border/50 bg-card/80 hover:shadow-lg transition-all">
                       <div className="flex items-center gap-3">
                         <div className="text-3xl">{r.emoji}</div>
                         <div className="flex-1">
                           <h4 className="text-sm font-bold">{r.name}</h4>
-                          <p className="text-[11px] text-muted-foreground">{r.desc}</p>
+                          <p className="text-[11px] text-muted-foreground">{r.description}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-primary">{r.cost.toLocaleString()}</p>
+                          <p className="text-sm font-bold text-primary">{r.cost_points.toLocaleString()}</p>
                           <Button size="sm" className="h-7 text-[10px] rounded-lg mt-1 px-3"
-                            disabled={gamePoints < r.cost || redeeming === r.id}
+                            disabled={gamePoints < r.cost_points || redeeming === r.id}
                             onClick={() => handleRedeem(r)}>
-                            {redeeming === r.id ? "..." : gamePoints >= r.cost ? "Redeem" : "Need more"}
+                            {redeeming === r.id ? "..." : gamePoints >= r.cost_points ? "Redeem" : "Need more"}
                           </Button>
                         </div>
                       </div>
                     </Card>
                   ))}
                 </div>
+
               </AnimatedSection>
             </TabsContent>
 
