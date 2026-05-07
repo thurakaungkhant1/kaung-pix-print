@@ -314,6 +314,98 @@ export type Database = {
         }
         Relationships: []
       }
+      game_redemptions: {
+        Row: {
+          cost_points: number
+          created_at: string
+          id: string
+          notes: string | null
+          reward_item_id: string | null
+          reward_name: string
+          reward_type: string
+          reward_value: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          cost_points: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reward_item_id?: string | null
+          reward_name: string
+          reward_type: string
+          reward_value?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          cost_points?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reward_item_id?: string | null
+          reward_name?: string
+          reward_type?: string
+          reward_value?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_redemptions_reward_item_id_fkey"
+            columns: ["reward_item_id"]
+            isOneToOne: false
+            referencedRelation: "game_reward_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_reward_items: {
+        Row: {
+          cost_points: number
+          created_at: string
+          description: string | null
+          display_order: number
+          emoji: string | null
+          id: string
+          is_active: boolean
+          name: string
+          reward_type: string
+          reward_value: number
+          stock: number | null
+          updated_at: string
+        }
+        Insert: {
+          cost_points: number
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          reward_type?: string
+          reward_value?: number
+          stock?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cost_points?: number
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          reward_type?: string
+          reward_value?: number
+          stock?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       game_scores: {
         Row: {
           created_at: string
@@ -354,6 +446,7 @@ export type Database = {
           id: string
           updated_at: string
           updated_by: string | null
+          wallet_exchange_rate: number
           win_bonus_points: number
         }
         Insert: {
@@ -365,6 +458,7 @@ export type Database = {
           id?: string
           updated_at?: string
           updated_by?: string | null
+          wallet_exchange_rate?: number
           win_bonus_points?: number
         }
         Update: {
@@ -376,6 +470,7 @@ export type Database = {
           id?: string
           updated_at?: string
           updated_by?: string | null
+          wallet_exchange_rate?: number
           win_bonus_points?: number
         }
         Relationships: []
