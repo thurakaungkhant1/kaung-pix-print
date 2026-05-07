@@ -99,16 +99,10 @@ const GameComponents: Record<string, React.ComponentType<{ onGameEnd: (score: nu
   tower: TowerStack,
 };
 
-const REWARDS = [
-  { id: 1, name: "500 Ks Top-up", cost: 200, emoji: "📱", desc: "Any operator" },
-  { id: 2, name: "1,000 Ks Top-up", cost: 380, emoji: "📱", desc: "Any operator" },
-  { id: 3, name: "2,000 Ks Top-up", cost: 700, emoji: "📱", desc: "Any operator" },
-  { id: 4, name: "5,000 Ks Top-up", cost: 1600, emoji: "📱", desc: "Any operator" },
-  { id: 5, name: "10,000 Ks Top-up", cost: 3000, emoji: "💎", desc: "Premium reward" },
-  { id: 6, name: "Shop 500 Points", cost: 250, emoji: "🪙", desc: "Convert to coins" },
-  { id: 7, name: "Shop 1,000 Points", cost: 450, emoji: "🪙", desc: "Convert to coins" },
-  { id: 8, name: "Premium 1 Week", cost: 5000, emoji: "👑", desc: "VIP access" },
-];
+interface RewardItem {
+  id: string; name: string; description: string | null; emoji: string | null;
+  cost_points: number; reward_type: string; reward_value: number;
+}
 
 const GamesPortal = () => {
   const { user } = useAuth();
