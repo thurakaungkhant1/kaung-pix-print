@@ -113,7 +113,8 @@ const GamesPortal = () => {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [hasSpunToday, setHasSpunToday] = useState(false);
   const [filter, setFilter] = useState("All");
-  const [redeeming, setRedeeming] = useState<number | null>(null);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
+  const [rewards, setRewards] = useState<RewardItem[]>([]);
 
   const TAGS = ["All", ...Array.from(new Set(GAMES.map(g => g.tag)))];
 
@@ -122,6 +123,8 @@ const GamesPortal = () => {
       supabase.from("profiles").select("id, name, avatar_url, game_points")
         .order("game_points", { ascending: false }).limit(10)
         .then(({ data }) => { if (data) setLeaderboard(data); });
+      supabase.from("game_reward_items").select("*").eq("is_active", true).order("display_order")
+        .then(({ data }) => { if (data) setRewards(data as RewardItem[]); });
     }
   }, [isOnline]);
 
@@ -153,29 +156,44 @@ const GamesPortal = () => {
     setHasSpunToday(true);
   };
 
-  const handleRedeem = async (reward: typeof REWARDS[0]) => {
+  const handleRedeem = async (reward: RewardItem) => {
     if (!user || redeeming) return;
-    if (gamePoints < reward.cost) {
-      toast({ title: "Not enough points!", description: `You need ${reward.cost} game points.`, variant: "destructive" });
+    if (gamePoints < reward.cost_points) {
+      toast({ title: "Not enough points!", description: `You need ${reward.cost_points} game points.`, variant: "destructive" });
       return;
     }
     setRedeeming(reward.id);
     try {
-      const newPoints = gamePoints - reward.cost;
+      const newPoints = gamePoints - reward.cost_points;
       await supabase.from("profiles").update({ game_points: newPoints }).eq("id", user.id);
-      
-      // If it's a shop points conversion
-      if (reward.emoji === "🪙") {
-        const shopPoints = reward.name.includes("500") ? 500 : 1000;
+
+      // Apply reward effect
+      if (reward.reward_type === "shop_coins") {
         const { data: profile } = await supabase.from("profiles").select("points").eq("id", user.id).single();
         if (profile) {
-          await supabase.from("profiles").update({ points: profile.points + shopPoints }).eq("id", user.id);
+          await supabase.from("profiles").update({ points: profile.points + Number(reward.reward_value) }).eq("id", user.id);
           await supabase.from("point_transactions").insert({
-            user_id: user.id, amount: shopPoints, transaction_type: "game_reward",
-            description: `Converted ${reward.cost} game points to ${shopPoints} shop coins`,
+            user_id: user.id, amount: Number(reward.reward_value), transaction_type: "game_reward",
+            description: `Converted ${reward.cost_points} game points to ${reward.reward_value} shop coins`,
           });
         }
+      } else if (reward.reward_type === "wallet_credit") {
+        const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("id", user.id).single();
+        if (profile) {
+          await supabase.from("profiles").update({ wallet_balance: Number(profile.wallet_balance || 0) + Number(reward.reward_value) }).eq("id", user.id);
+        }
       }
+
+      // Log redemption
+      await supabase.from("game_redemptions").insert({
+        user_id: user.id,
+        reward_item_id: reward.id,
+        reward_name: reward.name,
+        cost_points: reward.cost_points,
+        reward_type: reward.reward_type,
+        reward_value: reward.reward_value,
+        status: reward.reward_type === "manual" || reward.reward_type === "premium_days" ? "pending" : "delivered",
+      });
 
       toast({ title: "🎉 Reward Redeemed!", description: `${reward.name} — check your account!` });
       refreshData();
@@ -184,6 +202,7 @@ const GamesPortal = () => {
     }
     setRedeeming(null);
   };
+
 
   const filteredGames = filter === "All" ? GAMES : GAMES.filter(g => g.tag === filter);
 
