@@ -86,13 +86,26 @@ const JumpRunner = ({ onGameEnd }: Props) => {
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold">Score: {score}</span>
       </div>
-      <div className="relative w-full h-[200px] bg-gradient-to-b from-sky-100 to-amber-50 dark:from-sky-950/20 dark:to-amber-950/20 rounded-2xl overflow-hidden border border-border/50"
+      <div className="relative w-full h-[220px] rounded-2xl overflow-hidden border border-border/50 shadow-inner cursor-pointer"
+        style={{ background: "linear-gradient(180deg, #fde68a 0%, #f59e0b 40%, #b45309 70%, #78350f 100%)", perspective: "400px" }}
         onClick={doJump}>
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-green-600/30" />
-        <div className="absolute text-3xl transition-all duration-100"
-          style={{ left: "12%", bottom: `${8 + playerY}px` }}>🏃</div>
+        {/* sun */}
+        <div className="absolute rounded-full" style={{ width: 60, height: 60, top: 18, right: 30, background: "radial-gradient(circle, #fff7c4 0%, #fbbf24 60%, transparent 100%)", boxShadow: "0 0 40px #fbbf24" }} />
+        {/* mountains */}
+        <div className="absolute bottom-10 left-0 right-0 h-16 opacity-40"
+          style={{ background: "linear-gradient(180deg, #4c1d95 0%, transparent 100%)", clipPath: "polygon(0 100%, 10% 40%, 25% 70%, 40% 20%, 55% 60%, 75% 35%, 90% 65%, 100% 30%, 100% 100%)" }} />
+        {/* ground perspective */}
+        <div className="absolute bottom-0 left-0 right-0 h-12"
+          style={{ background: "linear-gradient(180deg, #4d7c0f 0%, #166534 100%)", transform: "perspective(300px) rotateX(45deg)", transformOrigin: "bottom" }} />
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-amber-900/60" />
+        {/* player */}
+        <div className="absolute text-4xl transition-all duration-100 drop-shadow-lg"
+          style={{ left: "12%", bottom: `${20 + playerY}px`, filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.4))" }}>🏃</div>
+        {/* shadow */}
+        <div className="absolute rounded-full bg-black/40 blur-sm"
+          style={{ left: "12%", bottom: 14, width: 30, height: 6, transform: `translateX(-30%) scaleX(${1 - playerY / 120})` }} />
         {obstacles.map(o => (
-          <div key={o.id} className="absolute bottom-2 text-2xl" style={{ left: `${o.x}%` }}>🌵</div>
+          <div key={o.id} className="absolute text-3xl" style={{ left: `${o.x}%`, bottom: 18, filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))" }}>🌵</div>
         ))}
       </div>
       <p className="text-xs text-center text-muted-foreground">Tap to jump!</p>

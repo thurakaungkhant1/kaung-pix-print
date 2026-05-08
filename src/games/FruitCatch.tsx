@@ -92,13 +92,22 @@ const FruitCatch = ({ onGameEnd }: Props) => {
         <span className="text-sm font-bold">Score: {score}</span>
         <span className="text-sm">{"❤️".repeat(lives)}</span>
       </div>
-      <div className="fruit-area relative w-full h-[300px] bg-gradient-to-b from-sky-50 to-green-50 dark:from-sky-950/20 dark:to-green-950/20 rounded-2xl overflow-hidden border border-border/50 cursor-none">
+      <div className="fruit-area relative w-full h-[300px] rounded-2xl overflow-hidden border border-border/50 cursor-none shadow-inner"
+        style={{ background: "linear-gradient(180deg, #93c5fd 0%, #bbf7d0 60%, #16a34a 100%)" }}>
+        {/* clouds */}
+        <div className="absolute top-4 left-8 w-16 h-5 bg-white/70 rounded-full blur-sm" />
+        <div className="absolute top-10 right-12 w-20 h-6 bg-white/60 rounded-full blur-sm" />
+        {/* ground perspective */}
+        <div className="absolute bottom-0 left-0 right-0 h-10"
+          style={{ background: "linear-gradient(180deg, #16a34a 0%, #052e16 100%)", transform: "perspective(400px) rotateX(50deg)", transformOrigin: "bottom" }} />
         {items.map(i => (
-          <div key={i.id} className="absolute text-2xl" style={{ left: `${i.x}%`, top: `${i.y}%`, transform: "translate(-50%, -50%)" }}>
+          <div key={i.id} className="absolute text-3xl" style={{ left: `${i.x}%`, top: `${i.y}%`, transform: "translate(-50%, -50%)", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.4))" }}>
             {i.emoji}
           </div>
         ))}
-        <div className="absolute text-3xl transition-all duration-75" style={{ left: `${basketX}%`, bottom: "5%", transform: "translateX(-50%)" }}>🧺</div>
+        {/* basket shadow */}
+        <div className="absolute rounded-full bg-black/40 blur-md" style={{ left: `${basketX}%`, bottom: "3%", width: 50, height: 8, transform: "translateX(-50%)" }} />
+        <div className="absolute text-4xl transition-all duration-75" style={{ left: `${basketX}%`, bottom: "5%", transform: "translateX(-50%)", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.5))" }}>🧺</div>
       </div>
     </div>
   );

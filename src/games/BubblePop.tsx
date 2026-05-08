@@ -74,11 +74,20 @@ const BubblePop = ({ onGameEnd }: Props) => {
         <span className="text-sm font-bold">Score: {score}</span>
         <span className="text-sm font-mono bg-muted px-2 py-1 rounded">{timeLeft}s</span>
       </div>
-      <div className="relative w-full h-[300px] bg-gradient-to-b from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-2xl overflow-hidden border border-border/50">
+      <div className="relative w-full h-[300px] rounded-2xl overflow-hidden border border-border/50 shadow-inner"
+        style={{ background: "radial-gradient(ellipse at top, #1e3a8a 0%, #0c1e4a 60%, #050a1f 100%)" }}>
+        {/* underwater rays */}
+        <div className="absolute inset-0 opacity-30 pointer-events-none"
+          style={{ background: "repeating-linear-gradient(75deg, transparent 0 40px, rgba(255,255,255,0.06) 40px 80px)" }} />
         {bubbles.map(b => (
           <button key={b.id} onClick={() => pop(b.id)}
-            className="absolute rounded-full transition-transform hover:scale-110 active:scale-75 cursor-pointer opacity-80 hover:opacity-100"
-            style={{ left: `${b.x}%`, bottom: `${b.y}%`, width: b.size, height: b.size, backgroundColor: b.color, transform: "translateX(-50%)" }}
+            className="absolute rounded-full transition-transform hover:scale-110 active:scale-50 cursor-pointer"
+            style={{
+              left: `${b.x}%`, bottom: `${b.y}%`, width: b.size, height: b.size,
+              transform: "translateX(-50%)",
+              background: `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.95) 0%, ${b.color}dd 35%, ${b.color} 70%, rgba(0,0,0,0.4) 100%)`,
+              boxShadow: `inset -6px -8px 16px rgba(0,0,0,0.35), inset 4px 6px 12px rgba(255,255,255,0.45), 0 4px 12px rgba(0,0,0,0.4)`,
+            }}
           />
         ))}
       </div>

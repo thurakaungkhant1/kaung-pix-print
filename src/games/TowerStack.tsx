@@ -81,16 +81,32 @@ const TowerStack = ({ onGameEnd }: Props) => {
         <span className="text-sm font-bold">Score: {score}</span>
         <span className="text-sm text-muted-foreground">{blocks.length} blocks</span>
       </div>
-      <div className="relative w-full h-[280px] bg-gradient-to-b from-sky-100 to-sky-200 dark:from-sky-950/30 dark:to-sky-900/30 rounded-2xl overflow-hidden border border-border/50">
+      <div className="relative w-full h-[280px] rounded-2xl overflow-hidden border border-border/50 shadow-inner"
+        style={{ background: "linear-gradient(180deg, #fde68a 0%, #fb923c 35%, #7c3aed 75%, #1e1b4b 100%)", perspective: "600px" }}>
+        {/* horizon */}
+        <div className="absolute left-0 right-0 bottom-0 h-16 opacity-60"
+          style={{ background: "linear-gradient(180deg, transparent, rgba(0,0,0,0.5))" }} />
         {/* Moving block */}
-        <div className="absolute h-6 bg-primary rounded-sm transition-none"
-          style={{ left: `${moving.x}%`, width: `${currentWidth}%`, top: "10px" }} />
+        <div className="absolute h-7 rounded-sm transition-none"
+          style={{
+            left: `${moving.x}%`, width: `${currentWidth}%`, top: "10px",
+            background: "linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.7) 100%)",
+            boxShadow: "0 6px 0 rgba(0,0,0,0.35), inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.25)",
+            transform: "rotateX(15deg)",
+          }} />
         {/* Stacked blocks */}
-        {visibleBlocks.map((b, i) => (
-          <div key={i} className="absolute h-6 rounded-sm"
-            style={{ left: `${b.x}%`, width: `${b.width}%`, bottom: `${i * 26}px`,
-              backgroundColor: `hsl(${(i * 30) % 360}, 70%, 50%)` }} />
-        ))}
+        {visibleBlocks.map((b, i) => {
+          const hue = (i * 35) % 360;
+          return (
+            <div key={i} className="absolute h-7 rounded-sm"
+              style={{
+                left: `${b.x}%`, width: `${b.width}%`, bottom: `${i * 28}px`,
+                background: `linear-gradient(180deg, hsl(${hue},75%,60%) 0%, hsl(${hue},75%,40%) 100%)`,
+                boxShadow: "0 5px 0 rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -3px 0 rgba(0,0,0,0.25)",
+                transform: "rotateX(15deg)",
+              }} />
+          );
+        })}
       </div>
       <p className="text-xs text-muted-foreground">Tap to drop!</p>
     </div>
