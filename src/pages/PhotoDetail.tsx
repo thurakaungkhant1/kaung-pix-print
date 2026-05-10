@@ -597,18 +597,54 @@ const PhotoDetail = () => {
                 animate={{ scale: 1, y: 0 }}
                 className="w-full max-w-sm rounded-2xl border border-border/50 bg-card p-6 shadow-2xl"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Download className="h-5 w-5 text-primary animate-pulse" />
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${downloadError ? "bg-destructive/10" : "bg-primary/10"}`}>
+                    {downloadError ? (
+                      <ShieldAlert className="h-5 w-5 text-destructive" />
+                    ) : (
+                      <Download className="h-5 w-5 text-primary animate-pulse" />
+                    )}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {downloadStage === "extracting" ? "Extracting photos…" : "Downloading…"}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold truncate">
+                      {downloadError
+                        ? "Download failed"
+                        : downloadStage === "extracting"
+                        ? "Extracting photos…"
+                        : "Downloading ZIP…"}
                     </p>
-                    <p className="text-xs text-muted-foreground">{downloadProgress}% complete</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {photo?.client_name || "photo"}.zip
+                      {photo?.file_size ? ` • ${(photo.file_size / 1024 / 1024).toFixed(2)} MB` : ""}
+                    </p>
                   </div>
                 </div>
-                <Progress value={downloadProgress} className="h-2" />
+                {downloadError ? (
+                  <>
+                    <p className="text-xs text-destructive/90 mb-4 leading-relaxed">{downloadError}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-10 rounded-xl"
+                        onClick={() => { setDownloading(false); setDownloadError(null); setDownloadProgress(0); setDownloadStage("idle"); }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="flex-1 h-10 rounded-xl"
+                        onClick={() => { setDownloadError(null); performDownload(); }}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Retry
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-2">{downloadProgress}% complete</p>
+                    <Progress value={downloadProgress} className="h-2" />
+                  </>
+                )}
               </motion.div>
             </motion.div>
           )}
