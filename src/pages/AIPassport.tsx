@@ -59,6 +59,13 @@ const AIPassport = () => {
       if (settings) setDailyLimit(settings.daily_photo_limit);
       setUsedToday(today?.length ?? 0);
       setPresets((list as Preset[]) ?? []);
+      const { data: hist } = await supabase
+        .from("ai_photo_generations")
+        .select("id, prompt, result_image_url, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      setHistory((hist as HistoryItem[]) ?? []);
     })();
   }, [user]);
 
