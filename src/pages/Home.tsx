@@ -49,10 +49,10 @@ const getBannerColor = (colorName: string): string => {
 };
 
 const MOBILE_SERVICES = [
-  { name: "Top-up", icon: Smartphone, route: "/mobile-services?tab=topup" },
-  { name: "Data", icon: Wifi, route: "/mobile-services?tab=data" },
+  { name: "Top-up", icon: Smartphone, route: "/game?tab=mobile" },
+  { name: "Data", icon: Wifi, route: "/game?tab=mobile" },
   { name: "Games", icon: Gamepad2, route: "/game" },
-  { name: "Bills", icon: Receipt, route: "/mobile-services?tab=bills" },
+  { name: "Bills", icon: Receipt, route: "/game?tab=mobile" },
 ];
 
 const EARN_POINTS_GAMES = [
@@ -282,7 +282,7 @@ const Home = () => {
             <section className="px-5 mt-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base font-display font-bold">Mobile Services</h2>
-                <button onClick={() => navigate("/mobile-services")} className="text-xs text-primary font-semibold">
+                <button onClick={() => navigate("/game?tab=mobile")} className="text-xs text-primary font-semibold">
                   See All
                 </button>
               </div>
