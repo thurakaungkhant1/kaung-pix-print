@@ -446,8 +446,8 @@ const Home = () => {
                 ))}
               </div>
             ) : recentPhotos.length > 0 ? (
-              <div className="px-5 grid grid-cols-2 gap-3">
-                {recentPhotos.map((photo, index) => (
+              <div className="px-5 grid grid-cols-3 gap-2">
+                {recentPhotos.slice(0, 3).map((photo, index) => (
                   <motion.div
                     key={photo.id}
                     initial={{ opacity: 0, y: 15 }}
