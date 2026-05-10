@@ -1,16 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
-import AuthAnimatedBackground from "@/components/AuthAnimatedBackground";
+import { Loader2, Mail, Lock, Eye, EyeOff, Info } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
-import AppFooter from "@/components/AppFooter";
 import { motion } from "framer-motion";
 
 const Login = () => {
@@ -22,218 +18,178 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
-  // Get redirect URL from query params
   const redirectTo = searchParams.get("redirectTo") || null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      
-      // Check if email is verified
+
       if (data.user && !data.user.email_confirmed_at) {
-        toast({
-          title: "Email not verified",
-          description: "Please verify your email before logging in",
-          variant: "destructive",
-        });
+        toast({ title: "Email not verified", description: "Please verify your email before logging in", variant: "destructive" });
         navigate("/auth/verify-email");
         return;
       }
-      
-      // Check if user is admin
+
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", data.user.id)
         .eq("role", "admin")
         .maybeSingle();
-      
-      toast({
-        title: "Success",
-        description: "Logged in successfully"
-      });
-      
-      // Redirect to original URL if provided, otherwise based on role
-      if (redirectTo) {
-        navigate(redirectTo);
-      } else if (roleData) {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
+
+      toast({ title: "Success", description: "Logged in successfully" });
+
+      if (redirectTo) navigate(redirectTo);
+      else if (roleData) navigate("/admin");
+      else navigate("/");
     } catch (error: any) {
       let errorMessage = error.message || "Failed to login";
       if (error.message?.includes("Invalid login credentials")) {
         errorMessage = "Invalid email or password. Please try again.";
       }
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-
   return (
-    <MobileLayout className="flex flex-col items-center justify-start sm:justify-center sm:p-4 relative overflow-hidden min-h-screen">
-      <AuthAnimatedBackground />
+    <MobileLayout className="min-h-screen flex flex-col bg-background">
+      {/* Hero header */}
+      <div className="relative h-64 w-full overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.6),transparent_70%),linear-gradient(135deg,hsl(var(--primary)/0.35),hsl(var(--accent)/0.45))]" />
+        <div className="absolute inset-0 bg-[url('/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png')] bg-cover bg-center opacity-20 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
+        {/* Top-left pill */}
+        <div className="absolute top-4 left-4 z-10">
+          <span className="px-3 py-1 rounded-md bg-primary text-primary-foreground text-xs font-semibold shadow-md">
+            login
+          </span>
+        </div>
+
+        {/* Centered logo + brand */}
+        <div className="relative z-[1] h-full flex flex-col items-center justify-center gap-3">
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="h-20 w-20 rounded-2xl bg-card shadow-xl flex items-center justify-center overflow-hidden ring-1 ring-border/50"
+          >
+            <img
+              src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png"
+              alt="Kaung Computer Logo"
+              className="h-16 w-16 object-contain"
+            />
+          </motion.div>
+          <h1 className="text-2xl font-display font-extrabold tracking-wide text-foreground drop-shadow-sm">
+            KAUNG COMPUTER
+          </h1>
+        </div>
+      </div>
+
+      {/* Form section */}
       <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="w-full max-w-md relative z-10 flex-1 sm:flex-none flex items-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="flex-1 px-6 pt-6 pb-10"
       >
-      <Card className={cn(
-        "w-full",
-        // Edge-to-edge on mobile, rounded card on tablet+
-        "rounded-none border-0 shadow-none bg-transparent backdrop-blur-0 px-2 py-6",
-        "sm:rounded-2xl sm:border sm:border-border/30 sm:shadow-2xl sm:bg-card/95 sm:backdrop-blur-sm sm:px-0 sm:py-0",
-        "hover-lift"
-      )}>
-        {/* Card shine effect */}
-        <div className="card-shine hidden sm:block" />
+        <div className="max-w-md mx-auto w-full">
+          <h2 className="text-3xl font-display font-bold text-foreground">Welcome Back</h2>
+          <p className="text-muted-foreground mt-1.5 text-sm">
+            Sign in to access your game rewards and wallet
+          </p>
 
-        <CardHeader className="space-y-4 text-center pb-2">
-          {/* Logo with glow */}
-          <div className="flex justify-center">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-accent/40 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity animate-pulse-soft" />
-              <img 
-                alt="Kaung Computer Logo" 
-                src="/lovable-uploads/49f46eaa-5acf-4856-b96b-2468e0d8edcf.png" 
-                className="relative h-24 w-24 object-contain rounded-2xl shadow-xl transition-transform group-hover:scale-105" 
-              />
-            </div>
-          </div>
-          
-          {/* Brand */}
-          <div className="space-y-2">
-            <CardTitle className="text-3xl font-display font-bold">
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
-                Kaung Computer
-              </span>
-            </CardTitle>
-            <CardDescription className="text-base text-muted-foreground">
-              Welcome back! Login to continue
-            </CardDescription>
-          </div>
-        </CardHeader>
-        
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-5 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
-                <Mail className="h-4 w-4 text-primary" />
-                Email Address
-              </Label>
-              <div className="relative group">
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="you@example.com" 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)} 
-                  required 
-                  className="h-12 pl-4 pr-4 border-border/50 focus:border-primary/50 transition-all bg-background/50 backdrop-blur-sm"
+          <form onSubmit={handleLogin} className="mt-8 space-y-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-12 pl-10"
                 />
-                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 to-accent/10 rounded-md opacity-0 group-focus-within:opacity-100 blur transition-opacity" />
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
-                <Lock className="h-4 w-4 text-primary" />
-                Password
-              </Label>
-              <div className="relative group">
-                <Input 
-                  id="password" 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="••••••••"
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)} 
-                  required 
-                  className="h-12 pl-4 pr-12 border-border/50 focus:border-primary/50 transition-all bg-background/50 backdrop-blur-sm"
+
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="h-12 pl-10 pr-11"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
-                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 to-accent/10 rounded-md opacity-0 group-focus-within:opacity-100 blur transition-opacity" />
+              </div>
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate("/auth/forgot-password")}
+                  className="text-sm font-semibold text-primary hover:underline"
+                >
+                  Forgot Password?
+                </button>
               </div>
             </div>
-          </CardContent>
-          
-          <CardFooter className="flex flex-col space-y-4 pt-2">
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-base font-semibold group btn-press bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all" 
+
+            <Button
+              type="submit"
               disabled={loading}
+              className="w-full h-12 rounded-full text-base font-semibold mt-2"
             >
-              {loading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <>
-                  Login
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign In"}
             </Button>
-            
-            <button
-              type="button"
-              onClick={() => navigate("/auth/forgot-password")}
-              className="text-sm text-primary hover:text-primary/80 hover:underline underline-offset-4 transition-all"
-            >
-              Forgot Password?
-            </button>
-            
-            <div className="relative w-full">
+
+            <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/50" />
+                <div className="w-full border-t border-border" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or</span>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-background px-3 text-muted-foreground tracking-widest">OR</span>
               </div>
             </div>
-            
-            <p className="text-sm text-muted-foreground text-center">
-              Don't have an account?{" "}
-              <button 
-                type="button" 
-                onClick={() => navigate("/auth/signup")} 
-                className="text-primary font-semibold hover:text-primary/80 hover:underline underline-offset-4 transition-all"
-              >
-                Sign up
-              </button>
-            </p>
-            
-            <p className="text-xs text-muted-foreground/50 text-center pt-2">
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/auth/signup")}
+              className="w-full h-12 rounded-full text-base font-semibold border-2"
+            >
+              Create New Account
+            </Button>
+
+            <div className="flex items-start gap-2 pt-4 text-xs text-muted-foreground">
+              <Info className="h-4 w-4 mt-0.5 shrink-0" />
+              <p>New users get 5 game points instantly on signup via referral.</p>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground/60 text-center pt-2">
               created by Thura Kaung Khant
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </form>
+        </div>
       </motion.div>
-      <AppFooter />
     </MobileLayout>
   );
 };
