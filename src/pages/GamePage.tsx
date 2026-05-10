@@ -389,11 +389,7 @@ const GamePage = () => {
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 pb-24">
-        <Tabs defaultValue="games" className="w-full" onValueChange={(v) => {
-          setActiveCategory(v);
-          setSelectedGameCategory(null);
-          setSelectedMobileService(null);
-        }}>
+        <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
           <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-card/50 border border-border/50">
             <TabsTrigger value="games" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <Gamepad2 className="h-4 w-4" />
