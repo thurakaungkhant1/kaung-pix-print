@@ -91,6 +91,7 @@ export type Database = {
           id: string
           payload: Json
           slug: string
+          status: string
           user_id: string
           views: number
         }
@@ -101,6 +102,7 @@ export type Database = {
           id?: string
           payload?: Json
           slug: string
+          status?: string
           user_id: string
           views?: number
         }
@@ -111,6 +113,7 @@ export type Database = {
           id?: string
           payload?: Json
           slug?: string
+          status?: string
           user_id?: string
           views?: number
         }

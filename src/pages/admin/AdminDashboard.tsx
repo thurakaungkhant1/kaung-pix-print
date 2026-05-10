@@ -48,6 +48,7 @@ import {
   Zap,
   Wallet,
   Megaphone,
+  Sparkles,
 } from "lucide-react";
 import {
   Dialog,
@@ -900,6 +901,7 @@ const AdminDashboard = () => {
         items: [
           { id: "notifications", label: "Notifications", icon: Bell, badge: 0, route: "/admin/notifications" },
           { id: "game-points", label: "Game Points", icon: Gamepad2, badge: 0, route: "/admin/game-points" },
+          { id: "ai-suite", label: "AI Suite", icon: Sparkles, badge: 0, route: "/admin/ai" },
         ]
       },
       {
@@ -914,7 +916,7 @@ const AdminDashboard = () => {
   ];
 
   // Flat list for compatibility
-  const sidebarItems = sidebarGroups.flatMap(g => g.items);
+  const sidebarItems = (sidebarGroups as any[]).flatMap((g: any) => g.items);
 
   return (
     <div className="min-h-screen bg-background flex pb-16 lg:pb-0">
