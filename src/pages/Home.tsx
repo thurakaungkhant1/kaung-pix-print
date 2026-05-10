@@ -386,76 +386,77 @@ const Home = () => {
           </div>
           
           {productsLoading ? (
-            <div className="px-5">
-              <SkeletonHorizontalList count={4} />
+            <div className="px-5 grid grid-cols-2 gap-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="rounded-2xl border border-border/40 bg-card overflow-hidden">
+                  <div className="aspect-square bg-muted animate-shimmer" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-3 bg-muted animate-shimmer rounded w-full" />
+                    <div className="h-3 bg-muted animate-shimmer rounded w-2/3" />
+                    <div className="h-4 bg-muted animate-shimmer rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : physicalProducts.length > 0 ? (
-            <div className="flex gap-3 overflow-x-auto px-5 pb-3 scrollbar-hide">
-              {physicalProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 * index, duration: 0.4 }}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                  className="flex-shrink-0 w-36 cursor-pointer group"
-                >
-                  <Card className="overflow-hidden border-border/50 hover:border-primary/30 transition-all rounded-2xl hover:shadow-md">
-                    <div className="aspect-square bg-muted overflow-hidden relative">
-                      <img 
-                        src={product.image_url} 
-                        alt={product.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {product.original_price && product.original_price > product.price && (
-                        <div className="absolute top-2 left-2">
-                          <Badge className="bg-destructive text-destructive-foreground border-0 text-[9px] px-1.5 py-0.5 font-bold">
-                            -{Math.round((1 - product.price / product.original_price) * 100)}%
+            <div className="px-5 grid grid-cols-2 gap-3">
+              {physicalProducts.map((product, index) => {
+                const discount = product.original_price && product.original_price > product.price
+                  ? Math.round((1 - product.price / product.original_price) * 100)
+                  : 0;
+                return (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.04 * index, duration: 0.35 }}
+                    onClick={() => navigate(`/product/${product.id}`)}
+                    className="cursor-pointer group"
+                  >
+                    <Card className="overflow-hidden border-border/50 hover:border-primary/40 transition-all rounded-2xl hover:shadow-lg hover:-translate-y-0.5 duration-300 h-full flex flex-col">
+                      <div className="aspect-square bg-muted overflow-hidden relative">
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {discount > 0 && (
+                          <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground border-0 text-[10px] px-2 py-0.5 font-bold shadow-md">
+                            -{discount}%
                           </Badge>
-                        </div>
-                      )}
-                    </div>
-                    <CardContent className="p-2.5 space-y-1">
-                      <h3 className="font-medium text-xs line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-                        {product.name}
-                      </h3>
-                      <div className="flex items-baseline gap-1.5">
-                        <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} Ks</p>
-                        {product.original_price && product.original_price > product.price && (
-                          <p className="text-muted-foreground text-[10px] line-through">
-                            {product.original_price.toLocaleString()}
-                          </p>
                         )}
+                        <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                          <ArrowRight className="h-3.5 w-3.5 text-foreground" />
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-              {/* View All Card */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.35 }}
-                className="flex-shrink-0 w-36 cursor-pointer"
-                onClick={() => navigate("/physical-products")}
-              >
-                <Card className="overflow-hidden border-dashed hover:border-primary/50 transition-all rounded-2xl h-full">
-                  <div className="aspect-[3/4] flex flex-col items-center justify-center text-muted-foreground gap-2">
-                    <div className="p-3 rounded-full bg-muted">
-                      <ChevronRight className="h-5 w-5" />
-                    </div>
-                    <span className="text-xs font-medium">View All</span>
-                  </div>
-                </Card>
-              </motion.div>
+                      <CardContent className="p-3 space-y-1.5 flex-1 flex flex-col">
+                        <h3 className="font-semibold text-sm line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.5rem]">
+                          {product.name}
+                        </h3>
+                        <div className="flex items-baseline gap-2 mt-auto">
+                          <p className="text-primary font-display font-bold text-base">{product.price.toLocaleString()}<span className="text-[10px] font-medium text-muted-foreground ml-0.5">Ks</span></p>
+                          {discount > 0 && (
+                            <p className="text-muted-foreground text-[10px] line-through">
+                              {product.original_price.toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </div>
           ) : (
             <div className="px-5">
               <Card className="p-8 text-center border-dashed rounded-2xl">
-                <Package className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-                <p className="text-sm text-muted-foreground">No products available yet</p>
+                <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-muted/60 flex items-center justify-center">
+                  <Package className="h-7 w-7 text-muted-foreground/60" />
+                </div>
+                <p className="text-sm font-semibold text-foreground mb-1">No products available yet</p>
+                <p className="text-xs text-muted-foreground">New items will appear here soon</p>
               </Card>
             </div>
           )}
