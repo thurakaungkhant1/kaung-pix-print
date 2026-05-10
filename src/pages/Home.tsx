@@ -149,8 +149,8 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
-    if (!hasSeenOnboarding) setShowOnboarding(true);
+    // Premium onboarding disabled per user request
+    localStorage.setItem("hasSeenOnboarding", "true");
   }, []);
 
   useEffect(() => {
