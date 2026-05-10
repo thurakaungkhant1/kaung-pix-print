@@ -902,6 +902,7 @@ const AdminDashboard = () => {
           { id: "notifications", label: "Notifications", icon: Bell, badge: 0, route: "/admin/notifications" },
           { id: "game-points", label: "Game Points", icon: Gamepad2, badge: 0, route: "/admin/game-points" },
           { id: "ai-suite", label: "AI Suite", icon: Sparkles, badge: 0, route: "/admin/ai" },
+          { id: "passport-prompts", label: "Passport Prompts", icon: Sparkles, badge: 0, route: "/admin/passport-prompts" },
         ]
       },
       {
