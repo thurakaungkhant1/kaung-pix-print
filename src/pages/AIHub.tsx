@@ -1,20 +1,20 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, ImageIcon, Heart, Gift, ArrowRight, IdCard } from "lucide-react";
+import { Sparkles, ImageIcon, Wand2, Gift, ArrowRight, IdCard } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 const features = [
-  { to: "/ai/photo", icon: ImageIcon, title: "AI Photo Generator", description: "Create stunning AI-generated images from a prompt or photo.", gradient: "from-purple-500 via-fuchsia-500 to-pink-500", glow: "shadow-purple-500/30" },
-  { to: "/ai/passport", icon: IdCard, title: "Passport Photo Maker", description: "Upload your photo and get a perfect passport-style portrait in seconds.", gradient: "from-emerald-500 via-teal-500 to-cyan-500", glow: "shadow-emerald-500/30" },
-  { to: "/ai/invitation", icon: Heart, title: "Wedding Invitation", description: "Design beautiful AI-crafted wedding invitation cards.", gradient: "from-rose-500 via-pink-500 to-orange-400", glow: "shadow-pink-500/30" },
+  { to: "/ai/photo", icon: ImageIcon, title: "AI Photo Generator", description: "Create stunning AI-generated images from a prompt or photo. 5 free / day.", gradient: "from-purple-500 via-fuchsia-500 to-pink-500", glow: "shadow-purple-500/30" },
+  { to: "/ai/passport", icon: IdCard, title: "Passport Photo Maker", description: "Pick a sample style, upload your photo, get a perfect portrait.", gradient: "from-emerald-500 via-teal-500 to-cyan-500", glow: "shadow-emerald-500/30" },
+  { to: "/ai/prompts", icon: Wand2, title: "Popular Prompts", description: "Browse trending image prompts. Copy & generate instantly.", gradient: "from-rose-500 via-pink-500 to-orange-400", glow: "shadow-pink-500/30" },
   { to: "/ai/gift", icon: Gift, title: "Gift Link Creator", description: "Send animated AI gift links to friends & family.", gradient: "from-blue-500 via-indigo-500 to-purple-500", glow: "shadow-indigo-500/30" },
 ];
 
 const ctas = [
   { to: "/ai/photo", label: "Generate Photo", from: "from-purple-500", to_: "to-pink-500" },
   { to: "/ai/passport", label: "Passport Photo", from: "from-emerald-500", to_: "to-teal-500" },
-  { to: "/ai/invitation", label: "Create Invitation", from: "from-rose-500", to_: "to-orange-400" },
-  { to: "/ai/gift", label: "Create Gift Link", from: "from-blue-500", to_: "to-indigo-500" },
+  { to: "/ai/prompts", label: "Popular Prompts", from: "from-rose-500", to_: "to-orange-400" },
+  { to: "/ai/gift", label: "Gift Link", from: "from-blue-500", to_: "to-indigo-500" },
 ];
 
 const AIHub = () => {
@@ -39,7 +39,7 @@ const AIHub = () => {
             <span className="text-xs font-semibold tracking-wide bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">AI Suite</span>
           </motion.div>
           <h1 className="text-5xl font-extrabold leading-tight bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 bg-clip-text text-transparent mb-3 tracking-tight">As You Like</h1>
-          <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">Create AI Photos, Wedding Invitations & Gift Links easily.</p>
+          <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">Generate AI Photos, browse Popular Prompts & send Gift Links.</p>
 
           <motion.div initial="hidden" animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08, delayChildren: 0.25 } } }} className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {ctas.map((c) => (

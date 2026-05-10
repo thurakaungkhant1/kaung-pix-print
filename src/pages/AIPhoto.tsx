@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, Coins } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Download, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -26,19 +26,25 @@ const AIPhoto = () => {
   const [history, setHistory] = useState<Generation[]>([]);
   const [usedToday, setUsedToday] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(5);
-  const [photoCost, setPhotoCost] = useState(50);
   const [latest, setLatest] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prefill = sessionStorage.getItem("ai_prefill_prompt");
+    if (prefill) {
+      setPrompt(prefill);
+      sessionStorage.removeItem("ai_prefill_prompt");
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { data: settings } = await supabase
         .from("ai_usage_settings")
-        .select("photo_cost_coins, daily_photo_limit")
+        .select("daily_photo_limit")
         .limit(1)
         .maybeSingle();
       if (settings) {
-        setPhotoCost(settings.photo_cost_coins);
         setDailyLimit(settings.daily_photo_limit);
       }
 
@@ -107,7 +113,7 @@ const AIPhoto = () => {
       setLatest(data.result_image_url);
       setUsedToday(data.used_today);
       setHistory((h) => [data.generation, ...h]);
-      toast.success(`Image generated! -${data.cost_coins} coins`);
+      toast.success("Image generated!");
       setPrompt("");
       setSourceFile(null);
       setSourcePreview(null);
@@ -210,9 +216,7 @@ const AIPhoto = () => {
             <>
               <Sparkles className="w-4 h-4 mr-2" />
               Generate
-              <span className="ml-2 inline-flex items-center gap-1 text-xs opacity-90">
-                <Coins className="w-3 h-3" /> {photoCost}
-              </span>
+              <span className="ml-2 text-xs opacity-90">Free • {remaining}/{dailyLimit}</span>
             </>
           )}
         </Button>
