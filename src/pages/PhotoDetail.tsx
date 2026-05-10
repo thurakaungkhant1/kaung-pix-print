@@ -225,17 +225,13 @@ const PhotoDetail = () => {
       setDownloadProgress(100);
     } catch (err: any) {
       console.error(err);
-      const width = 900, height = 600;
-      const left = (window.screen.width - width) / 2;
-      const top = (window.screen.height - height) / 2;
-      window.open(photo.file_url, "download_popup", `width=${width},height=${height},left=${left},top=${top}`);
-      toast({
-        title: "Direct download unavailable",
-        description: "Opened in a new window. VPN လိုအပ်ပါက ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။",
-        duration: 6000,
-      });
+      setDownloadError(err?.message || "Download failed. Please check your connection or try a VPN.");
+      // keep overlay visible so user can retry
+      return;
     } finally {
-      setTimeout(() => { setDownloading(false); setDownloadProgress(0); setDownloadStage("idle"); }, 800);
+      if (!downloadError) {
+        setTimeout(() => { setDownloading(false); setDownloadProgress(0); setDownloadStage("idle"); }, 800);
+      }
     }
   };
 
