@@ -13,11 +13,12 @@ interface Preset {
   name: string;
   description: string | null;
   prompt: string;
+  thumbnail_url: string | null;
   display_order: number;
   is_active: boolean;
 }
 
-const empty = { name: "", description: "", prompt: "", display_order: 0, is_active: true };
+const empty = { name: "", description: "", prompt: "", thumbnail_url: "", display_order: 0, is_active: true };
 
 const PassportPromptsManage = () => {
   const [items, setItems] = useState<Preset[]>([]);
@@ -45,6 +46,7 @@ const PassportPromptsManage = () => {
       name: p.name,
       description: p.description ?? "",
       prompt: p.prompt,
+      thumbnail_url: p.thumbnail_url ?? "",
       display_order: p.display_order,
       is_active: p.is_active,
     });
@@ -59,6 +61,7 @@ const PassportPromptsManage = () => {
       name: draft.name.trim(),
       description: draft.description.trim() || null,
       prompt: draft.prompt.trim(),
+      thumbnail_url: draft.thumbnail_url.trim() || null,
       display_order: draft.display_order || 0,
       is_active: draft.is_active,
     };
@@ -128,6 +131,18 @@ const PassportPromptsManage = () => {
               value={draft.description}
               onChange={(e) => setDraft({ ...draft, description: e.target.value })}
             />
+            <Input
+              placeholder="Thumbnail image URL (https://...)"
+              value={draft.thumbnail_url}
+              onChange={(e) => setDraft({ ...draft, thumbnail_url: e.target.value })}
+            />
+            {draft.thumbnail_url && (
+              <img
+                src={draft.thumbnail_url}
+                alt=""
+                className="w-20 h-28 object-cover rounded-lg border border-border"
+              />
+            )}
             <Textarea
               placeholder="AI prompt — describe exactly how the passport photo should look"
               rows={6}
@@ -166,6 +181,13 @@ const PassportPromptsManage = () => {
           items.map((p) => (
             <div key={p.id} className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-start justify-between gap-3">
+                {p.thumbnail_url && (
+                  <img
+                    src={p.thumbnail_url}
+                    alt=""
+                    className="w-14 h-18 object-cover rounded-md flex-shrink-0 bg-muted"
+                  />
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-sm">{p.name}</h3>
