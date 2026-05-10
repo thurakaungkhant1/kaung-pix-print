@@ -22,6 +22,10 @@ const Photo = lazy(() => import("./pages/Photo"));
 const Favourite = lazy(() => import("./pages/Favourite"));
 const Account = lazy(() => import("./pages/Account"));
 const AIChat = lazy(() => import("./pages/AIChat"));
+const AIHub = lazy(() => import("./pages/AIHub"));
+const AIPhoto = lazy(() => import("./pages/AIPhoto"));
+const AIInvitation = lazy(() => import("./pages/AIInvitation"));
+const AIGift = lazy(() => import("./pages/AIGift"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const PhotoDetail = lazy(() => import("./pages/PhotoDetail"));
 const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
@@ -197,6 +201,10 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/ai" element={<ProtectedRoute><AIHub /></ProtectedRoute>} />
+                <Route path="/ai/photo" element={<ProtectedRoute><AIPhoto /></ProtectedRoute>} />
+                <Route path="/ai/invitation" element={<ProtectedRoute><AIInvitation /></ProtectedRoute>} />
+                <Route path="/ai/gift" element={<ProtectedRoute><AIGift /></ProtectedRoute>} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/photo/:id" element={<PhotoDetail />} />
                 <Route
