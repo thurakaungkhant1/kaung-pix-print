@@ -153,18 +153,55 @@ const PassportPromptsManage = () => {
               value={draft.description}
               onChange={(e) => setDraft({ ...draft, description: e.target.value })}
             />
-            <Input
-              placeholder="Thumbnail image URL (https://...)"
-              value={draft.thumbnail_url}
-              onChange={(e) => setDraft({ ...draft, thumbnail_url: e.target.value })}
-            />
-            {draft.thumbnail_url && (
-              <img
-                src={draft.thumbnail_url}
-                alt=""
-                className="w-20 h-28 object-cover rounded-lg border border-border"
+            <div className="space-y-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) uploadThumb(f);
+                  e.target.value = "";
+                }}
               />
-            )}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
+                  {uploading ? "Uploading..." : "Upload thumbnail"}
+                </Button>
+                {draft.thumbnail_url && (
+                  <button
+                    type="button"
+                    onClick={() => setDraft({ ...draft, thumbnail_url: "" })}
+                    className="text-[11px] text-muted-foreground underline"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              <Input
+                placeholder="Or paste a thumbnail image URL"
+                value={draft.thumbnail_url}
+                onChange={(e) => setDraft({ ...draft, thumbnail_url: e.target.value })}
+              />
+              {draft.thumbnail_url && (
+                <div className="rounded-lg border border-border bg-muted/40 p-2 inline-block">
+                  <img
+                    src={draft.thumbnail_url}
+                    alt="preview"
+                    className="w-24 h-32 object-cover rounded-md"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1 text-center">Preview</p>
+                </div>
+              )}
+            </div>
             <Textarea
               placeholder="AI prompt — describe exactly how the passport photo should look"
               rows={6}
