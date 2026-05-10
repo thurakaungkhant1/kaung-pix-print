@@ -80,15 +80,19 @@ const AIPhoto = () => {
     reader.readAsDataURL(f);
   };
 
-  const generate = async () => {
-    if (!prompt.trim()) {
-      toast.error("Please enter a prompt");
+  const runGenerate = async (overridePrompt?: string) => {
+    const finalPrompt = (overridePrompt ?? prompt).trim();
+    if (!finalPrompt) {
+      setErrorMsg("Please enter a prompt before generating.");
+      toast.error("Prompt is required");
       return;
     }
     if (usedToday >= dailyLimit) {
-      toast.error(`Daily limit reached (${dailyLimit}/day)`);
+      setErrorMsg(`Daily limit reached (${dailyLimit}/day). Try again tomorrow.`);
+      toast.error("Daily limit reached");
       return;
     }
+    setErrorMsg(null);
     setLoading(true);
     setLatest(null);
     try {
@@ -106,23 +110,49 @@ const AIPhoto = () => {
       }
 
       const { data, error } = await supabase.functions.invoke("ai-generate-photo", {
-        body: { prompt: prompt.trim(), source_image_url: sourceUrl },
+        body: { prompt: finalPrompt, source_image_url: sourceUrl },
       });
-      if (error) throw error;
+      if (error) {
+        // Try to extract server-provided error message
+        let msg = error.message ?? "Generation failed";
+        try {
+          const ctx: Response | undefined = (error as any).context;
+          if (ctx) {
+            const j = await ctx.clone().json();
+            if (j?.error) msg = j.error;
+          }
+        } catch {}
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
+      if (!data?.result_image_url) throw new Error("No image was returned. Please try again.");
 
       setLatest(data.result_image_url);
       setUsedToday(data.used_today);
       setHistory((h) => [data.generation, ...h]);
       toast.success("Image generated!");
-      setPrompt("");
-      setSourceFile(null);
-      setSourcePreview(null);
+      if (!overridePrompt) {
+        setPrompt("");
+        setSourceFile(null);
+        setSourcePreview(null);
+      }
     } catch (e: any) {
-      toast.error(e.message ?? "Generation failed");
+      const msg = e.message ?? "Generation failed";
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const generate = () => runGenerate();
+
+  const regenerate = (g: Generation) => {
+    setPrompt(g.prompt);
+    setSourceFile(null);
+    setSourcePreview(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(() => runGenerate(g.prompt), 200);
   };
 
   const download = async (url: string) => {
