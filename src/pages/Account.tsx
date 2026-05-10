@@ -369,9 +369,6 @@ const Account = () => {
             <TabsTrigger value="security" className="flex-1 h-full rounded-lg text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
               <Shield className="h-3.5 w-3.5 mr-1" /> Security
             </TabsTrigger>
-            <TabsTrigger value="billing" className="flex-1 h-full rounded-lg text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-              <CreditCard className="h-3.5 w-3.5 mr-1" /> Billing
-            </TabsTrigger>
             <TabsTrigger value="preferences" className="flex-1 h-full rounded-lg text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
               <Settings className="h-3.5 w-3.5 mr-1" /> More
             </TabsTrigger>
@@ -442,33 +439,6 @@ const Account = () => {
             </Card>
           </TabsContent>
 
-          {/* Billing Tab */}
-          <TabsContent value="billing" className="mt-4 space-y-3">
-            <Card 
-              className={cn("rounded-2xl shadow-sm cursor-pointer border-border/40", isPremium && "bg-gradient-to-br from-amber-500/5 to-transparent border-amber-500/20")}
-              onClick={() => setPremiumDialogOpen(true)}
-            >
-              <CardContent className="p-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={cn("p-2 rounded-lg", isPremium ? "bg-amber-500/15" : "bg-muted")}>
-                    <Crown className={cn("h-4 w-4", isPremium ? "text-amber-500" : "text-muted-foreground")} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm">Premium</h3>
-                      {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {isPremium ? `${getDaysRemaining()} days remaining` : "Unlock exclusive benefits"}
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </CardContent>
-            </Card>
-
-          </TabsContent>
-
           {/* Preferences Tab */}
           <TabsContent value="preferences" className="mt-4 space-y-3">
             <Card className="rounded-2xl border-border/40 shadow-sm">
@@ -487,8 +457,6 @@ const Account = () => {
                 </div>
               </CardContent>
             </Card>
-
-            <ReferralSection />
 
             <Card className="rounded-2xl border-border/40 shadow-sm">
               <CardContent className="p-1">
