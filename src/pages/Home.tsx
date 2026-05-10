@@ -434,20 +434,16 @@ const Home = () => {
               </Button>
             </div>
             {photosLoading ? (
-              <div className="px-5 grid grid-cols-2 gap-3">
-                {[...Array(4)].map((_, i) => (
+              <div className="px-5 grid grid-cols-3 gap-2">
+                {[...Array(3)].map((_, i) => (
                   <div key={i} className="rounded-2xl border border-border/40 bg-card overflow-hidden">
                     <div className="aspect-square bg-muted animate-shimmer" />
-                    <div className="p-3 space-y-1.5">
-                      <div className="h-3 bg-muted animate-shimmer rounded w-3/4" />
-                      <div className="h-2.5 bg-muted animate-shimmer rounded w-1/2" />
-                    </div>
                   </div>
                 ))}
               </div>
             ) : recentPhotos.length > 0 ? (
-              <div className="px-5 grid grid-cols-2 gap-3">
-                {recentPhotos.map((photo, index) => (
+              <div className="px-5 grid grid-cols-3 gap-2">
+                {recentPhotos.slice(0, 3).map((photo, index) => (
                   <motion.div
                     key={photo.id}
                     initial={{ opacity: 0, y: 15 }}

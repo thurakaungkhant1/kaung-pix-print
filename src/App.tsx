@@ -26,6 +26,7 @@ const AIHub = lazy(() => import("./pages/AIHub"));
 const AIPhoto = lazy(() => import("./pages/AIPhoto"));
 const AIInvitation = lazy(() => import("./pages/AIInvitation"));
 const AIGift = lazy(() => import("./pages/AIGift"));
+const AIPassport = lazy(() => import("./pages/AIPassport"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const PhotoDetail = lazy(() => import("./pages/PhotoDetail"));
 const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
@@ -81,6 +82,7 @@ const ApiSettings = lazy(() => import("./pages/admin/ApiSettings"));
 const NotificationsManage = lazy(() => import("./pages/admin/NotificationsManage"));
 const GamePointsManage = lazy(() => import("./pages/admin/GamePointsManage"));
 const AIDashboard = lazy(() => import("./pages/admin/AIDashboard"));
+const PassportPromptsManage = lazy(() => import("./pages/admin/PassportPromptsManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
@@ -206,6 +208,8 @@ const App = () => {
                 <Route path="/ai/photo" element={<ProtectedRoute><AIPhoto /></ProtectedRoute>} />
                 <Route path="/ai/invitation" element={<ProtectedRoute><AIInvitation /></ProtectedRoute>} />
                 <Route path="/ai/gift" element={<ProtectedRoute><AIGift /></ProtectedRoute>} />
+                <Route path="/ai/passport" element={<ProtectedRoute><AIPassport /></ProtectedRoute>} />
+                <Route path="/admin/passport-prompts" element={<ProtectedAdminRoute><PassportPromptsManage /></ProtectedAdminRoute>} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/photo/:id" element={<PhotoDetail />} />
                 <Route
