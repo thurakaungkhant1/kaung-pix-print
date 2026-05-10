@@ -168,6 +168,27 @@ const Signup = () => {
       return;
     }
 
+    const trimmedName = name.trim();
+    if (trimmedName.length < 1 || trimmedName.length > 100) {
+      toast({ title: "Invalid name", description: "Name must be between 1 and 100 characters", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
+    const trimmedPhone = phoneNumber.trim();
+    if (trimmedPhone && (trimmedPhone.length > 20 || !/^[+\d\s()-]{3,20}$/.test(trimmedPhone))) {
+      toast({ title: "Invalid phone number", description: "Please enter a valid phone number (max 20 chars)", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
+    const trimmedRef = (referralCode || "").trim();
+    if (trimmedRef && (trimmedRef.length > 16 || !/^[A-Za-z0-9]+$/.test(trimmedRef))) {
+      toast({ title: "Invalid referral code", description: "Referral code must be alphanumeric", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
     try {
       // First create the user account
       const { data, error } = await supabase.auth.signUp({
