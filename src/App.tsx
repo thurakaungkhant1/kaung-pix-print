@@ -27,6 +27,7 @@ const AIPhoto = lazy(() => import("./pages/AIPhoto"));
 const AIPrompts = lazy(() => import("./pages/AIPrompts"));
 const AIGift = lazy(() => import("./pages/AIGift"));
 const AIPassport = lazy(() => import("./pages/AIPassport"));
+const GiftView = lazy(() => import("./pages/GiftView"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const PhotoDetail = lazy(() => import("./pages/PhotoDetail"));
 const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
@@ -210,6 +211,7 @@ const App = () => {
                 <Route path="/ai/prompts" element={<ProtectedRoute><AIPrompts /></ProtectedRoute>} />
                 <Route path="/ai/gift" element={<ProtectedRoute><AIGift /></ProtectedRoute>} />
                 <Route path="/ai/passport" element={<ProtectedRoute><AIPassport /></ProtectedRoute>} />
+                <Route path="/g/:slug" element={<GiftView />} />
                 <Route path="/admin/passport-prompts" element={<ProtectedAdminRoute><PassportPromptsManage /></ProtectedAdminRoute>} />
                 <Route path="/admin/popular-prompts" element={<ProtectedAdminRoute><PopularPromptsManage /></ProtectedAdminRoute>} />
                 <Route path="/product/:id" element={<ProductDetail />} />

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, IdCard } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, IdCard, AlertCircle, RotateCw, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ const AIPassport = () => {
   const [dailyLimit, setDailyLimit] = useState(5);
   const [result, setResult] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -89,17 +90,22 @@ const AIPassport = () => {
     setSourceFile(null);
     setSourcePreview(null);
     setResult(null);
+    setErrorMsg(null);
   };
 
   const generate = async () => {
-    if (!sourceFile || !selected || !user) {
-      toast.error("Please upload your photo first");
+    if (!selected) return;
+    if (!sourceFile || !user) {
+      setErrorMsg("Please upload your front-facing photo first.");
+      toast.error("Upload your photo");
       return;
     }
     if (remaining === 0) {
-      toast.error(`Daily limit reached (${dailyLimit}/day)`);
+      setErrorMsg(`Daily limit reached (${dailyLimit}/day). Try again tomorrow.`);
+      toast.error("Daily limit reached");
       return;
     }
+    setErrorMsg(null);
     setLoading(true);
     setResult(null);
     try {
@@ -115,15 +121,28 @@ const AIPassport = () => {
       const { data, error } = await supabase.functions.invoke("ai-generate-photo", {
         body: { prompt: selected.prompt, source_image_url: signed?.signedUrl },
       });
-      if (error) throw error;
+      if (error) {
+        let msg = error.message ?? "Generation failed";
+        try {
+          const ctx: Response | undefined = (error as any).context;
+          if (ctx) {
+            const j = await ctx.clone().json();
+            if (j?.error) msg = j.error;
+          }
+        } catch {}
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
+      if (!data?.result_image_url) throw new Error("No image was returned. Please try a different photo.");
 
       setResult(data.result_image_url);
       setUsedToday(data.used_today);
       if (data.generation) setHistory((h) => [data.generation as HistoryItem, ...h].slice(0, 12));
       toast.success("Passport photo ready!");
     } catch (e: any) {
-      toast.error(e.message ?? "Generation failed");
+      const msg = e.message ?? "Generation failed";
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -144,30 +163,46 @@ const AIPassport = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40">
-        <div className="flex items-center gap-3 px-4 h-14">
-          <Link to="/ai" className="p-2 -ml-2 rounded-full hover:bg-accent">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/40 via-background to-background dark:from-emerald-950/20 pb-24">
+      <header className="sticky top-0 z-40 bg-background/70 backdrop-blur-xl border-b border-border/40">
+        <div className="flex items-center gap-3 px-4 h-16 max-w-md mx-auto">
+          <Link
+            to="/ai"
+            className="p-2 -ml-2 rounded-xl hover:bg-accent active:scale-95 transition-all"
+            aria-label="Back"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="flex items-center gap-2 flex-1">
-            <IdCard className="w-5 h-5 text-emerald-500" />
-            <h1 className="font-semibold">Passport Photo Maker</h1>
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <IdCard className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-semibold text-sm leading-tight truncate">Passport Photo</h1>
+              <p className="text-[10px] text-muted-foreground leading-tight">AI portrait studio</p>
+            </div>
           </div>
-          <div className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-medium">
+          <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20">
             <Sparkles className="w-3 h-3" />
             {remaining}/{dailyLimit}
           </div>
         </div>
       </header>
 
-      <div className="px-4 py-5 max-w-md mx-auto space-y-4">
-        <div>
-          <h2 className="font-semibold text-base mb-1">Choose a style</h2>
-          <p className="text-xs text-muted-foreground">
-            Tap any sample → upload your photo → instantly get the matching passport-style portrait.
+      <div className="px-4 py-5 max-w-md mx-auto space-y-5">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl p-4 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20"
+        >
+          <h2 className="font-semibold text-sm mb-1 flex items-center gap-1.5">
+            <ImagePlus className="w-4 h-4 text-emerald-600" />
+            Choose a style
+          </h2>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Pick a sample → upload your photo → get the matching passport-style portrait instantly.
           </p>
-        </div>
+        </motion.div>
 
         {presets.length === 0 ? (
           <div className="text-xs text-muted-foreground p-6 border border-dashed rounded-xl text-center">
@@ -179,7 +214,7 @@ const AIPassport = () => {
               <motion.button
                 key={p.id}
                 whileTap={{ scale: 0.96 }}
-                onClick={() => setSelected(p)}
+                onClick={() => { setErrorMsg(null); setSelected(p); }}
                 className="group relative rounded-2xl overflow-hidden border border-border bg-card hover:border-emerald-500/50 transition shadow-sm hover:shadow-lg text-left"
               >
                 <div className="aspect-[3/4] bg-muted overflow-hidden">
@@ -314,10 +349,27 @@ const AIPassport = () => {
                     </button>
                   )}
 
+                  {!sourceFile && !errorMsg && (
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5" /> Upload a photo to enable Create.
+                    </p>
+                  )}
+
+                  {errorMsg && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2.5 text-xs flex items-start gap-2"
+                    >
+                      <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span className="leading-relaxed">{errorMsg}</span>
+                    </motion.div>
+                  )}
+
                   <Button
                     onClick={generate}
                     disabled={loading || !sourceFile || remaining === 0}
-                    className="w-full h-12 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold"
+                    className="w-full h-12 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all"
                   >
                     {loading ? (
                       <>
@@ -330,7 +382,7 @@ const AIPassport = () => {
                     )}
                   </Button>
                   <p className="text-[11px] text-center text-muted-foreground">
-                    Free • {remaining}/{dailyLimit} left today
+                    Free • {remaining}/{dailyLimit} left today · Takes ~15-30s
                   </p>
                 </>
               )}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Upload, Sparkles, Download, Loader2, X } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, AlertCircle, RotateCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ const AIPhoto = () => {
   const [usedToday, setUsedToday] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(5);
   const [latest, setLatest] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const prefill = sessionStorage.getItem("ai_prefill_prompt");
@@ -79,15 +80,19 @@ const AIPhoto = () => {
     reader.readAsDataURL(f);
   };
 
-  const generate = async () => {
-    if (!prompt.trim()) {
-      toast.error("Please enter a prompt");
+  const runGenerate = async (overridePrompt?: string) => {
+    const finalPrompt = (overridePrompt ?? prompt).trim();
+    if (!finalPrompt) {
+      setErrorMsg("Please enter a prompt before generating.");
+      toast.error("Prompt is required");
       return;
     }
     if (usedToday >= dailyLimit) {
-      toast.error(`Daily limit reached (${dailyLimit}/day)`);
+      setErrorMsg(`Daily limit reached (${dailyLimit}/day). Try again tomorrow.`);
+      toast.error("Daily limit reached");
       return;
     }
+    setErrorMsg(null);
     setLoading(true);
     setLatest(null);
     try {
@@ -105,23 +110,49 @@ const AIPhoto = () => {
       }
 
       const { data, error } = await supabase.functions.invoke("ai-generate-photo", {
-        body: { prompt: prompt.trim(), source_image_url: sourceUrl },
+        body: { prompt: finalPrompt, source_image_url: sourceUrl },
       });
-      if (error) throw error;
+      if (error) {
+        // Try to extract server-provided error message
+        let msg = error.message ?? "Generation failed";
+        try {
+          const ctx: Response | undefined = (error as any).context;
+          if (ctx) {
+            const j = await ctx.clone().json();
+            if (j?.error) msg = j.error;
+          }
+        } catch {}
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
+      if (!data?.result_image_url) throw new Error("No image was returned. Please try again.");
 
       setLatest(data.result_image_url);
       setUsedToday(data.used_today);
       setHistory((h) => [data.generation, ...h]);
       toast.success("Image generated!");
-      setPrompt("");
-      setSourceFile(null);
-      setSourcePreview(null);
+      if (!overridePrompt) {
+        setPrompt("");
+        setSourceFile(null);
+        setSourcePreview(null);
+      }
     } catch (e: any) {
-      toast.error(e.message ?? "Generation failed");
+      const msg = e.message ?? "Generation failed";
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const generate = () => runGenerate();
+
+  const regenerate = (g: Generation) => {
+    setPrompt(g.prompt);
+    setSourceFile(null);
+    setSourcePreview(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(() => runGenerate(g.prompt), 200);
   };
 
   const download = async (url: string) => {
@@ -221,6 +252,24 @@ const AIPhoto = () => {
           )}
         </Button>
 
+        {!prompt.trim() && !loading && (
+          <p className="text-xs text-muted-foreground -mt-2 flex items-center gap-1.5">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Enter a prompt to enable Generate.
+          </p>
+        )}
+
+        {errorMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2.5 text-xs flex items-start gap-2"
+          >
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span className="leading-relaxed">{errorMsg}</span>
+          </motion.div>
+        )}
+
         {/* Latest result */}
         {latest && (
           <motion.div
@@ -252,7 +301,22 @@ const AIPhoto = () => {
                       <Download className="w-5 h-5 text-white opacity-0 group-hover:opacity-100" />
                     </div>
                   </button>
-                ) : null
+                ) : (
+                  <div
+                    key={g.id}
+                    className="aspect-square rounded-lg overflow-hidden border border-destructive/40 bg-destructive/5 relative flex flex-col items-center justify-center gap-2 p-2 text-center"
+                  >
+                    <AlertCircle className="w-5 h-5 text-destructive" />
+                    <p className="text-[10px] text-muted-foreground line-clamp-2">{g.prompt}</p>
+                    <button
+                      onClick={() => regenerate(g)}
+                      disabled={loading}
+                      className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground font-medium disabled:opacity-50"
+                    >
+                      <RotateCw className="w-3 h-3" /> Regenerate
+                    </button>
+                  </div>
+                )
               )}
             </div>
           </div>
