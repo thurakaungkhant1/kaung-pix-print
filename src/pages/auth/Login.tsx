@@ -179,12 +179,7 @@ const Login = () => {
               Create New Account
             </Button>
 
-            <div className="flex items-start gap-2 pt-4 text-xs text-muted-foreground">
-              <Info className="h-4 w-4 mt-0.5 shrink-0" />
-              <p>New users get 5 game points instantly on signup via referral.</p>
-            </div>
-
-            <p className="text-[11px] text-muted-foreground/60 text-center pt-2">
+            <p className="text-[11px] text-muted-foreground/60 text-center pt-4">
               created by Thura Kaung Khant
             </p>
           </form>
