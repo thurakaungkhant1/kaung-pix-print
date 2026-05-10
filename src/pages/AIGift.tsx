@@ -76,8 +76,7 @@ const AIGift = () => {
     finally { setLoading(false); }
   };
 
-  const copyLink = (slug: string, status: string) => {
-    if (status !== "approved") { toast.error("Locked. Wait for admin approval."); return; }
+  const copyLink = (slug: string) => {
     const url = `${window.location.origin}/g/${slug}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied");
