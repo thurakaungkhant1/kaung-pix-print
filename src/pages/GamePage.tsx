@@ -74,6 +74,11 @@ const GAME_CATEGORIES = [
   { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
 ];
 
+const MOBILE_CATEGORIES = [
+  { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone },
+  { id: "Data Plans", name: "Data Plans", icon: Wifi },
+];
+
 
 const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -151,8 +156,8 @@ const GamePage = () => {
     return GAME_CATEGORIES.some(cat => cat.id === category);
   };
 
-  const isMobileProduct = (_category: string) => {
-    return false;
+  const isMobileProduct = (category: string) => {
+    return MOBILE_CATEGORIES.some(cat => cat.id === category);
   };
 
   // Only MLBB requires Server ID
