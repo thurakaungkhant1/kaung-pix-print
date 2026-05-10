@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, IdCard } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, IdCard, AlertCircle, RotateCw, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
