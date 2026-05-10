@@ -550,7 +550,36 @@ const Account = () => {
                     <Separator className="my-0.5" />
                   </>
                 )}
-                <SettingItem icon={Heart} label="My Favourites" description="Saved products & photos" onClick={() => navigate("/favourite")} />
+                <SettingItem
+                  icon={Heart}
+                  label="My Favourites"
+                  description="Saved games, mobile & photos"
+                  onClick={() => {
+                    const last = localStorage.getItem("favLastTab") || "games";
+                    navigate(`/favourite?tab=${last}`);
+                  }}
+                  rightElement={
+                    <div className="flex items-center gap-1">
+                      {[
+                        { k: "games", v: favCounts.games, cls: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
+                        { k: "mobile", v: favCounts.mobile, cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+                        { k: "photos", v: favCounts.photos, cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400" },
+                      ].map((b) => (
+                        <span
+                          key={b.k}
+                          className={cn(
+                            "min-w-[22px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center",
+                            b.cls
+                          )}
+                          title={`${b.k}: ${b.v}`}
+                        >
+                          {b.v}
+                        </span>
+                      ))}
+                      <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />
+                    </div>
+                  }
+                />
                 <Separator className="my-0.5" />
                 <SettingItem icon={Camera} label="Photo Gallery" description="Browse all photos" onClick={() => navigate("/photo")} />
                 <Separator className="my-0.5" />
