@@ -301,7 +301,22 @@ const AIPhoto = () => {
                       <Download className="w-5 h-5 text-white opacity-0 group-hover:opacity-100" />
                     </div>
                   </button>
-                ) : null
+                ) : (
+                  <div
+                    key={g.id}
+                    className="aspect-square rounded-lg overflow-hidden border border-destructive/40 bg-destructive/5 relative flex flex-col items-center justify-center gap-2 p-2 text-center"
+                  >
+                    <AlertCircle className="w-5 h-5 text-destructive" />
+                    <p className="text-[10px] text-muted-foreground line-clamp-2">{g.prompt}</p>
+                    <button
+                      onClick={() => regenerate(g)}
+                      disabled={loading}
+                      className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground font-medium disabled:opacity-50"
+                    >
+                      <RotateCw className="w-3 h-3" /> Regenerate
+                    </button>
+                  </div>
+                )
               )}
             </div>
           </div>
