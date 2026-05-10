@@ -252,6 +252,24 @@ const AIPhoto = () => {
           )}
         </Button>
 
+        {!prompt.trim() && !loading && (
+          <p className="text-xs text-muted-foreground -mt-2 flex items-center gap-1.5">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Enter a prompt to enable Generate.
+          </p>
+        )}
+
+        {errorMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2.5 text-xs flex items-start gap-2"
+          >
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span className="leading-relaxed">{errorMsg}</span>
+          </motion.div>
+        )}
+
         {/* Latest result */}
         {latest && (
           <motion.div
