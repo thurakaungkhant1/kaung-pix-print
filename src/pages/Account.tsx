@@ -123,8 +123,25 @@ const Account = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); }
+    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); }
   }, [user]);
+
+  const loadFavCounts = async () => {
+    if (!user) return;
+    const GAME_CATS = ["MLBB Diamonds", "PUBG UC"];
+    const MOBILE_CATS = ["Phone Top-up", "Data Plans"];
+    const [{ data: prods }, { count: photoCount }] = await Promise.all([
+      supabase.from("favourite_products").select("products(category)").eq("user_id", user.id),
+      supabase.from("favourite_photos").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    ]);
+    let games = 0, mobile = 0;
+    (prods as any[] | null)?.forEach((row) => {
+      const cat = row?.products?.category;
+      if (GAME_CATS.includes(cat)) games++;
+      else if (MOBILE_CATS.includes(cat)) mobile++;
+    });
+    setFavCounts({ games, mobile, photos: photoCount || 0 });
+  };
 
   const loadWithdrawalSettings = async () => {
     const { data } = await supabase.from("withdrawal_settings").select("*").eq("enabled", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
