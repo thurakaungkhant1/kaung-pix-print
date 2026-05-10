@@ -385,7 +385,7 @@ const Home = () => {
             </Button>
           </div>
           
-          {loading ? (
+          {productsLoading ? (
             <div className="px-5">
               <SkeletonHorizontalList count={4} />
             </div>
@@ -463,7 +463,7 @@ const Home = () => {
         </AnimatedSection>
 
         {/* Photo Gallery Preview */}
-        {recentPhotos.length > 0 && (
+        {(photosLoading || recentPhotos.length > 0) && (
           <AnimatedSection delay={0.4}>
             <section className="mb-6">
               <div className="flex items-center justify-between px-5 mb-3">
