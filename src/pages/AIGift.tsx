@@ -70,7 +70,7 @@ const AIGift = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setLinks((p) => [data.link, ...p]);
-      toast.success("Gift link created — locked until admin approves.");
+      toast.success("Gift link created — ready to share!");
       setMessage(""); setImageFile(null); setImagePreview(null);
     } catch (e: any) { toast.error(e.message ?? "Failed"); }
     finally { setLoading(false); }
