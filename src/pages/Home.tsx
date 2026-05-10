@@ -28,7 +28,7 @@ import WalletDisplay from "@/components/WalletDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { SkeletonCard, SkeletonHorizontalList } from "@/components/ui/skeleton-card";
 import AdBanner from "@/components/AdBanner";
-import AppFooter from "@/components/AppFooter";
+
 import AnimatedPage from "@/components/animations/AnimatedPage";
 import AnimatedSection from "@/components/animations/AnimatedSection";
 import { motion } from "framer-motion";
