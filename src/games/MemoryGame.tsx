@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RotateCcw, Trophy } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const EMOJIS = ["🎮", "🎯", "🎲", "🎪", "🎨", "🎭", "🎸", "🎺"];
 
@@ -70,36 +70,54 @@ const MemoryGame = ({ onGameEnd }: Props) => {
         </motion.div>
       )}
 
-      {/* Card Grid */}
-      <div className="grid grid-cols-4 gap-2.5 w-fit">
+      {/* Card Grid — 3D flip */}
+      <div className="grid grid-cols-4 gap-3 w-full max-w-[360px]" style={{ perspective: "1000px" }}>
         {cards.map((emoji, i) => {
           const isFlipped = flipped.includes(i) || matched.includes(i);
           const isMatched = matched.includes(i);
           return (
-            <motion.button
+            <button
               key={i}
               onClick={() => handleClick(i)}
-              whileHover={!isFlipped ? { scale: 1.05 } : {}}
-              whileTap={!isFlipped ? { scale: 0.95 } : {}}
-              className={`w-16 h-16 rounded-2xl text-2xl flex items-center justify-center transition-all duration-300 font-medium
-                ${isFlipped
-                  ? isMatched
-                    ? "bg-primary/10 border-2 border-primary/40 shadow-[0_0_10px_hsl(var(--primary)/0.15)]"
-                    : "bg-accent/10 border-2 border-accent/40"
-                  : "bg-card border-2 border-border/50 hover:bg-primary/5 hover:border-primary/20 cursor-pointer"
-                }
-                ${isMatched ? "opacity-70" : ""}`}
+              disabled={isFlipped}
+              className="relative aspect-square w-full rounded-2xl"
+              style={{ transformStyle: "preserve-3d" }}
             >
-              <AnimatePresence mode="wait">
-                {isFlipped ? (
-                  <motion.span key="emoji" initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} exit={{ rotateY: 90 }} transition={{ duration: 0.2 }}>
-                    {emoji}
-                  </motion.span>
-                ) : (
-                  <motion.span key="q" className="text-muted-foreground/40 text-lg">?</motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
+              <motion.div
+                animate={{ rotateY: isFlipped ? 180 : 0 }}
+                transition={{ duration: 0.45, ease: "easeInOut" }}
+                className="absolute inset-0"
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                {/* Back face */}
+                <div
+                  className="absolute inset-0 rounded-2xl flex items-center justify-center text-2xl text-white/80 font-bold border border-white/10"
+                  style={{
+                    backfaceVisibility: "hidden",
+                    background: "linear-gradient(135deg, #6366f1 0%, #4338ca 50%, #312e81 100%)",
+                    boxShadow: "inset 0 2px 6px rgba(255,255,255,0.25), 0 6px 14px rgba(0,0,0,0.35)",
+                  }}
+                >
+                  ?
+                </div>
+                {/* Front face */}
+                <div
+                  className={`absolute inset-0 rounded-2xl flex items-center justify-center text-3xl ${isMatched ? "opacity-90" : ""}`}
+                  style={{
+                    backfaceVisibility: "hidden",
+                    transform: "rotateY(180deg)",
+                    background: isMatched
+                      ? "linear-gradient(135deg, #bbf7d0 0%, #4ade80 60%, #16a34a 100%)"
+                      : "linear-gradient(135deg, #fef3c7 0%, #fde68a 60%, #f59e0b 100%)",
+                    boxShadow: isMatched
+                      ? "inset 0 2px 6px rgba(255,255,255,0.5), 0 6px 14px rgba(34,197,94,0.4)"
+                      : "inset 0 2px 6px rgba(255,255,255,0.5), 0 6px 14px rgba(0,0,0,0.25)",
+                  }}
+                >
+                  <span style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.25))" }}>{emoji}</span>
+                </div>
+              </motion.div>
+            </button>
           );
         })}
       </div>
