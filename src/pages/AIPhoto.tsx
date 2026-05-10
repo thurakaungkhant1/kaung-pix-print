@@ -27,6 +27,7 @@ const AIPhoto = () => {
   const [usedToday, setUsedToday] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(5);
   const [latest, setLatest] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const prefill = sessionStorage.getItem("ai_prefill_prompt");
