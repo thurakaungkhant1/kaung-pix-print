@@ -74,6 +74,11 @@ const GAME_CATEGORIES = [
   { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
 ];
 
+const MOBILE_CATEGORIES = [
+  { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone },
+  { id: "Data Plans", name: "Data Plans", icon: Wifi },
+];
+
 
 const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -151,8 +156,8 @@ const GamePage = () => {
     return GAME_CATEGORIES.some(cat => cat.id === category);
   };
 
-  const isMobileProduct = (_category: string) => {
-    return false;
+  const isMobileProduct = (category: string) => {
+    return MOBILE_CATEGORIES.some(cat => cat.id === category);
   };
 
   // Only MLBB requires Server ID
@@ -368,11 +373,16 @@ const GamePage = () => {
         <Tabs defaultValue="games" className="w-full" onValueChange={(v) => {
           setActiveCategory(v);
           setSelectedGameCategory(null);
+          setSelectedMobileService(null);
         }}>
-          <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-card/50 border border-border/50">
+          <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-card/50 border border-border/50">
             <TabsTrigger value="games" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <Gamepad2 className="h-4 w-4" />
               Games
+            </TabsTrigger>
+            <TabsTrigger value="mobile" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
+              <Smartphone className="h-4 w-4" />
+              Mobile
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
               <History className="h-4 w-4" />
@@ -487,6 +497,91 @@ const GamePage = () => {
             )}
           </TabsContent>
 
+          <TabsContent value="mobile" className="space-y-6">
+            {/* Mobile Service Categories */}
+            <div className="grid grid-cols-2 gap-3">
+              {MOBILE_CATEGORIES.map((cat) => {
+                const Icon = cat.icon;
+                const active = selectedMobileService === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedMobileService(active ? null : cat.id)}
+                    className={cn(
+                      "card-neon flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-300",
+                      active ? "bg-primary/15 border-primary/50 shadow-glow" : "hover:bg-primary/5"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-10 h-10 rounded-lg flex items-center justify-center",
+                      active ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+                    )}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className={cn("text-xs font-medium", active && "text-primary")}>
+                      {cat.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Mobile Promo */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 p-4">
+              <div className="relative flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-primary/20">
+                  <Wifi className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-foreground mb-1">Mobile Top-up & Data</h2>
+                  <p className="text-sm text-muted-foreground">Recharge phone credit and data plans instantly</p>
+                </div>
+              </div>
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+                  <Smartphone className="relative h-16 w-16 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground font-medium">No mobile services available</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">Check back soon</p>
+              </div>
+            ) : (
+              <div key={selectedMobileService} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {filteredProducts.map((product, index) => (
+                  <Card
+                    key={product.id}
+                    className={cn(
+                      "card-neon overflow-hidden cursor-pointer transition-all duration-300",
+                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] animate-stagger-in"
+                    )}
+                    style={{ animationDelay: `${index * 80}ms` }}
+                    onClick={() => handleBuyClick(product)}
+                  >
+                    <div className="aspect-square bg-muted/50 overflow-hidden">
+                      <img src={product.image_url} alt={product.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
+                    </div>
+                    <CardContent className="p-3 space-y-2">
+                      <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
+                      <div className="flex items-center justify-between">
+                        <p className="text-primary font-bold text-lg text-neon">
+                          {product.price.toLocaleString()}
+                          <span className="text-xs font-medium ml-1 text-muted-foreground">Ks</span>
+                        </p>
+                        <Button size="sm" className="btn-neon h-8 px-3 text-xs gap-1">
+                          <Zap className="h-3 w-3" />
+                          Buy
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="orders">
             {orders.length === 0 ? (
               <div className="text-center py-16">
@@ -502,7 +597,7 @@ const GamePage = () => {
                 {orders.map((order) => {
                   const isMLBB = order.products.category === "MLBB Diamonds";
                   const isGame = GAME_CATEGORIES.some(cat => cat.id === order.products.category);
-                  const isMobile = false;
+                  const isMobile = MOBILE_CATEGORIES.some(c => c.id === order.products.category);
                   
                   return (
                     <Card key={order.id} className="overflow-hidden">
