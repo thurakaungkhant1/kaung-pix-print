@@ -26,6 +26,7 @@ const AIHub = lazy(() => import("./pages/AIHub"));
 const AIPhoto = lazy(() => import("./pages/AIPhoto"));
 const AIInvitation = lazy(() => import("./pages/AIInvitation"));
 const AIGift = lazy(() => import("./pages/AIGift"));
+const AIPassport = lazy(() => import("./pages/AIPassport"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const PhotoDetail = lazy(() => import("./pages/PhotoDetail"));
 const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
