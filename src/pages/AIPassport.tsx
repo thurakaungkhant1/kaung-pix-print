@@ -214,7 +214,7 @@ const AIPassport = () => {
               <motion.button
                 key={p.id}
                 whileTap={{ scale: 0.96 }}
-                onClick={() => setSelected(p)}
+                onClick={() => { setErrorMsg(null); setSelected(p); }}
                 className="group relative rounded-2xl overflow-hidden border border-border bg-card hover:border-emerald-500/50 transition shadow-sm hover:shadow-lg text-left"
               >
                 <div className="aspect-[3/4] bg-muted overflow-hidden">
