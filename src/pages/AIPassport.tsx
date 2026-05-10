@@ -120,6 +120,7 @@ const AIPassport = () => {
 
       setResult(data.result_image_url);
       setUsedToday(data.used_today);
+      if (data.generation) setHistory((h) => [data.generation as HistoryItem, ...h].slice(0, 12));
       toast.success("Passport photo ready!");
     } catch (e: any) {
       toast.error(e.message ?? "Generation failed");
