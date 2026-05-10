@@ -197,9 +197,9 @@ const Signup = () => {
         options: {
           emailRedirectTo: `${window.location.origin}/auth/verify-email`,
           data: {
-            name,
-            phone_number: phoneNumber,
-            referral_code: referralCode || null
+            name: trimmedName,
+            phone_number: trimmedPhone,
+            referral_code: trimmedRef || null
           }
         }
       });
