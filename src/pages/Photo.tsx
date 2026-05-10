@@ -1,13 +1,14 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, FileArchive, Search, Camera, Sparkles, ArrowLeft } from "lucide-react";
+import {
+  Heart, FileArchive, Search, Camera, ArrowLeft, Lock, Download, Music2, Image as ImageIcon,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addWatermark } from "@/lib/watermarkUtils";
@@ -26,9 +27,11 @@ interface Photo {
   file_size: number;
   preview_image: string | null;
   category: string;
+  created_at?: string;
+  photo_count?: number;
 }
 
-const PAGE_SIZE = 18;
+const PAGE_SIZE = 12;
 
 const Photo = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -39,9 +42,9 @@ const Photo = () => {
   const [watermarkedImages, setWatermarkedImages] = useState<Map<number, string>>(new Map());
   const [backgroundMusic, setBackgroundMusic] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [showSearch, setShowSearch] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // URL-driven state
   const searchQuery = searchParams.get("q") ?? "";
   const selectedCategory = searchParams.get("cat") ?? "All";
   const sortBy = (searchParams.get("sort") as "newest" | "name_asc" | "name_desc" | "size_asc" | "size_desc") || "newest";
@@ -148,7 +151,6 @@ const Photo = () => {
   const visiblePhotos = filteredPhotos.slice(0, visibleCount);
   const hasMore = visibleCount < filteredPhotos.length;
 
-  // Infinite scroll observer
   useEffect(() => {
     if (!sentinelRef.current || !hasMore) return;
     const obs = new IntersectionObserver((entries) => {
@@ -160,31 +162,29 @@ const Photo = () => {
     return () => obs.disconnect();
   }, [hasMore, filteredPhotos.length]);
 
+  const formatDate = (s?: string) => {
+    if (!s) return "";
+    try {
+      return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    } catch { return ""; }
+  };
+
   if (loading) {
     return (
       <MobileLayout>
-        <header className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-hero" />
-          <div className="relative z-10 p-4 pt-6 pb-5">
-            <div className="flex items-center justify-between mb-5">
-              <div className="w-10" />
-              <div className="h-8 w-24 bg-primary-foreground/20 rounded animate-pulse" />
-              <div className="w-10" />
-            </div>
-            <div className="h-12 bg-primary-foreground/10 rounded-2xl animate-pulse" />
+        <header className="px-5 pt-6 pb-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
+            <div className="w-24 h-9 bg-muted rounded-full animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
           </div>
+          <div className="h-8 w-40 bg-muted rounded animate-pulse mb-2" />
+          <div className="h-4 w-56 bg-muted rounded animate-pulse" />
         </header>
-        <div className="max-w-screen-xl mx-auto p-4 space-y-5">
-          <div className="flex gap-2 overflow-hidden">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-10 px-8 bg-muted rounded-xl animate-pulse" />
-            ))}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {[...Array(6)].map((_, i) => (
-              <SkeletonCard key={i} variant="photo" />
-            ))}
-          </div>
+        <div className="px-5 space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="rounded-2xl bg-muted h-56 animate-pulse" />
+          ))}
         </div>
       </MobileLayout>
     );
@@ -192,135 +192,125 @@ const Photo = () => {
 
   return (
     <AnimatedPage>
-      <MobileLayout>
-        {/* Hero Header */}
-        <header className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-hero" />
-          <div className="absolute inset-0 bg-gradient-glow opacity-60" />
-          {/* Decorative circles */}
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary-foreground/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary-foreground/5 rounded-full blur-2xl" />
-
-          <div className="relative z-10 p-4 pt-6 pb-6">
-            <div className="flex items-center justify-between mb-5">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/account")}
-                className="text-primary-foreground hover:bg-primary-foreground/10 rounded-full"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <motion.div
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="flex items-center gap-2"
-              >
-                <Camera className="h-5 w-5 text-primary-foreground/80" />
-                <h1 className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
-                  Gallery
-                </h1>
-              </motion.div>
-              <div className="w-10" />
-            </div>
-
-            {/* Search + Sort */}
-            <motion.div
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.15 }}
-              className="flex gap-2"
+      <MobileLayout className="bg-background">
+        {/* Top Bar */}
+        <header className="px-5 pt-6 pb-4">
+          <div className="flex items-center justify-between gap-2 mb-5">
+            <button
+              onClick={() => navigate("/account")}
+              className="w-10 h-10 rounded-full bg-card border border-border/60 flex items-center justify-center hover:bg-muted transition-colors"
+              aria-label="Back"
             >
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/50 z-10" />
-                <Input
-                  type="text"
-                  placeholder="Search by client name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={cn(
-                    "w-full pl-11 pr-4 py-3 h-12 rounded-2xl",
-                    "bg-primary-foreground/10 border-primary-foreground/20",
-                    "text-primary-foreground placeholder:text-primary-foreground/50",
-                    "focus:bg-primary-foreground/15 focus:border-primary-foreground/30",
-                    "transition-all duration-300"
-                  )}
-                />
-              </div>
-              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-                <SelectTrigger className="h-12 w-[130px] rounded-2xl bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground">
-                  <SelectValue placeholder="Sort" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="name_asc">Name A-Z</SelectItem>
-                  <SelectItem value="name_desc">Name Z-A</SelectItem>
-                  <SelectItem value="size_asc">Size: Small</SelectItem>
-                  <SelectItem value="size_desc">Size: Large</SelectItem>
-                </SelectContent>
-              </Select>
-            </motion.div>
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-1.5 px-3 h-10 rounded-full bg-card border border-border/60">
+              <Music2 className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold text-foreground">10% Vol</span>
+            </div>
+            <button
+              onClick={() => setShowSearch((s) => !s)}
+              className={cn(
+                "w-10 h-10 rounded-full border border-border/60 flex items-center justify-center transition-colors",
+                showSearch ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted"
+              )}
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4" />
+            </button>
           </div>
+
+          <motion.div initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+            <h1 className="text-3xl font-display font-black text-foreground tracking-tight">
+              Photo Gallery
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">Secure & Premium Collections</p>
+          </motion.div>
+
+          {showSearch && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              className="mt-4 overflow-hidden"
+            >
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search albums..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-11 pl-10 rounded-2xl bg-card border-border/60"
+                  />
+                </div>
+                <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+                  <SelectTrigger className="h-11 w-[120px] rounded-2xl bg-card border-border/60">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="name_asc">Name A-Z</SelectItem>
+                    <SelectItem value="name_desc">Name Z-A</SelectItem>
+                    <SelectItem value="size_asc">Size: Small</SelectItem>
+                    <SelectItem value="size_desc">Size: Large</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </motion.div>
+          )}
         </header>
 
-        <AdBanner pageLocation="photo" position="top" className="px-4 pt-4" />
+        <AdBanner pageLocation="photo" position="top" className="px-5 pb-2" />
 
-        <div className="max-w-screen-xl mx-auto p-4 space-y-5">
-          {/* Category Pills */}
+        <div className="max-w-screen-xl mx-auto px-5 pb-32 space-y-4">
+          {/* PIN Protected notice */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-dashed border-border"
           >
-            {categories.map((category, index) => (
-              <motion.button
-                key={category}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 + index * 0.04 }}
-                onClick={() => setSelectedCategory(category)}
-                className={cn(
-                  "px-4 py-2.5 rounded-xl whitespace-nowrap font-medium text-sm",
-                  "transition-all duration-300 active:scale-95",
-                  selectedCategory === category
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                )}
-              >
-                {category}
-              </motion.button>
-            ))}
-          </motion.div>
-
-          {/* Results Count + Favourites toggle */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex items-center justify-between gap-3 flex-wrap"
-          >
-            <p className="text-xs text-muted-foreground font-medium">
-              Showing {visiblePhotos.length} of {filteredPhotos.length} photo{filteredPhotos.length !== 1 ? "s" : ""}
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted">
-                <Heart className={cn("h-3.5 w-3.5", favouritesOnly && "fill-destructive text-destructive")} />
-                <Label htmlFor="fav-only" className="text-xs cursor-pointer">Favourites only</Label>
-                <Switch id="fav-only" checked={favouritesOnly} onCheckedChange={setFavouritesOnly} />
-              </div>
-              {(selectedCategory !== "All" || searchQuery || favouritesOnly) && (
-                <button
-                  onClick={() => { setSearchParams({}, { replace: true }); setVisibleCount(PAGE_SIZE); }}
-                  className="text-xs text-primary font-medium hover:underline"
-                >
-                  Clear all
-                </button>
-              )}
+            <div className="p-2 rounded-xl bg-muted">
+              <Lock className="h-4 w-4 text-foreground/70" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-primary">PIN Protected Downloads</p>
+              <p className="text-[11px] text-muted-foreground">6-digit OTP required for ZIP extraction</p>
             </div>
           </motion.div>
 
-          {/* Content */}
+          {/* Category pills */}
+          {categories.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-5 px-5">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={cn(
+                    "shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium transition-colors",
+                    selectedCategory === category
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Favourites toggle + count */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-xs text-muted-foreground font-medium">
+              {filteredPhotos.length} album{filteredPhotos.length !== 1 ? "s" : ""}
+            </p>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted">
+              <Heart className={cn("h-3.5 w-3.5", favouritesOnly && "fill-destructive text-destructive")} />
+              <Label htmlFor="fav-only" className="text-xs cursor-pointer">Favourites only</Label>
+              <Switch id="fav-only" checked={favouritesOnly} onCheckedChange={setFavouritesOnly} />
+            </div>
+          </div>
+
+          {/* Album list */}
           {filteredPhotos.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -331,84 +321,80 @@ const Photo = () => {
                 <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl animate-pulse" />
                 <Camera className="relative h-12 w-12 text-muted-foreground/50" />
               </div>
-              <p className="text-lg text-foreground font-semibold mb-1">No photos found</p>
+              <p className="text-lg text-foreground font-semibold mb-1">No albums found</p>
               <p className="text-sm text-muted-foreground">
-                {selectedCategory === "All"
-                  ? "Check back soon for new uploads"
-                  : `No photos in "${selectedCategory}" category`}
+                {selectedCategory === "All" ? "Check back soon for new uploads" : `No albums in "${selectedCategory}"`}
               </p>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className="space-y-4">
               {visiblePhotos.map((photo, index) => (
                 <motion.div
                   key={photo.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 * Math.min(index, 12), duration: 0.4 }}
+                  transition={{ delay: 0.04 * Math.min(index, 8), duration: 0.35 }}
                   onClick={() => navigate(`/photo/${photo.id}`)}
-                  className="group cursor-pointer"
+                  className="group cursor-pointer relative rounded-2xl overflow-hidden bg-card border border-border/60 hover:border-primary/40 hover:shadow-lg transition-all"
                 >
-                  <div className="relative rounded-2xl overflow-hidden bg-card border border-border/50 hover:border-primary/30 shadow-sm hover:shadow-md transition-all duration-300">
-                    {/* Image */}
-                    <div className="relative aspect-[3/4] bg-muted overflow-hidden">
-                      {photo.preview_image ? (
-                        <img
-                          src={watermarkedImages.get(photo.id) || photo.preview_image}
-                          alt={photo.client_name}
-                          loading="lazy"
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <FileArchive className="h-10 w-10 text-muted-foreground/30" />
-                        </div>
-                      )}
-
-                      {/* Gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                      {/* Favourite button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavourite(photo.id);
-                        }}
-                        className={cn(
-                          "absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center",
-                          "backdrop-blur-md transition-all duration-300 active:scale-90",
-                          favourites.has(photo.id)
-                            ? "bg-destructive text-destructive-foreground shadow-lg"
-                            : "bg-background/60 text-foreground/70 hover:bg-background/80"
-                        )}
-                      >
-                        <Heart
-                          className={cn(
-                            "h-3.5 w-3.5 transition-all",
-                            favourites.has(photo.id) && "fill-current"
-                          )}
-                        />
-                      </button>
-
-                      {/* Category badge */}
-                      <div className="absolute bottom-2.5 left-2.5">
-                        <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-background/70 backdrop-blur-md text-foreground/80">
-                          {photo.category || "General"}
-                        </span>
+                  {/* Preview area */}
+                  <div className="relative aspect-[16/10] bg-muted overflow-hidden">
+                    {photo.preview_image ? (
+                      <img
+                        src={watermarkedImages.get(photo.id) || photo.preview_image}
+                        alt={photo.client_name}
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <FileArchive className="h-12 w-12 text-muted-foreground/30" />
                       </div>
+                    )}
+
+                    {/* Photo count badge */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur-md text-foreground text-[11px] font-semibold shadow-sm">
+                      <ImageIcon className="h-3 w-3 text-primary" />
+                      {photo.photo_count || Math.max(1, Math.round((photo.file_size || 0) / (1024 * 1024 * 2)))} Photos
                     </div>
 
-                    {/* Info */}
-                    <div className="p-3">
-                      <h3 className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+                    {/* Favourite */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleFavourite(photo.id); }}
+                      className={cn(
+                        "absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90",
+                        favourites.has(photo.id)
+                          ? "bg-destructive text-destructive-foreground shadow-lg"
+                          : "bg-background/70 text-foreground/70 hover:bg-background/90"
+                      )}
+                    >
+                      <Heart className={cn("h-4 w-4", favourites.has(photo.id) && "fill-current")} />
+                    </button>
+                  </div>
+
+                  {/* Footer row: title/date + download */}
+                  <div className="p-4 flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
                         {photo.client_name}
                       </h3>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {formatDate(photo.created_at)}
+                      </p>
                     </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigate(`/photo/${photo.id}`); }}
+                      className="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-md transition-colors flex-shrink-0"
+                      aria-label="Download"
+                    >
+                      <Download className="h-4 w-4" />
+                    </button>
                   </div>
                 </motion.div>
               ))}
             </div>
           )}
+
           {hasMore && (
             <div ref={sentinelRef} className="flex justify-center py-6">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
