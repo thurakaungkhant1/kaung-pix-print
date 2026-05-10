@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import CartHeader from "@/components/CartHeader";
+
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addWatermark } from "@/lib/watermarkUtils";
@@ -221,7 +221,7 @@ const Photo = () => {
                   Gallery
                 </h1>
               </motion.div>
-              <CartHeader />
+              <div className="w-10" />
             </div>
 
             {/* Search + Sort */}

@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import SpinnerWheel from "@/components/SpinnerWheel";
+
 import ReferralSection from "@/components/ReferralSection";
 import { cn } from "@/lib/utils";
 import { ImageCropper } from "@/components/ImageCropper";
@@ -67,7 +67,7 @@ const Account = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [spinnerOpen, setSpinnerOpen] = useState(false);
+  
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
   const [favCounts, setFavCounts] = useState({ games: 0, mobile: 0, photos: 0 });
   
@@ -356,43 +356,6 @@ const Account = () => {
             </div>
           </motion.div>
 
-          {/* Points Card */}
-          <motion.div
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="mt-6 p-4 rounded-2xl bg-primary-foreground/10 backdrop-blur-md border border-primary-foreground/15"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-primary-foreground/15">
-                  <Coins className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <div>
-                  <p className="text-2xl font-display font-bold text-primary-foreground tracking-tight">
-                    {profile?.points?.toLocaleString() || 0}
-                  </p>
-                  <p className="text-[11px] text-primary-foreground/50 font-medium">Total Points</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm" variant="secondary"
-                  className="h-9 px-3 rounded-xl text-xs bg-primary-foreground/15 border-0 text-primary-foreground hover:bg-primary-foreground/25"
-                  onClick={() => setSpinnerOpen(true)}
-                >
-                  <Gift className="h-3.5 w-3.5 mr-1.5" /> Spin
-                </Button>
-                <Button
-                  size="sm"
-                  className="h-9 px-3 rounded-xl text-xs shadow-md"
-                  onClick={() => navigate("/exchange")}
-                >
-                  <Zap className="h-3.5 w-3.5 mr-1.5" /> Exchange
-                </Button>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </header>
 
@@ -504,19 +467,6 @@ const Account = () => {
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl border-border/40 shadow-sm">
-              <CardContent className="p-1">
-                <SettingItem icon={Trophy} label="Top Earners" description="View the leaderboard" onClick={() => navigate("/top-earners")} />
-                <Separator className="my-0.5" />
-                <SettingItem icon={History} label="Point History" onClick={() => navigate("/point-history")} />
-              </CardContent>
-            </Card>
-
-            {withdrawalSettings && profile && profile.points < withdrawalSettings.minimum_points && (
-              <p className="text-[10px] text-center text-muted-foreground bg-muted/50 rounded-lg py-2.5 px-3">
-                Minimum {withdrawalSettings.minimum_points.toLocaleString()} points required to exchange
-              </p>
-            )}
           </TabsContent>
 
           {/* Preferences Tab */}
@@ -602,7 +552,7 @@ const Account = () => {
         </Tabs>
       </div>
 
-      <SpinnerWheel open={spinnerOpen} onOpenChange={setSpinnerOpen} onPointsWon={() => loadProfile()} />
+      
 
       {imageToCrop && (
         <ImageCropper open={cropperOpen} onOpenChange={(open) => { setCropperOpen(open); if (!open) setImageToCrop(null); }} imageSrc={imageToCrop} onCropComplete={handleCropComplete} aspectRatio={1} />
