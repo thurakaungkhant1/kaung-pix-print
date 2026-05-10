@@ -464,57 +464,83 @@ const Home = () => {
         </AnimatedSection>
 
         {/* Photo Gallery Preview */}
-        {(photosLoading || recentPhotos.length > 0) && (
-          <AnimatedSection delay={0.4}>
-            <section className="mb-6">
-              <div className="flex items-center justify-between px-5 mb-3">
-                <div className="flex items-center gap-2">
+        <AnimatedSection delay={0.4}>
+          <section className="mb-6">
+            <div className="flex items-center justify-between px-5 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-primary/10">
                   <Camera className="h-4 w-4 text-primary" />
-                  <h2 className="font-bold text-sm">Photo Gallery</h2>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-primary gap-1 h-7"
-                  onClick={() => navigate("/photo")}
-                >
-                  View All <ArrowRight className="h-3 w-3" />
-                </Button>
+                <div>
+                  <h2 className="text-lg font-display font-bold leading-tight">Photo Gallery</h2>
+                  <p className="text-[11px] text-muted-foreground">Recent client albums</p>
+                </div>
               </div>
-              <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-5 pb-2">
-                {photosLoading
-                  ? [...Array(5)].map((_, i) => (
-                      <div key={i} className="flex-shrink-0 w-28">
-                        <div className="aspect-square rounded-xl bg-muted animate-shimmer" />
-                        <div className="h-3 mt-1 mx-auto w-16 bg-muted animate-shimmer rounded" />
-                      </div>
-                    ))
-                  : recentPhotos.map((photo, index) => (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-primary gap-1 h-8 px-3"
+                onClick={() => navigate("/photo")}
+              >
+                View All <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            {photosLoading ? (
+              <div className="px-5 grid grid-cols-2 gap-3">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="rounded-2xl border border-border/40 bg-card overflow-hidden">
+                    <div className="aspect-square bg-muted animate-shimmer" />
+                    <div className="p-3 space-y-1.5">
+                      <div className="h-3 bg-muted animate-shimmer rounded w-3/4" />
+                      <div className="h-2.5 bg-muted animate-shimmer rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : recentPhotos.length > 0 ? (
+              <div className="px-5 grid grid-cols-2 gap-3">
+                {recentPhotos.map((photo, index) => (
                   <motion.div
                     key={photo.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="flex-shrink-0 w-28 cursor-pointer group"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.04 }}
+                    className="cursor-pointer group"
                     onClick={() => navigate(`/photo/${photo.id}`)}
                   >
-                    <div className="aspect-square rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/30 transition-all shadow-sm group-hover:shadow-md">
-                      <img
-                        src={photo.preview_image || photo.file_url}
-                        alt={photo.client_name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                      />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1 truncate text-center">
-                      {photo.client_name}
-                    </p>
+                    <Card className="overflow-hidden border-border/50 hover:border-primary/40 transition-all rounded-2xl hover:shadow-lg hover:-translate-y-0.5 duration-300">
+                      <div className="aspect-square overflow-hidden relative bg-muted">
+                        <img
+                          src={photo.preview_image || photo.file_url}
+                          alt={photo.client_name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/0 to-transparent" />
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <p className="text-white text-xs font-semibold truncate drop-shadow-md">{photo.client_name}</p>
+                        </div>
+                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-md text-[9px] font-medium text-foreground">
+                          Album
+                        </div>
+                      </div>
+                    </Card>
                   </motion.div>
                 ))}
               </div>
-            </section>
-          </AnimatedSection>
-        )}
+            ) : (
+              <div className="px-5">
+                <Card className="p-8 text-center border-dashed rounded-2xl">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-muted/60 flex items-center justify-center">
+                    <Camera className="h-7 w-7 text-muted-foreground/60" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground mb-1">No photos uploaded yet</p>
+                  <p className="text-xs text-muted-foreground">New albums will appear here</p>
+                </Card>
+              </div>
+            )}
+          </section>
+        </AnimatedSection>
 
         {/* Mini Games Preview */}
         <AnimatedSection delay={0.5}>
