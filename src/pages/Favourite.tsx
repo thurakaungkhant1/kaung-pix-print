@@ -45,6 +45,18 @@ const Favourite = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || localStorage.getItem("favLastTab") || "games";
+  const [tab, setTab] = useState<string>(["games", "mobile", "photos"].includes(initialTab) ? initialTab : "games");
+
+  useEffect(() => {
+    localStorage.setItem("favLastTab", tab);
+    if (searchParams.get("tab") !== tab) {
+      const next = new URLSearchParams(searchParams);
+      next.set("tab", tab);
+      setSearchParams(next, { replace: true });
+    }
+  }, [tab]);
 
   useEffect(() => {
     if (user) {
