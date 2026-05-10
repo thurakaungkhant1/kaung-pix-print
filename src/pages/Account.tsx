@@ -69,6 +69,7 @@ const Account = () => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [spinnerOpen, setSpinnerOpen] = useState(false);
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
+  const [favCounts, setFavCounts] = useState({ games: 0, mobile: 0, photos: 0 });
   
   const [editingName, setEditingName] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
