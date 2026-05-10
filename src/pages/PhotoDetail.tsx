@@ -226,13 +226,10 @@ const PhotoDetail = () => {
     } catch (err: any) {
       console.error(err);
       setDownloadError(err?.message || "Download failed. Please check your connection or try a VPN.");
-      // keep overlay visible so user can retry
+      // keep overlay visible so the user can retry
       return;
-    } finally {
-      if (!downloadError) {
-        setTimeout(() => { setDownloading(false); setDownloadProgress(0); setDownloadStage("idle"); }, 800);
-      }
     }
+    setTimeout(() => { setDownloading(false); setDownloadProgress(0); setDownloadStage("idle"); }, 800);
   };
 
   const downloadBlob = (blob: Blob, filename: string) => {
