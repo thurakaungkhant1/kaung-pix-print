@@ -214,28 +214,32 @@ const GamesPortal = () => {
     return (
       <AnimatedPage>
         <MobileLayout>
-          <div className="max-w-screen-xl mx-auto p-2 sm:p-4 pb-24">
-            <div className="flex items-center gap-3 mb-4">
-              <Button variant="ghost" size="icon" onClick={() => setActiveGame(null)} className="rounded-xl h-10 w-10 bg-card border border-border/50">
+          <div className="max-w-screen-xl mx-auto px-0 sm:px-4 pt-2 sm:pt-4 pb-24">
+            <div className="flex items-center gap-3 mb-3 px-3 sm:px-0">
+              <Button variant="ghost" size="icon" onClick={() => setActiveGame(null)} className="rounded-xl h-11 w-11 bg-card border border-border/50">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div className="flex-1">
-                <h1 className="text-lg font-display font-bold">{game?.emoji} {game?.name}</h1>
-                <p className="text-[11px] text-muted-foreground">{game?.desc}</p>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-display font-bold truncate">{game?.emoji} {game?.name}</h1>
+                <p className="text-[11px] text-muted-foreground truncate">{game?.desc}</p>
               </div>
               {!canPlay(activeGame) && (
-                <Badge variant="secondary" className="text-xs">⏱ {getCooldownRemaining(activeGame)}s</Badge>
+                <Badge variant="secondary" className="text-xs shrink-0">⏱ {getCooldownRemaining(activeGame)}s</Badge>
               )}
             </div>
-            <Card className="p-2 sm:p-6 rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
-              <Suspense fallback={
-                <div className="flex flex-col items-center justify-center py-16 gap-3">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
-                  <p className="text-sm text-muted-foreground">Loading game...</p>
-                </div>
-              }>
-                <GameComponent onGameEnd={(score, isWin) => handleGameEnd(activeGame, score, isWin)} />
-              </Suspense>
+            <Card className="rounded-none sm:rounded-2xl border-x-0 sm:border-x border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
+              <div className="p-2 sm:p-6 w-full">
+                <Suspense fallback={
+                  <div className="flex flex-col items-center justify-center py-16 gap-3">
+                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
+                    <p className="text-sm text-muted-foreground">Loading game...</p>
+                  </div>
+                }>
+                  <div className="w-full mx-auto" style={{ maxWidth: "100%" }}>
+                    <GameComponent onGameEnd={(score, isWin) => handleGameEnd(activeGame, score, isWin)} />
+                  </div>
+                </Suspense>
+              </div>
             </Card>
           </div>
         </MobileLayout>
