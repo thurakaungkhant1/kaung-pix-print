@@ -916,7 +916,7 @@ const AdminDashboard = () => {
   ];
 
   // Flat list for compatibility
-  const sidebarItems = sidebarGroups.flatMap(g => g.items);
+  const sidebarItems = (sidebarGroups as any[]).flatMap((g: any) => g.items);
 
   return (
     <div className="min-h-screen bg-background flex pb-16 lg:pb-0">
