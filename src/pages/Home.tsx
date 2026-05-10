@@ -481,7 +481,14 @@ const Home = () => {
                 </Button>
               </div>
               <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-5 pb-2">
-                {recentPhotos.map((photo, index) => (
+                {photosLoading
+                  ? [...Array(5)].map((_, i) => (
+                      <div key={i} className="flex-shrink-0 w-28">
+                        <div className="aspect-square rounded-xl bg-muted animate-shimmer" />
+                        <div className="h-3 mt-1 mx-auto w-16 bg-muted animate-shimmer rounded" />
+                      </div>
+                    ))
+                  : recentPhotos.map((photo, index) => (
                   <motion.div
                     key={photo.id}
                     initial={{ opacity: 0, scale: 0.9 }}
