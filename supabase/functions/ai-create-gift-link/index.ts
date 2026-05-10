@@ -45,7 +45,7 @@ serve(async (req) => {
       user_id: user.id,
       slug: s,
       payload: { message, image_url: imageUrl ?? null, style_index: styleIndex },
-      status: "pending",
+      status: "approved",
       cost_coins: 0,
     }).select().single();
     if (error) throw error;

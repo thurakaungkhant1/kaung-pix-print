@@ -70,14 +70,13 @@ const AIGift = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setLinks((p) => [data.link, ...p]);
-      toast.success("Gift link created — locked until admin approves.");
+      toast.success("Gift link created — ready to share!");
       setMessage(""); setImageFile(null); setImagePreview(null);
     } catch (e: any) { toast.error(e.message ?? "Failed"); }
     finally { setLoading(false); }
   };
 
-  const copyLink = (slug: string, status: string) => {
-    if (status !== "approved") { toast.error("Locked. Wait for admin approval."); return; }
+  const copyLink = (slug: string) => {
     const url = `${window.location.origin}/g/${slug}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied");
@@ -145,15 +144,15 @@ const AIGift = () => {
               <div className="space-y-2">
                 {links.map((l) => (
                   <motion.div key={l.id} layout className="rounded-xl p-3 bg-card/60 backdrop-blur border border-border/40 flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${l.status === "approved" ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/10 text-amber-500"}`}>
-                      {l.status === "approved" ? <CheckCircle2 className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-emerald-500/15 text-emerald-500">
+                      <CheckCircle2 className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-mono truncate">/g/{l.slug}</div>
-                      <div className="text-xs text-muted-foreground">{l.status}</div>
+                      <div className="text-xs text-muted-foreground">Ready to share</div>
                     </div>
-                    <Button size="sm" variant="ghost" onClick={() => copyLink(l.slug, l.status)}>
-                      {l.status === "approved" ? <Copy className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                    <Button size="sm" variant="ghost" onClick={() => copyLink(l.slug)}>
+                      <Copy className="w-4 h-4" />
                     </Button>
                   </motion.div>
                 ))}
