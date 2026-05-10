@@ -214,7 +214,7 @@ const GamesPortal = () => {
     return (
       <AnimatedPage>
         <MobileLayout>
-          <div className="max-w-screen-xl mx-auto p-4 pb-24">
+          <div className="max-w-screen-xl mx-auto p-2 sm:p-4 pb-24">
             <div className="flex items-center gap-3 mb-4">
               <Button variant="ghost" size="icon" onClick={() => setActiveGame(null)} className="rounded-xl h-10 w-10 bg-card border border-border/50">
                 <ArrowLeft className="h-5 w-5" />
@@ -227,7 +227,7 @@ const GamesPortal = () => {
                 <Badge variant="secondary" className="text-xs">⏱ {getCooldownRemaining(activeGame)}s</Badge>
               )}
             </div>
-            <Card className="p-4 sm:p-6 rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm">
+            <Card className="p-2 sm:p-6 rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
               <Suspense fallback={
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
                   <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
