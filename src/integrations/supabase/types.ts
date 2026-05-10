@@ -83,6 +83,150 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_gift_links: {
+        Row: {
+          cost_coins: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          payload: Json
+          slug: string
+          user_id: string
+          views: number
+        }
+        Insert: {
+          cost_coins?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          payload?: Json
+          slug: string
+          user_id: string
+          views?: number
+        }
+        Update: {
+          cost_coins?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          payload?: Json
+          slug?: string
+          user_id?: string
+          views?: number
+        }
+        Relationships: []
+      }
+      ai_invitations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          invitation_text: string
+          paid: boolean
+          payment_proof_url: string | null
+          price_mmk: number
+          selected_style_index: number | null
+          status: string
+          styles: Json
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          invitation_text: string
+          paid?: boolean
+          payment_proof_url?: string | null
+          price_mmk?: number
+          selected_style_index?: number | null
+          status?: string
+          styles?: Json
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          invitation_text?: string
+          paid?: boolean
+          payment_proof_url?: string | null
+          price_mmk?: number
+          selected_style_index?: number | null
+          status?: string
+          styles?: Json
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_photo_generations: {
+        Row: {
+          cost_coins: number
+          created_at: string
+          id: string
+          prompt: string
+          result_image_url: string | null
+          source_image_url: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          cost_coins?: number
+          created_at?: string
+          id?: string
+          prompt: string
+          result_image_url?: string | null
+          source_image_url?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          cost_coins?: number
+          created_at?: string
+          id?: string
+          prompt?: string
+          result_image_url?: string | null
+          source_image_url?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_usage_settings: {
+        Row: {
+          daily_photo_limit: number
+          gift_cost_coins: number
+          id: string
+          invitation_price_mmk: number
+          photo_cost_coins: number
+          updated_at: string
+        }
+        Insert: {
+          daily_photo_limit?: number
+          gift_cost_coins?: number
+          id?: string
+          invitation_price_mmk?: number
+          photo_cost_coins?: number
+          updated_at?: string
+        }
+        Update: {
+          daily_photo_limit?: number
+          gift_cost_coins?: number
+          id?: string
+          invitation_price_mmk?: number
+          photo_cost_coins?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       background_music: {
         Row: {
           created_at: string
