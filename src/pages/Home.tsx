@@ -360,6 +360,53 @@ const Home = () => {
           </section>
         )}
 
+        {/* As You Like AI Suite */}
+        <AnimatedSection delay={0.3}>
+          <section className="px-5 pt-5 mb-2">
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => navigate("/ai")}
+              className="relative cursor-pointer overflow-hidden rounded-3xl border border-white/10 group"
+              style={{
+                background:
+                  "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #3b82f6 100%)",
+              }}
+            >
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute -bottom-12 -left-8 w-36 h-36 bg-white/10 rounded-full blur-2xl" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_60%)]" />
+
+              <div className="relative z-10 p-5 flex items-center gap-4">
+                <motion.div
+                  animate={{ rotate: [0, 8, -8, 0] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                  className="p-3.5 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20 flex-shrink-0"
+                >
+                  <Sparkles className="h-7 w-7 text-white" />
+                </motion.div>
+                <div className="flex-1 min-w-0">
+                  <Badge className="bg-white/25 text-white border-0 backdrop-blur-sm text-[10px] mb-1.5">
+                    NEW • AI POWERED
+                  </Badge>
+                  <h3 className="text-xl font-display font-black text-white leading-tight tracking-tight">
+                    As You Like AI
+                  </h3>
+                  <p className="text-white/80 text-xs mt-0.5 leading-relaxed">
+                    Photo Generate • Wedding Invitation • Gift Link
+                  </p>
+                  <div className="flex items-center gap-1.5 pt-2">
+                    <span className="text-white font-semibold text-xs group-hover:underline">
+                      Explore AI Suite
+                    </span>
+                    <ArrowRight className="h-3.5 w-3.5 text-white group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </section>
+        </AnimatedSection>
+
         <AdBanner pageLocation="home" position="top" className="px-5 pt-4" />
 
         {/* Products section removed — only Game items, Mobile data, Mini Games, and Photo Gallery are shown */}
