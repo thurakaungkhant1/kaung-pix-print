@@ -168,6 +168,7 @@ const PhotoDetail = () => {
     setDownloading(true);
     setDownloadStage("fetching");
     setDownloadProgress(0);
+    setDownloadError(null);
     try {
       const response = await fetch(photo.file_url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
