@@ -249,7 +249,7 @@ const Favourite = () => {
         </header>
 
         <div className="max-w-screen-xl mx-auto p-4 pb-24">
-          <Tabs defaultValue="games" className="w-full">
+          <Tabs value={tab} onValueChange={setTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-5 h-12 bg-muted/50 p-1 rounded-2xl">
               <TabsTrigger
                 value="games"
