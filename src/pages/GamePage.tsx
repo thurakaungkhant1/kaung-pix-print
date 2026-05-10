@@ -361,155 +361,182 @@ const GamePage = () => {
 
   const filteredProducts = getFilteredProducts();
 
+  // For new layout: track inline player credentials
+  const selectedGame = GAME_CATEGORIES.find(g => g.id === selectedGameCategory) || GAME_CATEGORIES[0];
+  const gameProducts = products
+    .filter(p => p.category === selectedGame.id)
+    .sort((a, b) => a.price - b.price);
+  const needsServer = requiresServerId(selectedGame.id);
+
+  const handleSelectPackage = (product: Product) => {
+    if (!user) {
+      toast({ title: "Login required", description: "Please login to make a purchase", variant: "destructive" });
+      return;
+    }
+    if (!gameId) {
+      toast({ title: "Player ID required", description: "Please enter your Player ID", variant: "destructive" });
+      return;
+    }
+    if (needsServer && !serverId) {
+      toast({ title: "Server ID required", description: "Please enter your Server ID", variant: "destructive" });
+      return;
+    }
+    setSelectedProduct(product);
+    setShowPurchaseDialog(true);
+  };
+
   return (
     <AnimatedPage>
     <MobileLayout>
-      {/* Hero Header - Gaming Neon Style */}
-      <header className="hero-gaming relative overflow-hidden">
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-grid-gaming opacity-30" />
-        
-        {/* Neon glow effects */}
-        <div className="absolute top-4 right-4 w-40 h-40 bg-primary/30 rounded-full blur-[80px] animate-pulse" />
-        <div className="absolute -bottom-8 -left-8 w-48 h-48 bg-accent/20 rounded-full blur-[60px]" />
-        
-        <div className="relative z-10 p-4 pt-6 pb-6">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="p-2.5 rounded-xl bg-primary/20 backdrop-blur-sm border border-primary/30 shadow-glow">
-              <ShoppingBag className="h-6 w-6 text-primary" />
-            </div>
-            <h1 className="text-2xl font-display font-extrabold text-foreground tracking-tight text-neon">
-              Top-up & Shop
-            </h1>
+      {/* Premium Header */}
+      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border/40">
+        <div className="flex items-center justify-between px-4 h-14">
+          <button
+            onClick={() => window.history.back()}
+            className="h-10 w-10 -ml-2 inline-flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+            aria-label="Back"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <h1 className="text-lg font-display font-bold tracking-tight">Game Shop</h1>
+          <div className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-card border border-border shadow-sm">
+            <CreditCard className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold tabular-nums">{walletBalance.toLocaleString()}</span>
+            <span className="text-[10px] font-semibold text-muted-foreground">MMK</span>
           </div>
-          <p className="text-center text-sm text-muted-foreground">
-            Game Top-ups & Mobile Services
-          </p>
         </div>
       </header>
 
-      <div className="max-w-screen-xl mx-auto p-4 pb-24">
+      <div className="max-w-screen-md mx-auto p-4 pb-28 space-y-5">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
-          <TabsList className="grid w-full grid-cols-3 mb-6 h-12 bg-card/50 border border-border/50">
-            <TabsTrigger value="games" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
-              <Gamepad2 className="h-4 w-4" />
-              Games
+          <TabsList className="grid w-full grid-cols-3 mb-2 h-11 bg-card/60 border border-border/50">
+            <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Gamepad2 className="h-3.5 w-3.5" /> Games
             </TabsTrigger>
-            <TabsTrigger value="mobile" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
-              <Smartphone className="h-4 w-4" />
-              Mobile
+            <TabsTrigger value="mobile" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Smartphone className="h-3.5 w-3.5" /> Mobile
             </TabsTrigger>
-            <TabsTrigger value="orders" className="gap-2 text-sm font-medium data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-glow">
-              <History className="h-4 w-4" />
-              Orders
+            <TabsTrigger value="orders" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <History className="h-3.5 w-3.5" /> Orders
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="games" className="space-y-6">
-            {/* Game Categories */}
-            <div className="grid grid-cols-2 gap-3">
-              {GAME_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedGameCategory(
-                    selectedGameCategory === cat.id ? null : cat.id
-                  )}
-                  className={cn(
-                    "card-neon flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all duration-300",
-                    selectedGameCategory === cat.id 
-                      ? "bg-primary/15 border-primary/50 shadow-glow" 
-                      : "hover:bg-primary/5"
-                  )}
-                >
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted ring-2 ring-transparent transition-all group-hover:ring-primary/30">
-                    <img 
-                      src={cat.image} 
-                      alt={cat.name}
-                      className="w-full h-full object-cover"
+          <TabsContent value="games" className="space-y-5 mt-3">
+            {/* Select Game */}
+            <section>
+              <h2 className="text-center text-sm font-semibold text-muted-foreground mb-3">Select Game</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {GAME_CATEGORIES.map((cat) => {
+                  const active = selectedGame.id === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedGameCategory(cat.id)}
+                      className={cn(
+                        "relative rounded-2xl bg-card border-2 p-4 flex flex-col items-center gap-2 transition-all",
+                        active
+                          ? "border-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.12)]"
+                          : "border-border/60 hover:border-primary/40"
+                      )}
+                    >
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted">
+                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                      </div>
+                      <span className={cn("text-sm font-semibold", active ? "text-primary" : "text-foreground")}>
+                        {cat.name.split(" ")[0]}
+                      </span>
+                      <span className={cn(
+                        "inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-[10px] font-bold",
+                        active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      )}>
+                        <Zap className="h-2.5 w-2.5" /> Instant
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Player Credentials */}
+            <section className="rounded-2xl bg-card border border-border/60 p-4 space-y-3 shadow-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Gamepad2 className="h-4 w-4 text-primary" />
+                </div>
+                <h3 className="font-semibold text-sm">Player Credentials</h3>
+              </div>
+              <div className={cn("grid gap-3", needsServer ? "grid-cols-2" : "grid-cols-1")}>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Player ID</Label>
+                  <Input
+                    placeholder="12345678"
+                    value={gameId}
+                    onChange={(e) => setGameId(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+                {needsServer && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium">Server</Label>
+                    <Input
+                      placeholder="1234"
+                      value={serverId}
+                      onChange={(e) => setServerId(e.target.value)}
+                      className="h-11"
                     />
                   </div>
-                  <span className={cn(
-                    "text-[10px] font-medium text-center leading-tight transition-colors",
-                    selectedGameCategory === cat.id ? "text-primary" : ""
-                  )}>
-                    {cat.name.split(" ")[0]}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Promo Banner */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 p-4">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-              <div className="relative flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-primary/20">
-                  <Zap className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-foreground mb-1">
-                    Quick Buy - Instant Delivery!
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Fast & secure top-up for all your favorite games
-                  </p>
-                </div>
+                )}
               </div>
-            </div>
+              <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
+                <Sparkles className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
+                Diamonds will be sent instantly to your in-game mailbox after payment confirmation.
+              </p>
+            </section>
 
-            {/* Products Grid */}
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="relative inline-block mb-6">
-                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                  <Gamepad2 className="relative h-16 w-16 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground font-medium">No products available</p>
-                <p className="text-sm text-muted-foreground/70 mt-1">Check back soon</p>
+            {/* Select Diamonds */}
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold">Select Diamonds</h3>
+                <span className="text-[11px] text-muted-foreground">{selectedGame.name}</span>
               </div>
-            ) : (
-              <div key={selectedGameCategory} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {filteredProducts.map((product, index) => (
-                  <Card
-                    key={product.id}
-                    className={cn(
-                      "card-neon overflow-hidden cursor-pointer transition-all duration-300",
-                      "hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
-                      "animate-stagger-in"
-                    )}
-                    style={{ animationDelay: `${index * 80}ms` }}
-                    onClick={() => handleBuyClick(product)}
-                  >
-                    <div className="aspect-square bg-muted/50 overflow-hidden">
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                        loading="lazy"
-                      />
-                    </div>
-                    <CardContent className="p-3 space-y-2">
-                      <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
-                      {(product as any).points_value > 0 && (
-                        <div className="flex items-center gap-1 text-xs text-amber-500 font-medium">
-                          <Sparkles className="h-3 w-3" />
-                          +{(product as any).points_value} coins
+              {gameProducts.length === 0 ? (
+                <div className="text-center py-10 rounded-2xl border border-dashed border-border/60">
+                  <p className="text-sm text-muted-foreground">No packages available</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {gameProducts.map((product) => {
+                    const active = selectedProduct?.id === product.id && showPurchaseDialog;
+                    return (
+                      <button
+                        key={product.id}
+                        onClick={() => handleSelectPackage(product)}
+                        className={cn(
+                          "w-full rounded-2xl border p-4 flex items-center justify-between transition-all text-left",
+                          active
+                            ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                            : "bg-card border-border/60 hover:border-primary/40 hover:shadow-sm"
+                        )}
+                      >
+                        <div>
+                          <p className={cn("font-bold text-base", active ? "text-primary-foreground" : "text-foreground")}>
+                            {product.name}
+                          </p>
+                          {product.points_value > 0 && (
+                            <p className={cn("text-xs font-semibold mt-0.5", active ? "text-primary-foreground/90" : "text-emerald-600")}>
+                              +{product.points_value} Points
+                            </p>
+                          )}
                         </div>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <p className="text-primary font-bold text-lg text-neon">
-                          {product.price.toLocaleString()}
-                          <span className="text-xs font-medium ml-1 text-muted-foreground">Ks</span>
+                        <p className={cn("text-base font-bold tabular-nums", active ? "text-primary-foreground" : "text-primary")}>
+                          {product.price.toLocaleString()} <span className="text-xs font-medium opacity-80">MMK</span>
                         </p>
-                        <Button size="sm" className="btn-neon h-8 px-3 text-xs gap-1">
-                          <Zap className="h-3 w-3" />
-                          Buy
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-5">
