@@ -16,6 +16,13 @@ interface Preset {
   thumbnail_url: string | null;
 }
 
+interface HistoryItem {
+  id: string;
+  prompt: string;
+  result_image_url: string | null;
+  created_at: string;
+}
+
 const AIPassport = () => {
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -27,6 +34,7 @@ const AIPassport = () => {
   const [usedToday, setUsedToday] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(5);
   const [result, setResult] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
     if (!user) return;
