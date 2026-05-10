@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,6 +45,18 @@ const Favourite = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || localStorage.getItem("favLastTab") || "games";
+  const [tab, setTab] = useState<string>(["games", "mobile", "photos"].includes(initialTab) ? initialTab : "games");
+
+  useEffect(() => {
+    localStorage.setItem("favLastTab", tab);
+    if (searchParams.get("tab") !== tab) {
+      const next = new URLSearchParams(searchParams);
+      next.set("tab", tab);
+      setSearchParams(next, { replace: true });
+    }
+  }, [tab]);
 
   useEffect(() => {
     if (user) {
@@ -237,7 +249,7 @@ const Favourite = () => {
         </header>
 
         <div className="max-w-screen-xl mx-auto p-4 pb-24">
-          <Tabs defaultValue="games" className="w-full">
+          <Tabs value={tab} onValueChange={setTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-5 h-12 bg-muted/50 p-1 rounded-2xl">
               <TabsTrigger
                 value="games"

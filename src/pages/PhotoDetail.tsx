@@ -49,6 +49,7 @@ const PhotoDetail = () => {
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadStage, setDownloadStage] = useState<"idle" | "fetching" | "extracting">("idle");
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [zipPhotos, setZipPhotos] = useState<ZipPhoto[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState<ZipPhoto | null>(null);
@@ -167,6 +168,7 @@ const PhotoDetail = () => {
     setDownloading(true);
     setDownloadStage("fetching");
     setDownloadProgress(0);
+    setDownloadError(null);
     try {
       const response = await fetch(photo.file_url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -223,18 +225,11 @@ const PhotoDetail = () => {
       setDownloadProgress(100);
     } catch (err: any) {
       console.error(err);
-      const width = 900, height = 600;
-      const left = (window.screen.width - width) / 2;
-      const top = (window.screen.height - height) / 2;
-      window.open(photo.file_url, "download_popup", `width=${width},height=${height},left=${left},top=${top}`);
-      toast({
-        title: "Direct download unavailable",
-        description: "Opened in a new window. VPN လိုအပ်ပါက ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။",
-        duration: 6000,
-      });
-    } finally {
-      setTimeout(() => { setDownloading(false); setDownloadProgress(0); setDownloadStage("idle"); }, 800);
+      setDownloadError(err?.message || "Download failed. Please check your connection or try a VPN.");
+      // keep overlay visible so the user can retry
+      return;
     }
+    setTimeout(() => { setDownloading(false); setDownloadProgress(0); setDownloadStage("idle"); }, 800);
   };
 
   const downloadBlob = (blob: Blob, filename: string) => {
@@ -602,18 +597,54 @@ const PhotoDetail = () => {
                 animate={{ scale: 1, y: 0 }}
                 className="w-full max-w-sm rounded-2xl border border-border/50 bg-card p-6 shadow-2xl"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Download className="h-5 w-5 text-primary animate-pulse" />
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${downloadError ? "bg-destructive/10" : "bg-primary/10"}`}>
+                    {downloadError ? (
+                      <ShieldAlert className="h-5 w-5 text-destructive" />
+                    ) : (
+                      <Download className="h-5 w-5 text-primary animate-pulse" />
+                    )}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {downloadStage === "extracting" ? "Extracting photos…" : "Downloading…"}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold truncate">
+                      {downloadError
+                        ? "Download failed"
+                        : downloadStage === "extracting"
+                        ? "Extracting photos…"
+                        : "Downloading ZIP…"}
                     </p>
-                    <p className="text-xs text-muted-foreground">{downloadProgress}% complete</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {photo?.client_name || "photo"}.zip
+                      {photo?.file_size ? ` • ${(photo.file_size / 1024 / 1024).toFixed(2)} MB` : ""}
+                    </p>
                   </div>
                 </div>
-                <Progress value={downloadProgress} className="h-2" />
+                {downloadError ? (
+                  <>
+                    <p className="text-xs text-destructive/90 mb-4 leading-relaxed">{downloadError}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-10 rounded-xl"
+                        onClick={() => { setDownloading(false); setDownloadError(null); setDownloadProgress(0); setDownloadStage("idle"); }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="flex-1 h-10 rounded-xl"
+                        onClick={() => { setDownloadError(null); performDownload(); }}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Retry
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-2">{downloadProgress}% complete</p>
+                    <Progress value={downloadProgress} className="h-2" />
+                  </>
+                )}
               </motion.div>
             </motion.div>
           )}

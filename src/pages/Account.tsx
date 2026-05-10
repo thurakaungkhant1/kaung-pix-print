@@ -69,6 +69,7 @@ const Account = () => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [spinnerOpen, setSpinnerOpen] = useState(false);
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
+  const [favCounts, setFavCounts] = useState({ games: 0, mobile: 0, photos: 0 });
   
   const [editingName, setEditingName] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
@@ -122,8 +123,25 @@ const Account = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); }
+    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); }
   }, [user]);
+
+  const loadFavCounts = async () => {
+    if (!user) return;
+    const GAME_CATS = ["MLBB Diamonds", "PUBG UC"];
+    const MOBILE_CATS = ["Phone Top-up", "Data Plans"];
+    const [{ data: prods }, { count: photoCount }] = await Promise.all([
+      supabase.from("favourite_products").select("products(category)").eq("user_id", user.id),
+      supabase.from("favourite_photos").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    ]);
+    let games = 0, mobile = 0;
+    (prods as any[] | null)?.forEach((row) => {
+      const cat = row?.products?.category;
+      if (GAME_CATS.includes(cat)) games++;
+      else if (MOBILE_CATS.includes(cat)) mobile++;
+    });
+    setFavCounts({ games, mobile, photos: photoCount || 0 });
+  };
 
   const loadWithdrawalSettings = async () => {
     const { data } = await supabase.from("withdrawal_settings").select("*").eq("enabled", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
@@ -532,7 +550,36 @@ const Account = () => {
                     <Separator className="my-0.5" />
                   </>
                 )}
-                <SettingItem icon={Heart} label="My Favourites" description="Saved products & photos" onClick={() => navigate("/favourite")} />
+                <SettingItem
+                  icon={Heart}
+                  label="My Favourites"
+                  description="Saved games, mobile & photos"
+                  onClick={() => {
+                    const last = localStorage.getItem("favLastTab") || "games";
+                    navigate(`/favourite?tab=${last}`);
+                  }}
+                  rightElement={
+                    <div className="flex items-center gap-1">
+                      {[
+                        { k: "games", v: favCounts.games, cls: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
+                        { k: "mobile", v: favCounts.mobile, cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+                        { k: "photos", v: favCounts.photos, cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400" },
+                      ].map((b) => (
+                        <span
+                          key={b.k}
+                          className={cn(
+                            "min-w-[22px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center",
+                            b.cls
+                          )}
+                          title={`${b.k}: ${b.v}`}
+                        >
+                          {b.v}
+                        </span>
+                      ))}
+                      <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />
+                    </div>
+                  }
+                />
                 <Separator className="my-0.5" />
                 <SettingItem icon={Camera} label="Photo Gallery" description="Browse all photos" onClick={() => navigate("/photo")} />
                 <Separator className="my-0.5" />
