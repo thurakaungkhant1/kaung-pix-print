@@ -109,6 +109,24 @@ const GamePage = () => {
     }
   }, [user]);
 
+  // Persist filter selections
+  useEffect(() => { localStorage.setItem("shopActiveTab", activeCategory); }, [activeCategory]);
+  useEffect(() => {
+    if (selectedGameCategory) localStorage.setItem("shopGameCat", selectedGameCategory);
+    else localStorage.removeItem("shopGameCat");
+  }, [selectedGameCategory]);
+  useEffect(() => {
+    if (selectedMobileService) localStorage.setItem("shopMobileCat", selectedMobileService);
+    else localStorage.removeItem("shopMobileCat");
+  }, [selectedMobileService]);
+
+  // Brief shimmer when switching mobile/game filters for snappier feedback
+  useEffect(() => {
+    setFilterLoading(true);
+    const t = setTimeout(() => setFilterLoading(false), 280);
+    return () => clearTimeout(t);
+  }, [selectedGameCategory, selectedMobileService, activeCategory]);
+
   const loadWalletBalance = async () => {
     if (!user) return;
     const { data } = await supabase
