@@ -106,7 +106,7 @@ interface Order {
   game_id: string | null;
   server_id: string | null;
   game_name: string | null;
-  products?: { name: string };
+  products?: { name: string; category?: string | null };
   profiles?: { name: string; email: string | null; phone_number: string };
 }
 
@@ -164,6 +164,7 @@ const AdminDashboard = () => {
   const [diamondStatusData, setDiamondStatusData] = useState<OrderStatusData[]>([]);
   const [userGrowthData, setUserGrowthData] = useState<UserGrowthData[]>([]);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [orderTypeFilter, setOrderTypeFilter] = useState<"game" | "mobile">("game");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [diamondOrders, setDiamondOrders] = useState<Order[]>([]);
@@ -691,7 +692,7 @@ const AdminDashboard = () => {
   const loadOrders = async () => {
     const { data: ordersData } = await supabase
       .from("orders")
-      .select(`*, products(name)`)
+      .select(`*, products(name, category)`)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -831,8 +832,15 @@ const AdminDashboard = () => {
       u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const GAME_ORDER_CATS = ["MLBB Diamonds", "PUBG UC"];
+  const MOBILE_ORDER_CATS = ["Phone Top-up", "Data Plans"];
   const filteredOrders = orders.filter((o) => {
     const query = searchQuery.toLowerCase();
+    const cat = o.products?.category || "";
+    const matchesType = orderTypeFilter === "game"
+      ? GAME_ORDER_CATS.includes(cat)
+      : MOBILE_ORDER_CATS.includes(cat);
+    if (!matchesType) return false;
     return (
       o.id.toLowerCase().includes(query) ||
       o.products?.name?.toLowerCase().includes(query) ||
@@ -876,8 +884,6 @@ const AdminDashboard = () => {
       label: "Finance",
       items: [
         { id: "deposits", label: "Deposits", icon: Wallet, badge: 0, route: "/admin/deposits" },
-        { id: "point-management", label: "Points", icon: Coins, badge: 0 },
-        { id: "point-history", label: "Point History", icon: History, badge: 0 },
       ]
     },
     {
@@ -1005,7 +1011,7 @@ const AdminDashboard = () => {
                 )}
               </button>
 
-              {(activeTab === "users" || activeTab === "orders" || activeTab === "diamond-orders" || activeTab === "point-management" || activeTab === "point-history") && (
+              {(activeTab === "users" || activeTab === "orders" || activeTab === "diamond-orders") && (
                 <div className="relative w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -1537,243 +1543,32 @@ const AdminDashboard = () => {
             </Card>
           )}
 
-          {/* Point Management Tab */}
-          {activeTab === "point-management" && (
-            <Card className="premium-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Coins className="h-5 w-5 text-primary" />
-                  Point Management ({filteredUsers.length} Users)
-                </CardTitle>
-                <CardDescription>
-                  View and manage user points. Click "Edit Points" to add or subtract points from a user's balance.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Current Points</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers.map((profile) => (
-                        <TableRow key={profile.id}>
-                          <TableCell className="font-medium">{profile.name}</TableCell>
-                          <TableCell>{profile.email || "-"}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Coins className="h-4 w-4 text-primary" />
-                              <span className="font-semibold text-primary">{profile.points.toLocaleString()}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {profile.created_at
-                              ? new Date(profile.created_at).toLocaleDateString()
-                              : "-"}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              size="sm"
-                              onClick={() => openEditPointsModal(profile)}
-                              className="gap-1"
-                            >
-                              <Coins className="h-4 w-4" />
-                              Edit Points
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Point History Tab */}
-          {activeTab === "point-history" && (
-            <Card className="premium-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <History className="h-5 w-5 text-primary" />
-                  Point Transaction History
-                </CardTitle>
-                <CardDescription>
-                  View all point adjustments including purchases, referrals, spins, and admin changes.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Date Range Filters */}
-                <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Filter by date:</span>
-                  </div>
-                  
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                          "w-[140px] justify-start text-left font-normal",
-                          !historyDateFrom && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {historyDateFrom ? format(historyDateFrom, "MMM d, yyyy") : "From"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={historyDateFrom}
-                        onSelect={setHistoryDateFrom}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  <span className="text-muted-foreground">to</span>
-
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                          "w-[140px] justify-start text-left font-normal",
-                          !historyDateTo && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {historyDateTo ? format(historyDateTo, "MMM d, yyyy") : "To"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={historyDateTo}
-                        onSelect={setHistoryDateTo}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  {(historyDateFrom || historyDateTo) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setHistoryDateFrom(undefined);
-                        setHistoryDateTo(undefined);
-                      }}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Clear
-                    </Button>
-                  )}
-                </div>
-
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Description</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pointTransactions
-                        .filter(t => {
-                          // Search filter
-                          if (searchQuery) {
-                            const query = searchQuery.toLowerCase();
-                            const matchesSearch = 
-                              t.profiles?.name?.toLowerCase().includes(query) ||
-                              t.profiles?.email?.toLowerCase().includes(query) ||
-                              t.transaction_type?.toLowerCase().includes(query) ||
-                              t.description?.toLowerCase().includes(query);
-                            if (!matchesSearch) return false;
-                          }
-                          
-                          // Date range filter
-                          if (t.created_at) {
-                            const transactionDate = new Date(t.created_at);
-                            if (historyDateFrom) {
-                              const startOfFrom = new Date(historyDateFrom);
-                              startOfFrom.setHours(0, 0, 0, 0);
-                              if (transactionDate < startOfFrom) return false;
-                            }
-                            if (historyDateTo) {
-                              const endOfTo = new Date(historyDateTo);
-                              endOfTo.setHours(23, 59, 59, 999);
-                              if (transactionDate > endOfTo) return false;
-                            }
-                          }
-                          
-                          return true;
-                        })
-                        .map((transaction) => (
-                          <TableRow key={transaction.id}>
-                            <TableCell className="text-sm">
-                              {transaction.created_at
-                                ? new Date(transaction.created_at).toLocaleString()
-                                : "-"}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{transaction.profiles?.name || "Unknown"}</span>
-                                <span className="text-xs text-muted-foreground">{transaction.profiles?.email || "-"}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={
-                                transaction.transaction_type === "admin_adjustment" ? "default" :
-                                transaction.transaction_type === "purchase" ? "secondary" :
-                                transaction.transaction_type === "referral" ? "outline" :
-                                transaction.transaction_type === "spin" ? "outline" :
-                                "secondary"
-                              }>
-                                {transaction.transaction_type.replace(/_/g, " ")}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <span className={cn(
-                                "font-semibold",
-                                transaction.amount > 0 ? "text-green-500" : "text-destructive"
-                              )}>
-                                {transaction.amount > 0 ? "+" : ""}{transaction.amount}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                              {transaction.description || "-"}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {activeTab === "orders" && (
             <>
+              <div className="flex gap-2 mb-4">
+                <Button
+                  variant={orderTypeFilter === "game" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setOrderTypeFilter("game")}
+                  className="gap-2"
+                >
+                  <Gamepad2 className="h-4 w-4" /> Game Orders
+                </Button>
+                <Button
+                  variant={orderTypeFilter === "mobile" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setOrderTypeFilter("mobile")}
+                  className="gap-2"
+                >
+                  <Phone className="h-4 w-4" /> Mobile Orders
+                </Button>
+              </div>
               <Card className="premium-card">
                 <CardHeader>
-                  <CardTitle>All Orders ({filteredOrders.length})</CardTitle>
+                  <CardTitle>
+                    {orderTypeFilter === "game" ? "Game Orders" : "Mobile Orders"} ({filteredOrders.length})
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
