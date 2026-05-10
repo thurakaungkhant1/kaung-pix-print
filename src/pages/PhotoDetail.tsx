@@ -49,6 +49,7 @@ const PhotoDetail = () => {
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadStage, setDownloadStage] = useState<"idle" | "fetching" | "extracting">("idle");
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [zipPhotos, setZipPhotos] = useState<ZipPhoto[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState<ZipPhoto | null>(null);
