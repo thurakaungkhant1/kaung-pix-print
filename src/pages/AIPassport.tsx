@@ -90,17 +90,22 @@ const AIPassport = () => {
     setSourceFile(null);
     setSourcePreview(null);
     setResult(null);
+    setErrorMsg(null);
   };
 
   const generate = async () => {
-    if (!sourceFile || !selected || !user) {
-      toast.error("Please upload your photo first");
+    if (!selected) return;
+    if (!sourceFile || !user) {
+      setErrorMsg("Please upload your front-facing photo first.");
+      toast.error("Upload your photo");
       return;
     }
     if (remaining === 0) {
-      toast.error(`Daily limit reached (${dailyLimit}/day)`);
+      setErrorMsg(`Daily limit reached (${dailyLimit}/day). Try again tomorrow.`);
+      toast.error("Daily limit reached");
       return;
     }
+    setErrorMsg(null);
     setLoading(true);
     setResult(null);
     try {
@@ -116,15 +121,28 @@ const AIPassport = () => {
       const { data, error } = await supabase.functions.invoke("ai-generate-photo", {
         body: { prompt: selected.prompt, source_image_url: signed?.signedUrl },
       });
-      if (error) throw error;
+      if (error) {
+        let msg = error.message ?? "Generation failed";
+        try {
+          const ctx: Response | undefined = (error as any).context;
+          if (ctx) {
+            const j = await ctx.clone().json();
+            if (j?.error) msg = j.error;
+          }
+        } catch {}
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
+      if (!data?.result_image_url) throw new Error("No image was returned. Please try a different photo.");
 
       setResult(data.result_image_url);
       setUsedToday(data.used_today);
       if (data.generation) setHistory((h) => [data.generation as HistoryItem, ...h].slice(0, 12));
       toast.success("Passport photo ready!");
     } catch (e: any) {
-      toast.error(e.message ?? "Generation failed");
+      const msg = e.message ?? "Generation failed";
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
