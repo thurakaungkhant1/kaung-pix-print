@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import SpinnerWheel from "@/components/SpinnerWheel";
+
 import ReferralSection from "@/components/ReferralSection";
 import { cn } from "@/lib/utils";
 import { ImageCropper } from "@/components/ImageCropper";
@@ -67,7 +67,7 @@ const Account = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [spinnerOpen, setSpinnerOpen] = useState(false);
+  
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
   const [favCounts, setFavCounts] = useState({ games: 0, mobile: 0, photos: 0 });
   
@@ -552,7 +552,7 @@ const Account = () => {
         </Tabs>
       </div>
 
-      <SpinnerWheel open={spinnerOpen} onOpenChange={setSpinnerOpen} onPointsWon={() => loadProfile()} />
+      
 
       {imageToCrop && (
         <ImageCropper open={cropperOpen} onOpenChange={(open) => { setCropperOpen(open); if (!open) setImageToCrop(null); }} imageSrc={imageToCrop} onCropComplete={handleCropComplete} aspectRatio={1} />
