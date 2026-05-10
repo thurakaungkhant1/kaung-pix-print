@@ -35,6 +35,7 @@ const AIPassport = () => {
   const [dailyLimit, setDailyLimit] = useState(5);
   const [result, setResult] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
