@@ -91,9 +91,10 @@ const GamePage = () => {
   const [serverId, setServerId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [purchasing, setPurchasing] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("games");
-  const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(null);
-  const [selectedMobileService, setSelectedMobileService] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>(() => localStorage.getItem("shopActiveTab") || "games");
+  const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(() => localStorage.getItem("shopGameCat"));
+  const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
+  const [filterLoading, setFilterLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const { user } = useAuth();
   const { toast } = useToast();
