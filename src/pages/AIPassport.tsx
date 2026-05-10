@@ -349,10 +349,27 @@ const AIPassport = () => {
                     </button>
                   )}
 
+                  {!sourceFile && !errorMsg && (
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5" /> Upload a photo to enable Create.
+                    </p>
+                  )}
+
+                  {errorMsg && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2.5 text-xs flex items-start gap-2"
+                    >
+                      <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span className="leading-relaxed">{errorMsg}</span>
+                    </motion.div>
+                  )}
+
                   <Button
                     onClick={generate}
                     disabled={loading || !sourceFile || remaining === 0}
-                    className="w-full h-12 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold"
+                    className="w-full h-12 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all"
                   >
                     {loading ? (
                       <>
@@ -365,7 +382,7 @@ const AIPassport = () => {
                     )}
                   </Button>
                   <p className="text-[11px] text-center text-muted-foreground">
-                    Free • {remaining}/{dailyLimit} left today
+                    Free • {remaining}/{dailyLimit} left today · Takes ~15-30s
                   </p>
                 </>
               )}
