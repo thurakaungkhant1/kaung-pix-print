@@ -163,30 +163,46 @@ const AIPassport = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40">
-        <div className="flex items-center gap-3 px-4 h-14">
-          <Link to="/ai" className="p-2 -ml-2 rounded-full hover:bg-accent">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/40 via-background to-background dark:from-emerald-950/20 pb-24">
+      <header className="sticky top-0 z-40 bg-background/70 backdrop-blur-xl border-b border-border/40">
+        <div className="flex items-center gap-3 px-4 h-16 max-w-md mx-auto">
+          <Link
+            to="/ai"
+            className="p-2 -ml-2 rounded-xl hover:bg-accent active:scale-95 transition-all"
+            aria-label="Back"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="flex items-center gap-2 flex-1">
-            <IdCard className="w-5 h-5 text-emerald-500" />
-            <h1 className="font-semibold">Passport Photo Maker</h1>
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <IdCard className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-semibold text-sm leading-tight truncate">Passport Photo</h1>
+              <p className="text-[10px] text-muted-foreground leading-tight">AI portrait studio</p>
+            </div>
           </div>
-          <div className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-medium">
+          <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20">
             <Sparkles className="w-3 h-3" />
             {remaining}/{dailyLimit}
           </div>
         </div>
       </header>
 
-      <div className="px-4 py-5 max-w-md mx-auto space-y-4">
-        <div>
-          <h2 className="font-semibold text-base mb-1">Choose a style</h2>
-          <p className="text-xs text-muted-foreground">
-            Tap any sample → upload your photo → instantly get the matching passport-style portrait.
+      <div className="px-4 py-5 max-w-md mx-auto space-y-5">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl p-4 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20"
+        >
+          <h2 className="font-semibold text-sm mb-1 flex items-center gap-1.5">
+            <ImagePlus className="w-4 h-4 text-emerald-600" />
+            Choose a style
+          </h2>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Pick a sample → upload your photo → get the matching passport-style portrait instantly.
           </p>
-        </div>
+        </motion.div>
 
         {presets.length === 0 ? (
           <div className="text-xs text-muted-foreground p-6 border border-dashed rounded-xl text-center">
