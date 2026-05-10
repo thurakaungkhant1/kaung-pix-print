@@ -89,7 +89,8 @@ const Home = () => {
   const [recentPhotos, setRecentPhotos] = useState<any[]>([]);
   
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [photosLoading, setPhotosLoading] = useState(true);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
