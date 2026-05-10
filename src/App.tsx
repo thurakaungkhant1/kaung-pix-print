@@ -208,6 +208,8 @@ const App = () => {
                 <Route path="/ai/photo" element={<ProtectedRoute><AIPhoto /></ProtectedRoute>} />
                 <Route path="/ai/invitation" element={<ProtectedRoute><AIInvitation /></ProtectedRoute>} />
                 <Route path="/ai/gift" element={<ProtectedRoute><AIGift /></ProtectedRoute>} />
+                <Route path="/ai/passport" element={<ProtectedRoute><AIPassport /></ProtectedRoute>} />
+                <Route path="/admin/passport-prompts" element={<ProtectedAdminRoute><PassportPromptsManage /></ProtectedAdminRoute>} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/photo/:id" element={<PhotoDetail />} />
                 <Route
