@@ -1,43 +1,38 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, Coins, IdCard, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, IdCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/BottomNav";
-import { cn } from "@/lib/utils";
 
 interface Preset {
   id: string;
   name: string;
   description: string | null;
   prompt: string;
+  thumbnail_url: string | null;
 }
 
 const AIPassport = () => {
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const [presets, setPresets] = useState<Preset[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Preset | null>(null);
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [sourcePreview, setSourcePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [usedToday, setUsedToday] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(5);
-  const [photoCost, setPhotoCost] = useState(50);
   const [result, setResult] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
       const [{ data: settings }, { data: today }, { data: list }] = await Promise.all([
-        supabase
-          .from("ai_usage_settings")
-          .select("photo_cost_coins, daily_photo_limit")
-          .limit(1)
-          .maybeSingle(),
+        supabase.from("ai_usage_settings").select("daily_photo_limit").limit(1).maybeSingle(),
         (async () => {
           const start = new Date();
           start.setHours(0, 0, 0, 0);
@@ -49,18 +44,13 @@ const AIPassport = () => {
         })(),
         supabase
           .from("passport_photo_prompts")
-          .select("id, name, description, prompt")
+          .select("id, name, description, prompt, thumbnail_url")
           .eq("is_active", true)
           .order("display_order", { ascending: true }),
       ]);
-      if (settings) {
-        setPhotoCost(settings.photo_cost_coins);
-        setDailyLimit(settings.daily_photo_limit);
-      }
+      if (settings) setDailyLimit(settings.daily_photo_limit);
       setUsedToday(today?.length ?? 0);
-      const presetList = (list as Preset[]) ?? [];
-      setPresets(presetList);
-      if (presetList.length > 0) setSelectedId(presetList[0].id);
+      setPresets((list as Preset[]) ?? []);
     })();
   }, [user]);
 
@@ -77,15 +67,18 @@ const AIPassport = () => {
   };
 
   const remaining = Math.max(0, dailyLimit - usedToday);
-  const selected = presets.find((p) => p.id === selectedId);
+
+  const closeModal = () => {
+    if (loading) return;
+    setSelected(null);
+    setSourceFile(null);
+    setSourcePreview(null);
+    setResult(null);
+  };
 
   const generate = async () => {
-    if (!sourceFile) {
+    if (!sourceFile || !selected || !user) {
       toast.error("Please upload your photo first");
-      return;
-    }
-    if (!selected) {
-      toast.error("Please select a passport style");
       return;
     }
     if (remaining === 0) {
@@ -95,7 +88,6 @@ const AIPassport = () => {
     setLoading(true);
     setResult(null);
     try {
-      if (!user) throw new Error("Not signed in");
       const path = `${user.id}/passport-${Date.now()}-${sourceFile.name}`;
       const { error: upErr } = await supabase.storage
         .from("ai-uploads")
@@ -113,7 +105,7 @@ const AIPassport = () => {
 
       setResult(data.result_image_url);
       setUsedToday(data.used_today);
-      toast.success(`Passport photo ready! -${data.cost_coins} coins`);
+      toast.success("Passport photo ready!");
     } catch (e: any) {
       toast.error(e.message ?? "Generation failed");
     } finally {
@@ -153,117 +145,169 @@ const AIPassport = () => {
         </div>
       </header>
 
-      <div className="px-4 py-5 max-w-md mx-auto space-y-5">
-        {/* Upload */}
+      <div className="px-4 py-5 max-w-md mx-auto space-y-4">
         <div>
-          <label className="text-sm font-medium mb-2 block">Your photo</label>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-          />
-          {sourcePreview ? (
-            <div className="relative rounded-xl overflow-hidden border border-border">
-              <img src={sourcePreview} alt="source" className="w-full h-56 object-cover" />
-              <button
-                onClick={() => {
-                  setSourceFile(null);
-                  setSourcePreview(null);
-                }}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur"
+          <h2 className="font-semibold text-base mb-1">Choose a style</h2>
+          <p className="text-xs text-muted-foreground">
+            Tap any sample → upload your photo → instantly get the matching passport-style portrait.
+          </p>
+        </div>
+
+        {presets.length === 0 ? (
+          <div className="text-xs text-muted-foreground p-6 border border-dashed rounded-xl text-center">
+            No styles available yet. Please check back soon.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {presets.map((p) => (
+              <motion.button
+                key={p.id}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setSelected(p)}
+                className="group relative rounded-2xl overflow-hidden border border-border bg-card hover:border-emerald-500/50 transition shadow-sm hover:shadow-lg text-left"
               >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="w-full h-40 rounded-xl border-2 border-dashed border-border hover:border-emerald-500/50 flex flex-col items-center justify-center gap-2 text-muted-foreground transition-colors"
-            >
-              <Upload className="w-7 h-7" />
-              <span className="text-xs font-medium">Upload a clear front-facing photo</span>
-              <span className="text-[10px] text-muted-foreground/70">JPG / PNG, up to 10MB</span>
-            </button>
-          )}
-        </div>
-
-        {/* Presets */}
-        <div>
-          <label className="text-sm font-medium mb-2 block">Choose a style</label>
-          {presets.length === 0 ? (
-            <div className="text-xs text-muted-foreground p-4 border border-dashed rounded-xl text-center">
-              No styles available yet. Please check back soon.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              {presets.map((p) => {
-                const active = p.id === selectedId;
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => setSelectedId(p.id)}
-                    className={cn(
-                      "relative text-left p-3 rounded-xl border transition-all",
-                      active
-                        ? "border-emerald-500 bg-emerald-500/10 shadow-md"
-                        : "border-border bg-card/50 hover:border-emerald-500/40"
-                    )}
-                  >
-                    {active && (
-                      <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" />
-                      </span>
-                    )}
-                    <p className="font-semibold text-xs leading-snug mb-1">{p.name}</p>
-                    {p.description && (
-                      <p className="text-[10px] text-muted-foreground line-clamp-2">{p.description}</p>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <Button
-          onClick={generate}
-          disabled={loading || !sourceFile || !selected || remaining === 0}
-          className="w-full h-12 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating passport photo...
-            </>
-          ) : (
-            <>
-              <IdCard className="w-4 h-4 mr-2" />
-              Create Passport Photo
-              <span className="ml-2 inline-flex items-center gap-1 text-xs opacity-90">
-                <Coins className="w-3 h-3" /> {photoCost}
-              </span>
-            </>
-          )}
-        </Button>
-
-        {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl overflow-hidden border border-border bg-card"
-          >
-            <img src={result} alt="passport" className="w-full" />
-            <Button
-              onClick={() => download(result)}
-              variant="secondary"
-              className="w-full rounded-none"
-            >
-              <Download className="w-4 h-4 mr-2" /> Download
-            </Button>
-          </motion.div>
+                <div className="aspect-[3/4] bg-muted overflow-hidden">
+                  {p.thumbnail_url ? (
+                    <img
+                      src={p.thumbnail_url}
+                      alt={p.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/50">
+                      <IdCard className="w-10 h-10" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-2.5">
+                  <p className="text-xs font-semibold leading-snug truncate">{p.name}</p>
+                  {p.description && (
+                    <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{p.description}</p>
+                  )}
+                </div>
+              </motion.button>
+            ))}
+          </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center"
+            onClick={closeModal}
+          >
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 30, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-background rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-16 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                  {selected.thumbnail_url && (
+                    <img src={selected.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm">{selected.name}</h3>
+                  {selected.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">{selected.description}</p>
+                  )}
+                </div>
+                <button onClick={closeModal} className="p-1.5 rounded-full hover:bg-accent">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {!result && (
+                <>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+                  />
+                  {sourcePreview ? (
+                    <div className="relative rounded-xl overflow-hidden border border-border">
+                      <img src={sourcePreview} alt="source" className="w-full h-56 object-cover" />
+                      <button
+                        onClick={() => {
+                          setSourceFile(null);
+                          setSourcePreview(null);
+                        }}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => fileRef.current?.click()}
+                      className="w-full h-44 rounded-xl border-2 border-dashed border-border hover:border-emerald-500/50 flex flex-col items-center justify-center gap-2 text-muted-foreground transition-colors"
+                    >
+                      <Upload className="w-7 h-7" />
+                      <span className="text-xs font-medium">Upload your front-facing photo</span>
+                      <span className="text-[10px] text-muted-foreground/70">JPG / PNG, up to 10MB</span>
+                    </button>
+                  )}
+
+                  <Button
+                    onClick={generate}
+                    disabled={loading || !sourceFile || remaining === 0}
+                    className="w-full h-12 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" /> Create Passport Photo
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-[11px] text-center text-muted-foreground">
+                    Free • {remaining}/{dailyLimit} left today
+                  </p>
+                </>
+              )}
+
+              {result && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-xl overflow-hidden border border-border bg-card"
+                >
+                  <img src={result} alt="passport" className="w-full" />
+                  <div className="grid grid-cols-2">
+                    <Button
+                      onClick={() => {
+                        setResult(null);
+                        setSourceFile(null);
+                        setSourcePreview(null);
+                      }}
+                      variant="secondary"
+                      className="rounded-none"
+                    >
+                      Try again
+                    </Button>
+                    <Button onClick={() => download(result)} className="rounded-none">
+                      <Download className="w-4 h-4 mr-2" /> Download
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <BottomNav />
     </div>
