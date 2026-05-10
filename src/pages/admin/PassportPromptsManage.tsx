@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Upload, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,28 @@ const PassportPromptsManage = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | "new" | null>(null);
   const [draft, setDraft] = useState<typeof empty>(empty);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const uploadThumb = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `passport-thumbs/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage
+        .from("ai-photos")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from("ai-photos").getPublicUrl(path);
+      setDraft((d) => ({ ...d, thumbnail_url: data.publicUrl }));
+      toast.success("Thumbnail uploaded");
+    } catch (e: any) {
+      toast.error(e.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -131,18 +153,55 @@ const PassportPromptsManage = () => {
               value={draft.description}
               onChange={(e) => setDraft({ ...draft, description: e.target.value })}
             />
-            <Input
-              placeholder="Thumbnail image URL (https://...)"
-              value={draft.thumbnail_url}
-              onChange={(e) => setDraft({ ...draft, thumbnail_url: e.target.value })}
-            />
-            {draft.thumbnail_url && (
-              <img
-                src={draft.thumbnail_url}
-                alt=""
-                className="w-20 h-28 object-cover rounded-lg border border-border"
+            <div className="space-y-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) uploadThumb(f);
+                  e.target.value = "";
+                }}
               />
-            )}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
+                  {uploading ? "Uploading..." : "Upload thumbnail"}
+                </Button>
+                {draft.thumbnail_url && (
+                  <button
+                    type="button"
+                    onClick={() => setDraft({ ...draft, thumbnail_url: "" })}
+                    className="text-[11px] text-muted-foreground underline"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              <Input
+                placeholder="Or paste a thumbnail image URL"
+                value={draft.thumbnail_url}
+                onChange={(e) => setDraft({ ...draft, thumbnail_url: e.target.value })}
+              />
+              {draft.thumbnail_url && (
+                <div className="rounded-lg border border-border bg-muted/40 p-2 inline-block">
+                  <img
+                    src={draft.thumbnail_url}
+                    alt="preview"
+                    className="w-24 h-32 object-cover rounded-md"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1 text-center">Preview</p>
+                </div>
+              )}
+            </div>
             <Textarea
               placeholder="AI prompt — describe exactly how the passport photo should look"
               rows={6}

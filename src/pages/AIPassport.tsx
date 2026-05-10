@@ -16,6 +16,13 @@ interface Preset {
   thumbnail_url: string | null;
 }
 
+interface HistoryItem {
+  id: string;
+  prompt: string;
+  result_image_url: string | null;
+  created_at: string;
+}
+
 const AIPassport = () => {
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -27,6 +34,7 @@ const AIPassport = () => {
   const [usedToday, setUsedToday] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(5);
   const [result, setResult] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -51,6 +59,13 @@ const AIPassport = () => {
       if (settings) setDailyLimit(settings.daily_photo_limit);
       setUsedToday(today?.length ?? 0);
       setPresets((list as Preset[]) ?? []);
+      const { data: hist } = await supabase
+        .from("ai_photo_generations")
+        .select("id, prompt, result_image_url, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      setHistory((hist as HistoryItem[]) ?? []);
     })();
   }, [user]);
 
@@ -105,6 +120,7 @@ const AIPassport = () => {
 
       setResult(data.result_image_url);
       setUsedToday(data.used_today);
+      if (data.generation) setHistory((h) => [data.generation as HistoryItem, ...h].slice(0, 12));
       toast.success("Passport photo ready!");
     } catch (e: any) {
       toast.error(e.message ?? "Generation failed");
@@ -188,6 +204,46 @@ const AIPassport = () => {
                 </div>
               </motion.button>
             ))}
+          </div>
+        )}
+
+        {history.length > 0 && (
+          <div className="pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-base">Recent creations</h2>
+              <span className="text-[11px] text-muted-foreground">{history.length}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {history.map((g) =>
+                g.result_image_url ? (
+                  <motion.div
+                    key={g.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="relative group rounded-xl overflow-hidden border border-border bg-muted aspect-[3/4]"
+                  >
+                    <img
+                      src={g.result_image_url}
+                      alt={g.prompt}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={() => download(g.result_image_url!)}
+                      className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition pb-2"
+                      title="Download"
+                    >
+                      <span className="text-[10px] font-medium text-white inline-flex items-center gap-1 bg-black/40 backdrop-blur px-2 py-1 rounded-full">
+                        <Download className="w-3 h-3" /> Save
+                      </span>
+                    </button>
+                    <span className="absolute top-1 left-1 text-[9px] px-1.5 py-0.5 rounded-full bg-black/50 text-white backdrop-blur">
+                      {new Date(g.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    </span>
+                  </motion.div>
+                ) : null
+              )}
+            </div>
           </div>
         )}
       </div>
