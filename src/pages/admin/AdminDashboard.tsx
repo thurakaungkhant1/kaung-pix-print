@@ -48,6 +48,7 @@ import {
   Zap,
   Wallet,
   Megaphone,
+  Sparkles,
 } from "lucide-react";
 import {
   Dialog,
