@@ -913,6 +913,7 @@ export type Database = {
           is_active: boolean
           name: string
           prompt: string
+          thumbnail_url: string | null
           updated_at: string
         }
         Insert: {
@@ -923,6 +924,7 @@ export type Database = {
           is_active?: boolean
           name: string
           prompt: string
+          thumbnail_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -933,6 +935,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           prompt?: string
+          thumbnail_url?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1106,6 +1109,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      popular_prompts: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          prompt: string
+          thumbnail_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          prompt: string
+          thumbnail_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          prompt?: string
+          thumbnail_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       premium_memberships: {
         Row: {

@@ -8,20 +8,29 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 
-interface Preset {
+interface Item {
   id: string;
-  name: string;
+  title: string;
   description: string | null;
+  thumbnail_url: string;
   prompt: string;
-  thumbnail_url: string | null;
+  category: string | null;
   display_order: number;
   is_active: boolean;
 }
 
-const empty = { name: "", description: "", prompt: "", thumbnail_url: "", display_order: 0, is_active: true };
+const empty = {
+  title: "",
+  description: "",
+  thumbnail_url: "",
+  prompt: "",
+  category: "general",
+  display_order: 0,
+  is_active: true,
+};
 
-const PassportPromptsManage = () => {
-  const [items, setItems] = useState<Preset[]>([]);
+const PopularPromptsManage = () => {
+  const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | "new" | null>(null);
   const [draft, setDraft] = useState<typeof empty>(empty);
@@ -29,10 +38,10 @@ const PassportPromptsManage = () => {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from("passport_photo_prompts")
+      .from("popular_prompts")
       .select("*")
       .order("display_order", { ascending: true });
-    setItems((data as Preset[]) ?? []);
+    setItems((data as Item[]) ?? []);
     setLoading(false);
   };
 
@@ -40,51 +49,48 @@ const PassportPromptsManage = () => {
     load();
   }, []);
 
-  const startEdit = (p: Preset) => {
+  const startEdit = (p: Item) => {
     setEditing(p.id);
     setDraft({
-      name: p.name,
+      title: p.title,
       description: p.description ?? "",
+      thumbnail_url: p.thumbnail_url,
       prompt: p.prompt,
-      thumbnail_url: p.thumbnail_url ?? "",
+      category: p.category ?? "general",
       display_order: p.display_order,
       is_active: p.is_active,
     });
   };
 
   const save = async () => {
-    if (!draft.name.trim() || !draft.prompt.trim()) {
-      toast.error("Name and prompt required");
+    if (!draft.title.trim() || !draft.prompt.trim() || !draft.thumbnail_url.trim()) {
+      toast.error("Title, thumbnail URL and prompt are required");
       return;
     }
     const payload = {
-      name: draft.name.trim(),
+      title: draft.title.trim(),
       description: draft.description.trim() || null,
+      thumbnail_url: draft.thumbnail_url.trim(),
       prompt: draft.prompt.trim(),
-      thumbnail_url: draft.thumbnail_url.trim() || null,
+      category: draft.category.trim() || "general",
       display_order: draft.display_order || 0,
       is_active: draft.is_active,
     };
-    if (editing === "new") {
-      const { error } = await supabase.from("passport_photo_prompts").insert(payload);
-      if (error) return toast.error(error.message);
-      toast.success("Created");
-    } else if (editing) {
-      const { error } = await supabase
-        .from("passport_photo_prompts")
-        .update(payload)
-        .eq("id", editing);
-      if (error) return toast.error(error.message);
-      toast.success("Updated");
-    }
+    const op =
+      editing === "new"
+        ? supabase.from("popular_prompts").insert(payload)
+        : supabase.from("popular_prompts").update(payload).eq("id", editing!);
+    const { error } = await op;
+    if (error) return toast.error(error.message);
+    toast.success(editing === "new" ? "Created" : "Updated");
     setEditing(null);
     setDraft(empty);
     load();
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Delete this preset?")) return;
-    const { error } = await supabase.from("passport_photo_prompts").delete().eq("id", id);
+    if (!confirm("Delete this prompt?")) return;
+    const { error } = await supabase.from("popular_prompts").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Deleted");
     load();
@@ -97,7 +103,7 @@ const PassportPromptsManage = () => {
           <Link to="/admin" className="p-2 -ml-2 rounded-full hover:bg-accent">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="font-semibold flex-1">Passport Photo Prompts</h1>
+          <h1 className="font-semibold flex-1">Popular Prompts</h1>
           <Button
             size="sm"
             onClick={() => {
@@ -115,19 +121,19 @@ const PassportPromptsManage = () => {
           <div className="rounded-xl border border-primary/40 bg-card p-4 space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-sm">
-                {editing === "new" ? "New preset" : "Edit preset"}
+                {editing === "new" ? "New prompt" : "Edit prompt"}
               </h2>
               <button onClick={() => setEditing(null)}>
                 <X className="w-4 h-4" />
               </button>
             </div>
             <Input
-              placeholder="Preset name (e.g. White Background)"
-              value={draft.name}
-              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              placeholder="Title"
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
             />
             <Input
-              placeholder="Short description"
+              placeholder="Short description (optional)"
               value={draft.description}
               onChange={(e) => setDraft({ ...draft, description: e.target.value })}
             />
@@ -140,20 +146,26 @@ const PassportPromptsManage = () => {
               <img
                 src={draft.thumbnail_url}
                 alt=""
-                className="w-20 h-28 object-cover rounded-lg border border-border"
+                className="w-24 h-32 object-cover rounded-lg border border-border"
               />
             )}
             <Textarea
-              placeholder="AI prompt — describe exactly how the passport photo should look"
-              rows={6}
+              placeholder="The full AI prompt (users will copy this exactly)"
+              rows={5}
               value={draft.prompt}
               onChange={(e) => setDraft({ ...draft, prompt: e.target.value })}
             />
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <Input
+                placeholder="Category"
+                className="w-32"
+                value={draft.category}
+                onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+              />
               <Input
                 type="number"
                 placeholder="Order"
-                className="w-24"
+                className="w-20"
                 value={draft.display_order}
                 onChange={(e) =>
                   setDraft({ ...draft, display_order: parseInt(e.target.value) || 0 })
@@ -176,41 +188,36 @@ const PassportPromptsManage = () => {
         {loading ? (
           <p className="text-sm text-muted-foreground text-center py-8">Loading…</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">No presets yet.</p>
+          <p className="text-sm text-muted-foreground text-center py-8">No prompts yet.</p>
         ) : (
           items.map((p) => (
-            <div key={p.id} className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-start justify-between gap-3">
-                {p.thumbnail_url && (
-                  <img
-                    src={p.thumbnail_url}
-                    alt=""
-                    className="w-14 h-18 object-cover rounded-md flex-shrink-0 bg-muted"
-                  />
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-sm">{p.name}</h3>
-                    {!p.is_active && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                        inactive
-                      </span>
-                    )}
-                    <span className="text-[10px] text-muted-foreground">#{p.display_order}</span>
-                  </div>
-                  {p.description && (
-                    <p className="text-xs text-muted-foreground mb-1">{p.description}</p>
+            <div key={p.id} className="rounded-xl border border-border bg-card p-3 flex gap-3">
+              <img
+                src={p.thumbnail_url}
+                alt={p.title}
+                className="w-16 h-20 object-cover rounded-md flex-shrink-0 bg-muted"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-sm truncate">{p.title}</h3>
+                  {!p.is_active && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                      inactive
+                    </span>
                   )}
-                  <p className="text-[11px] text-muted-foreground/80 line-clamp-3">{p.prompt}</p>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => startEdit(p)}>
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => remove(p.id)}>
-                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                  </Button>
-                </div>
+                <p className="text-[10px] text-muted-foreground/80 line-clamp-2">{p.prompt}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {p.category} • #{p.display_order}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Button size="sm" variant="ghost" onClick={() => startEdit(p)}>
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => remove(p.id)}>
+                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                </Button>
               </div>
             </div>
           ))
@@ -220,4 +227,4 @@ const PassportPromptsManage = () => {
   );
 };
 
-export default PassportPromptsManage;
+export default PopularPromptsManage;

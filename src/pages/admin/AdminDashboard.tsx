@@ -903,6 +903,7 @@ const AdminDashboard = () => {
           { id: "game-points", label: "Game Points", icon: Gamepad2, badge: 0, route: "/admin/game-points" },
           { id: "ai-suite", label: "AI Suite", icon: Sparkles, badge: 0, route: "/admin/ai" },
           { id: "passport-prompts", label: "Passport Prompts", icon: Sparkles, badge: 0, route: "/admin/passport-prompts" },
+          { id: "popular-prompts", label: "Popular Prompts", icon: Sparkles, badge: 0, route: "/admin/popular-prompts" },
         ]
       },
       {
