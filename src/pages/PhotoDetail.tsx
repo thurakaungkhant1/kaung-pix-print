@@ -345,7 +345,7 @@ const PhotoDetail = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="relative w-full aspect-[3/4] max-h-[70vh] bg-muted overflow-hidden cursor-zoom-in"
+          className="relative w-full aspect-square sm:aspect-[3/4] max-h-[60vh] sm:max-h-[70vh] bg-muted overflow-hidden cursor-zoom-in"
           onClick={() => imageSrc && setImageViewerOpen(true)}
         >
           {imageSrc ? (

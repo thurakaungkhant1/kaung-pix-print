@@ -111,7 +111,7 @@ const CarDodge = ({ onGameEnd }: Props) => {
           </Badge>
         </motion.div>
       )}
-      <canvas ref={canvasRef} width={W} height={H} className="rounded-2xl border-2 border-border/50 shadow-xl w-full max-w-[360px] h-auto" style={{ aspectRatio: `${W} / ${H}` }} />
+      <canvas ref={canvasRef} width={W} height={H} className="rounded-2xl border-2 border-border/50 shadow-xl w-full max-w-[420px] h-auto" style={{ aspectRatio: `${W} / ${H}` }} />
       <div className="flex gap-3 md:hidden">
         <Button size="icon" variant="outline" onClick={() => moveLane(-1)} className="h-14 w-14 rounded-xl"><ArrowLeft className="h-6 w-6" /></Button>
         <Button size="icon" variant="outline" onClick={() => moveLane(1)} className="h-14 w-14 rounded-xl"><ArrowRight className="h-6 w-6" /></Button>
