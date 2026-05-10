@@ -89,7 +89,8 @@ const Home = () => {
   const [recentPhotos, setRecentPhotos] = useState<any[]>([]);
   
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [photosLoading, setPhotosLoading] = useState(true);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -153,58 +154,62 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const loadData = async () => {
-      const { data: productsData } = await supabase
-        .from('products')
-        .select('*')
-        .not('category', 'ilike', '%diamond%')
-        .not('category', 'ilike', '%game%')
-        .not('category', 'ilike', '%mobile legends%')
-        .not('category', 'ilike', '%pubg%')
-        .not('category', 'ilike', '%free fire%')
-        .not('category', 'ilike', '%phone%')
-        .not('category', 'ilike', '%data%')
-        .not('category', 'ilike', '%mobile%')
-        .not('category', 'ilike', '%top-up%')
-        .not('category', 'ilike', '%topup%')
-        .not('category', 'ilike', '%bill%')
-        .not('category', 'ilike', '%prepaid%')
-        .not('category', 'ilike', '%airtime%')
-        .not('category', 'ilike', '%recharge%')
-        .not('name', 'ilike', '%phone%')
-        .not('name', 'ilike', '%data%')
-        .not('name', 'ilike', '%mobile%')
-        .not('name', 'ilike', '%top-up%')
-        .not('name', 'ilike', '%topup%')
-        .not('name', 'ilike', '%bill%')
-        .not('name', 'ilike', '%prepaid%')
-        .not('name', 'ilike', '%airtime%')
-        .not('name', 'ilike', '%recharge%')
-        .not('name', 'ilike', '%mpt%')
-        .not('name', 'ilike', '%ooredoo%')
-        .not('name', 'ilike', '%mytel%')
-        .not('name', 'ilike', '%atom%')
-        .limit(6);
-      if (productsData) setPhysicalProducts(productsData);
+    // Fire all 3 queries in parallel; show each section as soon as its data arrives
+    const productsPromise = supabase
+      .from('products')
+      .select('*')
+      .not('category', 'ilike', '%diamond%')
+      .not('category', 'ilike', '%game%')
+      .not('category', 'ilike', '%mobile legends%')
+      .not('category', 'ilike', '%pubg%')
+      .not('category', 'ilike', '%free fire%')
+      .not('category', 'ilike', '%phone%')
+      .not('category', 'ilike', '%data%')
+      .not('category', 'ilike', '%mobile%')
+      .not('category', 'ilike', '%top-up%')
+      .not('category', 'ilike', '%topup%')
+      .not('category', 'ilike', '%bill%')
+      .not('category', 'ilike', '%prepaid%')
+      .not('category', 'ilike', '%airtime%')
+      .not('category', 'ilike', '%recharge%')
+      .not('name', 'ilike', '%phone%')
+      .not('name', 'ilike', '%data%')
+      .not('name', 'ilike', '%mobile%')
+      .not('name', 'ilike', '%top-up%')
+      .not('name', 'ilike', '%topup%')
+      .not('name', 'ilike', '%bill%')
+      .not('name', 'ilike', '%prepaid%')
+      .not('name', 'ilike', '%airtime%')
+      .not('name', 'ilike', '%recharge%')
+      .not('name', 'ilike', '%mpt%')
+      .not('name', 'ilike', '%ooredoo%')
+      .not('name', 'ilike', '%mytel%')
+      .not('name', 'ilike', '%atom%')
+      .limit(6);
 
-      const { data: photosData } = await supabase
-        .from('photos')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(6);
-      if (photosData) setRecentPhotos(photosData);
+    const photosPromise = supabase
+      .from('photos')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(6);
 
+    const bannersPromise = supabase
+      .from('promotional_banners')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
 
-      const { data: bannersData } = await supabase
-        .from('promotional_banners')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
-      if (bannersData) setBanners(bannersData);
-
-      setLoading(false);
-    };
-    loadData();
+    productsPromise.then(({ data }) => {
+      if (data) setPhysicalProducts(data);
+      setProductsLoading(false);
+    });
+    photosPromise.then(({ data }) => {
+      if (data) setRecentPhotos(data);
+      setPhotosLoading(false);
+    });
+    bannersPromise.then(({ data }) => {
+      if (data) setBanners(data);
+    });
   }, []);
 
   const handleOnboardingComplete = useCallback(() => {
@@ -380,7 +385,7 @@ const Home = () => {
             </Button>
           </div>
           
-          {loading ? (
+          {productsLoading ? (
             <div className="px-5">
               <SkeletonHorizontalList count={4} />
             </div>
@@ -458,7 +463,7 @@ const Home = () => {
         </AnimatedSection>
 
         {/* Photo Gallery Preview */}
-        {recentPhotos.length > 0 && (
+        {(photosLoading || recentPhotos.length > 0) && (
           <AnimatedSection delay={0.4}>
             <section className="mb-6">
               <div className="flex items-center justify-between px-5 mb-3">
@@ -476,7 +481,14 @@ const Home = () => {
                 </Button>
               </div>
               <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-5 pb-2">
-                {recentPhotos.map((photo, index) => (
+                {photosLoading
+                  ? [...Array(5)].map((_, i) => (
+                      <div key={i} className="flex-shrink-0 w-28">
+                        <div className="aspect-square rounded-xl bg-muted animate-shimmer" />
+                        <div className="h-3 mt-1 mx-auto w-16 bg-muted animate-shimmer rounded" />
+                      </div>
+                    ))
+                  : recentPhotos.map((photo, index) => (
                   <motion.div
                     key={photo.id}
                     initial={{ opacity: 0, scale: 0.9 }}
