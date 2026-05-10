@@ -80,6 +80,7 @@ const PubgUcPackageForm = lazy(() => import("./pages/admin/PubgUcPackageForm"));
 const ApiSettings = lazy(() => import("./pages/admin/ApiSettings"));
 const NotificationsManage = lazy(() => import("./pages/admin/NotificationsManage"));
 const GamePointsManage = lazy(() => import("./pages/admin/GamePointsManage"));
+const AIDashboard = lazy(() => import("./pages/admin/AIDashboard"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
@@ -504,6 +505,14 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <GamePointsManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/ai"
+                  element={
+                    <ProtectedAdminRoute>
+                      <AIDashboard />
                     </ProtectedAdminRoute>
                   }
                 />
