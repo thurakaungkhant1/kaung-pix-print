@@ -56,22 +56,37 @@ const WhackAMole = ({ onGameEnd }: Props) => {
         </Card>
       </div>
 
-      {/* Mole Grid */}
-      <div className="grid grid-cols-3 gap-3 w-fit">
+      {/* Mole Grid — 3D holes */}
+      <div
+        className="grid grid-cols-3 gap-3 w-full max-w-[340px] p-4 rounded-3xl"
+        style={{
+          background: "linear-gradient(180deg, #84cc16 0%, #4d7c0f 50%, #365314 100%)",
+          boxShadow: "inset 0 4px 10px rgba(0,0,0,0.3), 0 8px 20px rgba(0,0,0,0.25)",
+          perspective: "500px",
+        }}
+      >
         {moles.map((active, i) => (
           <motion.button
             key={i}
             onClick={() => whack(i)}
             whileTap={{ scale: 0.85 }}
-            animate={active ? { scale: [0.8, 1.1, 1] } : { scale: 1 }}
-            transition={{ duration: 0.2 }}
-            className={`w-20 h-20 rounded-2xl text-3xl flex items-center justify-center transition-colors duration-200
-              ${active
-                ? "bg-accent/15 border-2 border-accent shadow-[0_0_20px_hsl(var(--accent)/0.3)] cursor-pointer"
-                : "bg-card border-2 border-border/50"
-              }`}
+            className="relative aspect-square rounded-full overflow-hidden flex items-end justify-center"
+            style={{
+              background: "radial-gradient(ellipse at 50% 35%, #1c1917 0%, #292524 50%, #44403c 100%)",
+              boxShadow: "inset 0 6px 12px rgba(0,0,0,0.7), inset 0 -2px 4px rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.3)",
+            }}
           >
-            {active ? "🐹" : "🕳️"}
+            {/* dirt rim */}
+            <div className="absolute inset-x-0 top-0 h-2 rounded-t-full" style={{ background: "linear-gradient(180deg, #92400e 0%, transparent 100%)" }} />
+            {/* mole pops up */}
+            <motion.span
+              animate={active ? { y: 0, scale: 1 } : { y: "70%", scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 18 }}
+              className="text-4xl pb-1"
+              style={{ filter: active ? "drop-shadow(0 4px 6px rgba(0,0,0,0.5))" : "none" }}
+            >
+              🐹
+            </motion.span>
           </motion.button>
         ))}
       </div>
