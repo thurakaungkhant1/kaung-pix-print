@@ -211,6 +211,7 @@ const App = () => {
                 <Route path="/ai/prompts" element={<ProtectedRoute><AIPrompts /></ProtectedRoute>} />
                 <Route path="/ai/gift" element={<ProtectedRoute><AIGift /></ProtectedRoute>} />
                 <Route path="/ai/passport" element={<ProtectedRoute><AIPassport /></ProtectedRoute>} />
+                <Route path="/g/:slug" element={<GiftView />} />
                 <Route path="/admin/passport-prompts" element={<ProtectedAdminRoute><PassportPromptsManage /></ProtectedAdminRoute>} />
                 <Route path="/admin/popular-prompts" element={<ProtectedAdminRoute><PopularPromptsManage /></ProtectedAdminRoute>} />
                 <Route path="/product/:id" element={<ProductDetail />} />
