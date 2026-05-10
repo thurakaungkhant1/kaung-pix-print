@@ -150,7 +150,7 @@ const SnakeGame = ({ onGameEnd }: Props) => {
         ref={canvasRef}
         width={GRID * CELL}
         height={GRID * CELL}
-        className="rounded-2xl border-2 border-border/50 shadow-xl w-full max-w-[420px] h-auto"
+        className="rounded-2xl border-2 border-border/50 shadow-xl w-full max-w-[460px] h-auto"
         style={{ aspectRatio: "1 / 1", imageRendering: "auto" }}
       />
 

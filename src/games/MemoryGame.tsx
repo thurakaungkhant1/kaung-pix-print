@@ -71,7 +71,7 @@ const MemoryGame = ({ onGameEnd }: Props) => {
       )}
 
       {/* Card Grid — 3D flip */}
-      <div className="grid grid-cols-4 gap-3 w-full max-w-[360px]" style={{ perspective: "1000px" }}>
+      <div className="grid grid-cols-4 gap-3 w-full max-w-[420px]" style={{ perspective: "1000px" }}>
         {cards.map((emoji, i) => {
           const isFlipped = flipped.includes(i) || matched.includes(i);
           const isMatched = matched.includes(i);

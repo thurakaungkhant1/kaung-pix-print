@@ -58,7 +58,7 @@ const WhackAMole = ({ onGameEnd }: Props) => {
 
       {/* Mole Grid — 3D holes */}
       <div
-        className="grid grid-cols-3 gap-3 w-full max-w-[340px] p-4 rounded-3xl"
+        className="grid grid-cols-3 gap-3 w-full max-w-[420px] p-4 rounded-3xl"
         style={{
           background: "linear-gradient(180deg, #84cc16 0%, #4d7c0f 50%, #365314 100%)",
           boxShadow: "inset 0 4px 10px rgba(0,0,0,0.3), 0 8px 20px rgba(0,0,0,0.25)",
