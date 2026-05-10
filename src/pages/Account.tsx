@@ -13,7 +13,7 @@ import {
   User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, 
   Lock, Coins, Gift, Trophy, ChevronRight, Sparkles, Camera, Loader2, 
   Trash2, Crown, Settings, History, AlertTriangle, Info, ShieldCheck,
-  Check, X, Pencil, CreditCard, Zap
+  Check, X, Pencil, CreditCard, Zap, Heart
 } from "lucide-react";
 import AccountQualityBadge from "@/components/AccountQualityBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -532,6 +532,8 @@ const Account = () => {
                     <Separator className="my-0.5" />
                   </>
                 )}
+                <SettingItem icon={Heart} label="My Favourites" description="Saved products & photos" onClick={() => navigate("/favourite")} />
+                <Separator className="my-0.5" />
                 <SettingItem icon={Camera} label="Photo Gallery" description="Browse all photos" onClick={() => navigate("/photo")} />
                 <Separator className="my-0.5" />
                 <SettingItem icon={Info} label="About Us" onClick={() => navigate("/about")} />
