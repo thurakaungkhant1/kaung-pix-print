@@ -48,13 +48,6 @@ const getBannerColor = (colorName: string): string => {
   return colorMap[colorName] || colorMap['blue-500'];
 };
 
-const MOBILE_SERVICES = [
-  { name: "Top-up", icon: Smartphone, route: "/game?tab=mobile" },
-  { name: "Data", icon: Wifi, route: "/game?tab=mobile" },
-  { name: "Mini Games", icon: Gamepad2, route: "/games" },
-  { name: "Gallery", icon: Camera, route: "/photo" },
-];
-
 const EARN_POINTS_GAMES = [
   { id: "car-dodge", name: "Car Dodge", points: 20, gradient: "from-rose-500 to-orange-500" },
   { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 to-cyan-500" },
