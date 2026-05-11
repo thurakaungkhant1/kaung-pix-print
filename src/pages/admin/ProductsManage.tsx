@@ -37,7 +37,7 @@ const ProductsManage = () => {
   const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "physical" | "mobile">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "mobile">("all");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
