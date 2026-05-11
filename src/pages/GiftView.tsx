@@ -6,18 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const STYLES = [
-  { name: "Sunset Bloom", bg: "linear-gradient(135deg,#ff9a8b,#ff6a88,#ff99ac)", color: "#fff" },
-  { name: "Ocean Glow", bg: "linear-gradient(135deg,#1e3c72,#2a5298)", color: "#fff" },
-  { name: "Galaxy", bg: "linear-gradient(135deg,#0f0c29,#302b63,#24243e)", color: "#fff" },
-  { name: "Cherry Pop", bg: "linear-gradient(135deg,#ff6e7f,#bfe9ff)", color: "#fff" },
-  { name: "Aurora", bg: "linear-gradient(135deg,#00c6ff,#0072ff)", color: "#fff" },
-  { name: "Peach Cream", bg: "linear-gradient(135deg,#ffecd2,#fcb69f)", color: "#5b3024" },
-  { name: "Mint Fresh", bg: "linear-gradient(135deg,#a8edea,#fed6e3)", color: "#0f3a36" },
-  { name: "Royal Velvet", bg: "linear-gradient(135deg,#7028e4,#e5b2ca)", color: "#fff" },
-  { name: "Gold Honey", bg: "linear-gradient(135deg,#f7971e,#ffd200)", color: "#5b3a00" },
-  { name: "Midnight Rose", bg: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)", color: "#ffd6e0" },
-];
+import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
 const GiftView = () => {
   const { slug } = useParams<{ slug: string }>();
