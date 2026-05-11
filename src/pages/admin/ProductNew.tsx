@@ -221,20 +221,6 @@ const ProductNew = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Physical Category</Label>
-                    <Select value={physicalCategoryId} onValueChange={setPhysicalCategoryId}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Optional..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        {physicalCategories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
