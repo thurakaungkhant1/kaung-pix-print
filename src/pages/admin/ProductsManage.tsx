@@ -37,7 +37,7 @@ const ProductsManage = () => {
   const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "physical" | "mobile">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "mobile">("all");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -60,14 +60,12 @@ const ProductsManage = () => {
       // Category filter
       const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
       
-      // Type filter (digital vs physical vs mobile)
+      // Type filter (digital vs mobile)
       let matchesType = true;
       if (typeFilter === "digital") {
         matchesType = GAME_CATEGORIES.includes(product.category);
       } else if (typeFilter === "mobile") {
         matchesType = MOBILE_CATEGORIES.includes(product.category);
-      } else if (typeFilter === "physical") {
-        matchesType = !DIGITAL_CATEGORIES.includes(product.category);
       }
       
       return matchesSearch && matchesCategory && matchesType;
@@ -203,7 +201,7 @@ const ProductsManage = () => {
             {/* Filters */}
             <div className="flex gap-2">
               {/* Type Filter */}
-              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "digital" | "physical" | "mobile")}>
+              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "digital" | "mobile")}>
                 <SelectTrigger className="flex-1">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Type" />
@@ -218,11 +216,6 @@ const ProductsManage = () => {
                   <SelectItem value="mobile">
                     <span className="flex items-center gap-2">
                       <Smartphone className="h-4 w-4" /> Mobile Services
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="physical">
-                    <span className="flex items-center gap-2">
-                      <Package className="h-4 w-4" /> Physical Products
                     </span>
                   </SelectItem>
                 </SelectContent>

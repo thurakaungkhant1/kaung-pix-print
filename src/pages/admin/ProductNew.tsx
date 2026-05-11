@@ -18,11 +18,6 @@ const GAME_CATEGORIES = [
   { id: "PUBG UC", name: "PUBG Mobile UC" },
 ];
 
-interface PhysicalCategory {
-  id: string;
-  name: string;
-}
-
 const ProductNew = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -34,28 +29,13 @@ const ProductNew = () => {
   const [imageUrl4, setImageUrl4] = useState("");
   const [pointsValue, setPointsValue] = useState("");
   const [category, setCategory] = useState("General");
-  const [physicalCategoryId, setPhysicalCategoryId] = useState<string>("");
   const [stockQuantity, setStockQuantity] = useState("0");
   const [status, setStatus] = useState("available");
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [physicalCategories, setPhysicalCategories] = useState<PhysicalCategory[]>([]);
   const [step, setStep] = useState(1);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadPhysicalCategories();
-  }, []);
-
-  const loadPhysicalCategories = async () => {
-    const { data } = await supabase
-      .from("physical_categories")
-      .select("id, name")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
-    if (data) setPhysicalCategories(data);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +55,7 @@ const ProductNew = () => {
       image_url: primaryImage,
       points_value: parseInt(pointsValue) || 0,
       category,
-      physical_category_id: physicalCategoryId && physicalCategoryId !== "none" ? physicalCategoryId : null,
+      physical_category_id: null,
       stock_quantity: parseInt(stockQuantity) || 0,
       status,
       is_premium: isPremium,
@@ -241,20 +221,6 @@ const ProductNew = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Physical Category</Label>
-                    <Select value={physicalCategoryId} onValueChange={setPhysicalCategoryId}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Optional..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        {physicalCategories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
