@@ -43,24 +43,6 @@ const AIPhoto = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: settings } = await supabase
-        .from("ai_usage_settings")
-        .select("daily_photo_limit")
-        .limit(1)
-        .maybeSingle();
-      if (settings) {
-        setDailyLimit(settings.daily_photo_limit);
-      }
-
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const { data: today } = await supabase
-        .from("ai_photo_generations")
-        .select("id", { count: "exact" })
-        .eq("user_id", user.id)
-        .gte("created_at", start.toISOString());
-      setUsedToday(today?.length ?? 0);
-
       const { data: hist } = await supabase
         .from("ai_photo_generations")
         .select("id, prompt, result_image_url, created_at")
