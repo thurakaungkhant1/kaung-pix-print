@@ -38,6 +38,8 @@ interface Props {
 const GiftCardPreview = ({ style, message, imageUrl, variant = "preview" }: Props) => {
   const isFull = variant === "full";
   const Icon = style.icon ?? "sparkles";
+  const prefersReducedMotion = useReducedMotion();
+  const anim = (props: any) => (prefersReducedMotion ? { initial: false } : props);
 
   // Decorative particles positioned around the card
   const particles = [
