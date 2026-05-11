@@ -25,8 +25,6 @@ const AIPhoto = () => {
   const [sourcePreview, setSourcePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<Generation[]>([]);
-  const [usedToday, setUsedToday] = useState(0);
-  const [dailyLimit, setDailyLimit] = useState(5);
   const [latest, setLatest] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
