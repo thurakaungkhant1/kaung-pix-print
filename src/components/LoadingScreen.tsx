@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Camera } from "lucide-react";
 
 interface LoadingScreenProps {
   onLoadComplete: () => void;
@@ -10,76 +11,98 @@ const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Animate progress
-    const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 40);
+    const start = performance.now();
+    const duration = 2200;
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3);
+      setProgress(Math.round(eased * 100));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
 
     const timer = setTimeout(() => {
       setFadeOut(true);
-      setTimeout(onLoadComplete, 400);
-    }, 2500);
+      setTimeout(onLoadComplete, 500);
+    }, duration + 250);
 
     return () => {
+      cancelAnimationFrame(raf);
       clearTimeout(timer);
-      clearInterval(progressInterval);
     };
   }, [onLoadComplete]);
 
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex flex-col items-center justify-center",
-        "bg-gradient-hero transition-all duration-500",
-        fadeOut ? "opacity-0 scale-105" : "opacity-100 scale-100"
+        "fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden",
+        "bg-[radial-gradient(ellipse_at_top,_hsl(var(--primary)/0.25),_transparent_60%),radial-gradient(ellipse_at_bottom,_hsl(var(--primary)/0.15),_transparent_55%)]",
+        "bg-background transition-all duration-500 ease-out",
+        fadeOut ? "opacity-0" : "opacity-100"
       )}
     >
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary-foreground/5 rounded-full blur-3xl animate-pulse-soft" />
-        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-primary-foreground/5 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '0.5s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary-foreground/3 rounded-full blur-3xl" />
+      {/* Soft animated orbs */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-primary/20 blur-3xl animate-pulse-soft" />
+        <div
+          className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-primary/10 blur-3xl animate-pulse-soft"
+          style={{ animationDelay: "0.6s" }}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,hsl(var(--background))_85%)]" />
       </div>
-      
+
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-8">
-        {/* Logo/Brand */}
+      <div
+        className={cn(
+          "relative z-10 flex flex-col items-center gap-7 px-6",
+          "transition-all duration-700 ease-out",
+          fadeOut ? "opacity-0 translate-y-2 scale-[0.98]" : "opacity-100 translate-y-0 scale-100"
+        )}
+      >
+        {/* Logo mark */}
         <div className="relative">
-          <div className="absolute inset-0 bg-primary-foreground/10 rounded-3xl blur-2xl animate-pulse-soft" />
-          <h1 className="relative text-4xl md:text-5xl lg:text-6xl font-display font-bold text-primary-foreground tracking-tight">
-            Kaung Computer
+          <div className="absolute inset-0 rounded-3xl bg-primary/30 blur-2xl animate-pulse-soft" />
+          <div className="relative h-20 w-20 rounded-3xl bg-gradient-to-br from-primary to-primary/70 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.6)] flex items-center justify-center ring-1 ring-primary-foreground/15">
+            <Camera className="h-10 w-10 text-primary-foreground" strokeWidth={1.75} />
+          </div>
+        </div>
+
+        {/* Wordmark */}
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-foreground">
+            Kaung <span className="text-primary">Computer</span>
           </h1>
+          <p className="text-[11px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground/80 font-medium">
+            Photography · Printing · Digital
+          </p>
         </div>
-        
-        {/* Tagline */}
-        <p className="text-primary-foreground/70 text-sm md:text-base font-medium tracking-wide animate-fade-in">
-          Photography & Printing Services
-        </p>
-        
+
         {/* Progress bar */}
-        <div className="w-48 h-1 bg-primary-foreground/20 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary-foreground/80 rounded-full transition-all duration-100 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        
-        {/* Loading dots */}
-        <div className="flex items-center gap-1.5">
-          {[0, 1, 2].map((i) => (
+        <div className="mt-2 w-56 md:w-64">
+          <div className="h-[3px] w-full rounded-full bg-foreground/10 overflow-hidden">
             <div
-              key={i}
-              className="w-2 h-2 bg-primary-foreground/60 rounded-full animate-bounce-soft"
-              style={{ animationDelay: `${i * 150}ms` }}
+              className="h-full rounded-full bg-gradient-to-r from-primary/70 via-primary to-primary/70 shadow-[0_0_12px_hsl(var(--primary)/0.7)] transition-[width] duration-100 ease-out"
+              style={{ width: `${progress}%` }}
             />
-          ))}
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium">
+            <span>Loading</span>
+            <span className="tabular-nums">{progress}%</span>
+          </div>
         </div>
+      </div>
+
+      {/* Footer brand line */}
+      <div
+        className={cn(
+          "absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.4em] text-muted-foreground/60",
+          "transition-opacity duration-500",
+          fadeOut ? "opacity-0" : "opacity-100"
+        )}
+      >
+        Est. Myanmar
       </div>
     </div>
   );
