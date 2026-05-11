@@ -22,10 +22,10 @@ export const GIFT_STYLES: GiftStyle[] = [
   { name: "Midnight Rose",bg: "linear-gradient(135deg,#0f2027,#203a43,#2c5364,#ff6e7f)", color: "#ffd6e0", accent: "#ff6e7f", icon: "heart" },
 ];
 
-const IconFor = ({ name, className }: { name: GiftStyle["icon"]; className?: string }) => {
-  if (name === "heart") return <Heart className={className} />;
-  if (name === "star") return <Star className={className} />;
-  return <Sparkles className={className} />;
+const IconFor = ({ name, className, style }: { name: GiftStyle["icon"]; className?: string; style?: React.CSSProperties }) => {
+  if (name === "heart") return <Heart className={className} style={style} />;
+  if (name === "star") return <Star className={className} style={style} />;
+  return <Sparkles className={className} style={style} />;
 };
 
 interface Props {
