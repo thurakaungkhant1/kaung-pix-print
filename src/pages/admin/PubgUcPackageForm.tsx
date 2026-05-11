@@ -54,7 +54,7 @@ const PubgUcPackageForm = () => {
       name: formData.name,
       price: parseFloat(formData.price),
       description: formData.description || null,
-      image_url: formData.image_url,
+      image_url: formData.image_url || "/placeholder.svg",
       points_value: parseInt(formData.points_value),
       category: "PUBG Mobile UC",
     };
@@ -115,15 +115,6 @@ const PubgUcPackageForm = () => {
               <div>
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" placeholder="Package description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} />
-              </div>
-              <div>
-                <Label htmlFor="image_url">Image URL *</Label>
-                <Input id="image_url" type="url" placeholder="https://example.com/pubg-uc.jpg" value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} required />
-                {formData.image_url && (
-                  <div className="mt-2">
-                    <img src={formData.image_url} alt="Preview" className="h-32 w-32 object-cover rounded border" />
-                  </div>
-                )}
               </div>
               <div className="flex gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={() => navigate("/admin/pubg-uc-packages")} className="flex-1">Cancel</Button>
