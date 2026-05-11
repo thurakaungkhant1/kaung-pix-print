@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/BottomNav";
+import { addLogoWatermark } from "@/lib/aiPhotoWatermark";
 
 interface Preset {
   id: string;
@@ -136,9 +137,16 @@ const AIPassport = () => {
       if (data?.error) throw new Error(data.error);
       if (!data?.result_image_url) throw new Error("No image was returned. Please try a different photo.");
 
-      setResult(data.result_image_url);
+      let displayUrl = data.result_image_url as string;
+      try {
+        displayUrl = await addLogoWatermark(displayUrl);
+      } catch (wmErr) {
+        console.warn("Watermark failed, using original", wmErr);
+      }
+
+      setResult(displayUrl);
       setUsedToday(data.used_today);
-      if (data.generation) setHistory((h) => [data.generation as HistoryItem, ...h].slice(0, 12));
+      if (data.generation) setHistory((h) => [{ ...(data.generation as HistoryItem), result_image_url: displayUrl }, ...h].slice(0, 12));
       toast.success("Passport photo ready!");
     } catch (e: any) {
       const msg = e.message ?? "Generation failed";

@@ -10,7 +10,7 @@ const loadImage = (src: string): Promise<HTMLImageElement> =>
   });
 
 /**
- * Overlays the small KAUNG COMPUTER logo on the bottom-right corner of an image.
+ * Overlays the KAUNG logo + small "kaung" text on the bottom-right corner.
  * Returns a data URL (PNG) of the watermarked result.
  */
 export const addLogoWatermark = async (imageUrl: string): Promise<string> => {
@@ -23,39 +23,39 @@ export const addLogoWatermark = async (imageUrl: string): Promise<string> => {
 
   ctx.drawImage(base, 0, 0);
 
-  // Logo sized to ~22% of image width, kept compact
-  const logoW = Math.max(120, Math.round(canvas.width * 0.22));
-  const ratio = logo.naturalHeight / logo.naturalWidth;
-  const logoH = Math.round(logoW * ratio);
-
+  // Logo sized to ~9% of image width — visible but not overpowering
+  const logoSize = Math.max(56, Math.round(canvas.width * 0.09));
   const margin = Math.round(canvas.width * 0.025);
-  const x = canvas.width - logoW - margin;
-  const y = canvas.height - logoH - margin;
 
-  // Subtle dark backdrop for legibility on light images
-  const padX = Math.round(logoW * 0.08);
-  const padY = Math.round(logoH * 0.25);
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
-  const radius = Math.round(logoH * 0.4);
-  const bx = x - padX, by = y - padY, bw = logoW + padX * 2, bh = logoH + padY * 2;
-  ctx.beginPath();
-  ctx.moveTo(bx + radius, by);
-  ctx.arcTo(bx + bw, by, bx + bw, by + bh, radius);
-  ctx.arcTo(bx + bw, by + bh, bx, by + bh, radius);
-  ctx.arcTo(bx, by + bh, bx, by, radius);
-  ctx.arcTo(bx, by, bx + bw, by, radius);
-  ctx.closePath();
-  ctx.fill();
+  // Text "kaung" beside the logo
+  const fontSize = Math.round(logoSize * 0.42);
+  ctx.font = `600 ${fontSize}px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif`;
+  const text = "kaung";
+  const textWidth = ctx.measureText(text).width;
+  const gap = Math.round(logoSize * 0.18);
 
-  ctx.globalAlpha = 0.95;
-  // Invert logo color to white via composite for visibility on dark backdrop
+  const totalW = logoSize + gap + textWidth;
+  const x = canvas.width - totalW - margin;
+  const y = canvas.height - logoSize - margin;
+
+  // Soft shadow for legibility
   ctx.save();
-  ctx.drawImage(logo, x, y, logoW, logoH);
-  ctx.globalCompositeOperation = "source-atop";
-  ctx.fillStyle = "rgba(255,255,255,0.95)";
-  ctx.fillRect(x, y, logoW, logoH);
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = Math.round(logoSize * 0.18);
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 1;
+  ctx.globalAlpha = 0.95;
+  ctx.drawImage(logo, x, y, logoSize, logoSize);
   ctx.restore();
-  ctx.globalAlpha = 1;
+
+  // "kaung" text — white with subtle shadow
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.55)";
+  ctx.shadowBlur = Math.round(fontSize * 0.5);
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x + logoSize + gap, y + logoSize / 2 + fontSize * 0.05);
+  ctx.restore();
 
   return canvas.toDataURL("image/png");
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Camera } from "lucide-react";
+import logoUrl from "@/assets/kaung-watermark.png";
 
 interface LoadingScreenProps {
   onLoadComplete: () => void;
@@ -64,8 +64,8 @@ const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
         {/* Logo mark */}
         <div className="relative">
           <div className="absolute inset-0 rounded-3xl bg-primary/30 blur-2xl animate-pulse-soft" />
-          <div className="relative h-20 w-20 rounded-3xl bg-gradient-to-br from-primary to-primary/70 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.6)] flex items-center justify-center ring-1 ring-primary-foreground/15">
-            <Camera className="h-10 w-10 text-primary-foreground" strokeWidth={1.75} />
+          <div className="relative h-24 w-24 rounded-3xl bg-background/40 backdrop-blur-sm shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.5)] flex items-center justify-center ring-1 ring-border/40 overflow-hidden">
+            <img src={logoUrl} alt="Kaung Computer" className="h-20 w-20 object-contain" />
           </div>
         </div>
 
