@@ -804,3 +804,35 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
+
+@layer utilities {
+  /* Gift card animated gradient + shimmer */
+  @keyframes gift-gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes gift-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+  @keyframes gift-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+    50% { transform: translateY(-12px) rotate(8deg); opacity: 1; }
+  }
+  .gift-animated-bg {
+    background-size: 220% 220% !important;
+    animation: gift-gradient-shift 8s ease-in-out infinite;
+  }
+  .gift-shimmer-overlay {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+  .gift-shimmer-overlay::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transform: translateX(-100%);
+    animation: gift-shimmer 3.5s ease-in-out infinite;
+  }
+  .gift-float-particle {
+    animation: gift-float 4s ease-in-out infinite;
+  }
+}
