@@ -54,7 +54,7 @@ const PubgUcPackageForm = () => {
       name: formData.name,
       price: parseFloat(formData.price),
       description: formData.description || null,
-      image_url: formData.image_url,
+      image_url: formData.image_url || "/placeholder.svg",
       points_value: parseInt(formData.points_value),
       category: "PUBG Mobile UC",
     };
