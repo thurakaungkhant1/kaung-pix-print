@@ -154,7 +154,7 @@ const AIPhoto = () => {
     }
   };
 
-  const remaining = Math.max(0, dailyLimit - usedToday);
+  
 
   return (
     <div className="min-h-screen bg-background pb-24">
