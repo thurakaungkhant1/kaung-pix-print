@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Sparkles, Heart, Star } from "lucide-react";
 
 export interface GiftStyle {
