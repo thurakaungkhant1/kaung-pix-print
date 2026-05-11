@@ -9,18 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import BottomNav from "@/components/BottomNav";
 
-const STYLES = [
-  { name: "Sunset Bloom", bg: "linear-gradient(135deg,#ff9a8b,#ff6a88,#ff99ac)", color: "#fff" },
-  { name: "Ocean Glow", bg: "linear-gradient(135deg,#1e3c72,#2a5298)", color: "#fff" },
-  { name: "Galaxy", bg: "linear-gradient(135deg,#0f0c29,#302b63,#24243e)", color: "#fff" },
-  { name: "Cherry Pop", bg: "linear-gradient(135deg,#ff6e7f,#bfe9ff)", color: "#fff" },
-  { name: "Aurora", bg: "linear-gradient(135deg,#00c6ff,#0072ff)", color: "#fff" },
-  { name: "Peach Cream", bg: "linear-gradient(135deg,#ffecd2,#fcb69f)", color: "#5b3024" },
-  { name: "Mint Fresh", bg: "linear-gradient(135deg,#a8edea,#fed6e3)", color: "#0f3a36" },
-  { name: "Royal Velvet", bg: "linear-gradient(135deg,#7028e4,#e5b2ca)", color: "#fff" },
-  { name: "Gold Honey", bg: "linear-gradient(135deg,#f7971e,#ffd200)", color: "#5b3a00" },
-  { name: "Midnight Rose", bg: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)", color: "#ffd6e0" },
-];
+import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
 interface GiftLink { id: string; slug: string; status: string; payload: any; created_at: string; }
 
@@ -100,11 +89,7 @@ const AIGift = () => {
 
       <div className="relative z-10 px-4 py-5 max-w-md mx-auto space-y-5">
         <motion.div initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="rounded-2xl overflow-hidden border border-border/50 shadow-xl">
-          <div style={{ background: style.bg, color: style.color }} className="p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
-            {imagePreview && <img src={imagePreview} alt="gift" className="w-20 h-20 rounded-full object-cover border-2 border-white/40 mb-3" />}
-            <div className="text-lg font-bold">{style.name}</div>
-            <div className="text-sm opacity-90 mt-1 whitespace-pre-wrap line-clamp-3">{message || "Your gift message preview…"}</div>
-          </div>
+          <GiftCardPreview style={style} message={message} imageUrl={imagePreview} variant="preview" />
         </motion.div>
 
         <div className="grid grid-cols-5 gap-2">

@@ -327,7 +327,7 @@ const Photo = () => {
               </p>
             </motion.div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               {visiblePhotos.map((photo, index) => (
                 <motion.div
                   key={photo.id}
@@ -338,7 +338,7 @@ const Photo = () => {
                   className="group cursor-pointer relative rounded-2xl overflow-hidden bg-card border border-border/60 hover:border-primary/40 hover:shadow-lg transition-all"
                 >
                   {/* Preview area */}
-                  <div className="relative aspect-[16/10] bg-muted overflow-hidden">
+                  <div className="relative aspect-[4/5] bg-muted overflow-hidden">
                     {photo.preview_image ? (
                       <img
                         src={watermarkedImages.get(photo.id) || photo.preview_image}
@@ -348,46 +348,46 @@ const Photo = () => {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <FileArchive className="h-12 w-12 text-muted-foreground/30" />
+                        <FileArchive className="h-10 w-10 text-muted-foreground/30" />
                       </div>
                     )}
 
                     {/* Photo count badge */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur-md text-foreground text-[11px] font-semibold shadow-sm">
-                      <ImageIcon className="h-3 w-3 text-primary" />
-                      {photo.photo_count || Math.max(1, Math.round((photo.file_size || 0) / (1024 * 1024 * 2)))} Photos
+                    <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/90 backdrop-blur-md text-foreground text-[10px] font-semibold shadow-sm">
+                      <ImageIcon className="h-2.5 w-2.5 text-primary" />
+                      {photo.photo_count || Math.max(1, Math.round((photo.file_size || 0) / (1024 * 1024 * 2)))}
                     </div>
 
                     {/* Favourite */}
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleFavourite(photo.id); }}
                       className={cn(
-                        "absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90",
+                        "absolute top-2 left-2 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90",
                         favourites.has(photo.id)
                           ? "bg-destructive text-destructive-foreground shadow-lg"
                           : "bg-background/70 text-foreground/70 hover:bg-background/90"
                       )}
                     >
-                      <Heart className={cn("h-4 w-4", favourites.has(photo.id) && "fill-current")} />
+                      <Heart className={cn("h-3.5 w-3.5", favourites.has(photo.id) && "fill-current")} />
                     </button>
                   </div>
 
                   {/* Footer row: title/date + download */}
-                  <div className="p-4 flex items-center justify-between gap-3">
+                  <div className="p-2.5 flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+                      <h3 className="font-bold text-xs text-foreground truncate group-hover:text-primary transition-colors">
                         {photo.client_name}
                       </h3>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
                         {formatDate(photo.created_at)}
                       </p>
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); navigate(`/photo/${photo.id}`); }}
-                      className="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-md transition-colors flex-shrink-0"
+                      className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-md transition-colors flex-shrink-0"
                       aria-label="Download"
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </motion.div>

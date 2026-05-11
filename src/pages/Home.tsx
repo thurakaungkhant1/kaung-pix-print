@@ -123,7 +123,16 @@ const Home = () => {
     supabase.from('photos').select('*').order('created_at', { ascending: false }).limit(6)
       .then(({ data }) => { if (data) setRecentPhotos(data); setPhotosLoading(false); });
     supabase.from('promotional_banners').select('*').eq('is_active', true).order('display_order', { ascending: true })
-      .then(({ data }) => { if (data) setBanners(data); });
+      .then(({ data }) => {
+        if (data) {
+          // Hide any "Flash Sale" promotional banner per request
+          const filtered = data.filter((b: any) => {
+            const t = `${b.title ?? ""} ${b.badge_text ?? ""}`.toLowerCase();
+            return !t.includes("flash sale");
+          });
+          setBanners(filtered);
+        }
+      });
   }, []);
 
   useEffect(() => {
