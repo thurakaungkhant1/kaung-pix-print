@@ -161,8 +161,6 @@ serve(async (req) => {
         result_image_url: resultUrl,
         cost_coins: photoCost,
         new_balance: balance - photoCost,
-        used_today: (usedToday ?? 0) + 1,
-        daily_limit: dailyLimit,
         generation: gen,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
