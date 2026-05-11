@@ -284,7 +284,6 @@ const App = () => {
                     </ProtectedAdminRoute>
                   }
                 />
-                </Route>
                 {/* /admin/physical-categories removed */}
                 <Route
                   path="/admin/diamond-packages"
