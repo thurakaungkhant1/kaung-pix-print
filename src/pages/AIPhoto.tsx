@@ -98,7 +98,8 @@ const AIPhoto = () => {
     try {
       let sourceUrl: string | undefined;
       if (sourceFile && user) {
-        const path = `${user.id}/source-${Date.now()}-${sourceFile.name}`;
+        const safeName = sourceFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `${user.id}/source-${Date.now()}-${safeName}`;
         const { error: upErr } = await supabase.storage
           .from("ai-uploads")
           .upload(path, sourceFile, { contentType: sourceFile.type });
