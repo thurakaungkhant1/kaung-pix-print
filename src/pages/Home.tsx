@@ -198,6 +198,32 @@ const Home = () => {
             </motion.div>
           </header>
 
+          {/* ── AI Suite Card (featured at top) ── */}
+          <AnimatedSection delay={0.05}>
+            <section className="px-5 pb-4">
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate("/ai")}
+                className="w-full text-left relative overflow-hidden rounded-2xl group shadow-lg"
+                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #3b82f6 100%)" }}
+              >
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/15 rounded-full blur-3xl" />
+                <div className="absolute -bottom-12 -left-8 w-36 h-36 bg-white/10 rounded-full blur-3xl" />
+                <div className="relative z-10 p-4 flex items-center gap-3">
+                  <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20">
+                    <Sparkles className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Badge className="bg-white/25 text-white border-0 text-[10px] mb-1 hover:bg-white/25">NEW • AI</Badge>
+                    <p className="text-sm font-display font-bold text-white">As You Like AI</p>
+                    <p className="text-white/80 text-[11px]">Photo • Invitation • Gift Link</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-white" />
+                </div>
+              </motion.button>
+            </section>
+          </AnimatedSection>
+
           {/* ── Hero Banner ── */}
           {banners.length > 0 && (
             <section className="px-5">
