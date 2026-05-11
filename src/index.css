@@ -819,9 +819,16 @@
     0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
     50% { transform: translateY(-12px) rotate(8deg); opacity: 1; }
   }
+  @keyframes gift-sparkle-burst {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+    50% { transform: scale(1.4) rotate(20deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+  }
   .gift-animated-bg {
     background-size: 220% 220% !important;
     animation: gift-gradient-shift 8s ease-in-out infinite;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    will-change: transform;
   }
   .gift-shimmer-overlay {
     position: absolute; inset: 0; pointer-events: none; overflow: hidden;
@@ -834,5 +841,44 @@
   }
   .gift-float-particle {
     animation: gift-float 4s ease-in-out infinite;
+    transition: transform 0.3s ease;
+  }
+
+  /* Hover/press intensification — applies whenever a parent has .group hovered or active,
+     or whenever the card itself is hovered/active */
+  .group:hover .gift-animated-bg,
+  .gift-animated-bg:hover {
+    animation-duration: 3s;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 45px -15px rgba(0,0,0,0.45);
+  }
+  .group:active .gift-animated-bg,
+  .gift-animated-bg:active {
+    transform: scale(0.985);
+  }
+  .group:hover .gift-shimmer-overlay::before,
+  .gift-animated-bg:hover .gift-shimmer-overlay::before {
+    animation-duration: 1.1s;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+  }
+  .group:hover .gift-float-particle,
+  .gift-animated-bg:hover .gift-float-particle {
+    animation: gift-sparkle-burst 1.2s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+
+  /* Reduced motion: respect user system setting */
+  @media (prefers-reduced-motion: reduce) {
+    .gift-animated-bg,
+    .gift-shimmer-overlay::before,
+    .gift-float-particle,
+    .group:hover .gift-animated-bg,
+    .group:hover .gift-shimmer-overlay::before,
+    .group:hover .gift-float-particle {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+    }
+    .gift-shimmer-overlay::before { display: none; }
   }
 }
