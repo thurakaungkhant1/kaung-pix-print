@@ -86,9 +86,11 @@ const GiftCardPreview = ({ style, message, imageUrl, variant = "preview" }: Prop
       <div className="relative z-10 flex flex-col items-center text-center h-full justify-center">
         {isFull && (
           <motion.div
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 180, damping: 14, delay: 0.2 }}
+            {...anim({
+              initial: { scale: 0, rotate: -45 },
+              animate: { scale: 1, rotate: 0 },
+              transition: { type: "spring", stiffness: 180, damping: 14, delay: 0.2 },
+            })}
             className="w-16 h-16 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center mb-4 ring-2 ring-white/30 shadow-xl"
           >
             <IconFor name={Icon} className="w-8 h-8" />
