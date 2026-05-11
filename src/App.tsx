@@ -87,7 +87,7 @@ const PassportPromptsManage = lazy(() => import("./pages/admin/PassportPromptsMa
 const PopularPromptsManage = lazy(() => import("./pages/admin/PopularPromptsManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
-const PhysicalProducts = lazy(() => import("./pages/PhysicalProducts"));
+
 const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
 import InterstitialAd from "@/components/InterstitialAd";
 import NotificationDialog from "@/components/NotificationDialog";
@@ -290,14 +290,6 @@ const App = () => {
                     <ProtectedAdminRoute>
                       <PhysicalCategoriesManage />
                     </ProtectedAdminRoute>
-                  }
-                />
-                <Route
-                  path="/physical-products"
-                  element={
-                    <ProtectedRoute>
-                      <PhysicalProducts />
-                    </ProtectedRoute>
                   }
                 />
                 <Route
