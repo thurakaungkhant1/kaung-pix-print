@@ -44,9 +44,10 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
     {
       label: "Content",
       items: [
-        { id: "products", label: "Products", route: "/admin/products" },
+        { id: "mlbb-packages", label: "Mobile Legends", route: "/admin/diamond-packages" },
+        { id: "pubg-packages", label: "PUBG", route: "/admin/pubg-uc-packages" },
+        { id: "mobile-services-shop", label: "Mobile", route: "/admin/mobile-services" },
         { id: "categories", label: "Shop Categories", route: "/admin/categories" },
-        { id: "physical-categories", label: "Physical Categories", route: "/admin/physical-categories" },
         { id: "photos", label: "Photos" },
         { id: "banners", label: "Promo Banners", route: "/admin/banners" },
       ]
