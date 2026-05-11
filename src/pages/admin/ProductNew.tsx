@@ -55,7 +55,7 @@ const ProductNew = () => {
       image_url: primaryImage,
       points_value: parseInt(pointsValue) || 0,
       category,
-      physical_category_id: physicalCategoryId && physicalCategoryId !== "none" ? physicalCategoryId : null,
+      physical_category_id: null,
       stock_quantity: parseInt(stockQuantity) || 0,
       status,
       is_premium: isPremium,
