@@ -78,23 +78,8 @@ const GiftView = () => {
         className="relative z-10 w-full max-w-md"
       >
         <div className="rounded-3xl overflow-hidden shadow-2xl border border-border/50">
-          <div style={{ background: style.bg, color: style.color }} className="p-8 text-center">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="w-16 h-16 mx-auto rounded-full bg-white/20 backdrop-blur flex items-center justify-center mb-4"
-            >
-              <Gift className="w-8 h-8" />
-            </motion.div>
-            {imageUrl && (
-              <img src={imageUrl} alt="gift" className="w-28 h-28 mx-auto rounded-full object-cover border-4 border-white/40 mb-4 shadow-xl" />
-            )}
-            <p className="text-xs uppercase tracking-widest opacity-80 mb-2">A gift for you</p>
-            <p className="text-base font-medium whitespace-pre-wrap leading-relaxed">
-              {message || "💝"}
-            </p>
-          </div>
+          <GiftCardPreview style={style} message={message} imageUrl={imageUrl} variant="full" />
+        </div>
           <div className="bg-card p-4 flex items-center gap-2">
             <Button onClick={share} className="flex-1" variant="default">
               <Heart className="w-4 h-4 mr-2" /> Share back
