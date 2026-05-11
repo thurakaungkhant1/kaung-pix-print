@@ -246,9 +246,6 @@ const ProductsManage = () => {
           </CardContent>
         </Card>
 
-        <Button onClick={() => navigate("/admin/products/new")} className="w-full">
-          Add New Product
-        </Button>
 
         {filteredProducts.map((product) => (
           <Card key={product.id}>
