@@ -2182,30 +2182,18 @@ const AdminDashboard = () => {
                       In-game currencies, skins, gift cards - instant delivery with Player ID
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
+                      <button onClick={() => navigate("/admin/diamond-packages")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
                         <div className="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center">
                           <Gem className="h-4 w-4 text-blue-500" />
                         </div>
-                        <span className="text-sm">MLBB Diamonds</span>
-                      </div>
-                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
+                        <span className="text-sm">Mobile Legends</span>
+                      </button>
+                      <button onClick={() => navigate("/admin/pubg-uc-packages")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
                         <div className="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
                           <Gamepad2 className="h-4 w-4 text-yellow-500" />
                         </div>
-                        <span className="text-sm">PUBG UC</span>
-                      </div>
-                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
-                        <div className="w-8 h-8 rounded bg-orange-500/20 flex items-center justify-center">
-                          <Zap className="h-4 w-4 text-orange-500" />
-                        </div>
-                        <span className="text-sm">Free Fire</span>
-                      </div>
-                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
-                        <div className="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center">
-                          <Package className="h-4 w-4 text-purple-500" />
-                        </div>
-                        <span className="text-sm">Genshin</span>
-                      </div>
+                        <span className="text-sm">PUBG</span>
+                      </button>
                     </div>
                   </div>
 
@@ -2218,33 +2206,8 @@ const AdminDashboard = () => {
                     <p className="text-sm text-muted-foreground">
                       Phone bill top-ups and mobile data plans - requires phone number
                     </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
-                        <div className="w-8 h-8 rounded bg-green-500/20 flex items-center justify-center">
-                          <Phone className="h-4 w-4 text-green-500" />
-                        </div>
-                        <span className="text-sm">Phone Top-up</span>
-                      </div>
-                      <div className="flex items-center gap-2 p-2 bg-card rounded-lg">
-                        <div className="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center">
-                          <ExternalLink className="h-4 w-4 text-blue-500" />
-                        </div>
-                        <span className="text-sm">Data Plans</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Physical Products Section */}
-                  <div className="p-4 bg-muted/50 rounded-xl space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-5 w-5 text-primary" />
-                      <h3 className="font-semibold">Physical Products</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Merchandise, accessories - requires shipping address
-                    </p>
-                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/products")}>
-                      View All Products
+                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/mobile-services")}>
+                      Manage Mobile Services
                     </Button>
                   </div>
                 </CardContent>

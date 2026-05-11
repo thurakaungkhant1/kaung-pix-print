@@ -37,7 +37,7 @@ const PubgUcPackages = () => {
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .eq("category", "PUBG Mobile UC")
+      .eq("category", "PUBG UC")
       .order("created_at", { ascending: false });
 
     if (error) {
