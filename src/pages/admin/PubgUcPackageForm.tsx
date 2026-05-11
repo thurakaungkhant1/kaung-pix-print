@@ -56,7 +56,7 @@ const PubgUcPackageForm = () => {
       description: formData.description || null,
       image_url: formData.image_url || "/placeholder.svg",
       points_value: parseInt(formData.points_value),
-      category: "PUBG Mobile UC",
+      category: "PUBG UC",
     };
 
     let error;
