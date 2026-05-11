@@ -79,7 +79,6 @@ const GiftView = () => {
       >
         <div className="rounded-3xl overflow-hidden shadow-2xl border border-border/50">
           <GiftCardPreview style={style} message={message} imageUrl={imageUrl} variant="full" />
-        </div>
           <div className="bg-card p-4 flex items-center gap-2">
             <Button onClick={share} className="flex-1" variant="default">
               <Heart className="w-4 h-4 mr-2" /> Share back
