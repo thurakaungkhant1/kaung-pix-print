@@ -166,7 +166,7 @@ const AIPhoto = () => {
           <h1 className="font-semibold flex-1">AI Photo Generator</h1>
           <div className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
             <Sparkles className="w-3 h-3" />
-            {remaining}/{dailyLimit} today
+            Unlimited
           </div>
         </div>
       </header>
