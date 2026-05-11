@@ -30,6 +30,8 @@ const AIPhoto = () => {
   const [latest, setLatest] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Note: daily generation limit removed — unlimited usage.
+
   useEffect(() => {
     const prefill = sessionStorage.getItem("ai_prefill_prompt");
     if (prefill) {
