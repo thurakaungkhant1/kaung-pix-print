@@ -221,7 +221,7 @@ const AIPhoto = () => {
 
         <Button
           onClick={generate}
-          disabled={loading || !prompt.trim() || remaining === 0}
+          disabled={loading || !prompt.trim()}
           className="w-full h-12 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white font-semibold"
         >
           {loading ? (
