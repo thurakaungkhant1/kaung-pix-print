@@ -70,11 +70,6 @@ const AIPhoto = () => {
       toast.error("Prompt is required");
       return;
     }
-    if (usedToday >= dailyLimit) {
-      setErrorMsg(`Daily limit reached (${dailyLimit}/day). Try again tomorrow.`);
-      toast.error("Daily limit reached");
-      return;
-    }
     setErrorMsg(null);
     setLoading(true);
     setLatest(null);
