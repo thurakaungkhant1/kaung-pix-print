@@ -1424,10 +1424,6 @@ const AdminDashboard = () => {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <Button onClick={() => navigate("/admin/products/new")} className="h-auto py-4 flex-col gap-2">
-                    <Plus className="h-5 w-5" />
-                    Add Product
-                  </Button>
                   <Button onClick={() => navigate("/admin/photos/new")} variant="outline" className="h-auto py-4 flex-col gap-2">
                     <Image className="h-5 w-5" />
                     Upload Photo
@@ -2052,11 +2048,8 @@ const AdminDashboard = () => {
           {activeTab === "products" && (
             <div className="space-y-4">
               <div className="flex gap-3">
-                <Button onClick={() => navigate("/admin/products/new")}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add New Product
-                </Button>
-                <Button variant="outline" onClick={() => navigate("/admin/products")}>
+                <Button onClick={() => navigate("/admin/products")}>
+                  <Package className="mr-2 h-4 w-4" />
                   Manage Products
                 </Button>
               </div>
@@ -2139,11 +2132,7 @@ const AdminDashboard = () => {
                   <CardDescription>Manage your shop products and categories</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                  <Button onClick={() => navigate("/admin/products/new")} className="h-auto py-4 flex-col gap-2">
-                    <Plus className="h-5 w-5" />
-                    Add Product
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate("/admin/products")} className="h-auto py-4 flex-col gap-2">
+                  <Button onClick={() => navigate("/admin/products")} className="h-auto py-4 flex-col gap-2">
                     <Package className="h-5 w-5" />
                     Manage Products
                   </Button>
