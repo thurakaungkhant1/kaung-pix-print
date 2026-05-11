@@ -51,8 +51,8 @@ const getBannerColor = (colorName: string): string => {
 const MOBILE_SERVICES = [
   { name: "Top-up", icon: Smartphone, route: "/game?tab=mobile" },
   { name: "Data", icon: Wifi, route: "/game?tab=mobile" },
-  { name: "Games", icon: Gamepad2, route: "/game" },
-  { name: "Bills", icon: Receipt, route: "/game?tab=mobile" },
+  { name: "Mini Games", icon: Gamepad2, route: "/games" },
+  { name: "Gallery", icon: Camera, route: "/photo" },
 ];
 
 const EARN_POINTS_GAMES = [
