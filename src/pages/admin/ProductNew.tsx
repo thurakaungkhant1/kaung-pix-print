@@ -18,11 +18,6 @@ const GAME_CATEGORIES = [
   { id: "PUBG UC", name: "PUBG Mobile UC" },
 ];
 
-interface PhysicalCategory {
-  id: string;
-  name: string;
-}
-
 const ProductNew = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -34,28 +29,13 @@ const ProductNew = () => {
   const [imageUrl4, setImageUrl4] = useState("");
   const [pointsValue, setPointsValue] = useState("");
   const [category, setCategory] = useState("General");
-  const [physicalCategoryId, setPhysicalCategoryId] = useState<string>("");
   const [stockQuantity, setStockQuantity] = useState("0");
   const [status, setStatus] = useState("available");
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [physicalCategories, setPhysicalCategories] = useState<PhysicalCategory[]>([]);
   const [step, setStep] = useState(1);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadPhysicalCategories();
-  }, []);
-
-  const loadPhysicalCategories = async () => {
-    const { data } = await supabase
-      .from("physical_categories")
-      .select("id, name")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
-    if (data) setPhysicalCategories(data);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
