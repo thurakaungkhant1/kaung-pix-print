@@ -232,7 +232,7 @@ const AIPhoto = () => {
             <>
               <Sparkles className="w-4 h-4 mr-2" />
               Generate
-              <span className="ml-2 text-xs opacity-90">Free • {remaining}/{dailyLimit}</span>
+              <span className="ml-2 text-xs opacity-90">Free • Unlimited</span>
             </>
           )}
         </Button>
