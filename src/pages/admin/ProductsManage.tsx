@@ -201,7 +201,7 @@ const ProductsManage = () => {
             {/* Filters */}
             <div className="flex gap-2">
               {/* Type Filter */}
-              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "digital" | "physical" | "mobile")}>
+              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "digital" | "mobile")}>
                 <SelectTrigger className="flex-1">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Type" />
@@ -216,11 +216,6 @@ const ProductsManage = () => {
                   <SelectItem value="mobile">
                     <span className="flex items-center gap-2">
                       <Smartphone className="h-4 w-4" /> Mobile Services
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="physical">
-                    <span className="flex items-center gap-2">
-                      <Package className="h-4 w-4" /> Physical Products
                     </span>
                   </SelectItem>
                 </SelectContent>
