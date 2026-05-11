@@ -293,14 +293,6 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/physical-products"
-                  element={
-                    <ProtectedRoute>
-                      <PhysicalProducts />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path="/admin/diamond-packages"
                   element={
                     <ProtectedAdminRoute>
