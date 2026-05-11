@@ -48,13 +48,6 @@ const getBannerColor = (colorName: string): string => {
   return colorMap[colorName] || colorMap['blue-500'];
 };
 
-const MOBILE_SERVICES = [
-  { name: "Top-up", icon: Smartphone, route: "/game?tab=mobile" },
-  { name: "Data", icon: Wifi, route: "/game?tab=mobile" },
-  { name: "Mini Games", icon: Gamepad2, route: "/games" },
-  { name: "Gallery", icon: Camera, route: "/photo" },
-];
-
 const EARN_POINTS_GAMES = [
   { id: "car-dodge", name: "Car Dodge", points: 20, gradient: "from-rose-500 to-orange-500" },
   { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 to-cyan-500" },
@@ -345,39 +338,6 @@ const Home = () => {
               )}
             </section>
           )}
-
-          {/* ── Mobile Services ── */}
-          <AnimatedSection delay={0.1}>
-            <section className="px-5 mt-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-display font-bold">Mobile Services</h2>
-                <button onClick={() => navigate("/game?tab=mobile")} className="text-xs text-primary font-semibold">
-                  See All
-                </button>
-              </div>
-              <div className="grid grid-cols-4 gap-3">
-                {MOBILE_SERVICES.map((service, i) => {
-                  const Icon = service.icon;
-                  return (
-                    <motion.button
-                      key={service.name}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => navigate(service.route)}
-                      className="flex flex-col items-center gap-2"
-                    >
-                      <div className="w-full aspect-square rounded-2xl bg-card border border-border/60 flex items-center justify-center hover:border-primary/40 hover:shadow-md transition-all">
-                        <Icon className="h-6 w-6 text-primary" strokeWidth={2.2} />
-                      </div>
-                      <span className="text-[11px] font-medium text-foreground">{service.name}</span>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </section>
-          </AnimatedSection>
 
           {/* ── Earn Points (Featured Mini Games) ── */}
           <AnimatedSection delay={0.2}>

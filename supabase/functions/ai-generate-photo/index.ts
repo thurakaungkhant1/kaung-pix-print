@@ -46,30 +46,13 @@ serve(async (req) => {
       });
     }
 
-    // Load settings
+    // Load settings (cost only — daily limit removed)
     const { data: settings } = await admin
       .from("ai_usage_settings")
-      .select("photo_cost_coins, daily_photo_limit")
+      .select("photo_cost_coins")
       .limit(1)
       .maybeSingle();
     const photoCost = settings?.photo_cost_coins ?? 50;
-    const dailyLimit = settings?.daily_photo_limit ?? 5;
-
-    // Daily limit check
-    const startOfDay = new Date();
-    startOfDay.setUTCHours(0, 0, 0, 0);
-    const { count: usedToday } = await admin
-      .from("ai_photo_generations")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", startOfDay.toISOString());
-
-    if ((usedToday ?? 0) >= dailyLimit) {
-      return new Response(
-        JSON.stringify({ error: `Daily limit reached (${dailyLimit}/day). Try again tomorrow.`, code: "DAILY_LIMIT" }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
 
     // Wallet balance check
     const { data: profile } = await admin
@@ -178,8 +161,6 @@ serve(async (req) => {
         result_image_url: resultUrl,
         cost_coins: photoCost,
         new_balance: balance - photoCost,
-        used_today: (usedToday ?? 0) + 1,
-        daily_limit: dailyLimit,
         generation: gen,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

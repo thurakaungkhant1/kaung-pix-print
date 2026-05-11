@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import BottomNav from "@/components/BottomNav";
+import { addLogoWatermark } from "@/lib/aiPhotoWatermark";
 
 interface Generation {
   id: string;
@@ -24,10 +25,10 @@ const AIPhoto = () => {
   const [sourcePreview, setSourcePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<Generation[]>([]);
-  const [usedToday, setUsedToday] = useState(0);
-  const [dailyLimit, setDailyLimit] = useState(5);
   const [latest, setLatest] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Note: daily generation limit removed — unlimited usage.
 
   useEffect(() => {
     const prefill = sessionStorage.getItem("ai_prefill_prompt");
@@ -40,24 +41,6 @@ const AIPhoto = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: settings } = await supabase
-        .from("ai_usage_settings")
-        .select("daily_photo_limit")
-        .limit(1)
-        .maybeSingle();
-      if (settings) {
-        setDailyLimit(settings.daily_photo_limit);
-      }
-
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const { data: today } = await supabase
-        .from("ai_photo_generations")
-        .select("id", { count: "exact" })
-        .eq("user_id", user.id)
-        .gte("created_at", start.toISOString());
-      setUsedToday(today?.length ?? 0);
-
       const { data: hist } = await supabase
         .from("ai_photo_generations")
         .select("id, prompt, result_image_url, created_at")
@@ -85,11 +68,6 @@ const AIPhoto = () => {
     if (!finalPrompt) {
       setErrorMsg("Please enter a prompt before generating.");
       toast.error("Prompt is required");
-      return;
-    }
-    if (usedToday >= dailyLimit) {
-      setErrorMsg(`Daily limit reached (${dailyLimit}/day). Try again tomorrow.`);
-      toast.error("Daily limit reached");
       return;
     }
     setErrorMsg(null);
@@ -128,9 +106,15 @@ const AIPhoto = () => {
       if (data?.error) throw new Error(data.error);
       if (!data?.result_image_url) throw new Error("No image was returned. Please try again.");
 
-      setLatest(data.result_image_url);
-      setUsedToday(data.used_today);
-      setHistory((h) => [data.generation, ...h]);
+      // Apply KAUNG COMPUTER watermark to the generated image
+      let displayUrl = data.result_image_url as string;
+      try {
+        displayUrl = await addLogoWatermark(displayUrl);
+      } catch (wmErr) {
+        console.warn("Watermark failed, using original", wmErr);
+      }
+      setLatest(displayUrl);
+      setHistory((h) => [{ ...data.generation, result_image_url: displayUrl }, ...h]);
       toast.success("Image generated!");
       if (!overridePrompt) {
         setPrompt("");
@@ -170,7 +154,7 @@ const AIPhoto = () => {
     }
   };
 
-  const remaining = Math.max(0, dailyLimit - usedToday);
+  
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -182,7 +166,7 @@ const AIPhoto = () => {
           <h1 className="font-semibold flex-1">AI Photo Generator</h1>
           <div className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
             <Sparkles className="w-3 h-3" />
-            {remaining}/{dailyLimit} today
+            Unlimited
           </div>
         </div>
       </header>
@@ -237,7 +221,7 @@ const AIPhoto = () => {
 
         <Button
           onClick={generate}
-          disabled={loading || !prompt.trim() || remaining === 0}
+          disabled={loading || !prompt.trim()}
           className="w-full h-12 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white font-semibold"
         >
           {loading ? (
@@ -248,7 +232,7 @@ const AIPhoto = () => {
             <>
               <Sparkles className="w-4 h-4 mr-2" />
               Generate
-              <span className="ml-2 text-xs opacity-90">Free • {remaining}/{dailyLimit}</span>
+              <span className="ml-2 text-xs opacity-90">Free • Unlimited</span>
             </>
           )}
         </Button>
