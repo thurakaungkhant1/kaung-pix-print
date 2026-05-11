@@ -203,22 +203,56 @@ const Home = () => {
             <section className="px-5 pb-4">
               <motion.button
                 whileTap={{ scale: 0.98 }}
+                whileHover={{ y: -2 }}
                 onClick={() => navigate("/ai")}
-                className="w-full text-left relative overflow-hidden rounded-2xl group shadow-lg"
-                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #3b82f6 100%)" }}
+                aria-label="Open As You Like AI Suite"
+                className="w-full text-left relative overflow-hidden rounded-3xl group shadow-xl ring-1 ring-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #3b82f6 100%)" }}
               >
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/15 rounded-full blur-3xl" />
-                <div className="absolute -bottom-12 -left-8 w-36 h-36 bg-white/10 rounded-full blur-3xl" />
-                <div className="relative z-10 p-4 flex items-center gap-3">
-                  <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20">
-                    <Sparkles className="h-6 w-6 text-white" />
+                <div className="absolute -top-16 -right-10 w-52 h-52 bg-white/20 rounded-full blur-3xl" />
+                <div className="absolute -bottom-16 -left-10 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_55%)]" />
+
+                <div className="relative z-10 p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md border border-white/25 shadow-inner">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Badge className="bg-white/25 text-white border-0 text-[10px] mb-1.5 hover:bg-white/25 backdrop-blur">
+                        NEW • AI SUITE
+                      </Badge>
+                      <h3 className="text-lg sm:text-xl font-display font-black text-white leading-tight drop-shadow">
+                        As You Like AI
+                      </h3>
+                      <p className="text-white/85 text-xs mt-0.5">
+                        Photo • Passport • Prompts • Gift Link
+                      </p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-white mt-2 group-hover:translate-x-1 transition-transform" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <Badge className="bg-white/25 text-white border-0 text-[10px] mb-1 hover:bg-white/25">NEW • AI</Badge>
-                    <p className="text-sm font-display font-bold text-white">As You Like AI</p>
-                    <p className="text-white/80 text-[11px]">Photo • Invitation • Gift Link</p>
+
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {[
+                      { label: "Photo", icon: Camera },
+                      { label: "Passport", icon: Shield },
+                      { label: "Prompts", icon: Zap },
+                      { label: "Gift Link", icon: Sparkles },
+                    ].map((f) => (
+                      <span
+                        key={f.label}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur border border-white/20 text-white text-[10px] font-semibold"
+                      >
+                        <f.icon className="h-3 w-3" />
+                        {f.label}
+                      </span>
+                    ))}
                   </div>
-                  <ArrowRight className="h-4 w-4 text-white" />
+
+                  <div className="mt-4 inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-white text-purple-700 font-bold text-xs shadow-lg group-hover:shadow-xl transition-shadow">
+                    Try AI Now
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
                 </div>
               </motion.button>
             </section>
