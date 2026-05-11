@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import BottomNav from "@/components/BottomNav";
+import { addLogoWatermark } from "@/lib/aiPhotoWatermark";
 
 interface Generation {
   id: string;
