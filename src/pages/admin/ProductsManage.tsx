@@ -60,14 +60,12 @@ const ProductsManage = () => {
       // Category filter
       const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
       
-      // Type filter (digital vs physical vs mobile)
+      // Type filter (digital vs mobile)
       let matchesType = true;
       if (typeFilter === "digital") {
         matchesType = GAME_CATEGORIES.includes(product.category);
       } else if (typeFilter === "mobile") {
         matchesType = MOBILE_CATEGORIES.includes(product.category);
-      } else if (typeFilter === "physical") {
-        matchesType = !DIGITAL_CATEGORIES.includes(product.category);
       }
       
       return matchesSearch && matchesCategory && matchesType;
