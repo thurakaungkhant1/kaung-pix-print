@@ -106,9 +106,15 @@ const AIPhoto = () => {
       if (data?.error) throw new Error(data.error);
       if (!data?.result_image_url) throw new Error("No image was returned. Please try again.");
 
-      setLatest(data.result_image_url);
-      setUsedToday(data.used_today);
-      setHistory((h) => [data.generation, ...h]);
+      // Apply KAUNG COMPUTER watermark to the generated image
+      let displayUrl = data.result_image_url as string;
+      try {
+        displayUrl = await addLogoWatermark(displayUrl);
+      } catch (wmErr) {
+        console.warn("Watermark failed, using original", wmErr);
+      }
+      setLatest(displayUrl);
+      setHistory((h) => [{ ...data.generation, result_image_url: displayUrl }, ...h]);
       toast.success("Image generated!");
       if (!overridePrompt) {
         setPrompt("");
