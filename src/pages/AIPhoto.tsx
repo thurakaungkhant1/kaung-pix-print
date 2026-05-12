@@ -26,6 +26,9 @@ const AIPhoto = () => {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<Generation[]>([]);
   const [latest, setLatest] = useState<string | null>(null);
+  const [latestRaw, setLatestRaw] = useState<string | null>(null);
+  const [watermarkFailed, setWatermarkFailed] = useState(false);
+  const [retryingWm, setRetryingWm] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Note: daily generation limit removed — unlimited usage.
