@@ -32,9 +32,10 @@ const AIPassport = () => {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [sourcePreview, setSourcePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [usedToday, setUsedToday] = useState(0);
-  const [dailyLimit, setDailyLimit] = useState(5);
   const [result, setResult] = useState<string | null>(null);
+  const [resultRaw, setResultRaw] = useState<string | null>(null);
+  const [watermarkFailed, setWatermarkFailed] = useState(false);
+  const [retryingWm, setRetryingWm] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
