@@ -5,188 +5,115 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface VerifyRequest {
-  player_id: string;
-  server_id: string;
-}
-
-interface VerifyResponse {
-  found: boolean;
-  player_name?: string;
-  player_id?: string;
-  server_id?: string;
-}
-
-// Rate limiting store (in production, use Redis or similar)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 function checkRateLimit(userId: string): boolean {
   const now = Date.now();
   const userLimit = rateLimitStore.get(userId);
-  
   if (!userLimit || now > userLimit.resetTime) {
-    rateLimitStore.set(userId, { count: 1, resetTime: now + 60000 }); // 1 minute window
+    rateLimitStore.set(userId, { count: 1, resetTime: now + 60000 });
     return true;
   }
-  
-  if (userLimit.count >= 10) { // Max 10 requests per minute
-    return false;
-  }
-  
+  if (userLimit.count >= 20) return false;
   userLimit.count++;
   return true;
 }
 
-function validatePlayerId(playerId: string): boolean {
-  // Validate: alphanumeric, min 3 chars, max 20 chars
-  const pattern = /^[a-zA-Z0-9]{3,20}$/;
-  return pattern.test(playerId);
-}
+async function callCheckRegion(playerId: string, serverId: string): Promise<any> {
+  const url = "https://sacoliofficial.com/api/api/games/check_region";
+  // Try common payload shapes
+  const payloads = [
+    { id: playerId, server: serverId },
+    { user_id: playerId, zone_id: serverId },
+    { userid: playerId, zoneid: serverId },
+    { game: "mobilelegends", id: playerId, server: serverId },
+  ];
 
-function validateServerId(serverId: string): boolean {
-  // Validate: numeric, 1-5 digits
-  const pattern = /^[0-9]{1,5}$/;
-  return pattern.test(serverId);
-}
-
-async function verifyMLBBPlayer(playerId: string, serverId: string): Promise<VerifyResponse> {
-  // In production, this would call the actual Mobile Legends API
-  // For now, we'll simulate the verification with mock data
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Mock verification logic - in production replace with actual MLBB API call
-  // Example: const response = await fetch(`https://mlbb-api.example.com/verify`, {...});
-  
-  const mockPlayers: Record<string, string> = {
-    '123456': 'DarkKnight',
-    '789012': 'ShadowHunter',
-    '345678': 'MysticMage',
-    '901234': 'SwiftBlade',
-  };
-  
-  const playerName = mockPlayers[playerId];
-  
-  if (playerName) {
-    return {
-      found: true,
-      player_name: playerName,
-      player_id: playerId,
-      server_id: serverId,
-    };
+  for (const body of payloads) {
+    try {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const text = await r.text();
+      let json: any;
+      try { json = JSON.parse(text); } catch { json = { raw: text }; }
+      if (r.ok) {
+        const name =
+          json?.username ||
+          json?.user_name ||
+          json?.nickname ||
+          json?.name ||
+          json?.data?.username ||
+          json?.data?.name ||
+          json?.data?.nickname;
+        if (name) return { found: true, player_name: name, raw: json };
+      }
+    } catch (e) {
+      console.error("check_region attempt failed", e);
+    }
   }
-  
+
+  // Fallback GET
+  try {
+    const r = await fetch(`${url}?id=${encodeURIComponent(playerId)}&server=${encodeURIComponent(serverId)}`);
+    const text = await r.text();
+    let json: any;
+    try { json = JSON.parse(text); } catch { json = { raw: text }; }
+    const name =
+      json?.username || json?.user_name || json?.nickname || json?.name ||
+      json?.data?.username || json?.data?.name || json?.data?.nickname;
+    if (name) return { found: true, player_name: name, raw: json };
+  } catch {}
+
   return { found: false };
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    // Get authorization header
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
+    if (!authHeader) throw new Error('Missing authorization header');
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: {
-        headers: { Authorization: authHeader },
-      },
-    });
-
-    // Get user from token
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      throw new Error('Unauthorized');
-    }
-
-    // Rate limiting
-    if (!checkRateLimit(user.id)) {
-      return new Response(
-        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-        { 
-          status: 429, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Parse request body
-    const body: VerifyRequest = await req.json();
-    const { player_id, server_id } = body;
-
-    // Validate inputs
-    if (!player_id || !server_id) {
-      return new Response(
-        JSON.stringify({ error: 'Player ID and Server ID are required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Sanitize and validate
-    const sanitizedPlayerId = player_id.trim();
-    const sanitizedServerId = server_id.trim();
-
-    if (!validatePlayerId(sanitizedPlayerId)) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Invalid Player ID format. Must be 3-20 alphanumeric characters.' 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    if (!validateServerId(sanitizedServerId)) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Invalid Server ID format. Must be numeric.' 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log(`Verifying MLBB player: ${sanitizedPlayerId} on server: ${sanitizedServerId}`);
-
-    // Verify player
-    const result = await verifyMLBBPlayer(sanitizedPlayerId, sanitizedServerId);
-
-    return new Response(
-      JSON.stringify(result),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
     );
 
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error('Unauthorized');
+
+    if (!checkRateLimit(user.id)) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please wait a minute.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const { player_id, server_id } = await req.json();
+    if (!player_id || !server_id) {
+      return new Response(JSON.stringify({ error: 'Player ID and Server ID are required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const pid = String(player_id).trim();
+    const sid = String(server_id).trim();
+
+    if (!/^[0-9]{3,15}$/.test(pid) || !/^[0-9]{1,5}$/.test(sid)) {
+      return new Response(JSON.stringify({ error: 'Invalid ID or Server format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const result = await callCheckRegion(pid, sid);
+    return new Response(JSON.stringify({ ...result, player_id: pid, server_id: sid }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
   } catch (error) {
-    console.error('Error in verify-mlbb-player:', error);
-    
+    console.error('verify-mlbb-player error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Internal server error' 
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
