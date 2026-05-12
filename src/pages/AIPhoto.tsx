@@ -125,16 +125,22 @@ const AIPhoto = () => {
       if (data?.error) throw new Error(data.error);
       if (!data?.result_image_url) throw new Error("No image was returned. Please try again.");
 
-      // Apply KAUNG COMPUTER watermark to the generated image
-      let displayUrl = data.result_image_url as string;
+      const rawUrl = data.result_image_url as string;
+      setLatestRaw(rawUrl);
+      let displayUrl = rawUrl;
+      let wmOk = true;
       try {
-        displayUrl = await addLogoWatermark(displayUrl);
+        displayUrl = await addLogoWatermark(rawUrl);
       } catch (wmErr) {
-        console.warn("Watermark failed, using original", wmErr);
+        wmOk = false;
+        console.warn("Watermark failed", wmErr);
+        toast.error("Watermark မထည့်နိုင်ပါ — ပြန်စမ်းနိုင်ပါတယ်");
       }
+      setWatermarkFailed(!wmOk);
       setLatest(displayUrl);
       setHistory((h) => [{ ...data.generation, result_image_url: displayUrl }, ...h]);
-      toast.success("Image generated!");
+      if (wmOk) toast.success("Image generated!");
+
       if (!overridePrompt) {
         setPrompt("");
         setSourceFile(null);
