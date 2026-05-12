@@ -96,6 +96,9 @@ const GamePage = () => {
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
   const [filterLoading, setFilterLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [checkingName, setCheckingName] = useState(false);
+  const [checkedName, setCheckedName] = useState<string | null>(null);
+  const [checkError, setCheckError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   
