@@ -192,7 +192,7 @@ const AIPassport = () => {
           </div>
           <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20">
             <Sparkles className="w-3 h-3" />
-            {remaining}/{dailyLimit}
+            Unlimited
           </div>
         </div>
       </header>
