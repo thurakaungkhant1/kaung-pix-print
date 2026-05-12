@@ -157,6 +157,23 @@ const AIPhoto = () => {
 
   const generate = () => runGenerate();
 
+  const retryWatermark = async () => {
+    if (!latestRaw) return;
+    setRetryingWm(true);
+    try {
+      const wm = await addLogoWatermark(latestRaw);
+      setLatest(wm);
+      setWatermarkFailed(false);
+      setHistory((h) => h.map((x, i) => (i === 0 ? { ...x, result_image_url: wm } : x)));
+      toast.success("Watermark ထည့်ပြီးပါပြီ");
+    } catch {
+      toast.error("Watermark ထပ်မအောင်မြင်ပါ — ပြန်စမ်းပါ");
+    } finally {
+      setRetryingWm(false);
+    }
+  };
+
+
   const regenerate = (g: Generation) => {
     setPrompt(g.prompt);
     setSourceFile(null);
