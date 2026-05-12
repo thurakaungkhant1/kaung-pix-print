@@ -50,7 +50,23 @@ const AIPhoto = () => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
-      setHistory(hist ?? []);
+      const list = hist ?? [];
+      setHistory(list);
+      // Apply watermark to history thumbnails
+      list.forEach(async (g, idx) => {
+        if (!g.result_image_url) return;
+        try {
+          const wm = await addLogoWatermark(g.result_image_url);
+          setHistory((curr) => {
+            const next = [...curr];
+            const i = next.findIndex((x) => x.id === g.id);
+            if (i >= 0) next[i] = { ...next[i], result_image_url: wm };
+            return next;
+          });
+        } catch (e) {
+          console.warn("history watermark failed", e);
+        }
+      });
     })();
   }, [user]);
 
