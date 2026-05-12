@@ -98,14 +98,11 @@ const AIPassport = () => {
       toast.error("Upload your photo");
       return;
     }
-    if (remaining === 0) {
-      setErrorMsg(`Daily limit reached (${dailyLimit}/day). Try again tomorrow.`);
-      toast.error("Daily limit reached");
-      return;
-    }
     setErrorMsg(null);
     setLoading(true);
     setResult(null);
+    setResultRaw(null);
+    setWatermarkFailed(false);
     try {
       const safeName = sourceFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = `${user.id}/passport-${Date.now()}-${safeName}`;
@@ -134,17 +131,22 @@ const AIPassport = () => {
       if (data?.error) throw new Error(data.error);
       if (!data?.result_image_url) throw new Error("No image was returned. Please try a different photo.");
 
-      let displayUrl = data.result_image_url as string;
+      const rawUrl = data.result_image_url as string;
+      setResultRaw(rawUrl);
+      let displayUrl = rawUrl;
+      let wmOk = true;
       try {
-        displayUrl = await addLogoWatermark(displayUrl);
+        displayUrl = await addLogoWatermark(rawUrl);
       } catch (wmErr) {
-        console.warn("Watermark failed, using original", wmErr);
+        wmOk = false;
+        console.warn("Watermark failed", wmErr);
+        toast.error("Watermark မထည့်နိုင်ပါ — ပြန်စမ်းနိုင်ပါတယ်");
       }
-
+      setWatermarkFailed(!wmOk);
       setResult(displayUrl);
-      setUsedToday(data.used_today);
       if (data.generation) setHistory((h) => [{ ...(data.generation as HistoryItem), result_image_url: displayUrl }, ...h].slice(0, 12));
-      toast.success("Passport photo ready!");
+      if (wmOk) toast.success("Passport photo ready!");
+
     } catch (e: any) {
       const msg = e.message ?? "Generation failed";
       setErrorMsg(msg);
