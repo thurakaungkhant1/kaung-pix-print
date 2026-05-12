@@ -32,42 +32,41 @@ const AIPassport = () => {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [sourcePreview, setSourcePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [usedToday, setUsedToday] = useState(0);
-  const [dailyLimit, setDailyLimit] = useState(5);
   const [result, setResult] = useState<string | null>(null);
+  const [resultRaw, setResultRaw] = useState<string | null>(null);
+  const [watermarkFailed, setWatermarkFailed] = useState(false);
+  const [retryingWm, setRetryingWm] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: settings }, { data: today }, { data: list }] = await Promise.all([
-        supabase.from("ai_usage_settings").select("daily_photo_limit").limit(1).maybeSingle(),
-        (async () => {
-          const start = new Date();
-          start.setHours(0, 0, 0, 0);
-          return supabase
-            .from("ai_photo_generations")
-            .select("id", { count: "exact" })
-            .eq("user_id", user.id)
-            .gte("created_at", start.toISOString());
-        })(),
-        supabase
-          .from("passport_photo_prompts")
-          .select("id, name, description, prompt, thumbnail_url")
-          .eq("is_active", true)
-          .order("display_order", { ascending: true }),
-      ]);
-      if (settings) setDailyLimit(settings.daily_photo_limit);
-      setUsedToday(today?.length ?? 0);
+      const { data: list } = await supabase
+        .from("passport_photo_prompts")
+        .select("id, name, description, prompt, thumbnail_url")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
       setPresets((list as Preset[]) ?? []);
+
       const { data: hist } = await supabase
         .from("ai_photo_generations")
         .select("id, prompt, result_image_url, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(12);
-      setHistory((hist as HistoryItem[]) ?? []);
+      const histList = (hist as HistoryItem[]) ?? [];
+      setHistory(histList);
+      // Watermark history thumbnails client-side
+      histList.forEach(async (g) => {
+        if (!g.result_image_url) return;
+        try {
+          const wm = await addLogoWatermark(g.result_image_url);
+          setHistory((curr) => curr.map((x) => (x.id === g.id ? { ...x, result_image_url: wm } : x)));
+        } catch (e) {
+          console.warn("history watermark failed", e);
+        }
+      });
     })();
   }, [user]);
 
@@ -82,8 +81,6 @@ const AIPassport = () => {
     reader.onload = () => setSourcePreview(reader.result as string);
     reader.readAsDataURL(f);
   };
-
-  const remaining = Math.max(0, dailyLimit - usedToday);
 
   const closeModal = () => {
     if (loading) return;
@@ -101,14 +98,11 @@ const AIPassport = () => {
       toast.error("Upload your photo");
       return;
     }
-    if (remaining === 0) {
-      setErrorMsg(`Daily limit reached (${dailyLimit}/day). Try again tomorrow.`);
-      toast.error("Daily limit reached");
-      return;
-    }
     setErrorMsg(null);
     setLoading(true);
     setResult(null);
+    setResultRaw(null);
+    setWatermarkFailed(false);
     try {
       const safeName = sourceFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = `${user.id}/passport-${Date.now()}-${safeName}`;
@@ -137,17 +131,22 @@ const AIPassport = () => {
       if (data?.error) throw new Error(data.error);
       if (!data?.result_image_url) throw new Error("No image was returned. Please try a different photo.");
 
-      let displayUrl = data.result_image_url as string;
+      const rawUrl = data.result_image_url as string;
+      setResultRaw(rawUrl);
+      let displayUrl = rawUrl;
+      let wmOk = true;
       try {
-        displayUrl = await addLogoWatermark(displayUrl);
+        displayUrl = await addLogoWatermark(rawUrl);
       } catch (wmErr) {
-        console.warn("Watermark failed, using original", wmErr);
+        wmOk = false;
+        console.warn("Watermark failed", wmErr);
+        toast.error("Watermark မထည့်နိုင်ပါ — ပြန်စမ်းနိုင်ပါတယ်");
       }
-
+      setWatermarkFailed(!wmOk);
       setResult(displayUrl);
-      setUsedToday(data.used_today);
       if (data.generation) setHistory((h) => [{ ...(data.generation as HistoryItem), result_image_url: displayUrl }, ...h].slice(0, 12));
-      toast.success("Passport photo ready!");
+      if (wmOk) toast.success("Passport photo ready!");
+
     } catch (e: any) {
       const msg = e.message ?? "Generation failed";
       setErrorMsg(msg);
@@ -193,7 +192,7 @@ const AIPassport = () => {
           </div>
           <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20">
             <Sparkles className="w-3 h-3" />
-            {remaining}/{dailyLimit}
+            Unlimited
           </div>
         </div>
       </header>
@@ -377,7 +376,7 @@ const AIPassport = () => {
 
                   <Button
                     onClick={generate}
-                    disabled={loading || !sourceFile || remaining === 0}
+                    disabled={loading || !sourceFile}
                     className="w-full h-12 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all"
                   >
                     {loading ? (
@@ -391,7 +390,7 @@ const AIPassport = () => {
                     )}
                   </Button>
                   <p className="text-[11px] text-center text-muted-foreground">
-                    Free • {remaining}/{dailyLimit} left today · Takes ~15-30s
+                    Free • Unlimited · Takes ~15-30s
                   </p>
                 </>
               )}
@@ -403,10 +402,41 @@ const AIPassport = () => {
                   className="rounded-xl overflow-hidden border border-border bg-card"
                 >
                   <img src={result} alt="passport" className="w-full" />
+                  {watermarkFailed && (
+                    <div className="px-3 py-2 bg-amber-500/10 border-t border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5" /> Watermark မထည့်နိုင်ခဲ့ပါ
+                      </span>
+                      <button
+                        onClick={async () => {
+                          if (!resultRaw) return;
+                          setRetryingWm(true);
+                          try {
+                            const wm = await addLogoWatermark(resultRaw);
+                            setResult(wm);
+                            setWatermarkFailed(false);
+                            setHistory((h) => h.map((x, i) => (i === 0 ? { ...x, result_image_url: wm } : x)));
+                            toast.success("Watermark ထည့်ပြီးပါပြီ");
+                          } catch {
+                            toast.error("Watermark ထပ်မအောင်မြင်ပါ");
+                          } finally {
+                            setRetryingWm(false);
+                          }
+                        }}
+                        disabled={retryingWm}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[11px] font-semibold disabled:opacity-50"
+                      >
+                        {retryingWm ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCw className="w-3 h-3" />}
+                        ပြန်စမ်း
+                      </button>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2">
                     <Button
                       onClick={() => {
                         setResult(null);
+                        setResultRaw(null);
+                        setWatermarkFailed(false);
                         setSourceFile(null);
                         setSourcePreview(null);
                       }}

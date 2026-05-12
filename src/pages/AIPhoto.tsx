@@ -26,6 +26,9 @@ const AIPhoto = () => {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<Generation[]>([]);
   const [latest, setLatest] = useState<string | null>(null);
+  const [latestRaw, setLatestRaw] = useState<string | null>(null);
+  const [watermarkFailed, setWatermarkFailed] = useState(false);
+  const [retryingWm, setRetryingWm] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Note: daily generation limit removed — unlimited usage.
@@ -47,7 +50,23 @@ const AIPhoto = () => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
-      setHistory(hist ?? []);
+      const list = hist ?? [];
+      setHistory(list);
+      // Apply watermark to history thumbnails
+      list.forEach(async (g, idx) => {
+        if (!g.result_image_url) return;
+        try {
+          const wm = await addLogoWatermark(g.result_image_url);
+          setHistory((curr) => {
+            const next = [...curr];
+            const i = next.findIndex((x) => x.id === g.id);
+            if (i >= 0) next[i] = { ...next[i], result_image_url: wm };
+            return next;
+          });
+        } catch (e) {
+          console.warn("history watermark failed", e);
+        }
+      });
     })();
   }, [user]);
 
@@ -106,16 +125,22 @@ const AIPhoto = () => {
       if (data?.error) throw new Error(data.error);
       if (!data?.result_image_url) throw new Error("No image was returned. Please try again.");
 
-      // Apply KAUNG COMPUTER watermark to the generated image
-      let displayUrl = data.result_image_url as string;
+      const rawUrl = data.result_image_url as string;
+      setLatestRaw(rawUrl);
+      let displayUrl = rawUrl;
+      let wmOk = true;
       try {
-        displayUrl = await addLogoWatermark(displayUrl);
+        displayUrl = await addLogoWatermark(rawUrl);
       } catch (wmErr) {
-        console.warn("Watermark failed, using original", wmErr);
+        wmOk = false;
+        console.warn("Watermark failed", wmErr);
+        toast.error("Watermark မထည့်နိုင်ပါ — ပြန်စမ်းနိုင်ပါတယ်");
       }
+      setWatermarkFailed(!wmOk);
       setLatest(displayUrl);
       setHistory((h) => [{ ...data.generation, result_image_url: displayUrl }, ...h]);
-      toast.success("Image generated!");
+      if (wmOk) toast.success("Image generated!");
+
       if (!overridePrompt) {
         setPrompt("");
         setSourceFile(null);
@@ -131,6 +156,23 @@ const AIPhoto = () => {
   };
 
   const generate = () => runGenerate();
+
+  const retryWatermark = async () => {
+    if (!latestRaw) return;
+    setRetryingWm(true);
+    try {
+      const wm = await addLogoWatermark(latestRaw);
+      setLatest(wm);
+      setWatermarkFailed(false);
+      setHistory((h) => h.map((x, i) => (i === 0 ? { ...x, result_image_url: wm } : x)));
+      toast.success("Watermark ထည့်ပြီးပါပြီ");
+    } catch {
+      toast.error("Watermark ထပ်မအောင်မြင်ပါ — ပြန်စမ်းပါ");
+    } finally {
+      setRetryingWm(false);
+    }
+  };
+
 
   const regenerate = (g: Generation) => {
     setPrompt(g.prompt);
@@ -263,6 +305,21 @@ const AIPhoto = () => {
             className="rounded-xl overflow-hidden border border-border bg-card"
           >
             <img src={latest} alt="generated" className="w-full" />
+            {watermarkFailed && (
+              <div className="px-3 py-2 bg-amber-500/10 border-t border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5" /> Watermark မထည့်နိုင်ခဲ့ပါ
+                </span>
+                <button
+                  onClick={retryWatermark}
+                  disabled={retryingWm}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[11px] font-semibold disabled:opacity-50"
+                >
+                  {retryingWm ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCw className="w-3 h-3" />}
+                  ပြန်စမ်း
+                </button>
+              </div>
+            )}
             <Button onClick={() => download(latest)} variant="secondary" className="w-full rounded-none">
               <Download className="w-4 h-4 mr-2" /> Download
             </Button>

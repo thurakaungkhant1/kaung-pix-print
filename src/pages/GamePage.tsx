@@ -96,6 +96,9 @@ const GamePage = () => {
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
   const [filterLoading, setFilterLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [checkingName, setCheckingName] = useState(false);
+  const [checkedName, setCheckedName] = useState<string | null>(null);
+  const [checkError, setCheckError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -471,7 +474,7 @@ const GamePage = () => {
                   <Input
                     placeholder="12345678"
                     value={gameId}
-                    onChange={(e) => setGameId(e.target.value)}
+                    onChange={(e) => { setGameId(e.target.value); setCheckedName(null); setCheckError(null); }}
                     className="h-11"
                   />
                 </div>
@@ -481,12 +484,58 @@ const GamePage = () => {
                     <Input
                       placeholder="1234"
                       value={serverId}
-                      onChange={(e) => setServerId(e.target.value)}
+                      onChange={(e) => { setServerId(e.target.value); setCheckedName(null); setCheckError(null); }}
                       className="h-11"
                     />
                   </div>
                 )}
               </div>
+
+              {selectedGame.id === "MLBB Diamonds" && (
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={checkingName || !gameId || !serverId}
+                    onClick={async () => {
+                      setCheckingName(true);
+                      setCheckError(null);
+                      setCheckedName(null);
+                      try {
+                        const { data, error } = await supabase.functions.invoke("verify-mlbb-player", {
+                          body: { player_id: gameId.trim(), server_id: serverId.trim() },
+                        });
+                        if (error) throw error;
+                        if (data?.found && data?.player_name) {
+                          setCheckedName(data.player_name);
+                          toast({ title: "In-Game Name", description: data.player_name });
+                        } else {
+                          setCheckError(data?.error || "Player not found. ID/Server ကို စစ်ကြည့်ပါ။");
+                        }
+                      } catch (e: any) {
+                        setCheckError(e?.message || "Name check failed");
+                      } finally {
+                        setCheckingName(false);
+                      }
+                    }}
+                    className="w-full h-9 rounded-xl"
+                  >
+                    {checkingName ? "Checking..." : "Check In-Game Name"}
+                  </Button>
+                  {checkedName && (
+                    <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300 font-semibold">
+                      ✓ {checkedName}
+                    </div>
+                  )}
+                  {checkError && (
+                    <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                      {checkError}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
                 <Sparkles className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
                 Diamonds will be sent instantly to your in-game mailbox after payment confirmation.
