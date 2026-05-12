@@ -376,7 +376,7 @@ const AIPassport = () => {
 
                   <Button
                     onClick={generate}
-                    disabled={loading || !sourceFile || remaining === 0}
+                    disabled={loading || !sourceFile}
                     className="w-full h-12 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all"
                   >
                     {loading ? (
@@ -390,7 +390,7 @@ const AIPassport = () => {
                     )}
                   </Button>
                   <p className="text-[11px] text-center text-muted-foreground">
-                    Free • {remaining}/{dailyLimit} left today · Takes ~15-30s
+                    Free • Unlimited · Takes ~15-30s
                   </p>
                 </>
               )}
@@ -402,10 +402,41 @@ const AIPassport = () => {
                   className="rounded-xl overflow-hidden border border-border bg-card"
                 >
                   <img src={result} alt="passport" className="w-full" />
+                  {watermarkFailed && (
+                    <div className="px-3 py-2 bg-amber-500/10 border-t border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5" /> Watermark မထည့်နိုင်ခဲ့ပါ
+                      </span>
+                      <button
+                        onClick={async () => {
+                          if (!resultRaw) return;
+                          setRetryingWm(true);
+                          try {
+                            const wm = await addLogoWatermark(resultRaw);
+                            setResult(wm);
+                            setWatermarkFailed(false);
+                            setHistory((h) => h.map((x, i) => (i === 0 ? { ...x, result_image_url: wm } : x)));
+                            toast.success("Watermark ထည့်ပြီးပါပြီ");
+                          } catch {
+                            toast.error("Watermark ထပ်မအောင်မြင်ပါ");
+                          } finally {
+                            setRetryingWm(false);
+                          }
+                        }}
+                        disabled={retryingWm}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[11px] font-semibold disabled:opacity-50"
+                      >
+                        {retryingWm ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCw className="w-3 h-3" />}
+                        ပြန်စမ်း
+                      </button>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2">
                     <Button
                       onClick={() => {
                         setResult(null);
+                        setResultRaw(null);
+                        setWatermarkFailed(false);
                         setSourceFile(null);
                         setSourcePreview(null);
                       }}
