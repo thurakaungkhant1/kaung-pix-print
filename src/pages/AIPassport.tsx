@@ -42,33 +42,31 @@ const AIPassport = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: settings }, { data: today }, { data: list }] = await Promise.all([
-        supabase.from("ai_usage_settings").select("daily_photo_limit").limit(1).maybeSingle(),
-        (async () => {
-          const start = new Date();
-          start.setHours(0, 0, 0, 0);
-          return supabase
-            .from("ai_photo_generations")
-            .select("id", { count: "exact" })
-            .eq("user_id", user.id)
-            .gte("created_at", start.toISOString());
-        })(),
-        supabase
-          .from("passport_photo_prompts")
-          .select("id, name, description, prompt, thumbnail_url")
-          .eq("is_active", true)
-          .order("display_order", { ascending: true }),
-      ]);
-      if (settings) setDailyLimit(settings.daily_photo_limit);
-      setUsedToday(today?.length ?? 0);
+      const { data: list } = await supabase
+        .from("passport_photo_prompts")
+        .select("id, name, description, prompt, thumbnail_url")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
       setPresets((list as Preset[]) ?? []);
+
       const { data: hist } = await supabase
         .from("ai_photo_generations")
         .select("id, prompt, result_image_url, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(12);
-      setHistory((hist as HistoryItem[]) ?? []);
+      const histList = (hist as HistoryItem[]) ?? [];
+      setHistory(histList);
+      // Watermark history thumbnails client-side
+      histList.forEach(async (g) => {
+        if (!g.result_image_url) return;
+        try {
+          const wm = await addLogoWatermark(g.result_image_url);
+          setHistory((curr) => curr.map((x) => (x.id === g.id ? { ...x, result_image_url: wm } : x)));
+        } catch (e) {
+          console.warn("history watermark failed", e);
+        }
+      });
     })();
   }, [user]);
 
@@ -83,8 +81,6 @@ const AIPassport = () => {
     reader.onload = () => setSourcePreview(reader.result as string);
     reader.readAsDataURL(f);
   };
-
-  const remaining = Math.max(0, dailyLimit - usedToday);
 
   const closeModal = () => {
     if (loading) return;
