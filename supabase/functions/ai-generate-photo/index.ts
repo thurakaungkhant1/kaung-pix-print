@@ -37,31 +37,100 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const prompt: string = (body?.prompt ?? "").toString().trim();
+    const promptInput: string = (body?.prompt ?? "").toString().trim();
     const sourceImageUrl: string | undefined = body?.source_image_url;
-    if (!prompt || prompt.length < 3 || prompt.length > 1000) {
+    const styleKey: string | undefined = body?.style_key;
+    if (!promptInput || promptInput.length < 3 || promptInput.length > 1000) {
       return new Response(JSON.stringify({ error: "Prompt must be 3-1000 characters" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Load settings (cost only — daily limit removed)
+    // Load AI settings
     const { data: settings } = await admin
       .from("ai_usage_settings")
-      .select("photo_cost_coins")
+      .select("photo_cost_coins, free_daily_limit, premium_daily_limit, ai_paused")
       .limit(1)
       .maybeSingle();
-    const photoCost = settings?.photo_cost_coins ?? 50;
+    const photoCost = settings?.photo_cost_coins ?? 0;
+    const freeLimit = settings?.free_daily_limit ?? 5;
+    const premiumLimit = settings?.premium_daily_limit ?? 100;
+    const aiPaused = settings?.ai_paused ?? false;
 
-    // Wallet balance check
+    if (aiPaused) {
+      return new Response(
+        JSON.stringify({ error: "AI generation is temporarily paused by admin. Please try later." }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Premium check
+    const { data: premiumActive } = await admin.rpc("is_premium_active", { _user_id: user.id });
+    const isPremium = !!premiumActive;
+
+    // Validate style and gate premium styles
+    let promptSuffix = "";
+    if (styleKey) {
+      const { data: style } = await admin
+        .from("ai_styles")
+        .select("tier, prompt_suffix, is_active")
+        .eq("key", styleKey)
+        .maybeSingle();
+      if (!style || !style.is_active) {
+        return new Response(JSON.stringify({ error: "Invalid style" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (style.tier === "premium" && !isPremium) {
+        return new Response(
+          JSON.stringify({ error: "This style requires Premium. Upgrade to unlock.", code: "PREMIUM_REQUIRED" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      promptSuffix = style.prompt_suffix ?? "";
+    }
+    const finalPrompt = promptSuffix ? `${promptInput}${promptSuffix}` : promptInput;
+
+    // Load profile for credit tracking
     const { data: profile } = await admin
       .from("profiles")
-      .select("wallet_balance")
+      .select("wallet_balance, daily_ai_credits, premium_ai_credits, daily_credits_reset_date, total_ai_generations")
       .eq("id", user.id)
       .maybeSingle();
+
+    const today = new Date().toISOString().slice(0, 10);
+    let dailyCredits = profile?.daily_ai_credits ?? freeLimit;
+    let premiumCredits = profile?.premium_ai_credits ?? 0;
+    const resetDate = profile?.daily_credits_reset_date as string | null | undefined;
+
+    // Daily reset
+    if (resetDate !== today) {
+      dailyCredits = isPremium ? premiumLimit : freeLimit;
+      await admin
+        .from("profiles")
+        .update({ daily_ai_credits: dailyCredits, daily_credits_reset_date: today })
+        .eq("id", user.id);
+    }
+
+    // Decide which credit pool to consume
+    let consumePool: "premium_pack" | "daily" = "daily";
+    if (isPremium && premiumCredits > 0) consumePool = "premium_pack";
+
+    if (consumePool === "daily" && dailyCredits <= 0) {
+      const errMsg = isPremium
+        ? "Daily premium limit reached. Try again tomorrow."
+        : "Daily limit reached. Upgrade to Premium to continue generating.";
+      return new Response(
+        JSON.stringify({ error: errMsg, code: isPremium ? "DAILY_LIMIT" : "FREE_LIMIT_REACHED" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Optional wallet cost (kept for compatibility — defaults 0)
     const balance = Number(profile?.wallet_balance ?? 0);
-    if (balance < photoCost) {
+    if (photoCost > 0 && balance < photoCost) {
       return new Response(
         JSON.stringify({ error: `Insufficient coins. Need ${photoCost}, have ${balance}.`, code: "INSUFFICIENT_FUNDS" }),
         { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -74,10 +143,10 @@ serve(async (req) => {
 
     const messageContent: any = sourceImageUrl
       ? [
-          { type: "text", text: prompt },
+          { type: "text", text: finalPrompt },
           { type: "image_url", image_url: { url: sourceImageUrl } },
         ]
-      : prompt;
+      : finalPrompt;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -134,18 +203,24 @@ serve(async (req) => {
     const { data: publicUrlData } = admin.storage.from("ai-photos").getPublicUrl(filePath);
     const resultUrl = publicUrlData.publicUrl;
 
-    // Deduct coins
-    await admin
-      .from("profiles")
-      .update({ wallet_balance: balance - photoCost })
-      .eq("id", user.id);
+    // Deduct credits and (optional) coins
+    const updates: Record<string, any> = {
+      total_ai_generations: (profile?.total_ai_generations ?? 0) + 1,
+    };
+    if (consumePool === "premium_pack") {
+      updates.premium_ai_credits = Math.max(0, premiumCredits - 1);
+    } else {
+      updates.daily_ai_credits = Math.max(0, dailyCredits - 1);
+    }
+    if (photoCost > 0) updates.wallet_balance = balance - photoCost;
+    await admin.from("profiles").update(updates).eq("id", user.id);
 
     // Save generation
     const { data: gen, error: insertErr } = await admin
       .from("ai_photo_generations")
       .insert({
         user_id: user.id,
-        prompt,
+        prompt: finalPrompt,
         source_image_url: sourceImageUrl ?? null,
         result_image_url: resultUrl,
         cost_coins: photoCost,
@@ -160,7 +235,13 @@ serve(async (req) => {
         success: true,
         result_image_url: resultUrl,
         cost_coins: photoCost,
-        new_balance: balance - photoCost,
+        new_balance: photoCost > 0 ? balance - photoCost : balance,
+        is_premium: isPremium,
+        skip_watermark: isPremium,
+        credits: {
+          daily: updates.daily_ai_credits ?? dailyCredits,
+          premium_pack: updates.premium_ai_credits ?? premiumCredits,
+        },
         generation: gen,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
