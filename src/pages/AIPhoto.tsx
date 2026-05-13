@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, AlertCircle, RotateCw } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Download, Loader2, X, AlertCircle, RotateCw, Crown, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import BottomNav from "@/components/BottomNav";
 import { addLogoWatermark } from "@/lib/aiPhotoWatermark";
 
@@ -17,8 +18,17 @@ interface Generation {
   created_at: string;
 }
 
+interface AIStyle {
+  id: string;
+  key: string;
+  label: string;
+  tier: "free" | "premium";
+  display_order: number;
+}
+
 const AIPhoto = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
   const [sourceFile, setSourceFile] = useState<File | null>(null);
@@ -27,11 +37,19 @@ const AIPhoto = () => {
   const [history, setHistory] = useState<Generation[]>([]);
   const [latest, setLatest] = useState<string | null>(null);
   const [latestRaw, setLatestRaw] = useState<string | null>(null);
+  const [latestIsPremium, setLatestIsPremium] = useState(false);
   const [watermarkFailed, setWatermarkFailed] = useState(false);
   const [retryingWm, setRetryingWm] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Note: daily generation limit removed — unlimited usage.
+  // Credits / premium / styles state
+  const [isPremium, setIsPremium] = useState(false);
+  const [dailyCredits, setDailyCredits] = useState<number | null>(null);
+  const [premiumPack, setPremiumPack] = useState(0);
+  const [styles, setStyles] = useState<AIStyle[]>([]);
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<string>("");
 
   useEffect(() => {
     const prefill = sessionStorage.getItem("ai_prefill_prompt");
@@ -41,32 +59,65 @@ const AIPhoto = () => {
     }
   }, []);
 
+  // Load styles
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("ai_styles")
+        .select("id, key, label, tier, display_order")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      if (data) setStyles(data as AIStyle[]);
+    })();
+  }, []);
+
+  // Load profile + premium + history
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: hist } = await supabase
-        .from("ai_photo_generations")
-        .select("id, prompt, result_image_url, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
+      const [{ data: prof }, { data: prem }, { data: hist }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("daily_ai_credits, premium_ai_credits")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("premium_memberships")
+          .select("is_active, expires_at")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("ai_photo_generations")
+          .select("id, prompt, result_image_url, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(20),
+      ]);
+
+      const active = !!(prem?.is_active && prem.expires_at && new Date(prem.expires_at) > new Date());
+      setIsPremium(active);
+      setDailyCredits(prof?.daily_ai_credits ?? 5);
+      setPremiumPack(prof?.premium_ai_credits ?? 0);
+
       const list = hist ?? [];
       setHistory(list);
-      // Apply watermark to history thumbnails
-      list.forEach(async (g, idx) => {
-        if (!g.result_image_url) return;
-        try {
-          const wm = await addLogoWatermark(g.result_image_url);
-          setHistory((curr) => {
-            const next = [...curr];
-            const i = next.findIndex((x) => x.id === g.id);
-            if (i >= 0) next[i] = { ...next[i], result_image_url: wm };
-            return next;
-          });
-        } catch (e) {
-          console.warn("history watermark failed", e);
-        }
-      });
+      // Skip watermark for premium users on history thumbnails too
+      if (!active) {
+        list.forEach(async (g) => {
+          if (!g.result_image_url) return;
+          try {
+            const wm = await addLogoWatermark(g.result_image_url);
+            setHistory((curr) => {
+              const next = [...curr];
+              const i = next.findIndex((x) => x.id === g.id);
+              if (i >= 0) next[i] = { ...next[i], result_image_url: wm };
+              return next;
+            });
+          } catch (e) {
+            console.warn("history watermark failed", e);
+          }
+        });
+      }
     })();
   }, [user]);
 
@@ -82,11 +133,28 @@ const AIPhoto = () => {
     reader.readAsDataURL(f);
   };
 
+  const showUpgrade = (reason: string) => {
+    setUpgradeReason(reason);
+    setUpgradeOpen(true);
+  };
+
+  const pickStyle = (s: AIStyle) => {
+    if (s.tier === "premium" && !isPremium) {
+      showUpgrade(`"${s.label}" style ကို Premium user တွေသာ သုံးနိုင်ပါတယ်။`);
+      return;
+    }
+    setSelectedStyle(selectedStyle === s.key ? null : s.key);
+  };
+
   const runGenerate = async (overridePrompt?: string) => {
     const finalPrompt = (overridePrompt ?? prompt).trim();
     if (!finalPrompt) {
       setErrorMsg("Please enter a prompt before generating.");
       toast.error("Prompt is required");
+      return;
+    }
+    if (!isPremium && dailyCredits !== null && dailyCredits <= 0) {
+      showUpgrade("Daily limit reached. Upgrade to Premium to continue generating.");
       return;
     }
     setErrorMsg(null);
@@ -108,33 +176,49 @@ const AIPhoto = () => {
       }
 
       const { data, error } = await supabase.functions.invoke("ai-generate-photo", {
-        body: { prompt: finalPrompt, source_image_url: sourceUrl },
+        body: { prompt: finalPrompt, source_image_url: sourceUrl, style_key: selectedStyle },
       });
       if (error) {
-        // Try to extract server-provided error message
         let msg = error.message ?? "Generation failed";
+        let code: string | undefined;
         try {
           const ctx: Response | undefined = (error as any).context;
           if (ctx) {
             const j = await ctx.clone().json();
             if (j?.error) msg = j.error;
+            if (j?.code) code = j.code;
           }
         } catch {}
+        if (code === "FREE_LIMIT_REACHED" || code === "PREMIUM_REQUIRED") {
+          showUpgrade(msg);
+          return;
+        }
         throw new Error(msg);
       }
       if (data?.error) throw new Error(data.error);
       if (!data?.result_image_url) throw new Error("No image was returned. Please try again.");
 
+      // Update credit display from server response
+      if (data.credits) {
+        setDailyCredits(data.credits.daily ?? dailyCredits);
+        setPremiumPack(data.credits.premium_pack ?? premiumPack);
+      }
+
       const rawUrl = data.result_image_url as string;
+      const skipWm = !!data.skip_watermark;
       setLatestRaw(rawUrl);
+      setLatestIsPremium(skipWm);
+
       let displayUrl = rawUrl;
       let wmOk = true;
-      try {
-        displayUrl = await addLogoWatermark(rawUrl);
-      } catch (wmErr) {
-        wmOk = false;
-        console.warn("Watermark failed", wmErr);
-        toast.error("Watermark မထည့်နိုင်ပါ — ပြန်စမ်းနိုင်ပါတယ်");
+      if (!skipWm) {
+        try {
+          displayUrl = await addLogoWatermark(rawUrl);
+        } catch (wmErr) {
+          wmOk = false;
+          console.warn("Watermark failed", wmErr);
+          toast.error("Watermark မထည့်နိုင်ပါ — ပြန်စမ်းနိုင်ပါတယ်");
+        }
       }
       setWatermarkFailed(!wmOk);
       setLatest(displayUrl);
@@ -173,7 +257,6 @@ const AIPhoto = () => {
     }
   };
 
-
   const regenerate = (g: Generation) => {
     setPrompt(g.prompt);
     setSourceFile(null);
@@ -196,8 +279,6 @@ const AIPhoto = () => {
     }
   };
 
-  
-
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40">
@@ -206,14 +287,76 @@ const AIPhoto = () => {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="font-semibold flex-1">AI Photo Generator</h1>
-          <div className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
-            <Sparkles className="w-3 h-3" />
-            Unlimited
-          </div>
+          {isPremium ? (
+            <div className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold">
+              <Crown className="w-3 h-3" />
+              Premium
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
+              <Zap className="w-3 h-3" />
+              {dailyCredits ?? 5}/5 today
+            </div>
+          )}
         </div>
       </header>
 
       <div className="px-4 py-5 max-w-md mx-auto space-y-5">
+        {/* Credits panel */}
+        <div className="rounded-xl border border-border bg-card p-3 grid grid-cols-2 gap-3 text-center">
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Free credits</div>
+            <div className="text-lg font-bold">{dailyCredits ?? "—"}</div>
+            <div className="text-[10px] text-muted-foreground">resets daily</div>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Premium pack</div>
+            <div className="text-lg font-bold flex items-center justify-center gap-1">
+              <Crown className="w-3.5 h-3.5 text-amber-500" />
+              {premiumPack}
+            </div>
+            <div className="text-[10px] text-muted-foreground">{isPremium ? "Active" : "Locked"}</div>
+          </div>
+        </div>
+
+        {!isPremium && (
+          <button
+            onClick={() => navigate("/premium" as any)}
+            className="w-full rounded-xl p-3 bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg"
+          >
+            <Crown className="w-4 h-4" /> Upgrade to Premium for HD + No Watermark
+          </button>
+        )}
+
+        {/* Style picker */}
+        {styles.length > 0 && (
+          <div>
+            <label className="text-sm font-medium mb-2 block">Style</label>
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+              {styles.map((s) => {
+                const locked = s.tier === "premium" && !isPremium;
+                const active = selectedStyle === s.key;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => pickStyle(s)}
+                    className={`relative flex-shrink-0 px-3 py-2 rounded-full text-xs font-medium border transition ${
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card border-border hover:border-primary/50"
+                    } ${locked ? "opacity-80" : ""}`}
+                  >
+                    {s.tier === "premium" && (
+                      <Crown className="w-3 h-3 inline mr-1 text-amber-500" />
+                    )}
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Upload */}
         <div>
           <label className="text-sm font-medium mb-2 block">Reference image (optional)</label>
@@ -274,7 +417,9 @@ const AIPhoto = () => {
             <>
               <Sparkles className="w-4 h-4 mr-2" />
               Generate
-              <span className="ml-2 text-xs opacity-90">Free • Unlimited</span>
+              <span className="ml-2 text-xs opacity-90">
+                {isPremium ? "Premium • HD" : `${dailyCredits ?? 0} left today`}
+              </span>
             </>
           )}
         </Button>
@@ -305,7 +450,12 @@ const AIPhoto = () => {
             className="rounded-xl overflow-hidden border border-border bg-card"
           >
             <img src={latest} alt="generated" className="w-full" />
-            {watermarkFailed && (
+            {latestIsPremium && (
+              <div className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1">
+                <Crown className="w-3 h-3" /> Premium • HD • No watermark
+              </div>
+            )}
+            {watermarkFailed && !latestIsPremium && (
               <div className="px-3 py-2 bg-amber-500/10 border-t border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5" /> Watermark မထည့်နိုင်ခဲ့ပါ
@@ -364,6 +514,33 @@ const AIPhoto = () => {
           </div>
         )}
       </div>
+
+      {/* Premium upgrade modal */}
+      <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-amber-500" /> Go Premium
+            </DialogTitle>
+            <DialogDescription>{upgradeReason}</DialogDescription>
+          </DialogHeader>
+          <ul className="text-sm space-y-1.5 my-2">
+            <li className="flex items-center gap-2">✨ Unlimited HD generations</li>
+            <li className="flex items-center gap-2">🚫 No watermark</li>
+            <li className="flex items-center gap-2">🎨 Exclusive premium styles</li>
+            <li className="flex items-center gap-2">⚡ Priority generation</li>
+          </ul>
+          <Button
+            onClick={() => {
+              setUpgradeOpen(false);
+              navigate("/premium" as any);
+            }}
+            className="w-full bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 text-white font-semibold"
+          >
+            Upgrade now
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
