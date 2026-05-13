@@ -203,29 +203,77 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_styles: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          key: string
+          label: string
+          prompt_suffix: string
+          thumbnail_url: string | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          key: string
+          label: string
+          prompt_suffix?: string
+          thumbnail_url?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          key?: string
+          label?: string
+          prompt_suffix?: string
+          thumbnail_url?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_usage_settings: {
         Row: {
+          ai_paused: boolean
           daily_photo_limit: number
+          free_daily_limit: number
           gift_cost_coins: number
           id: string
           invitation_price_mmk: number
           photo_cost_coins: number
+          premium_daily_limit: number
           updated_at: string
         }
         Insert: {
+          ai_paused?: boolean
           daily_photo_limit?: number
+          free_daily_limit?: number
           gift_cost_coins?: number
           id?: string
           invitation_price_mmk?: number
           photo_cost_coins?: number
+          premium_daily_limit?: number
           updated_at?: string
         }
         Update: {
+          ai_paused?: boolean
           daily_photo_limit?: number
+          free_daily_limit?: number
           gift_cost_coins?: number
           id?: string
           invitation_price_mmk?: number
           photo_cost_coins?: number
+          premium_daily_limit?: number
           updated_at?: string
         }
         Relationships: []
@@ -1376,6 +1424,8 @@ export type Database = {
           account_status: string
           avatar_url: string | null
           created_at: string | null
+          daily_ai_credits: number
+          daily_credits_reset_date: string | null
           download_pin: string | null
           email: string | null
           game_points: number
@@ -1385,14 +1435,18 @@ export type Database = {
           name: string
           phone_number: string
           points: number
+          premium_ai_credits: number
           referral_code: string | null
           referred_by: string | null
+          total_ai_generations: number
           wallet_balance: number | null
         }
         Insert: {
           account_status?: string
           avatar_url?: string | null
           created_at?: string | null
+          daily_ai_credits?: number
+          daily_credits_reset_date?: string | null
           download_pin?: string | null
           email?: string | null
           game_points?: number
@@ -1402,14 +1456,18 @@ export type Database = {
           name: string
           phone_number: string
           points?: number
+          premium_ai_credits?: number
           referral_code?: string | null
           referred_by?: string | null
+          total_ai_generations?: number
           wallet_balance?: number | null
         }
         Update: {
           account_status?: string
           avatar_url?: string | null
           created_at?: string | null
+          daily_ai_credits?: number
+          daily_credits_reset_date?: string | null
           download_pin?: string | null
           email?: string | null
           game_points?: number
@@ -1419,8 +1477,10 @@ export type Database = {
           name?: string
           phone_number?: string
           points?: number
+          premium_ai_credits?: number
           referral_code?: string | null
           referred_by?: string | null
+          total_ai_generations?: number
           wallet_balance?: number | null
         }
         Relationships: [
@@ -1881,6 +1941,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_premium_active: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
