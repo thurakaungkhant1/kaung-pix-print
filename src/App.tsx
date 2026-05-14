@@ -527,6 +527,14 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/premium"
+                  element={
+                    <ProtectedRoute>
+                      <PremiumUpgrade />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/exchange"
                   element={
                     <ProtectedRoute>
