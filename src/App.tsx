@@ -87,6 +87,7 @@ const PassportPromptsManage = lazy(() => import("./pages/admin/PassportPromptsMa
 const PopularPromptsManage = lazy(() => import("./pages/admin/PopularPromptsManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
+const PremiumUpgrade = lazy(() => import("./pages/PremiumUpgrade"));
 
 const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
 import InterstitialAd from "@/components/InterstitialAd";
@@ -522,6 +523,14 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <TopUp />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/premium"
+                  element={
+                    <ProtectedRoute>
+                      <PremiumUpgrade />
                     </ProtectedRoute>
                   }
                 />

@@ -447,11 +447,23 @@ const AIPhoto = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl overflow-hidden border border-border bg-card"
+            className={`rounded-xl overflow-hidden border border-border bg-card relative ${
+              latestIsPremium ? "premium-glow" : ""
+            }`}
           >
-            <img src={latest} alt="generated" className="w-full" />
+            <div className="relative">
+              <img src={latest} alt="generated" className="w-full block" />
+              {latestIsPremium && (
+                <>
+                  <div className="premium-particle-overlay">
+                    <span /><span /><span /><span /><span /><span />
+                  </div>
+                  <div className="premium-shine" />
+                </>
+              )}
+            </div>
             {latestIsPremium && (
-              <div className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1">
+              <div className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-violet-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1">
                 <Crown className="w-3 h-3" /> Premium • HD • No watermark
               </div>
             )}
@@ -486,9 +498,16 @@ const AIPhoto = () => {
                   <button
                     key={g.id}
                     onClick={() => download(g.result_image_url!)}
-                    className="aspect-square rounded-lg overflow-hidden border border-border bg-muted relative group"
+                    className={`aspect-square rounded-lg overflow-hidden border bg-muted relative group ${
+                      isPremium ? "border-amber-400/60 shadow-[0_0_18px_-4px_hsl(43_96%_56%/0.55)]" : "border-border"
+                    }`}
                   >
                     <img src={g.result_image_url} alt={g.prompt} className="w-full h-full object-cover" />
+                    {isPremium && (
+                      <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 text-white text-[9px] font-bold flex items-center gap-0.5 shadow">
+                        <Crown className="w-2.5 h-2.5" /> HD
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center">
                       <Download className="w-5 h-5 text-white opacity-0 group-hover:opacity-100" />
                     </div>
