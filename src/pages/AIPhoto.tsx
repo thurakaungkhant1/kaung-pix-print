@@ -447,11 +447,23 @@ const AIPhoto = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl overflow-hidden border border-border bg-card"
+            className={`rounded-xl overflow-hidden border border-border bg-card relative ${
+              latestIsPremium ? "premium-glow" : ""
+            }`}
           >
-            <img src={latest} alt="generated" className="w-full" />
+            <div className="relative">
+              <img src={latest} alt="generated" className="w-full block" />
+              {latestIsPremium && (
+                <>
+                  <div className="premium-particle-overlay">
+                    <span /><span /><span /><span /><span /><span />
+                  </div>
+                  <div className="premium-shine" />
+                </>
+              )}
+            </div>
             {latestIsPremium && (
-              <div className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1">
+              <div className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-violet-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1">
                 <Crown className="w-3 h-3" /> Premium • HD • No watermark
               </div>
             )}
