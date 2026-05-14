@@ -524,9 +524,29 @@ const GamePage = () => {
                     {checkingName ? "Checking..." : "Check In-Game Name"}
                   </Button>
                   {checkedName && (
-                    <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300 font-semibold">
-                      ✓ {checkedName}
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      className="relative overflow-hidden rounded-2xl p-3.5 bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-cyan-500/10 border border-emerald-500/40"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-lg shadow-lg ring-2 ring-emerald-300/50">
+                            {checkedName.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-background flex items-center justify-center">
+                            <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[10px] uppercase tracking-wider text-emerald-700/70 dark:text-emerald-300/70 font-semibold">Verified Player</div>
+                          <div className="font-bold text-base text-emerald-800 dark:text-emerald-100 truncate">{checkedName}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            ID: <span className="font-mono">{gameId}</span> • Server: <span className="font-mono">{serverId}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
                   )}
                   {checkError && (
                     <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
