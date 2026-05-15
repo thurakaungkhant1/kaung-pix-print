@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Gift, Sparkles, Loader2, Upload, X, Copy, Lock, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Gift, Sparkles, Loader2, Upload, X, Copy, Lock, Clock, CheckCircle2, QrCode, Download, Share2 } from "lucide-react";
+import QRCode from "qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import BottomNav from "@/components/BottomNav";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
@@ -22,6 +24,8 @@ const AIGift = () => {
   const [styleIdx, setStyleIdx] = useState(0);
   const [loading, setLoading] = useState(false);
   const [links, setLinks] = useState<GiftLink[]>([]);
+  const [qrSlug, setQrSlug] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -77,6 +81,49 @@ const AIGift = () => {
     const url = buildShareUrl(slug);
     navigator.clipboard.writeText(url);
     toast.success("Link copied");
+  };
+
+  const openQr = async (slug: string) => {
+    const url = buildShareUrl(slug);
+    try {
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 512,
+        margin: 1,
+        color: { dark: "#0f172a", light: "#ffffff" },
+      });
+      setQrSlug(slug);
+      setQrDataUrl(dataUrl);
+    } catch (e: any) {
+      toast.error("Couldn't generate QR code");
+    }
+  };
+
+  const downloadQr = () => {
+    if (!qrDataUrl || !qrSlug) return;
+    const a = document.createElement("a");
+    a.href = qrDataUrl;
+    a.download = `gift-${qrSlug}.png`;
+    a.click();
+  };
+
+  const shareQr = async () => {
+    if (!qrDataUrl || !qrSlug) return;
+    const url = buildShareUrl(qrSlug);
+    try {
+      const blob = await (await fetch(qrDataUrl)).blob();
+      const file = new File([blob], `gift-${qrSlug}.png`, { type: "image/png" });
+      // @ts-ignore
+      if (navigator.canShare?.({ files: [file] })) {
+        await (navigator as any).share({ files: [file], url, title: "A gift for you 💝" });
+        return;
+      }
+      if (navigator.share) {
+        await navigator.share({ url, title: "A gift for you 💝" });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {}
   };
 
   const style = STYLES[styleIdx];
@@ -144,7 +191,10 @@ const AIGift = () => {
                       <div className="text-sm font-mono truncate">/g/{l.slug}</div>
                       <div className="text-xs text-muted-foreground">Ready to share</div>
                     </div>
-                    <Button size="sm" variant="ghost" onClick={() => copyLink(l.slug)}>
+                    <Button size="sm" variant="ghost" onClick={() => openQr(l.slug)} aria-label="Show QR code">
+                      <QrCode className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => copyLink(l.slug)} aria-label="Copy link">
                       <Copy className="w-4 h-4" />
                     </Button>
                   </motion.div>
@@ -154,6 +204,35 @@ const AIGift = () => {
           )}
         </AnimatePresence>
       </div>
+
+      <Dialog open={!!qrSlug} onOpenChange={(o) => { if (!o) { setQrSlug(null); setQrDataUrl(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Scan to open gift</DialogTitle>
+            <DialogDescription className="text-xs break-all">
+              {qrSlug ? buildShareUrl(qrSlug) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {qrDataUrl && (
+            <div className="flex flex-col items-center gap-4">
+              <div className="p-4 rounded-2xl bg-white shadow-lg">
+                <img src={qrDataUrl} alt="Gift link QR code" className="w-56 h-56" />
+              </div>
+              <div className="grid grid-cols-2 gap-2 w-full">
+                <Button variant="outline" onClick={downloadQr}>
+                  <Download className="w-4 h-4 mr-2" /> Save
+                </Button>
+                <Button onClick={shareQr} className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white">
+                  <Share2 className="w-4 h-4 mr-2" /> Share
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center">
+                Anyone scanning this code will open your gift card.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </motion.div>

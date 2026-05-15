@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Gift, Loader2, Heart, Home as HomeIcon, Copy } from "lucide-react";
+import { Gift, Loader2, Heart, Home as HomeIcon, Copy, Sparkles, Search, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -51,10 +51,51 @@ const GiftView = () => {
 
   if (error || !gift) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background px-6 text-center">
-        <Gift className="w-12 h-12 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">{error ?? "Gift not found"}</p>
-        <Link to="/"><Button variant="outline"><HomeIcon className="w-4 h-4 mr-2" /> Home</Button></Link>
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-10 relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-32 -left-20 w-96 h-96 rounded-full bg-pink-500/10 blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 -right-20 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
+        </div>
+        <motion.div
+          initial={{ y: 20, opacity: 0, scale: 0.96 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 120, damping: 18 }}
+          className="relative z-10 w-full max-w-sm"
+        >
+          <div className="rounded-3xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl p-6 text-center">
+            <div className="relative mx-auto w-20 h-20 mb-5">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500/20 to-indigo-500/20 blur-xl" />
+              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/15 to-indigo-500/15 border border-border/40 flex items-center justify-center">
+                <Gift className="w-9 h-9 text-muted-foreground" />
+                <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-background border border-border/50 flex items-center justify-center">
+                  <AlertCircle className="w-4 h-4 text-amber-500" />
+                </div>
+              </div>
+            </div>
+            <h1 className="text-xl font-display font-bold mb-2">Gift not available</h1>
+            <p className="text-sm text-muted-foreground mb-1">
+              {error ?? "We couldn't find this gift."}
+            </p>
+            <p className="text-xs text-muted-foreground/80 mb-6">
+              The link may have expired, been removed, or the address could be mistyped.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Link to="/ai/gift">
+                <Button className="w-full bg-gradient-to-r from-pink-500 via-indigo-500 to-purple-500 text-white">
+                  <Sparkles className="w-4 h-4 mr-2" /> Create your own gift
+                </Button>
+              </Link>
+              <Link to="/">
+                <Button variant="outline" className="w-full">
+                  <HomeIcon className="w-4 h-4 mr-2" /> Back to Home
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <p className="text-center text-[11px] text-muted-foreground mt-4">
+            Sent with love via our AI Gift Studio
+          </p>
+        </motion.div>
       </div>
     );
   }
