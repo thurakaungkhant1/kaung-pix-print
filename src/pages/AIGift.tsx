@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Gift, Sparkles, Loader2, Upload, X, Copy, Lock, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Gift, Sparkles, Loader2, Upload, X, Copy, Lock, Clock, CheckCircle2, QrCode, Download, Share2 } from "lucide-react";
+import QRCode from "qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import BottomNav from "@/components/BottomNav";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
