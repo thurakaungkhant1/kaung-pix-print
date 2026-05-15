@@ -24,6 +24,8 @@ const AIGift = () => {
   const [styleIdx, setStyleIdx] = useState(0);
   const [loading, setLoading] = useState(false);
   const [links, setLinks] = useState<GiftLink[]>([]);
+  const [qrSlug, setQrSlug] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
