@@ -65,8 +65,16 @@ const AIGift = () => {
     finally { setLoading(false); }
   };
 
+  const buildShareUrl = (slug: string) => {
+    const origin = window.location.origin;
+    // Preview / sandbox URLs aren't accessible to other people — use the published domain.
+    const isPrivateOrigin = /id-preview--|lovableproject\.com|localhost|127\.0\.0\.1/.test(origin);
+    const publicOrigin = isPrivateOrigin ? "https://kaung-pix-print.lovable.app" : origin;
+    return `${publicOrigin}/g/${slug}`;
+  };
+
   const copyLink = (slug: string) => {
-    const url = `${window.location.origin}/g/${slug}`;
+    const url = buildShareUrl(slug);
     navigator.clipboard.writeText(url);
     toast.success("Link copied");
   };
