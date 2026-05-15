@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Gift, Loader2, Heart, Home as HomeIcon, Copy } from "lucide-react";
+import { Gift, Loader2, Heart, Home as HomeIcon, Copy, Sparkles, Search, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
