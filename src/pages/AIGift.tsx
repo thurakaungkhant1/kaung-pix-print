@@ -83,6 +83,49 @@ const AIGift = () => {
     toast.success("Link copied");
   };
 
+  const openQr = async (slug: string) => {
+    const url = buildShareUrl(slug);
+    try {
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 512,
+        margin: 1,
+        color: { dark: "#0f172a", light: "#ffffff" },
+      });
+      setQrSlug(slug);
+      setQrDataUrl(dataUrl);
+    } catch (e: any) {
+      toast.error("Couldn't generate QR code");
+    }
+  };
+
+  const downloadQr = () => {
+    if (!qrDataUrl || !qrSlug) return;
+    const a = document.createElement("a");
+    a.href = qrDataUrl;
+    a.download = `gift-${qrSlug}.png`;
+    a.click();
+  };
+
+  const shareQr = async () => {
+    if (!qrDataUrl || !qrSlug) return;
+    const url = buildShareUrl(qrSlug);
+    try {
+      const blob = await (await fetch(qrDataUrl)).blob();
+      const file = new File([blob], `gift-${qrSlug}.png`, { type: "image/png" });
+      // @ts-ignore
+      if (navigator.canShare?.({ files: [file] })) {
+        await (navigator as any).share({ files: [file], url, title: "A gift for you 💝" });
+        return;
+      }
+      if (navigator.share) {
+        await navigator.share({ url, title: "A gift for you 💝" });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {}
+  };
+
   const style = STYLES[styleIdx];
 
   return (
