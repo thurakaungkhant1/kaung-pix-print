@@ -191,7 +191,10 @@ const AIGift = () => {
                       <div className="text-sm font-mono truncate">/g/{l.slug}</div>
                       <div className="text-xs text-muted-foreground">Ready to share</div>
                     </div>
-                    <Button size="sm" variant="ghost" onClick={() => copyLink(l.slug)}>
+                    <Button size="sm" variant="ghost" onClick={() => openQr(l.slug)} aria-label="Show QR code">
+                      <QrCode className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => copyLink(l.slug)} aria-label="Copy link">
                       <Copy className="w-4 h-4" />
                     </Button>
                   </motion.div>
