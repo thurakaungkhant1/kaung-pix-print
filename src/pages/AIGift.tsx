@@ -205,9 +205,6 @@ const AIGift = () => {
         </AnimatePresence>
       </div>
 
-      <BottomNav />
-    </motion.div>
-  );
       <Dialog open={!!qrSlug} onOpenChange={(o) => { if (!o) { setQrSlug(null); setQrDataUrl(null); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
