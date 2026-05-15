@@ -208,6 +208,38 @@ const AIGift = () => {
       <BottomNav />
     </motion.div>
   );
+      <Dialog open={!!qrSlug} onOpenChange={(o) => { if (!o) { setQrSlug(null); setQrDataUrl(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Scan to open gift</DialogTitle>
+            <DialogDescription className="text-xs break-all">
+              {qrSlug ? buildShareUrl(qrSlug) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {qrDataUrl && (
+            <div className="flex flex-col items-center gap-4">
+              <div className="p-4 rounded-2xl bg-white shadow-lg">
+                <img src={qrDataUrl} alt="Gift link QR code" className="w-56 h-56" />
+              </div>
+              <div className="grid grid-cols-2 gap-2 w-full">
+                <Button variant="outline" onClick={downloadQr}>
+                  <Download className="w-4 h-4 mr-2" /> Save
+                </Button>
+                <Button onClick={shareQr} className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white">
+                  <Share2 className="w-4 h-4 mr-2" /> Share
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center">
+                Anyone scanning this code will open your gift card.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <BottomNav />
+    </motion.div>
+  );
 };
 
 export default AIGift;
