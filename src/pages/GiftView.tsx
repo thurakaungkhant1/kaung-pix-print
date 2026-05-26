@@ -1,34 +1,81 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Gift, Loader2, Heart, Home as HomeIcon, Copy, Sparkles, Search, AlertCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Gift, Loader2, Heart, Home as HomeIcon, Sparkles, AlertCircle, Clock, ShieldOff, HelpCircle, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import QRScannerDialog from "@/components/QRScannerDialog";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
+type ErrorKind = "not_found" | "pending" | "removed" | "expired" | "network";
+const ERROR_COPY: Record<ErrorKind, { title: string; message: string; hint: string; icon: any }> = {
+  not_found: {
+    title: "Gift not found",
+    message: "We couldn't find a gift at this link.",
+    hint: "The address may be mistyped — double-check the letters and try again.",
+    icon: HelpCircle,
+  },
+  pending: {
+    title: "Gift awaiting approval",
+    message: "This gift is still being reviewed by our team.",
+    hint: "Check back shortly — the sender will get a notification once it's live.",
+    icon: Clock,
+  },
+  removed: {
+    title: "Gift was removed",
+    message: "The sender or our team took this gift down.",
+    hint: "If this was a mistake, ask the sender to share a new gift link.",
+    icon: ShieldOff,
+  },
+  expired: {
+    title: "Gift has expired",
+    message: "This gift link is no longer active.",
+    hint: "Ask the sender to create a fresh one — it only takes a few seconds.",
+    icon: Clock,
+  },
+  network: {
+    title: "Couldn't load gift",
+    message: "We had trouble reaching the server.",
+    hint: "Check your connection and try again.",
+    icon: AlertCircle,
+  },
+};
+
 const GiftView = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [gift, setGift] = useState<any | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<ErrorKind | null>(null);
+  const [scanOpen, setScanOpen] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
     (async () => {
-      const { data, error } = await supabase
-        .from("ai_gift_links")
-        .select("slug, payload, status, created_at")
-        .eq("slug", slug)
-        .eq("status", "approved")
-        .maybeSingle();
-      if (error || !data) {
-        setError("This gift link is not available.");
-      } else {
-        setGift(data);
+      try {
+        const base = (import.meta.env.VITE_SUPABASE_URL as string) || "";
+        const anon = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) || "";
+        const res = await fetch(`${base}/functions/v1/ai-gift-status?slug=${encodeURIComponent(slug)}`, {
+          headers: { apikey: anon, Authorization: `Bearer ${anon}` },
+        });
+        if (!res.ok) {
+          setErrorKind("network");
+        } else {
+          const json = await res.json();
+          if (json.status === "approved") {
+            setGift(json);
+          } else if (["not_found", "pending", "removed", "expired"].includes(json.status)) {
+            setErrorKind(json.status as ErrorKind);
+          } else {
+            setErrorKind("not_found");
+          }
+        }
+      } catch {
+        setErrorKind("network");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, [slug]);
 
@@ -49,7 +96,9 @@ const GiftView = () => {
     );
   }
 
-  if (error || !gift) {
+  if (errorKind || !gift) {
+    const copy = ERROR_COPY[errorKind ?? "not_found"];
+    const Icon = copy.icon;
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 py-10 relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
@@ -61,6 +110,8 @@ const GiftView = () => {
           animate={{ y: 0, opacity: 1, scale: 1 }}
           transition={{ type: "spring", stiffness: 120, damping: 18 }}
           className="relative z-10 w-full max-w-sm"
+          role="alert"
+          aria-live="polite"
         >
           <div className="rounded-3xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl p-6 text-center">
             <div className="relative mx-auto w-20 h-20 mb-5">
@@ -68,25 +119,29 @@ const GiftView = () => {
               <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/15 to-indigo-500/15 border border-border/40 flex items-center justify-center">
                 <Gift className="w-9 h-9 text-muted-foreground" />
                 <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-background border border-border/50 flex items-center justify-center">
-                  <AlertCircle className="w-4 h-4 text-amber-500" />
+                  <Icon className="w-4 h-4 text-amber-500" />
                 </div>
               </div>
             </div>
-            <h1 className="text-xl font-display font-bold mb-2">Gift not available</h1>
-            <p className="text-sm text-muted-foreground mb-1">
-              {error ?? "We couldn't find this gift."}
-            </p>
-            <p className="text-xs text-muted-foreground/80 mb-6">
-              The link may have expired, been removed, or the address could be mistyped.
-            </p>
+            <h1 className="text-xl font-display font-bold mb-2">{copy.title}</h1>
+            <p className="text-sm text-muted-foreground mb-1">{copy.message}</p>
+            <p className="text-xs text-muted-foreground/80 mb-6">{copy.hint}</p>
             <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setScanOpen(true)}
+                aria-label="Scan a different gift QR code"
+              >
+                <QrCode className="w-4 h-4 mr-2" /> Scan another gift
+              </Button>
               <Link to="/ai/gift">
                 <Button className="w-full bg-gradient-to-r from-pink-500 via-indigo-500 to-purple-500 text-white">
                   <Sparkles className="w-4 h-4 mr-2" /> Create your own gift
                 </Button>
               </Link>
               <Link to="/">
-                <Button variant="outline" className="w-full">
+                <Button variant="ghost" className="w-full">
                   <HomeIcon className="w-4 h-4 mr-2" /> Back to Home
                 </Button>
               </Link>
@@ -96,6 +151,19 @@ const GiftView = () => {
             Sent with love via our AI Gift Studio
           </p>
         </motion.div>
+        <QRScannerDialog
+          open={scanOpen}
+          onOpenChange={setScanOpen}
+          onResult={(text) => {
+            const match = text.match(/\/g\/([a-z0-9]+)/i);
+            if (match) {
+              navigate(`/g/${match[1]}`);
+              return true;
+            }
+            toast.error("That QR code isn't a gift link");
+            return false;
+          }}
+        />
       </div>
     );
   }

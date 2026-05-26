@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import BottomNav from "@/components/BottomNav";
+import { useNavigate } from "react-router-dom";
+import QRScannerDialog from "@/components/QRScannerDialog";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
@@ -17,6 +18,7 @@ interface GiftLink { id: string; slug: string; status: string; payload: any; cre
 
 const AIGift = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -26,6 +28,7 @@ const AIGift = () => {
   const [links, setLinks] = useState<GiftLink[]>([]);
   const [qrSlug, setQrSlug] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [scanOpen, setScanOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -137,8 +140,18 @@ const AIGift = () => {
 
       <header className="sticky top-0 z-40 bg-background/70 backdrop-blur-xl border-b border-border/40">
         <div className="flex items-center gap-3 px-4 h-14">
-          <Link to="/ai" className="p-2 -ml-2 rounded-full hover:bg-accent transition"><ArrowLeft className="w-5 h-5" /></Link>
+          <Link to="/ai" className="p-2 -ml-2 rounded-full hover:bg-accent transition" aria-label="Back to AI hub"><ArrowLeft className="w-5 h-5" /></Link>
           <h1 className="font-semibold flex-1">Gift Link Creator</h1>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5"
+            onClick={() => setScanOpen(true)}
+            aria-label="Scan a gift QR code"
+          >
+            <QrCode className="w-4 h-4" />
+            <span className="text-xs hidden sm:inline">Scan</span>
+          </Button>
         </div>
       </header>
 
@@ -206,23 +219,31 @@ const AIGift = () => {
       </div>
 
       <Dialog open={!!qrSlug} onOpenChange={(o) => { if (!o) { setQrSlug(null); setQrDataUrl(null); } }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby="qr-share-desc">
           <DialogHeader>
             <DialogTitle>Scan to open gift</DialogTitle>
-            <DialogDescription className="text-xs break-all">
+            <DialogDescription id="qr-share-desc" className="text-xs break-all">
               {qrSlug ? buildShareUrl(qrSlug) : ""}
             </DialogDescription>
           </DialogHeader>
           {qrDataUrl && (
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4" role="group" aria-label="Gift link QR code and actions">
               <div className="p-4 rounded-2xl bg-white shadow-lg">
-                <img src={qrDataUrl} alt="Gift link QR code" className="w-56 h-56" />
+                <img
+                  src={qrDataUrl}
+                  alt={`QR code that opens the gift at ${qrSlug ? buildShareUrl(qrSlug) : ""}`}
+                  className="w-56 h-56"
+                />
               </div>
               <div className="grid grid-cols-2 gap-2 w-full">
-                <Button variant="outline" onClick={downloadQr}>
+                <Button variant="outline" onClick={downloadQr} aria-label="Save QR code as image">
                   <Download className="w-4 h-4 mr-2" /> Save
                 </Button>
-                <Button onClick={shareQr} className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white">
+                <Button
+                  onClick={shareQr}
+                  className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white"
+                  aria-label="Share QR code"
+                >
                   <Share2 className="w-4 h-4 mr-2" /> Share
                 </Button>
               </div>
@@ -234,7 +255,19 @@ const AIGift = () => {
         </DialogContent>
       </Dialog>
 
-      <BottomNav />
+      <QRScannerDialog
+        open={scanOpen}
+        onOpenChange={setScanOpen}
+        onResult={(text) => {
+          const match = text.match(/\/g\/([a-z0-9]+)/i);
+          if (match) {
+            navigate(`/g/${match[1]}`);
+            return true;
+          }
+          toast.error("That QR code isn't a gift link");
+          return false;
+        }}
+      />
     </motion.div>
   );
 };
