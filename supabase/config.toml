@@ -1,27 +1,6 @@
 project_id = "ojoenxchuzqonpixomkl"
 
-[functions.ai-gift-status]
-verify_jwt = false
-
-[functions.ai-create-gift-link]
-verify_jwt = true
-
-[functions.ai-generate-photo]
-verify_jwt = true
-
-[functions.ai-generate-invitation]
-verify_jwt = true
-
 [functions.ai-chat]
-verify_jwt = true
-
-[functions.transcribe-audio]
-verify_jwt = true
-
-[functions.verify-mlbb-player]
-verify_jwt = false
-
-[functions.auto-topup]
 verify_jwt = true
 
 [functions.profiles-get-me]
@@ -32,3 +11,15 @@ verify_jwt = true
 
 [functions.profiles-update-points]
 verify_jwt = true
+
+[functions.transcribe-audio]
+verify_jwt = true
+
+[functions.auto-topup]
+verify_jwt = true
+
+[functions.verify-mlbb-player]
+verify_jwt = true
+
+[functions.ai-gift-status]
+verify_jwt = false
