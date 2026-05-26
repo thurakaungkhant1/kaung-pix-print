@@ -96,7 +96,9 @@ const GiftView = () => {
     );
   }
 
-  if (error || !gift) {
+  if (errorKind || !gift) {
+    const copy = ERROR_COPY[errorKind ?? "not_found"];
+    const Icon = copy.icon;
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 py-10 relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
@@ -108,6 +110,8 @@ const GiftView = () => {
           animate={{ y: 0, opacity: 1, scale: 1 }}
           transition={{ type: "spring", stiffness: 120, damping: 18 }}
           className="relative z-10 w-full max-w-sm"
+          role="alert"
+          aria-live="polite"
         >
           <div className="rounded-3xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl p-6 text-center">
             <div className="relative mx-auto w-20 h-20 mb-5">
@@ -115,25 +119,29 @@ const GiftView = () => {
               <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/15 to-indigo-500/15 border border-border/40 flex items-center justify-center">
                 <Gift className="w-9 h-9 text-muted-foreground" />
                 <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-background border border-border/50 flex items-center justify-center">
-                  <AlertCircle className="w-4 h-4 text-amber-500" />
+                  <Icon className="w-4 h-4 text-amber-500" />
                 </div>
               </div>
             </div>
-            <h1 className="text-xl font-display font-bold mb-2">Gift not available</h1>
-            <p className="text-sm text-muted-foreground mb-1">
-              {error ?? "We couldn't find this gift."}
-            </p>
-            <p className="text-xs text-muted-foreground/80 mb-6">
-              The link may have expired, been removed, or the address could be mistyped.
-            </p>
+            <h1 className="text-xl font-display font-bold mb-2">{copy.title}</h1>
+            <p className="text-sm text-muted-foreground mb-1">{copy.message}</p>
+            <p className="text-xs text-muted-foreground/80 mb-6">{copy.hint}</p>
             <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setScanOpen(true)}
+                aria-label="Scan a different gift QR code"
+              >
+                <QrCode className="w-4 h-4 mr-2" /> Scan another gift
+              </Button>
               <Link to="/ai/gift">
                 <Button className="w-full bg-gradient-to-r from-pink-500 via-indigo-500 to-purple-500 text-white">
                   <Sparkles className="w-4 h-4 mr-2" /> Create your own gift
                 </Button>
               </Link>
               <Link to="/">
-                <Button variant="outline" className="w-full">
+                <Button variant="ghost" className="w-full">
                   <HomeIcon className="w-4 h-4 mr-2" /> Back to Home
                 </Button>
               </Link>
@@ -143,6 +151,19 @@ const GiftView = () => {
             Sent with love via our AI Gift Studio
           </p>
         </motion.div>
+        <QRScannerDialog
+          open={scanOpen}
+          onOpenChange={setScanOpen}
+          onResult={(text) => {
+            const match = text.match(/\/g\/([a-z0-9]+)/i);
+            if (match) {
+              navigate(`/g/${match[1]}`);
+              return true;
+            }
+            toast.error("That QR code isn't a gift link");
+            return false;
+          }}
+        />
       </div>
     );
   }
