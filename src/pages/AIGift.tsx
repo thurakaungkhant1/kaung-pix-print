@@ -140,8 +140,18 @@ const AIGift = () => {
 
       <header className="sticky top-0 z-40 bg-background/70 backdrop-blur-xl border-b border-border/40">
         <div className="flex items-center gap-3 px-4 h-14">
-          <Link to="/ai" className="p-2 -ml-2 rounded-full hover:bg-accent transition"><ArrowLeft className="w-5 h-5" /></Link>
+          <Link to="/ai" className="p-2 -ml-2 rounded-full hover:bg-accent transition" aria-label="Back to AI hub"><ArrowLeft className="w-5 h-5" /></Link>
           <h1 className="font-semibold flex-1">Gift Link Creator</h1>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5"
+            onClick={() => setScanOpen(true)}
+            aria-label="Scan a gift QR code"
+          >
+            <QrCode className="w-4 h-4" />
+            <span className="text-xs hidden sm:inline">Scan</span>
+          </Button>
         </div>
       </header>
 
