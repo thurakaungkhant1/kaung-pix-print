@@ -23,18 +23,12 @@ serve(async (req) => {
     );
     const { data, error } = await admin
       .from("ai_gift_links")
-      .select("slug, status, payload, created_at, expires_at")
+      .select("slug, status, payload, created_at")
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw error;
     if (!data) {
       return new Response(JSON.stringify({ status: "not_found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const expiresAt = (data as any).expires_at ? new Date((data as any).expires_at) : null;
-    if (expiresAt && expiresAt.getTime() < Date.now()) {
-      return new Response(JSON.stringify({ status: "expired" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
