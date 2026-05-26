@@ -1,34 +1,81 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Gift, Loader2, Heart, Home as HomeIcon, Copy, Sparkles, Search, AlertCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Gift, Loader2, Heart, Home as HomeIcon, Sparkles, AlertCircle, Clock, ShieldOff, HelpCircle, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import QRScannerDialog from "@/components/QRScannerDialog";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
+type ErrorKind = "not_found" | "pending" | "removed" | "expired" | "network";
+const ERROR_COPY: Record<ErrorKind, { title: string; message: string; hint: string; icon: any }> = {
+  not_found: {
+    title: "Gift not found",
+    message: "We couldn't find a gift at this link.",
+    hint: "The address may be mistyped — double-check the letters and try again.",
+    icon: HelpCircle,
+  },
+  pending: {
+    title: "Gift awaiting approval",
+    message: "This gift is still being reviewed by our team.",
+    hint: "Check back shortly — the sender will get a notification once it's live.",
+    icon: Clock,
+  },
+  removed: {
+    title: "Gift was removed",
+    message: "The sender or our team took this gift down.",
+    hint: "If this was a mistake, ask the sender to share a new gift link.",
+    icon: ShieldOff,
+  },
+  expired: {
+    title: "Gift has expired",
+    message: "This gift link is no longer active.",
+    hint: "Ask the sender to create a fresh one — it only takes a few seconds.",
+    icon: Clock,
+  },
+  network: {
+    title: "Couldn't load gift",
+    message: "We had trouble reaching the server.",
+    hint: "Check your connection and try again.",
+    icon: AlertCircle,
+  },
+};
+
 const GiftView = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [gift, setGift] = useState<any | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<ErrorKind | null>(null);
+  const [scanOpen, setScanOpen] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
     (async () => {
-      const { data, error } = await supabase
-        .from("ai_gift_links")
-        .select("slug, payload, status, created_at")
-        .eq("slug", slug)
-        .eq("status", "approved")
-        .maybeSingle();
-      if (error || !data) {
-        setError("This gift link is not available.");
-      } else {
-        setGift(data);
+      try {
+        const base = (import.meta.env.VITE_SUPABASE_URL as string) || "";
+        const anon = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) || "";
+        const res = await fetch(`${base}/functions/v1/ai-gift-status?slug=${encodeURIComponent(slug)}`, {
+          headers: { apikey: anon, Authorization: `Bearer ${anon}` },
+        });
+        if (!res.ok) {
+          setErrorKind("network");
+        } else {
+          const json = await res.json();
+          if (json.status === "approved") {
+            setGift(json);
+          } else if (["not_found", "pending", "removed", "expired"].includes(json.status)) {
+            setErrorKind(json.status as ErrorKind);
+          } else {
+            setErrorKind("not_found");
+          }
+        }
+      } catch {
+        setErrorKind("network");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, [slug]);
 
