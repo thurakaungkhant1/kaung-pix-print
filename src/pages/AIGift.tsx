@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import BottomNav from "@/components/BottomNav";
+import { useNavigate } from "react-router-dom";
+import QRScannerDialog from "@/components/QRScannerDialog";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
@@ -17,6 +18,7 @@ interface GiftLink { id: string; slug: string; status: string; payload: any; cre
 
 const AIGift = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -26,6 +28,7 @@ const AIGift = () => {
   const [links, setLinks] = useState<GiftLink[]>([]);
   const [qrSlug, setQrSlug] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [scanOpen, setScanOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
