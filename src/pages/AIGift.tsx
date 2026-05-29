@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import QRScannerDialog from "@/components/QRScannerDialog";
+import { track, GiftEvents } from "@/lib/analytics";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
