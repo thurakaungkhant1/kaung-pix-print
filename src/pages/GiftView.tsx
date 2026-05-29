@@ -163,11 +163,12 @@ const GiftView = () => {
           onResult={(text) => {
             const match = text.match(/\/g\/([a-z0-9]+)/i);
             if (match) {
+              track(GiftEvents.QrScanSuccess, { slug: match[1], source: "gift_view_error" });
               navigate(`/g/${match[1]}`);
               return true;
             }
-            toast.error("That QR code isn't a gift link");
-            return false;
+            track(GiftEvents.QrScanInvalid, { source: "gift_view_error" });
+            return { ok: false as const, message: "That QR code isn't a gift link." };
           }}
         />
       </div>
