@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import QRScannerDialog from "@/components/QRScannerDialog";
+import { track, GiftEvents } from "@/lib/analytics";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
@@ -20,6 +21,7 @@ const AIGift = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
+  const qrTriggerRef = useRef<HTMLElement | null>(null);
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -86,7 +88,8 @@ const AIGift = () => {
     toast.success("Link copied");
   };
 
-  const openQr = async (slug: string) => {
+  const openQr = async (slug: string, trigger?: HTMLElement | null) => {
+    qrTriggerRef.current = trigger ?? (document.activeElement as HTMLElement | null);
     const url = buildShareUrl(slug);
     try {
       const dataUrl = await QRCode.toDataURL(url, {
@@ -204,7 +207,7 @@ const AIGift = () => {
                       <div className="text-sm font-mono truncate">/g/{l.slug}</div>
                       <div className="text-xs text-muted-foreground">Ready to share</div>
                     </div>
-                    <Button size="sm" variant="ghost" onClick={() => openQr(l.slug)} aria-label="Show QR code">
+                    <Button size="sm" variant="ghost" onClick={(e) => openQr(l.slug, e.currentTarget)} aria-label="Show QR code">
                       <QrCode className="w-4 h-4" />
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => copyLink(l.slug)} aria-label="Copy link">
@@ -219,7 +222,16 @@ const AIGift = () => {
       </div>
 
       <Dialog open={!!qrSlug} onOpenChange={(o) => { if (!o) { setQrSlug(null); setQrDataUrl(null); } }}>
-        <DialogContent className="max-w-sm" aria-describedby="qr-share-desc">
+        <DialogContent
+          className="max-w-sm"
+          aria-describedby="qr-share-desc"
+          onCloseAutoFocus={(e) => {
+            if (qrTriggerRef.current && document.contains(qrTriggerRef.current)) {
+              e.preventDefault();
+              qrTriggerRef.current.focus();
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Scan to open gift</DialogTitle>
             <DialogDescription id="qr-share-desc" className="text-xs break-all">
@@ -261,11 +273,12 @@ const AIGift = () => {
         onResult={(text) => {
           const match = text.match(/\/g\/([a-z0-9]+)/i);
           if (match) {
+            track(GiftEvents.QrScanSuccess, { slug: match[1], source: "ai_gift_page" });
             navigate(`/g/${match[1]}`);
             return true;
           }
-          toast.error("That QR code isn't a gift link");
-          return false;
+          track(GiftEvents.QrScanInvalid, { source: "ai_gift_page" });
+          return { ok: false as const, message: "That QR code isn't a gift link. Try scanning a code from this app." };
         }}
       />
     </motion.div>

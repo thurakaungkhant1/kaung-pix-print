@@ -5,6 +5,7 @@ import { Gift, Loader2, Heart, Home as HomeIcon, Sparkles, AlertCircle, Clock, S
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import QRScannerDialog from "@/components/QRScannerDialog";
+import { track, GiftEvents } from "@/lib/analytics";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
@@ -61,18 +62,23 @@ const GiftView = () => {
         });
         if (!res.ok) {
           setErrorKind("network");
+          track(GiftEvents.StatusError, { slug, kind: "network", http_status: res.status });
         } else {
           const json = await res.json();
           if (json.status === "approved") {
             setGift(json);
+            track(GiftEvents.StatusApproved, { slug });
           } else if (["not_found", "pending", "removed", "expired"].includes(json.status)) {
             setErrorKind(json.status as ErrorKind);
+            track(GiftEvents.StatusError, { slug, kind: json.status });
           } else {
             setErrorKind("not_found");
+            track(GiftEvents.StatusError, { slug, kind: "unknown" });
           }
         }
       } catch {
         setErrorKind("network");
+        track(GiftEvents.StatusError, { slug, kind: "network" });
       } finally {
         setLoading(false);
       }
@@ -157,11 +163,12 @@ const GiftView = () => {
           onResult={(text) => {
             const match = text.match(/\/g\/([a-z0-9]+)/i);
             if (match) {
+              track(GiftEvents.QrScanSuccess, { slug: match[1], source: "gift_view_error" });
               navigate(`/g/${match[1]}`);
               return true;
             }
-            toast.error("That QR code isn't a gift link");
-            return false;
+            track(GiftEvents.QrScanInvalid, { source: "gift_view_error" });
+            return { ok: false as const, message: "That QR code isn't a gift link." };
           }}
         />
       </div>
