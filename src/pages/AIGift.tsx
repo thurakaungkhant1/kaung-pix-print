@@ -220,7 +220,16 @@ const AIGift = () => {
       </div>
 
       <Dialog open={!!qrSlug} onOpenChange={(o) => { if (!o) { setQrSlug(null); setQrDataUrl(null); } }}>
-        <DialogContent className="max-w-sm" aria-describedby="qr-share-desc">
+        <DialogContent
+          className="max-w-sm"
+          aria-describedby="qr-share-desc"
+          onCloseAutoFocus={(e) => {
+            if (qrTriggerRef.current && document.contains(qrTriggerRef.current)) {
+              e.preventDefault();
+              qrTriggerRef.current.focus();
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Scan to open gift</DialogTitle>
             <DialogDescription id="qr-share-desc" className="text-xs break-all">
@@ -262,11 +271,12 @@ const AIGift = () => {
         onResult={(text) => {
           const match = text.match(/\/g\/([a-z0-9]+)/i);
           if (match) {
+            track(GiftEvents.QrScanSuccess, { slug: match[1], source: "ai_gift_page" });
             navigate(`/g/${match[1]}`);
             return true;
           }
-          toast.error("That QR code isn't a gift link");
-          return false;
+          track(GiftEvents.QrScanInvalid, { source: "ai_gift_page" });
+          return { ok: false as const, message: "That QR code isn't a gift link. Try scanning a code from this app." };
         }}
       />
     </motion.div>
