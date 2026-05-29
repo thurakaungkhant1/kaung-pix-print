@@ -62,18 +62,23 @@ const GiftView = () => {
         });
         if (!res.ok) {
           setErrorKind("network");
+          track(GiftEvents.StatusError, { slug, kind: "network", http_status: res.status });
         } else {
           const json = await res.json();
           if (json.status === "approved") {
             setGift(json);
+            track(GiftEvents.StatusApproved, { slug });
           } else if (["not_found", "pending", "removed", "expired"].includes(json.status)) {
             setErrorKind(json.status as ErrorKind);
+            track(GiftEvents.StatusError, { slug, kind: json.status });
           } else {
             setErrorKind("not_found");
+            track(GiftEvents.StatusError, { slug, kind: "unknown" });
           }
         }
       } catch {
         setErrorKind("network");
+        track(GiftEvents.StatusError, { slug, kind: "network" });
       } finally {
         setLoading(false);
       }
