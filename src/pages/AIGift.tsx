@@ -88,7 +88,8 @@ const AIGift = () => {
     toast.success("Link copied");
   };
 
-  const openQr = async (slug: string) => {
+  const openQr = async (slug: string, trigger?: HTMLElement | null) => {
+    qrTriggerRef.current = trigger ?? (document.activeElement as HTMLElement | null);
     const url = buildShareUrl(slug);
     try {
       const dataUrl = await QRCode.toDataURL(url, {
