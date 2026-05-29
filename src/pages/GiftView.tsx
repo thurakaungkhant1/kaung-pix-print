@@ -5,6 +5,7 @@ import { Gift, Loader2, Heart, Home as HomeIcon, Sparkles, AlertCircle, Clock, S
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import QRScannerDialog from "@/components/QRScannerDialog";
+import { track, GiftEvents } from "@/lib/analytics";
 
 import GiftCardPreview, { GIFT_STYLES as STYLES } from "@/components/GiftCardPreview";
 
