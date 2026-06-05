@@ -373,6 +373,45 @@ const GamePage = () => {
     .sort((a, b) => a.price - b.price);
   const needsServer = requiresServerId(selectedGame.id);
 
+  // Reset diamond tier when switching games
+  useEffect(() => { setSelectedDiamondTier(null); }, [selectedGameCategory]);
+
+  // Tier classification for diamond/UC packages
+  const DIAMOND_TIERS = [
+    { key: "special", name: "Special Offers", emoji: "🎁", chipIcon: Gift,     gradient: "from-pink-500/15 via-rose-500/10 to-pink-500/5",     ring: "ring-pink-500/30",     text: "text-pink-600 dark:text-pink-400" },
+    { key: "starter", name: "Starter Packs",  emoji: "✨", chipIcon: Sparkles, gradient: "from-sky-500/15 via-cyan-500/10 to-sky-500/5",       ring: "ring-sky-500/30",      text: "text-sky-600 dark:text-sky-400" },
+    { key: "popular", name: "Popular Packs",  emoji: "💎", chipIcon: Diamond,  gradient: "from-violet-500/15 via-indigo-500/10 to-violet-500/5", ring: "ring-violet-500/30", text: "text-violet-600 dark:text-violet-400" },
+    { key: "pro",     name: "Pro Packs",      emoji: "🔥", chipIcon: Zap,      gradient: "from-amber-500/15 via-orange-500/10 to-amber-500/5", ring: "ring-amber-500/30",    text: "text-amber-600 dark:text-amber-400" },
+    { key: "mega",    name: "Mega Packs",     emoji: "👑", chipIcon: Percent,  gradient: "from-yellow-400/20 via-amber-500/10 to-yellow-400/5", ring: "ring-yellow-500/30",  text: "text-yellow-600 dark:text-yellow-400" },
+  ] as const;
+
+  const tierOf = (p: Product): string => {
+    const name = p.name.trim();
+    if (/pass|bonus|\+|special|weekly|monthly|wp|tp/i.test(name)) return "special";
+    const n = parseInt(name.replace(/\D/g, ""), 10);
+    if (!n) return "special";
+    const isMLBB = selectedGame.id === "MLBB Diamonds";
+    if (isMLBB) {
+      if (n <= 100) return "starter";
+      if (n <= 500) return "popular";
+      if (n <= 2000) return "pro";
+      return "mega";
+    }
+    if (n <= 180) return "starter";
+    if (n <= 600) return "popular";
+    if (n <= 1800) return "pro";
+    return "mega";
+  };
+
+  const groupedDiamonds = DIAMOND_TIERS
+    .map(tier => ({ ...tier, items: gameProducts.filter(p => tierOf(p) === tier.key) }))
+    .filter(g => g.items.length > 0);
+
+  const visibleGroups = selectedDiamondTier
+    ? groupedDiamonds.filter(g => g.key === selectedDiamondTier)
+    : groupedDiamonds;
+
+
   const handleSelectPackage = (product: Product) => {
     if (!user) {
       toast({ title: "Login required", description: "Please login to make a purchase", variant: "destructive" });
