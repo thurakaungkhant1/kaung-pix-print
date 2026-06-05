@@ -95,6 +95,7 @@ const GamePage = () => {
   const [activeCategory, setActiveCategory] = useState<string>(() => localStorage.getItem("shopActiveTab") || "games");
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(() => localStorage.getItem("shopGameCat"));
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
+  const [selectedDiamondTier, setSelectedDiamondTier] = useState<string | null>(null);
   const [filterLoading, setFilterLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [checkingName, setCheckingName] = useState(false);
@@ -372,6 +373,45 @@ const GamePage = () => {
     .sort((a, b) => a.price - b.price);
   const needsServer = requiresServerId(selectedGame.id);
 
+  // Reset diamond tier when switching games
+  useEffect(() => { setSelectedDiamondTier(null); }, [selectedGameCategory]);
+
+  // Tier classification for diamond/UC packages
+  const DIAMOND_TIERS = [
+    { key: "special", name: "Special Offers", emoji: "🎁", chipIcon: Gift,     gradient: "from-pink-500/15 via-rose-500/10 to-pink-500/5",     ring: "ring-pink-500/30",     text: "text-pink-600 dark:text-pink-400" },
+    { key: "starter", name: "Starter Packs",  emoji: "✨", chipIcon: Sparkles, gradient: "from-sky-500/15 via-cyan-500/10 to-sky-500/5",       ring: "ring-sky-500/30",      text: "text-sky-600 dark:text-sky-400" },
+    { key: "popular", name: "Popular Packs",  emoji: "💎", chipIcon: Diamond,  gradient: "from-violet-500/15 via-indigo-500/10 to-violet-500/5", ring: "ring-violet-500/30", text: "text-violet-600 dark:text-violet-400" },
+    { key: "pro",     name: "Pro Packs",      emoji: "🔥", chipIcon: Zap,      gradient: "from-amber-500/15 via-orange-500/10 to-amber-500/5", ring: "ring-amber-500/30",    text: "text-amber-600 dark:text-amber-400" },
+    { key: "mega",    name: "Mega Packs",     emoji: "👑", chipIcon: Percent,  gradient: "from-yellow-400/20 via-amber-500/10 to-yellow-400/5", ring: "ring-yellow-500/30",  text: "text-yellow-600 dark:text-yellow-400" },
+  ] as const;
+
+  const tierOf = (p: Product): string => {
+    const name = p.name.trim();
+    if (/pass|bonus|\+|special|weekly|monthly|wp|tp/i.test(name)) return "special";
+    const n = parseInt(name.replace(/\D/g, ""), 10);
+    if (!n) return "special";
+    const isMLBB = selectedGame.id === "MLBB Diamonds";
+    if (isMLBB) {
+      if (n <= 100) return "starter";
+      if (n <= 500) return "popular";
+      if (n <= 2000) return "pro";
+      return "mega";
+    }
+    if (n <= 180) return "starter";
+    if (n <= 600) return "popular";
+    if (n <= 1800) return "pro";
+    return "mega";
+  };
+
+  const groupedDiamonds = DIAMOND_TIERS
+    .map(tier => ({ ...tier, items: gameProducts.filter(p => tierOf(p) === tier.key) }))
+    .filter(g => g.items.length > 0);
+
+  const visibleGroups = selectedDiamondTier
+    ? groupedDiamonds.filter(g => g.key === selectedDiamondTier)
+    : groupedDiamonds;
+
+
   const handleSelectPackage = (product: Product) => {
     if (!user) {
       toast({ title: "Login required", description: "Please login to make a purchase", variant: "destructive" });
@@ -566,47 +606,156 @@ const GamePage = () => {
             {/* Select Diamonds */}
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold">Select Diamonds</h3>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-glow">
+                    <Diamond className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="text-sm font-semibold">Select {selectedGame.id === "PUBG UC" ? "UC" : "Diamonds"}</h3>
+                </div>
                 <span className="text-[11px] text-muted-foreground">{selectedGame.name}</span>
               </div>
-              {gameProducts.length === 0 ? (
-                <div className="text-center py-10 rounded-2xl border border-dashed border-border/60">
-                  <p className="text-sm text-muted-foreground">No packages available</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {gameProducts.map((product) => {
-                    const active = selectedProduct?.id === product.id && showPurchaseDialog;
+
+              {/* Tier chip filter */}
+              {groupedDiamonds.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-3 mb-1">
+                  <button
+                    onClick={() => setSelectedDiamondTier(null)}
+                    className={cn(
+                      "shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border transition-all",
+                      !selectedDiamondTier
+                        ? "bg-primary text-primary-foreground border-primary shadow-glow"
+                        : "bg-card/60 text-muted-foreground border-border/50 hover:border-primary/40 hover:text-foreground"
+                    )}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" /> All
+                    <span className="ml-0.5 opacity-70">·{gameProducts.length}</span>
+                  </button>
+                  {groupedDiamonds.map((g) => {
+                    const Icon = g.chipIcon;
+                    const active = selectedDiamondTier === g.key;
                     return (
                       <button
-                        key={product.id}
-                        onClick={() => handleSelectPackage(product)}
+                        key={g.key}
+                        onClick={() => setSelectedDiamondTier(active ? null : g.key)}
                         className={cn(
-                          "w-full rounded-2xl border p-4 flex items-center justify-between transition-all text-left",
+                          "shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border transition-all",
                           active
-                            ? "bg-primary text-primary-foreground border-primary shadow-lg"
-                            : "bg-card border-border/60 hover:border-primary/40 hover:shadow-sm"
+                            ? "bg-primary text-primary-foreground border-primary shadow-glow"
+                            : "bg-card/60 text-foreground/80 border-border/50 hover:border-primary/40"
                         )}
                       >
-                        <div>
-                          <p className={cn("font-bold text-base", active ? "text-primary-foreground" : "text-foreground")}>
-                            {product.name}
-                          </p>
-                          {product.points_value > 0 && (
-                            <p className={cn("text-xs font-semibold mt-0.5", active ? "text-primary-foreground/90" : "text-emerald-600")}>
-                              +{product.points_value} Points
-                            </p>
-                          )}
-                        </div>
-                        <p className={cn("text-base font-bold tabular-nums", active ? "text-primary-foreground" : "text-primary")}>
-                          {product.price.toLocaleString()} <span className="text-xs font-medium opacity-80">MMK</span>
-                        </p>
+                        <Icon className="h-3.5 w-3.5" />
+                        {g.name.replace(" Packs", "").replace(" Offers", "")}
+                        <span className="ml-0.5 opacity-70">·{g.items.length}</span>
                       </button>
                     );
                   })}
                 </div>
               )}
+
+              {gameProducts.length === 0 ? (
+                <div className="text-center py-10 rounded-2xl border border-dashed border-border/60">
+                  <p className="text-sm text-muted-foreground">No packages available</p>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {visibleGroups.map((group) => (
+                    <motion.div
+                      key={group.key}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="space-y-2.5"
+                    >
+                      {/* Category header */}
+                      <div className={cn(
+                        "relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-r px-3.5 py-2.5 flex items-center justify-between",
+                        group.gradient
+                      )}>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg leading-none" aria-hidden>{group.emoji}</span>
+                          <div>
+                            <div className={cn("text-[13px] font-bold tracking-tight", group.text)}>{group.name}</div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {group.items.length} {group.items.length === 1 ? "pack" : "packs"} available
+                            </div>
+                          </div>
+                        </div>
+                        <span className={cn(
+                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/60 backdrop-blur text-[10px] font-bold ring-1",
+                          group.ring, group.text
+                        )}>
+                          <Zap className="h-2.5 w-2.5" /> Instant
+                        </span>
+                      </div>
+
+                      {/* Packages grid */}
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {group.items.map((product) => {
+                          const active = selectedProduct?.id === product.id && showPurchaseDialog;
+                          const hasDiscount = product.original_price && product.original_price > product.price;
+                          return (
+                            <button
+                              key={product.id}
+                              onClick={() => handleSelectPackage(product)}
+                              className={cn(
+                                "group relative rounded-2xl border p-3 flex flex-col transition-all text-left overflow-hidden",
+                                active
+                                  ? "bg-primary text-primary-foreground border-primary shadow-lg scale-[0.99]"
+                                  : "bg-card border-border/60 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5"
+                              )}
+                            >
+                              {hasDiscount && !active && (
+                                <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold">
+                                  SALE
+                                </span>
+                              )}
+                              <div className={cn(
+                                "h-9 w-9 rounded-xl flex items-center justify-center mb-2 bg-gradient-to-br",
+                                active ? "bg-white/20" : group.gradient
+                              )}>
+                                <Diamond className={cn("h-4 w-4", active ? "text-primary-foreground" : group.text)} />
+                              </div>
+                              <p className={cn("font-bold text-sm leading-tight", active ? "text-primary-foreground" : "text-foreground")}>
+                                {product.name}
+                              </p>
+                              {product.points_value > 0 && (
+                                <p className={cn(
+                                  "text-[10px] font-semibold mt-0.5",
+                                  active ? "text-primary-foreground/90" : "text-emerald-600 dark:text-emerald-400"
+                                )}>
+                                  +{product.points_value} pts
+                                </p>
+                              )}
+                              <div className="mt-2 pt-2 border-t border-current/10 flex items-baseline gap-1.5">
+                                <p className={cn(
+                                  "text-sm font-bold tabular-nums",
+                                  active ? "text-primary-foreground" : "text-primary"
+                                )}>
+                                  {product.price.toLocaleString()}
+                                </p>
+                                <span className={cn("text-[10px] font-medium", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                                  MMK
+                                </span>
+                                {hasDiscount && (
+                                  <span className={cn(
+                                    "ml-auto text-[10px] line-through tabular-nums",
+                                    active ? "text-primary-foreground/60" : "text-muted-foreground/70"
+                                  )}>
+                                    {product.original_price!.toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </section>
+
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-5">
