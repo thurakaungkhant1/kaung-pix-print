@@ -133,7 +133,7 @@ const PhotoDetail = () => {
   const proceedAfterConfirm = () => {
     setConfirmOpen(false);
     if (!photo) return;
-    if (photo.download_pin) {
+    if (photo.requires_pin) {
       setPinValue("");
       setPinError(false);
       setShowForgetPin(false);
@@ -143,13 +143,22 @@ const PhotoDetail = () => {
     }
   };
 
-  const handlePinSubmit = () => {
-    if (!photo?.download_pin) return;
-    if (pinValue === photo.download_pin) {
+  const handlePinSubmit = async () => {
+    if (!photo) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-photo-pin", {
+        body: { photo_id: photo.id, pin: pinValue },
+      });
+      if (error || !data?.ok) {
+        setPinError(true);
+        setPinValue("");
+        setShowForgetPin(true);
+        return;
+      }
       setPinDialogOpen(false);
       performDownload();
       toast({ title: "✅ PIN Correct", description: "Download starting..." });
-    } else {
+    } catch {
       setPinError(true);
       setPinValue("");
       setShowForgetPin(true);
