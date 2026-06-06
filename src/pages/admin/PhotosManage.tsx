@@ -25,7 +25,7 @@ interface Photo {
   preview_image: string | null;
   category: string;
   shooting_date: string | null;
-  download_pin: string | null;
+  requires_pin: boolean;
 }
 
 const CATEGORIES = ["General", "Wedding", "Portrait", "Event", "Product", "Nature", "Other"];
