@@ -30,7 +30,7 @@ interface Photo {
   file_size: number;
   preview_image: string | null;
   shooting_date: string | null;
-  download_pin: string | null;
+  requires_pin: boolean;
 }
 
 const PhotoDetail = () => {
