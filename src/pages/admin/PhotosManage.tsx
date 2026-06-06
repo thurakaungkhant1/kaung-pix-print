@@ -204,7 +204,7 @@ const PhotosManage = () => {
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                       {photo.category || "General"}
                     </span>
-                    {photo.download_pin ? (
+                    {photo.requires_pin ? (
                       <span className="text-xs bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                         <Lock className="h-3 w-3" /> PIN
                       </span>
