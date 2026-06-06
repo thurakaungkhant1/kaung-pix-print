@@ -25,7 +25,7 @@ interface Photo {
   preview_image: string | null;
   category: string;
   shooting_date: string | null;
-  download_pin: string | null;
+  requires_pin: boolean;
 }
 
 const CATEGORIES = ["General", "Wedding", "Portrait", "Event", "Product", "Nature", "Other"];
@@ -68,7 +68,7 @@ const PhotosManage = () => {
       .from("photos")
       .select("*")
       .order("created_at", { ascending: false });
-    if (data) setPhotos(data as Photo[]);
+    if (data) setPhotos(data as unknown as Photo[]);
   };
 
   const deletePhoto = async (id: number) => {
@@ -82,13 +82,23 @@ const PhotosManage = () => {
     }
   };
 
-  const openEditDialog = (photo: Photo) => {
+  const openEditDialog = async (photo: Photo) => {
     setSelectedPhoto(photo);
+    // Fetch current PIN from admin-only table
+    let existingPin = "";
+    if (photo.requires_pin) {
+      const { data } = await (supabase as any)
+        .from("photo_pins")
+        .select("pin")
+        .eq("photo_id", photo.id)
+        .maybeSingle();
+      existingPin = (data?.pin as string) || "";
+    }
     setEditForm({
       client_name: photo.client_name,
       category: photo.category || "General",
       shooting_date: photo.shooting_date || "",
-      download_pin: photo.download_pin || "",
+      download_pin: existingPin,
     });
     setNewPreviewImage(null);
     setPreviewUrl(photo.preview_image);
@@ -106,18 +116,19 @@ const PhotosManage = () => {
   const handleUpdatePhoto = async () => {
     if (!selectedPhoto) return;
 
-    if (editForm.download_pin && !/^\d{6}$/.test(editForm.download_pin)) {
+    const pin = editForm.download_pin.trim();
+    if (pin && !/^\d{6}$/.test(pin)) {
       toast({ title: "Error", description: "PIN must be exactly 6 digits", variant: "destructive" });
       return;
     }
 
     setIsUpdating(true);
     try {
-      let updateData: Record<string, any> = {
+      const updateData: Record<string, any> = {
         client_name: editForm.client_name,
         category: editForm.category,
         shooting_date: editForm.shooting_date || null,
-        download_pin: editForm.download_pin || null,
+        requires_pin: !!pin,
       };
 
       if (newPreviewImage) {
@@ -135,6 +146,19 @@ const PhotosManage = () => {
         .eq("id", selectedPhoto.id);
 
       if (error) throw error;
+
+      // Sync PIN to admin-only photo_pins table
+      if (pin) {
+        const { error: pinErr } = await (supabase as any)
+          .from("photo_pins")
+          .upsert({ photo_id: selectedPhoto.id, pin, updated_at: new Date().toISOString() }, { onConflict: "photo_id" });
+        if (pinErr) throw pinErr;
+      } else {
+        await (supabase as any)
+          .from("photo_pins")
+          .delete()
+          .eq("photo_id", selectedPhoto.id);
+      }
 
       toast({ title: "Success", description: "Photo updated successfully" });
       setEditDialogOpen(false);
@@ -180,7 +204,7 @@ const PhotosManage = () => {
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                       {photo.category || "General"}
                     </span>
-                    {photo.download_pin ? (
+                    {photo.requires_pin ? (
                       <span className="text-xs bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                         <Lock className="h-3 w-3" /> PIN
                       </span>

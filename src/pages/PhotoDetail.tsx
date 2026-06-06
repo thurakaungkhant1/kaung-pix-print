@@ -30,7 +30,7 @@ interface Photo {
   file_size: number;
   preview_image: string | null;
   shooting_date: string | null;
-  download_pin: string | null;
+  requires_pin: boolean;
 }
 
 const PhotoDetail = () => {
@@ -73,7 +73,7 @@ const PhotoDetail = () => {
       .single();
 
     if (!error && data) {
-      setPhoto(data as Photo);
+      setPhoto(data as unknown as Photo);
       if (data.preview_image) {
         try {
           const watermarked = await addWatermark(data.preview_image);
@@ -133,7 +133,7 @@ const PhotoDetail = () => {
   const proceedAfterConfirm = () => {
     setConfirmOpen(false);
     if (!photo) return;
-    if (photo.download_pin) {
+    if (photo.requires_pin) {
       setPinValue("");
       setPinError(false);
       setShowForgetPin(false);
@@ -143,13 +143,22 @@ const PhotoDetail = () => {
     }
   };
 
-  const handlePinSubmit = () => {
-    if (!photo?.download_pin) return;
-    if (pinValue === photo.download_pin) {
+  const handlePinSubmit = async () => {
+    if (!photo) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-photo-pin", {
+        body: { photo_id: photo.id, pin: pinValue },
+      });
+      if (error || !data?.ok) {
+        setPinError(true);
+        setPinValue("");
+        setShowForgetPin(true);
+        return;
+      }
       setPinDialogOpen(false);
       performDownload();
       toast({ title: "✅ PIN Correct", description: "Download starting..." });
-    } else {
+    } catch {
       setPinError(true);
       setPinValue("");
       setShowForgetPin(true);
@@ -420,7 +429,7 @@ const PhotoDetail = () => {
             </motion.div>
 
             {/* PIN Notice */}
-            {photo.download_pin && (
+            {photo.requires_pin && (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -473,7 +482,7 @@ const PhotoDetail = () => {
                 size="lg"
                 onClick={handleDownloadClick}
               >
-                {photo.download_pin ? (
+                {photo.requires_pin ? (
                   <>
                     <Lock className="mr-2 h-5 w-5" />
                     Enter PIN & Download
@@ -570,7 +579,7 @@ const PhotoDetail = () => {
               <AlertDialogTitle>ZIP Download စတင်မလား?</AlertDialogTitle>
               <AlertDialogDescription>
                 {photo?.client_name} • {photo?.file_size ? `${(photo.file_size / 1024 / 1024).toFixed(2)} MB` : "ZIP archive"}
-                {photo?.download_pin && " • PIN code လိုအပ်ပါမည်"}
+                {photo?.requires_pin && " • PIN code လိုအပ်ပါမည်"}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

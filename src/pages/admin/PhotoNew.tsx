@@ -34,22 +34,33 @@ const PhotoNew = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.from("photos").insert({
+    const { data: inserted, error } = await supabase.from("photos").insert({
       client_name: clientName,
       file_url: fileUrl,
       file_size: parseInt(fileSize) * 1024 * 1024,
       preview_image: previewImage || null,
       category: category,
       shooting_date: shootingDate || null,
-      download_pin: downloadPin || null,
-    });
+      requires_pin: !!downloadPin,
+    } as any).select("id").maybeSingle();
 
-    if (error) {
+    if (error || !inserted) {
       toast({ title: "Error", description: "Failed to upload photos", variant: "destructive" });
-    } else {
-      toast({ title: "Success", description: "Photos uploaded successfully" });
-      navigate("/admin/photos");
+      setLoading(false);
+      return;
     }
+
+    if (downloadPin) {
+      const { error: pinErr } = await (supabase as any)
+        .from("photo_pins")
+        .insert({ photo_id: (inserted as any).id, pin: downloadPin });
+      if (pinErr) {
+        toast({ title: "Warning", description: "Photo created but PIN failed to save.", variant: "destructive" });
+      }
+    }
+
+    toast({ title: "Success", description: "Photos uploaded successfully" });
+    navigate("/admin/photos");
 
     setLoading(false);
   };
