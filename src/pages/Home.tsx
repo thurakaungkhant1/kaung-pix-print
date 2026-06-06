@@ -381,19 +381,46 @@ const Home = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 + i * 0.05 }}
                     whileTap={{ scale: 0.97 }}
+                    whileHover={{ y: -3 }}
                     onClick={() => navigate("/games")}
-                    className="text-left rounded-2xl overflow-hidden bg-card border border-border/60 hover:shadow-lg transition-all"
+                    className="text-left rounded-2xl overflow-hidden bg-card border border-border/60 hover:shadow-2xl hover:border-primary/30 transition-all group"
                   >
                     <div className={cn("aspect-[4/3] bg-gradient-to-br relative overflow-hidden", game.gradient)}>
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.3),transparent_50%)]" />
-                      <Gamepad2 className="absolute right-2 bottom-2 h-12 w-12 text-white/30" />
-                    </div>
-                    <div className="p-3">
-                      <p className="text-sm font-bold text-foreground mb-1">{game.name}</p>
-                      <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                        <Gamepad2 className="h-3 w-3" />
-                        +{game.points} pts
+                      {/* Abstract pattern overlay */}
+                      <div className={cn("absolute inset-0 opacity-80", game.pattern)} />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),transparent_55%)]" />
+
+                      {/* Floating game emoji */}
+                      <motion.div
+                        animate={{ y: [0, -6, 0], rotate: [0, 4, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
+                        className="absolute right-3 bottom-3 text-4xl drop-shadow-lg"
+                      >
+                        {game.emoji}
+                      </motion.div>
+
+                      {/* +pts glass badge */}
+                      <div className="absolute top-2.5 right-2.5 glass-chip rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+                        <Zap className="h-3 w-3 text-yellow-200" fill="currentColor" />
+                        <span className="text-[10px] font-extrabold text-white tracking-wide">
+                          +{game.points}
+                        </span>
                       </div>
+
+                      {/* Bottom glass title bar */}
+                      <div className="absolute inset-x-2 bottom-2 glass-chip rounded-xl px-3 py-2 flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-white/25 flex items-center justify-center backdrop-blur">
+                          <Gamepad2 className="h-3.5 w-3.5 text-white" />
+                        </div>
+                        <p className="text-xs font-bold text-white truncate drop-shadow">{game.name}</p>
+                      </div>
+                    </div>
+                    <div className="p-3 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-muted-foreground">Tap to play</span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                        +{game.points} pts
+                        <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
                     </div>
                   </motion.button>
                 ))}
