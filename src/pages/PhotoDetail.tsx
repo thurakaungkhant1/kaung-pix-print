@@ -73,7 +73,7 @@ const PhotoDetail = () => {
       .single();
 
     if (!error && data) {
-      setPhoto(data as Photo);
+      setPhoto(data as unknown as Photo);
       if (data.preview_image) {
         try {
           const watermarked = await addWatermark(data.preview_image);
@@ -429,7 +429,7 @@ const PhotoDetail = () => {
             </motion.div>
 
             {/* PIN Notice */}
-            {photo.download_pin && (
+            {photo.requires_pin && (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -482,7 +482,7 @@ const PhotoDetail = () => {
                 size="lg"
                 onClick={handleDownloadClick}
               >
-                {photo.download_pin ? (
+                {photo.requires_pin ? (
                   <>
                     <Lock className="mr-2 h-5 w-5" />
                     Enter PIN & Download
@@ -579,7 +579,7 @@ const PhotoDetail = () => {
               <AlertDialogTitle>ZIP Download စတင်မလား?</AlertDialogTitle>
               <AlertDialogDescription>
                 {photo?.client_name} • {photo?.file_size ? `${(photo.file_size / 1024 / 1024).toFixed(2)} MB` : "ZIP archive"}
-                {photo?.download_pin && " • PIN code လိုအပ်ပါမည်"}
+                {photo?.requires_pin && " • PIN code လိုအပ်ပါမည်"}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
