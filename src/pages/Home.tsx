@@ -49,8 +49,8 @@ const getBannerColor = (colorName: string): string => {
 };
 
 const EARN_POINTS_GAMES = [
-  { id: "car-dodge", name: "Car Dodge", points: 20, gradient: "from-rose-500 to-orange-500" },
-  { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 to-cyan-500" },
+  { id: "car-dodge", name: "Car Dodge", points: 20, gradient: "from-rose-500 via-pink-500 to-orange-400", pattern: "game-pattern-dodge", emoji: "🏎️" },
+  { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 via-violet-500 to-cyan-400", pattern: "game-pattern-bubbles", emoji: "🫧" },
 ];
 
 const Home = () => {
