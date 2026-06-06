@@ -87,7 +87,7 @@ const PhotosManage = () => {
     // Fetch current PIN from admin-only table
     let existingPin = "";
     if (photo.requires_pin) {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("photo_pins")
         .select("pin")
         .eq("photo_id", photo.id)
