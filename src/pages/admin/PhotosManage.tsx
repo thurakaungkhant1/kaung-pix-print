@@ -68,7 +68,7 @@ const PhotosManage = () => {
       .from("photos")
       .select("*")
       .order("created_at", { ascending: false });
-    if (data) setPhotos(data as Photo[]);
+    if (data) setPhotos(data as unknown as Photo[]);
   };
 
   const deletePhoto = async (id: number) => {
@@ -82,13 +82,23 @@ const PhotosManage = () => {
     }
   };
 
-  const openEditDialog = (photo: Photo) => {
+  const openEditDialog = async (photo: Photo) => {
     setSelectedPhoto(photo);
+    // Fetch current PIN from admin-only table
+    let existingPin = "";
+    if (photo.requires_pin) {
+      const { data } = await supabase
+        .from("photo_pins")
+        .select("pin")
+        .eq("photo_id", photo.id)
+        .maybeSingle();
+      existingPin = (data?.pin as string) || "";
+    }
     setEditForm({
       client_name: photo.client_name,
       category: photo.category || "General",
       shooting_date: photo.shooting_date || "",
-      download_pin: photo.download_pin || "",
+      download_pin: existingPin,
     });
     setNewPreviewImage(null);
     setPreviewUrl(photo.preview_image);
