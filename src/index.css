@@ -1015,3 +1015,96 @@
     .premium-shine { animation: none !important; }
   }
 }
+
+@layer utilities {
+  /* Soft mesh gradient background for hero/AI suite */
+  .mesh-hero {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(at 12% 18%, hsla(280, 92%, 70%, 0.35) 0px, transparent 50%),
+      radial-gradient(at 88% 10%, hsla(330, 95%, 70%, 0.30) 0px, transparent 50%),
+      radial-gradient(at 78% 88%, hsla(220, 95%, 65%, 0.30) 0px, transparent 50%),
+      radial-gradient(at 8% 92%, hsla(25, 95%, 65%, 0.28) 0px, transparent 50%);
+  }
+
+  /* Glassmorphism card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+  }
+  .dark .glass-card {
+    background: rgba(20, 20, 28, 0.45);
+    border-color: rgba(255, 255, 255, 0.10);
+  }
+  .glass-chip {
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px) saturate(160%);
+    -webkit-backdrop-filter: blur(10px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+  }
+
+  /* Pulsing animated gradient border for primary CTAs */
+  @keyframes cta-gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+  @keyframes cta-halo-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50%      { opacity: 0.95; transform: scale(1.04); }
+  }
+  .cta-pulse-border {
+    position: relative;
+    isolation: isolate;
+    border-radius: 9999px;
+  }
+  .cta-pulse-border::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(120deg, #f0abfc, #f472b6, #fb923c, #a78bfa, #f0abfc);
+    background-size: 300% 300%;
+    animation: cta-gradient-shift 4s ease-in-out infinite;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .cta-pulse-border::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    background: linear-gradient(120deg, #c084fc, #ec4899, #fb923c);
+    filter: blur(14px);
+    opacity: 0.6;
+    animation: cta-halo-pulse 2.6s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -2;
+  }
+
+  /* Abstract game card patterns */
+  .game-pattern-dodge {
+    background-image:
+      linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0 2px, transparent 2px 28px),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 18px);
+  }
+  .game-pattern-bubbles {
+    background-image:
+      radial-gradient(circle at 18% 28%, rgba(255,255,255,0.45) 0 8px, transparent 9px),
+      radial-gradient(circle at 78% 22%, rgba(255,255,255,0.35) 0 14px, transparent 15px),
+      radial-gradient(circle at 30% 78%, rgba(255,255,255,0.30) 0 18px, transparent 19px),
+      radial-gradient(circle at 82% 80%, rgba(255,255,255,0.25) 0 10px, transparent 11px),
+      radial-gradient(circle at 55% 50%, rgba(255,255,255,0.20) 0 6px, transparent 7px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-pulse-border::before,
+    .cta-pulse-border::after { animation: none !important; }
+  }
+}

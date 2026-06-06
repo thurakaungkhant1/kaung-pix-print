@@ -49,8 +49,8 @@ const getBannerColor = (colorName: string): string => {
 };
 
 const EARN_POINTS_GAMES = [
-  { id: "car-dodge", name: "Car Dodge", points: 20, gradient: "from-rose-500 to-orange-500" },
-  { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 to-cyan-500" },
+  { id: "car-dodge", name: "Car Dodge", points: 20, gradient: "from-rose-500 via-pink-500 to-orange-400", pattern: "game-pattern-dodge", emoji: "🏎️" },
+  { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 via-violet-500 to-cyan-400", pattern: "game-pattern-bubbles", emoji: "🫧" },
 ];
 
 const Home = () => {
@@ -164,43 +164,49 @@ const Home = () => {
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       <AnimatedPage>
         <MobileLayout className="max-w-screen-xl mx-auto bg-background">
-          {/* ── Top Bar: greeting + wallet pill + bell ── */}
-          <header className="px-5 pt-6 pb-4">
+          {/* ── Top Bar: sleek profile widget ── */}
+          <header className="px-5 pt-7 pb-5">
             <motion.div
               initial={{ y: -10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="flex items-center justify-between gap-3"
+              className="glass-card rounded-2xl p-2.5 pl-3 flex items-center gap-3 shadow-sm"
             >
+              <button
+                onClick={() => navigate('/account')}
+                className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-orange-400 flex items-center justify-center text-white font-display font-bold text-base shadow-md ring-2 ring-white/60 dark:ring-white/10 flex-shrink-0"
+                aria-label="Open account"
+              >
+                {greetingName.charAt(0).toUpperCase()}
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-background" />
+              </button>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground/80 mb-0.5">
-                  Mingalarpar! 🙏
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 leading-none mb-1">
+                  Mingalarpar 🙏
                 </p>
-                <h1 className="text-lg font-display font-bold text-foreground truncate">
+                <h1 className="text-sm font-display font-bold text-foreground truncate leading-tight">
                   {greetingName}
                 </h1>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <button
-                  onClick={() => navigate('/top-up')}
-                  className="flex items-center gap-1.5 px-3 h-10 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors"
-                >
-                  <Wallet className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-semibold text-primary tabular-nums">
-                    {formatMMK(walletBalance)}
-                  </span>
-                </button>
-                <button
-                  onClick={() => navigate('/account')}
-                  className="w-10 h-10 rounded-full bg-card border border-border/60 flex items-center justify-center hover:bg-muted transition-colors"
-                  aria-label="Notifications"
-                >
-                  <Bell className="h-4 w-4 text-foreground" />
-                </button>
-              </div>
+              <button
+                onClick={() => navigate('/top-up')}
+                className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-gradient-to-r from-primary/15 to-fuchsia-500/15 border border-primary/25 hover:from-primary/25 hover:to-fuchsia-500/25 transition-all shadow-sm"
+              >
+                <Wallet className="h-4 w-4 text-primary" />
+                <span className="text-xs font-bold text-primary tabular-nums">
+                  {formatMMK(walletBalance)}
+                </span>
+              </button>
+              <button
+                onClick={() => navigate('/account')}
+                className="w-10 h-10 rounded-xl bg-card/70 border border-border/60 flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0"
+                aria-label="Notifications"
+              >
+                <Bell className="h-4 w-4 text-foreground" />
+              </button>
             </motion.div>
           </header>
 
-          {/* ── AI Suite Card (featured at top) ── */}
+          {/* ── AI Suite Card (mesh gradient + glassmorphism) ── */}
           <AnimatedSection delay={0.05}>
             <section className="px-5 pb-4">
               <motion.button
@@ -208,52 +214,71 @@ const Home = () => {
                 whileHover={{ y: -2 }}
                 onClick={() => navigate("/ai")}
                 aria-label="Open As You Like AI Suite"
-                className="w-full text-left relative overflow-hidden rounded-3xl group shadow-xl ring-1 ring-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #3b82f6 100%)" }}
+                className="w-full text-left relative overflow-hidden rounded-3xl group shadow-2xl ring-1 ring-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary mesh-hero"
               >
-                <div className="absolute -top-16 -right-10 w-52 h-52 bg-white/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-16 -left-10 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_55%)]" />
+                {/* Layered gradient + mesh blobs */}
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600/95 via-fuchsia-500/90 to-blue-500/95" />
+                <motion.div
+                  animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -top-20 -right-10 w-60 h-60 bg-pink-400/40 rounded-full blur-3xl"
+                />
+                <motion.div
+                  animate={{ x: [0, -25, 0], y: [0, 25, 0] }}
+                  transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -bottom-20 -left-10 w-56 h-56 bg-cyan-400/30 rounded-full blur-3xl"
+                />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.22),transparent_55%)]" />
 
-                <div className="relative z-10 p-5">
+                <div className="relative z-10 p-6">
                   <div className="flex items-start gap-3">
-                    <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md border border-white/25 shadow-inner">
-                      <Sparkles className="h-6 w-6 text-white" />
+                    <div className="p-3 glass-chip rounded-2xl shadow-inner">
+                      <Sparkles className="h-6 w-6 text-white drop-shadow" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <Badge className="bg-white/25 text-white border-0 text-[10px] mb-1.5 hover:bg-white/25 backdrop-blur">
-                        NEW • AI SUITE
+                      <Badge className="glass-chip text-white border-0 text-[10px] mb-1.5 hover:opacity-90 tracking-wider">
+                        ✨ NEW • AI SUITE
                       </Badge>
-                      <h3 className="text-lg sm:text-xl font-display font-black text-white leading-tight drop-shadow">
+                      <h3 className="text-xl sm:text-2xl font-display font-black text-white leading-tight drop-shadow-md tracking-tight">
                         As You Like AI
                       </h3>
-                      <p className="text-white/85 text-xs mt-0.5">
-                        Photo • Passport • Prompts • Gift Link
+                      <p className="text-white/85 text-xs mt-1">
+                        Generate. Create. Share. Instantly.
                       </p>
                     </div>
                     <ArrowRight className="h-5 w-5 text-white mt-2 group-hover:translate-x-1 transition-transform" />
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-1.5">
+                  {/* Interactive pill tags */}
+                  <div className="mt-5 grid grid-cols-4 gap-2">
                     {[
                       { label: "Photo", icon: Camera },
                       { label: "Passport", icon: Shield },
                       { label: "Prompts", icon: Zap },
-                      { label: "Gift Link", icon: Sparkles },
+                      { label: "Gift", icon: Sparkles },
                     ].map((f) => (
-                      <span
+                      <div
                         key={f.label}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur border border-white/20 text-white text-[10px] font-semibold"
+                        className="glass-chip rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 transition-all duration-300 group-hover:-translate-y-0.5 hover:bg-white/30"
                       >
-                        <f.icon className="h-3 w-3" />
-                        {f.label}
-                      </span>
+                        <f.icon className="h-4 w-4 text-white" />
+                        <span className="text-white text-[10px] font-semibold tracking-wide">
+                          {f.label}
+                        </span>
+                      </div>
                     ))}
                   </div>
 
-                  <div className="mt-4 inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-white text-purple-700 font-bold text-xs shadow-lg group-hover:shadow-xl transition-shadow">
-                    Try AI Now
-                    <ArrowRight className="h-3.5 w-3.5" />
+                  {/* Pulsing gradient-border CTA */}
+                  <div className="mt-5 flex items-center justify-between gap-3">
+                    <span className="cta-pulse-border inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-white text-purple-700 font-bold text-xs shadow-xl">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Try AI Now
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-[10px] text-white/80 font-medium">
+                      5 free / day
+                    </span>
                   </div>
                 </div>
               </motion.button>
@@ -356,19 +381,46 @@ const Home = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 + i * 0.05 }}
                     whileTap={{ scale: 0.97 }}
+                    whileHover={{ y: -3 }}
                     onClick={() => navigate("/games")}
-                    className="text-left rounded-2xl overflow-hidden bg-card border border-border/60 hover:shadow-lg transition-all"
+                    className="text-left rounded-2xl overflow-hidden bg-card border border-border/60 hover:shadow-2xl hover:border-primary/30 transition-all group"
                   >
                     <div className={cn("aspect-[4/3] bg-gradient-to-br relative overflow-hidden", game.gradient)}>
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.3),transparent_50%)]" />
-                      <Gamepad2 className="absolute right-2 bottom-2 h-12 w-12 text-white/30" />
-                    </div>
-                    <div className="p-3">
-                      <p className="text-sm font-bold text-foreground mb-1">{game.name}</p>
-                      <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                        <Gamepad2 className="h-3 w-3" />
-                        +{game.points} pts
+                      {/* Abstract pattern overlay */}
+                      <div className={cn("absolute inset-0 opacity-80", game.pattern)} />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),transparent_55%)]" />
+
+                      {/* Floating game emoji */}
+                      <motion.div
+                        animate={{ y: [0, -6, 0], rotate: [0, 4, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
+                        className="absolute right-3 bottom-3 text-4xl drop-shadow-lg"
+                      >
+                        {game.emoji}
+                      </motion.div>
+
+                      {/* +pts glass badge */}
+                      <div className="absolute top-2.5 right-2.5 glass-chip rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+                        <Zap className="h-3 w-3 text-yellow-200" fill="currentColor" />
+                        <span className="text-[10px] font-extrabold text-white tracking-wide">
+                          +{game.points}
+                        </span>
                       </div>
+
+                      {/* Bottom glass title bar */}
+                      <div className="absolute inset-x-2 bottom-2 glass-chip rounded-xl px-3 py-2 flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-white/25 flex items-center justify-center backdrop-blur">
+                          <Gamepad2 className="h-3.5 w-3.5 text-white" />
+                        </div>
+                        <p className="text-xs font-bold text-white truncate drop-shadow">{game.name}</p>
+                      </div>
+                    </div>
+                    <div className="p-3 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-muted-foreground">Tap to play</span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                        +{game.points} pts
+                        <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
                     </div>
                   </motion.button>
                 ))}
