@@ -116,18 +116,19 @@ const PhotosManage = () => {
   const handleUpdatePhoto = async () => {
     if (!selectedPhoto) return;
 
-    if (editForm.download_pin && !/^\d{6}$/.test(editForm.download_pin)) {
+    const pin = editForm.download_pin.trim();
+    if (pin && !/^\d{6}$/.test(pin)) {
       toast({ title: "Error", description: "PIN must be exactly 6 digits", variant: "destructive" });
       return;
     }
 
     setIsUpdating(true);
     try {
-      let updateData: Record<string, any> = {
+      const updateData: Record<string, any> = {
         client_name: editForm.client_name,
         category: editForm.category,
         shooting_date: editForm.shooting_date || null,
-        download_pin: editForm.download_pin || null,
+        requires_pin: !!pin,
       };
 
       if (newPreviewImage) {
@@ -145,6 +146,19 @@ const PhotosManage = () => {
         .eq("id", selectedPhoto.id);
 
       if (error) throw error;
+
+      // Sync PIN to admin-only photo_pins table
+      if (pin) {
+        const { error: pinErr } = await (supabase as any)
+          .from("photo_pins")
+          .upsert({ photo_id: selectedPhoto.id, pin, updated_at: new Date().toISOString() }, { onConflict: "photo_id" });
+        if (pinErr) throw pinErr;
+      } else {
+        await (supabase as any)
+          .from("photo_pins")
+          .delete()
+          .eq("photo_id", selectedPhoto.id);
+      }
 
       toast({ title: "Success", description: "Photo updated successfully" });
       setEditDialogOpen(false);
