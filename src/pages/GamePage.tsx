@@ -562,10 +562,6 @@ const GamePage = () => {
                 </p>
               </div>
 
-              <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
-                <Sparkles className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
-                Diamonds will be sent instantly to your in-game mailbox after payment confirmation.
-              </p>
             </section>
 
             {/* Select Diamonds */}
