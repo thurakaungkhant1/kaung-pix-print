@@ -85,18 +85,10 @@ const Photo = () => {
     if (data?.file_url) setBackgroundMusic(data.file_url);
   };
 
-  useEffect(() => {
-    photos.forEach(async (photo) => {
-      if (photo.preview_image && !watermarkedImages.has(photo.id)) {
-        try {
-          const watermarked = await addWatermark(photo.preview_image);
-          setWatermarkedImages((prev) => new Map(prev).set(photo.id, watermarked));
-        } catch (error) {
-          console.error("Failed to add watermark:", error);
-        }
-      }
-    });
-  }, [photos]);
+  // Watermark removed for thumbnails — was downloading full-res images and
+  // re-encoding via canvas, which made the gallery extremely slow. The CSS
+  // overlay below provides a visual watermark instead.
+
 
   const loadPhotos = async () => {
     const { data, error } = await supabase
@@ -341,14 +333,24 @@ const Photo = () => {
                   <div className="relative aspect-[4/5] bg-muted overflow-hidden">
                     {photo.preview_image ? (
                       <img
-                        src={watermarkedImages.get(photo.id) || photo.preview_image}
+                        src={photo.preview_image}
                         alt={photo.client_name}
                         loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <FileArchive className="h-10 w-10 text-muted-foreground/30" />
+                      </div>
+                    )}
+
+                    {/* CSS watermark overlay (replaces slow canvas watermark) */}
+                    {photo.preview_image && (
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center pb-2">
+                        <span className="text-[10px] font-bold text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] tracking-wide">
+                          kaungcomputer.com
+                        </span>
                       </div>
                     )}
 
@@ -371,6 +373,7 @@ const Photo = () => {
                       <Heart className={cn("h-3.5 w-3.5", favourites.has(photo.id) && "fill-current")} />
                     </button>
                   </div>
+
 
                   {/* Footer row: title/date + download */}
                   <div className="p-2.5 flex items-center justify-between gap-2">
