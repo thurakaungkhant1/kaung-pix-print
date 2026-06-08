@@ -950,37 +950,69 @@ const GamePage = () => {
             {selectedProduct && isGameProduct(selectedProduct.category) ? (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="gameId">Player ID *</Label>
-                  <Input
-                    id="gameId"
-                    placeholder="123456789"
-                    value={gameId}
-                    onChange={(e) => setGameId(e.target.value)}
-                  />
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="h-3 w-3 text-primary" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6"/></svg>
+                    </div>
+                    <Label htmlFor="gameId" className="text-xs font-semibold">Player ID *</Label>
+                  </div>
+                  <div className="relative group/input">
+                    <Input
+                      id="gameId"
+                      placeholder="123456789"
+                      value={gameId}
+                      onChange={(e) => setGameId(e.target.value)}
+                      className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-base font-semibold tracking-wide"
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Gamepad2 className="h-4 w-4 text-muted-foreground group-focus-within/input:text-primary transition-colors duration-300" />
+                    </div>
+                  </div>
                 </div>
                 {requiresServerId(selectedProduct.category) && (
                   <div className="space-y-2">
-                    <Label htmlFor="serverId">Server ID *</Label>
-                    <Input
-                      id="serverId"
-                      placeholder="1234"
-                      value={serverId}
-                      onChange={(e) => setServerId(e.target.value)}
-                    />
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="h-5 w-5 rounded-md bg-accent/15 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" className="h-3 w-3 text-accent" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+                      </div>
+                      <Label htmlFor="serverId" className="text-xs font-semibold">Server ID *</Label>
+                    </div>
+                    <div className="relative group/input">
+                      <Input
+                        id="serverId"
+                        placeholder="1234"
+                        value={serverId}
+                        onChange={(e) => setServerId(e.target.value)}
+                        className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-accent/50 focus-visible:ring-2 focus-visible:ring-accent/20 transition-all duration-300 text-base font-semibold tracking-wide"
+                      />
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg viewBox="0 0 24 24" className="h-4 w-4 text-muted-foreground group-focus-within/input:text-accent transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Phone Number Input for Mobile Services */}
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number *</Label>
-                  <Input
-                    id="phoneNumber"
-                    placeholder="09xxxxxxxxx"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                  />
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
+                      <Smartphone className="h-3 w-3 text-primary" />
+                    </div>
+                    <Label htmlFor="phoneNumber" className="text-xs font-semibold">Phone Number *</Label>
+                  </div>
+                  <div className="relative group/input">
+                    <Input
+                      id="phoneNumber"
+                      placeholder="09xxxxxxxxx"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-base font-semibold tracking-wide"
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Smartphone className="h-4 w-4 text-muted-foreground group-focus-within/input:text-primary transition-colors duration-300" />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
