@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "ai-photos public read" ON storage.objects;
