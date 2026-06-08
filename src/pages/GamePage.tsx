@@ -553,70 +553,14 @@ const GamePage = () => {
               )}
               </div>
 
-              {selectedGame.id === "MLBB Diamonds" && (
-                <div className="space-y-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={checkingName || !gameId || !serverId}
-                    onClick={async () => {
-                      setCheckingName(true);
-                      setCheckError(null);
-                      setCheckedName(null);
-                      try {
-                        const { data, error } = await supabase.functions.invoke("verify-mlbb-player", {
-                          body: { player_id: gameId.trim(), server_id: serverId.trim() },
-                        });
-                        if (error) throw error;
-                        if (data?.found && data?.player_name) {
-                          setCheckedName(data.player_name);
-                          toast({ title: "In-Game Name", description: data.player_name });
-                        } else {
-                          setCheckError(data?.error || "Player not found. ID/Server ကို စစ်ကြည့်ပါ။");
-                        }
-                      } catch (e: any) {
-                        setCheckError(e?.message || "Name check failed");
-                      } finally {
-                        setCheckingName(false);
-                      }
-                    }}
-                    className="w-full h-9 rounded-xl"
-                  >
-                    {checkingName ? "Checking..." : "Check In-Game Name"}
-                  </Button>
-                  {checkedName && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      className="relative overflow-hidden rounded-2xl p-3.5 bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-cyan-500/10 border border-emerald-500/40"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="relative shrink-0">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-lg shadow-lg ring-2 ring-emerald-300/50">
-                            {checkedName.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-background flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[10px] uppercase tracking-wider text-emerald-700/70 dark:text-emerald-300/70 font-semibold">Verified Player</div>
-                          <div className="font-bold text-base text-emerald-800 dark:text-emerald-100 truncate">{checkedName}</div>
-                          <div className="text-[11px] text-muted-foreground mt-0.5">
-                            ID: <span className="font-mono">{gameId}</span> • Server: <span className="font-mono">{serverId}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  {checkError && (
-                    <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                      {checkError}
-                    </div>
-                  )}
+              <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/8 via-primary/3 to-transparent p-3.5 flex items-start gap-3">
+                <div className="shrink-0 w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center mt-0.5">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
                 </div>
-              )}
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Diamonds will be sent instantly to your in-game mailbox after payment confirmation.
+                </p>
+              </div>
 
               <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
                 <Sparkles className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
