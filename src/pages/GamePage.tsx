@@ -114,6 +114,10 @@ const GamePage = () => {
     }
   }, [user]);
 
+  // Reset diamond tier when switching games (must be before any early return)
+  useEffect(() => { setSelectedDiamondTier(null); }, [selectedGameCategory]);
+
+
   // Persist filter selections
   useEffect(() => { localStorage.setItem("shopActiveTab", activeCategory); }, [activeCategory]);
   useEffect(() => {
@@ -373,8 +377,8 @@ const GamePage = () => {
     .sort((a, b) => a.price - b.price);
   const needsServer = requiresServerId(selectedGame.id);
 
-  // Reset diamond tier when switching games
-  useEffect(() => { setSelectedDiamondTier(null); }, [selectedGameCategory]);
+
+
 
   // Tier classification for diamond/UC packages
   const DIAMOND_TIERS = [
