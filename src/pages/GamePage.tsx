@@ -98,9 +98,6 @@ const GamePage = () => {
   const [selectedDiamondTier, setSelectedDiamondTier] = useState<string | null>(null);
   const [filterLoading, setFilterLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
-  const [checkingName, setCheckingName] = useState(false);
-  const [checkedName, setCheckedName] = useState<string | null>(null);
-  const [checkError, setCheckError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -506,105 +503,69 @@ const GamePage = () => {
             </section>
 
             {/* Player Credentials */}
-            <section className="rounded-2xl bg-card border border-border/60 p-4 space-y-3 shadow-sm">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Gamepad2 className="h-4 w-4 text-primary" />
+            <section className="relative overflow-hidden rounded-2xl bg-card/80 backdrop-blur-md border border-border/50 p-4 space-y-4 shadow-lg shadow-primary/5">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-glow">
+                  <Gamepad2 className="h-[18px] w-[18px] text-primary" />
                 </div>
-                <h3 className="font-semibold text-sm">Player Credentials</h3>
+                <div>
+                  <h3 className="font-display font-bold text-sm">Player Credentials</h3>
+                  <p className="text-[10px] text-muted-foreground">Enter your game account details</p>
+                </div>
               </div>
               <div className={cn("grid gap-3", needsServer ? "grid-cols-2" : "grid-cols-1")}>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">Player ID</Label>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" className="h-3 w-3 text-primary" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6"/></svg>
+                  </div>
+                  <Label className="text-xs font-semibold text-foreground/90">Player ID</Label>
+                </div>
+                <div className="relative group/input">
                   <Input
                     placeholder="12345678"
                     value={gameId}
-                    onChange={(e) => { setGameId(e.target.value); setCheckedName(null); setCheckError(null); }}
-                    className="h-11"
+                    onChange={(e) => setGameId(e.target.value)}
+                    className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-base font-semibold tracking-wide placeholder:font-normal"
                   />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <Gamepad2 className="h-4 w-4 text-muted-foreground group-focus-within/input:text-primary transition-colors duration-300" />
+                  </div>
                 </div>
-                {needsServer && (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">Server</Label>
+              </div>
+              {needsServer && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-5 w-5 rounded-md bg-accent/15 flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="h-3 w-3 text-accent" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+                    </div>
+                    <Label className="text-xs font-semibold text-foreground/90">Server ID</Label>
+                  </div>
+                  <div className="relative group/input">
                     <Input
                       placeholder="1234"
                       value={serverId}
-                      onChange={(e) => { setServerId(e.target.value); setCheckedName(null); setCheckError(null); }}
-                      className="h-11"
+                      onChange={(e) => setServerId(e.target.value)}
+                      className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-accent/50 focus-visible:ring-2 focus-visible:ring-accent/20 transition-all duration-300 text-base font-semibold tracking-wide placeholder:font-normal"
                     />
-                  </div>
-                )}
-              </div>
-
-              {selectedGame.id === "MLBB Diamonds" && (
-                <div className="space-y-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={checkingName || !gameId || !serverId}
-                    onClick={async () => {
-                      setCheckingName(true);
-                      setCheckError(null);
-                      setCheckedName(null);
-                      try {
-                        const { data, error } = await supabase.functions.invoke("verify-mlbb-player", {
-                          body: { player_id: gameId.trim(), server_id: serverId.trim() },
-                        });
-                        if (error) throw error;
-                        if (data?.found && data?.player_name) {
-                          setCheckedName(data.player_name);
-                          toast({ title: "In-Game Name", description: data.player_name });
-                        } else {
-                          setCheckError(data?.error || "Player not found. ID/Server ကို စစ်ကြည့်ပါ။");
-                        }
-                      } catch (e: any) {
-                        setCheckError(e?.message || "Name check failed");
-                      } finally {
-                        setCheckingName(false);
-                      }
-                    }}
-                    className="w-full h-9 rounded-xl"
-                  >
-                    {checkingName ? "Checking..." : "Check In-Game Name"}
-                  </Button>
-                  {checkedName && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      className="relative overflow-hidden rounded-2xl p-3.5 bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-cyan-500/10 border border-emerald-500/40"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="relative shrink-0">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-lg shadow-lg ring-2 ring-emerald-300/50">
-                            {checkedName.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-background flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[10px] uppercase tracking-wider text-emerald-700/70 dark:text-emerald-300/70 font-semibold">Verified Player</div>
-                          <div className="font-bold text-base text-emerald-800 dark:text-emerald-100 truncate">{checkedName}</div>
-                          <div className="text-[11px] text-muted-foreground mt-0.5">
-                            ID: <span className="font-mono">{gameId}</span> • Server: <span className="font-mono">{serverId}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  {checkError && (
-                    <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                      {checkError}
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-muted-foreground group-focus-within/input:text-accent transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
+              </div>
 
-              <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
-                <Sparkles className="h-3 w-3 mt-0.5 shrink-0 text-primary" />
-                Diamonds will be sent instantly to your in-game mailbox after payment confirmation.
-              </p>
+              <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/8 via-primary/3 to-transparent p-3.5 flex items-start gap-3">
+                <div className="shrink-0 w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center mt-0.5">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Diamonds will be sent instantly to your in-game mailbox after payment confirmation.
+                </p>
+              </div>
+
             </section>
 
             {/* Select Diamonds */}
@@ -993,37 +954,69 @@ const GamePage = () => {
             {selectedProduct && isGameProduct(selectedProduct.category) ? (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="gameId">Player ID *</Label>
-                  <Input
-                    id="gameId"
-                    placeholder="123456789"
-                    value={gameId}
-                    onChange={(e) => setGameId(e.target.value)}
-                  />
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="h-3 w-3 text-primary" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6"/></svg>
+                    </div>
+                    <Label htmlFor="gameId" className="text-xs font-semibold">Player ID *</Label>
+                  </div>
+                  <div className="relative group/input">
+                    <Input
+                      id="gameId"
+                      placeholder="123456789"
+                      value={gameId}
+                      onChange={(e) => setGameId(e.target.value)}
+                      className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-base font-semibold tracking-wide"
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Gamepad2 className="h-4 w-4 text-muted-foreground group-focus-within/input:text-primary transition-colors duration-300" />
+                    </div>
+                  </div>
                 </div>
                 {requiresServerId(selectedProduct.category) && (
                   <div className="space-y-2">
-                    <Label htmlFor="serverId">Server ID *</Label>
-                    <Input
-                      id="serverId"
-                      placeholder="1234"
-                      value={serverId}
-                      onChange={(e) => setServerId(e.target.value)}
-                    />
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="h-5 w-5 rounded-md bg-accent/15 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" className="h-3 w-3 text-accent" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+                      </div>
+                      <Label htmlFor="serverId" className="text-xs font-semibold">Server ID *</Label>
+                    </div>
+                    <div className="relative group/input">
+                      <Input
+                        id="serverId"
+                        placeholder="1234"
+                        value={serverId}
+                        onChange={(e) => setServerId(e.target.value)}
+                        className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-accent/50 focus-visible:ring-2 focus-visible:ring-accent/20 transition-all duration-300 text-base font-semibold tracking-wide"
+                      />
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg viewBox="0 0 24 24" className="h-4 w-4 text-muted-foreground group-focus-within/input:text-accent transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Phone Number Input for Mobile Services */}
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number *</Label>
-                  <Input
-                    id="phoneNumber"
-                    placeholder="09xxxxxxxxx"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                  />
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
+                      <Smartphone className="h-3 w-3 text-primary" />
+                    </div>
+                    <Label htmlFor="phoneNumber" className="text-xs font-semibold">Phone Number *</Label>
+                  </div>
+                  <div className="relative group/input">
+                    <Input
+                      id="phoneNumber"
+                      placeholder="09xxxxxxxxx"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-base font-semibold tracking-wide"
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Smartphone className="h-4 w-4 text-muted-foreground group-focus-within/input:text-primary transition-colors duration-300" />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
