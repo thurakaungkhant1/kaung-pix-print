@@ -503,12 +503,16 @@ const GamePage = () => {
             </section>
 
             {/* Player Credentials */}
-            <section className="rounded-2xl bg-card border border-border/60 p-4 space-y-3 shadow-sm">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Gamepad2 className="h-4 w-4 text-primary" />
+            <section className="relative overflow-hidden rounded-2xl bg-card/80 backdrop-blur-md border border-border/50 p-4 space-y-4 shadow-lg shadow-primary/5">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-glow">
+                  <Gamepad2 className="h-[18px] w-[18px] text-primary" />
                 </div>
-                <h3 className="font-semibold text-sm">Player Credentials</h3>
+                <div>
+                  <h3 className="font-display font-bold text-sm">Player Credentials</h3>
+                  <p className="text-[10px] text-muted-foreground">Enter your game account details</p>
+                </div>
               </div>
               <div className={cn("grid gap-3", needsServer ? "grid-cols-2" : "grid-cols-1")}>
               <div className="space-y-1.5">
