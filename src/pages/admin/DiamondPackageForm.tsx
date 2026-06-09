@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Gem } from "lucide-react";
+
 
 const DiamondPackageForm = () => {
   const { id } = useParams();
@@ -20,7 +22,9 @@ const DiamondPackageForm = () => {
     description: "",
     image_url: "",
     points_value: "0",
+    diamond_tier: "auto",
   });
+
 
   useEffect(() => {
     if (id) {
@@ -48,6 +52,7 @@ const DiamondPackageForm = () => {
         description: data.description || "",
         image_url: data.image_url,
         points_value: data.points_value.toString(),
+        diamond_tier: (data as any).diamond_tier || "auto",
       });
     }
   };
@@ -63,7 +68,9 @@ const DiamondPackageForm = () => {
       image_url: formData.image_url || "/placeholder.svg",
       points_value: parseInt(formData.points_value),
       category: "MLBB Diamonds",
+      diamond_tier: formData.diamond_tier === "auto" ? null : formData.diamond_tier,
     };
+
 
     let error;
     if (id) {
@@ -185,7 +192,30 @@ const DiamondPackageForm = () => {
               </div>
 
 
-              <div className="flex gap-2 pt-4">
+              <div>
+                <Label htmlFor="diamond_tier">Diamond Category *</Label>
+                <Select
+                  value={formData.diamond_tier}
+                  onValueChange={(v) => setFormData({ ...formData, diamond_tier: v })}
+                >
+                  <SelectTrigger id="diamond_tier">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">🤖 Auto (detect from name)</SelectItem>
+                    <SelectItem value="special">🎁 Special Offers</SelectItem>
+                    <SelectItem value="starter">✨ Starter Packs</SelectItem>
+                    <SelectItem value="popular">💎 Popular Packs</SelectItem>
+                    <SelectItem value="pro">🔥 Pro Packs</SelectItem>
+                    <SelectItem value="mega">👑 Mega Packs</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground mt-1">
+                  ဤ package ကို shop page မှာ ဘယ် category အောက်မှာ ပြမလဲ ရွေးချယ်ပါ။
+                </p>
+              </div>
+
+
                 <Button
                   type="button"
                   variant="outline"
