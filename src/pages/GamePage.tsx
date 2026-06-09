@@ -49,7 +49,9 @@ interface Product {
   description: string | null;
   category: string;
   points_value: number;
+  diamond_tier?: string | null;
 }
+
 
 interface Order {
   id: string;
@@ -387,6 +389,10 @@ const GamePage = () => {
   ] as const;
 
   const tierOf = (p: Product): string => {
+    // Admin-controlled tier takes precedence
+    if (p.diamond_tier && DIAMOND_TIERS.some(t => t.key === p.diamond_tier)) {
+      return p.diamond_tier as string;
+    }
     const name = p.name.trim();
     if (/pass|bonus|\+|special|weekly|monthly|wp|tp/i.test(name)) return "special";
     const n = parseInt(name.replace(/\D/g, ""), 10);
@@ -403,6 +409,7 @@ const GamePage = () => {
     if (n <= 1800) return "pro";
     return "mega";
   };
+
 
   const groupedDiamonds = DIAMOND_TIERS
     .map(tier => ({ ...tier, items: gameProducts.filter(p => tierOf(p) === tier.key) }))
