@@ -91,17 +91,43 @@ const Photo = () => {
 
 
   const loadPhotos = async () => {
-    const { data, error } = await supabase
+    // 1) Fast initial fetch: first 24 albums for instant display
+    const firstBatch = await supabase
       .from("photos")
       .select("*")
-      .order("created_at", { ascending: false });
-    if (!error && data) {
-      setPhotos(data);
-      const uniqueCategories = Array.from(new Set(data.map((p) => p.category || "General")));
+      .order("created_at", { ascending: false })
+      .range(0, 23);
+
+    if (!firstBatch.error && firstBatch.data) {
+      setPhotos(firstBatch.data);
+      const uniqueCategories = Array.from(new Set(firstBatch.data.map((p) => p.category || "General")));
       setCategories(["All", ...uniqueCategories.sort()]);
+      setLoading(false);
+
+      // 2) Background fetch: load the rest without blocking UI
+      if (firstBatch.data.length === 24) {
+        supabase
+          .from("photos")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .range(24, 999)
+          .then(({ data: rest }) => {
+            if (rest && rest.length > 0) {
+              setPhotos((prev) => {
+                const seen = new Set(prev.map((p) => p.id));
+                const combined = [...prev, ...rest.filter((p) => !seen.has(p.id))];
+                const cats = Array.from(new Set(combined.map((p) => p.category || "General")));
+                setCategories(["All", ...cats.sort()]);
+                return combined;
+              });
+            }
+          });
+      }
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
 
   const loadFavourites = async () => {
     if (!user) return;
