@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +37,13 @@ const ProductNew = () => {
   const [step, setStep] = useState(1);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat) setCategory(cat);
+  }, [searchParams]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

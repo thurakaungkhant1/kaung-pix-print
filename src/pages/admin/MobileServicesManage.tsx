@@ -291,10 +291,25 @@ const MobileServicesManage = () => {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => navigate("/admin/products/new")} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Service
-          </Button>
+          <Select
+            value=""
+            onValueChange={(v) =>
+              navigate(`/admin/products/new?category=${encodeURIComponent(v)}`)
+            }
+          >
+            <SelectTrigger className="w-full sm:w-48 gap-2">
+              <Plus className="h-4 w-4" />
+              <SelectValue placeholder="Add Service" />
+            </SelectTrigger>
+            <SelectContent>
+              {MOBILE_CATEGORIES.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
         </div>
 
         {/* Products Table */}
