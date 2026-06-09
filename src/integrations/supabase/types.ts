@@ -1027,6 +1027,35 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_pins: {
+        Row: {
+          created_at: string
+          photo_id: number
+          pin: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          photo_id: number
+          pin: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          photo_id?: number
+          pin?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_pins_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: true
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photos: {
         Row: {
           category: string | null
@@ -1037,6 +1066,7 @@ export type Database = {
           file_url: string
           id: number
           preview_image: string | null
+          requires_pin: boolean
           shooting_date: string | null
         }
         Insert: {
@@ -1048,6 +1078,7 @@ export type Database = {
           file_url: string
           id?: number
           preview_image?: string | null
+          requires_pin?: boolean
           shooting_date?: string | null
         }
         Update: {
@@ -1059,6 +1090,7 @@ export type Database = {
           file_url?: string
           id?: number
           preview_image?: string | null
+          requires_pin?: boolean
           shooting_date?: string | null
         }
         Relationships: []
@@ -1368,6 +1400,7 @@ export type Database = {
           category: string
           created_at: string | null
           description: string | null
+          diamond_tier: string | null
           id: number
           image_url: string
           is_premium: boolean
@@ -1383,6 +1416,7 @@ export type Database = {
           category?: string
           created_at?: string | null
           description?: string | null
+          diamond_tier?: string | null
           id?: number
           image_url: string
           is_premium?: boolean
@@ -1398,6 +1432,7 @@ export type Database = {
           category?: string
           created_at?: string | null
           description?: string | null
+          diamond_tier?: string | null
           id?: number
           image_url?: string
           is_premium?: boolean
