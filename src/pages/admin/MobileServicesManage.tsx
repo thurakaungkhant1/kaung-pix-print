@@ -88,6 +88,7 @@ const MobileServicesManage = () => {
   useEffect(() => {
     if (isAdmin) {
       loadProducts();
+      loadOperators();
     }
   }, [isAdmin]);
 
@@ -103,6 +104,52 @@ const MobileServicesManage = () => {
       setProducts(data);
     }
     setLoading(false);
+  };
+
+  const loadOperators = async () => {
+    const { data } = await supabase
+      .from("mobile_operators")
+      .select("id, name, logo_url")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+    if (data) setOperators(data);
+  };
+
+  const openAddDialog = () => {
+    setNewService({ ...emptyNewService });
+    setShowAddDialog(true);
+  };
+
+  const handleCreateService = async () => {
+    const priceNum = Number(newService.price);
+    if (!newService.operator_id || !newService.name.trim() || !priceNum) {
+      toast({ title: "Error", description: "Operator, name and price are required", variant: "destructive" });
+      return;
+    }
+    const operator = operators.find((o) => o.id === newService.operator_id);
+    const fullName = operator ? `${operator.name} - ${newService.name.trim()}` : newService.name.trim();
+    const imageUrl = newService.image_url.trim() || operator?.logo_url || "/placeholder.svg";
+
+    setCreating(true);
+    const { error } = await supabase.from("products").insert({
+      name: fullName,
+      price: priceNum,
+      original_price: newService.original_price ? Number(newService.original_price) : null,
+      description: newService.description.trim() || null,
+      category: newService.category,
+      image_url: imageUrl,
+      status: "available",
+      points_value: 0,
+    });
+    setCreating(false);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to create service", variant: "destructive" });
+    } else {
+      toast({ title: "Success", description: "Service added" });
+      setShowAddDialog(false);
+      loadProducts();
+    }
   };
 
   const filteredProducts = products.filter((product) => {
