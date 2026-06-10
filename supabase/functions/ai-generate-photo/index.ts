@@ -222,9 +222,10 @@ serve(async (req) => {
     };
     if (consumePool === "premium_pack") {
       updates.premium_ai_credits = Math.max(0, premiumCredits - 1);
-    } else {
+    } else if (consumePool === "daily") {
       updates.daily_ai_credits = Math.max(0, dailyCredits - 1);
     }
+    // consumePool === "none" → admin Gemini Pro, unlimited, no deduction
     if (photoCost > 0) updates.wallet_balance = balance - photoCost;
     await admin.from("profiles").update(updates).eq("id", user.id);
 
