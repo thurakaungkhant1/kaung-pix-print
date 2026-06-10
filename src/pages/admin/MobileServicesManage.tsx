@@ -618,6 +618,103 @@ const MobileServicesManage = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Add Service Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" /> Add Mobile Service
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Category *</Label>
+                <Select
+                  value={newService.category}
+                  onValueChange={(v) => setNewService({ ...newService, category: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MOBILE_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Operator *</Label>
+                <Select
+                  value={newService.operator_id}
+                  onValueChange={(v) => setNewService({ ...newService, operator_id: v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select operator" /></SelectTrigger>
+                  <SelectContent>
+                    {operators.map((op) => (
+                      <SelectItem key={op.id} value={op.id}>{op.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Service Name *</Label>
+              <Input
+                value={newService.name}
+                onChange={(e) => setNewService({ ...newService, name: e.target.value })}
+                placeholder={newService.category === "Data Plans" ? "e.g. 5GB / 30 Days" : "e.g. 1000 Ks Top-up"}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Final name will be: "{operators.find((o) => o.id === newService.operator_id)?.name || "Operator"} - {newService.name || "Name"}"
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Price (Ks) *</Label>
+                <Input
+                  type="number"
+                  value={newService.price}
+                  onChange={(e) => setNewService({ ...newService, price: e.target.value })}
+                  placeholder="1000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Original Price</Label>
+                <Input
+                  type="number"
+                  value={newService.original_price}
+                  onChange={(e) => setNewService({ ...newService, original_price: e.target.value })}
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Image URL</Label>
+              <Input
+                value={newService.image_url}
+                onChange={(e) => setNewService({ ...newService, image_url: e.target.value })}
+                placeholder="Leave blank to use operator logo"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input
+                value={newService.description}
+                onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+                placeholder="Optional"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+            <Button onClick={handleCreateService} disabled={creating}>
+              {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Create Service
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AdminBottomNav activeTab="mobile-services" onTabChange={() => {}} />
     </div>
   );
