@@ -52,15 +52,35 @@ const MOBILE_CATEGORIES = [
   { id: "Data Plans", name: "Data Plans", icon: Wifi },
 ];
 
+interface Operator {
+  id: string;
+  name: string;
+  logo_url: string | null;
+}
+
+const emptyNewService = {
+  operator_id: "",
+  category: "Phone Top-up",
+  name: "",
+  price: "",
+  original_price: "",
+  description: "",
+  image_url: "",
+};
+
 const MobileServicesManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [operators, setOperators] = useState<Operator[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newService, setNewService] = useState({ ...emptyNewService });
+  const [creating, setCreating] = useState(false);
+
   const { isAdmin } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
