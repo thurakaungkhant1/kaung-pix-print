@@ -114,14 +114,22 @@ serve(async (req) => {
         .eq("id", user.id);
     }
 
-    // Decide which credit pool to consume
-    let consumePool: "premium_pack" | "daily" = "daily";
-    if (isPremium && premiumCredits > 0) consumePool = "premium_pack";
+    // Premium users with admin Gemini key → unlimited Pro, skip credit deduction
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    const useAdminGeminiPro = isPremium && !!GEMINI_API_KEY;
+
+    // Decide which credit pool to consume (skipped for admin-Pro premium)
+    let consumePool: "premium_pack" | "daily" | "none" = "daily";
+    if (useAdminGeminiPro) {
+      consumePool = "none";
+    } else if (isPremium && premiumCredits > 0) {
+      consumePool = "premium_pack";
+    }
 
     if (consumePool === "daily" && dailyCredits <= 0) {
       const errMsg = isPremium
         ? "Daily premium limit reached. Try again tomorrow."
-        : "Daily limit reached. Upgrade to Premium to continue generating.";
+        : "Daily limit reached. Upgrade to Premium for unlimited Gemini Pro.";
       return new Response(
         JSON.stringify({ error: errMsg, code: isPremium ? "DAILY_LIMIT" : "FREE_LIMIT_REACHED" }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -137,7 +145,8 @@ serve(async (req) => {
       );
     }
 
-    // Call Lovable AI
+    // Call AI — premium uses Lovable Gateway w/ Pro image model (auth'd by admin LOVABLE key),
+    // free uses Flash image model. (Direct Google API for images would require multipart handling.)
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -148,6 +157,10 @@ serve(async (req) => {
         ]
       : finalPrompt;
 
+    const imageModel = useAdminGeminiPro
+      ? "google/gemini-3-pro-image-preview"
+      : "google/gemini-3.1-flash-image-preview";
+
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -155,7 +168,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
+        model: imageModel,
         messages: [{ role: "user", content: messageContent }],
         modalities: ["image", "text"],
       }),
@@ -209,9 +222,10 @@ serve(async (req) => {
     };
     if (consumePool === "premium_pack") {
       updates.premium_ai_credits = Math.max(0, premiumCredits - 1);
-    } else {
+    } else if (consumePool === "daily") {
       updates.daily_ai_credits = Math.max(0, dailyCredits - 1);
     }
+    // consumePool === "none" → admin Gemini Pro, unlimited, no deduction
     if (photoCost > 0) updates.wallet_balance = balance - photoCost;
     await admin.from("profiles").update(updates).eq("id", user.id);
 
