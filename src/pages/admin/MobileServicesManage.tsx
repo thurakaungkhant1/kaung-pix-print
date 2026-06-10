@@ -52,15 +52,35 @@ const MOBILE_CATEGORIES = [
   { id: "Data Plans", name: "Data Plans", icon: Wifi },
 ];
 
+interface Operator {
+  id: string;
+  name: string;
+  logo_url: string | null;
+}
+
+const emptyNewService = {
+  operator_id: "",
+  category: "Phone Top-up",
+  name: "",
+  price: "",
+  original_price: "",
+  description: "",
+  image_url: "",
+};
+
 const MobileServicesManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [operators, setOperators] = useState<Operator[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newService, setNewService] = useState({ ...emptyNewService });
+  const [creating, setCreating] = useState(false);
+
   const { isAdmin } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -68,6 +88,7 @@ const MobileServicesManage = () => {
   useEffect(() => {
     if (isAdmin) {
       loadProducts();
+      loadOperators();
     }
   }, [isAdmin]);
 
@@ -83,6 +104,52 @@ const MobileServicesManage = () => {
       setProducts(data);
     }
     setLoading(false);
+  };
+
+  const loadOperators = async () => {
+    const { data } = await supabase
+      .from("mobile_operators")
+      .select("id, name, logo_url")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+    if (data) setOperators(data);
+  };
+
+  const openAddDialog = () => {
+    setNewService({ ...emptyNewService });
+    setShowAddDialog(true);
+  };
+
+  const handleCreateService = async () => {
+    const priceNum = Number(newService.price);
+    if (!newService.operator_id || !newService.name.trim() || !priceNum) {
+      toast({ title: "Error", description: "Operator, name and price are required", variant: "destructive" });
+      return;
+    }
+    const operator = operators.find((o) => o.id === newService.operator_id);
+    const fullName = operator ? `${operator.name} - ${newService.name.trim()}` : newService.name.trim();
+    const imageUrl = newService.image_url.trim() || operator?.logo_url || "/placeholder.svg";
+
+    setCreating(true);
+    const { error } = await supabase.from("products").insert({
+      name: fullName,
+      price: priceNum,
+      original_price: newService.original_price ? Number(newService.original_price) : null,
+      description: newService.description.trim() || null,
+      category: newService.category,
+      image_url: imageUrl,
+      status: "available",
+      points_value: 0,
+    });
+    setCreating(false);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to create service", variant: "destructive" });
+    } else {
+      toast({ title: "Success", description: "Service added" });
+      setShowAddDialog(false);
+      loadProducts();
+    }
   };
 
   const filteredProducts = products.filter((product) => {
@@ -291,24 +358,10 @@ const MobileServicesManage = () => {
               ))}
             </SelectContent>
           </Select>
-          <Select
-            value=""
-            onValueChange={(v) =>
-              navigate(`/admin/products/new?category=${encodeURIComponent(v)}`)
-            }
-          >
-            <SelectTrigger className="w-full sm:w-48 gap-2">
-              <Plus className="h-4 w-4" />
-              <SelectValue placeholder="Add Service" />
-            </SelectTrigger>
-            <SelectContent>
-              {MOBILE_CATEGORIES.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Button onClick={openAddDialog} className="w-full sm:w-48 gap-2">
+            <Plus className="h-4 w-4" />
+            Add Service
+          </Button>
 
         </div>
 
@@ -560,6 +613,103 @@ const MobileServicesManage = () => {
             <Button onClick={handleSaveProduct} disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Service Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" /> Add Mobile Service
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Category *</Label>
+                <Select
+                  value={newService.category}
+                  onValueChange={(v) => setNewService({ ...newService, category: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MOBILE_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Operator *</Label>
+                <Select
+                  value={newService.operator_id}
+                  onValueChange={(v) => setNewService({ ...newService, operator_id: v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select operator" /></SelectTrigger>
+                  <SelectContent>
+                    {operators.map((op) => (
+                      <SelectItem key={op.id} value={op.id}>{op.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Service Name *</Label>
+              <Input
+                value={newService.name}
+                onChange={(e) => setNewService({ ...newService, name: e.target.value })}
+                placeholder={newService.category === "Data Plans" ? "e.g. 5GB / 30 Days" : "e.g. 1000 Ks Top-up"}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Final name will be: "{operators.find((o) => o.id === newService.operator_id)?.name || "Operator"} - {newService.name || "Name"}"
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Price (Ks) *</Label>
+                <Input
+                  type="number"
+                  value={newService.price}
+                  onChange={(e) => setNewService({ ...newService, price: e.target.value })}
+                  placeholder="1000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Original Price</Label>
+                <Input
+                  type="number"
+                  value={newService.original_price}
+                  onChange={(e) => setNewService({ ...newService, original_price: e.target.value })}
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Image URL</Label>
+              <Input
+                value={newService.image_url}
+                onChange={(e) => setNewService({ ...newService, image_url: e.target.value })}
+                placeholder="Leave blank to use operator logo"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input
+                value={newService.description}
+                onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+                placeholder="Optional"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+            <Button onClick={handleCreateService} disabled={creating}>
+              {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Create Service
             </Button>
           </DialogFooter>
         </DialogContent>
