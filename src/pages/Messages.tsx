@@ -645,6 +645,50 @@ const Messages = () => {
                 </button>
               )}
             </div>
+            <div className="flex items-center gap-2 mt-2 overflow-x-auto scrollbar-hide">
+              <button
+                onClick={() => setOnlineOnly((v) => !v)}
+                className={`flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border transition-colors whitespace-nowrap ${
+                  onlineOnly
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <Wifi className="h-3 w-3" /> Online only
+              </button>
+              <button
+                onClick={() => setFriendsOnly((v) => !v)}
+                className={`flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border transition-colors whitespace-nowrap ${
+                  friendsOnly
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <UserCheck className="h-3 w-3" /> Friends only
+              </button>
+              {(onlineOnly || friendsOnly) && (
+                <button
+                  onClick={() => {
+                    setOnlineOnly(false);
+                    setFriendsOnly(false);
+                  }}
+                  className="flex items-center gap-1 px-2 h-7 rounded-full text-[11px] text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3 w-3" /> Clear
+                </button>
+              )}
+              <button
+                onClick={() => setBlockedSheetOpen(true)}
+                className="ml-auto flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border border-destructive/30 text-destructive bg-destructive/5 hover:bg-destructive/10 whitespace-nowrap"
+              >
+                <Ban className="h-3 w-3" /> Blocked
+                {blockedList.length > 0 && (
+                  <span className="ml-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] flex items-center justify-center">
+                    {blockedList.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto">
             {loadingConvs ? (
