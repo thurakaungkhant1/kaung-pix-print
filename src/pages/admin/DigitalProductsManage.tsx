@@ -24,6 +24,8 @@ import {
   Save,
   Search,
   Package,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
