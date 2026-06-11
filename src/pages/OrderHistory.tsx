@@ -210,20 +210,30 @@ const OrderHistory = () => {
                         <p className="text-[10px] text-muted-foreground">Qty {o.quantity}</p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                    <div className="flex items-center justify-between pt-2 border-t border-border/40 gap-2">
                       <span className="text-[10px] text-muted-foreground font-mono">
                         #{o.id.slice(0, 8).toUpperCase()}
                       </span>
-                      {isDigital && (
+                      <div className="flex gap-1.5">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="rounded-lg h-7 text-xs gap-1"
-                          onClick={() => navigate("/support")}
+                          className="rounded-lg h-7 text-xs"
+                          onClick={() => navigate(`/orders/${o.id}`)}
                         >
-                          <MessageCircle className="h-3 w-3" /> Chat Admin
+                          View Details
                         </Button>
-                      )}
+                        {isDigital && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg h-7 text-xs gap-1"
+                            onClick={() => navigate("/support")}
+                          >
+                            <MessageCircle className="h-3 w-3" /> Chat Admin
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

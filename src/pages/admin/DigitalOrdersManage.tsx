@@ -6,6 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ArrowLeft,
   Search,
@@ -17,6 +26,8 @@ import {
   MessageCircle,
   Check,
   X,
+  Send,
+  Wallet,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -67,6 +78,11 @@ const DigitalOrdersManage = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "awaiting_info" | "approved" | "rejected">("all");
   const [updating, setUpdating] = useState<string | null>(null);
 
+  // Delivery dialog
+  const [deliveryOrder, setDeliveryOrder] = useState<OrderRow | null>(null);
+  const [deliveryMessage, setDeliveryMessage] = useState("");
+  const [sendingDelivery, setSendingDelivery] = useState(false);
+
   const load = async () => {
     setLoading(true);
     const { data } = await supabase
@@ -78,7 +94,7 @@ const DigitalOrdersManage = () => {
       .order("created_at", { ascending: false });
     const rows = (data as any[]) || [];
     const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
-    let profileMap: Record<string, any> = {};
+    const profileMap: Record<string, any> = {};
     if (userIds.length) {
       const { data: profs } = await supabase
         .from("profiles")
@@ -124,16 +140,107 @@ const DigitalOrdersManage = () => {
     });
   }, [orders, statusFilter, search]);
 
-  const updateStatus = async (id: string, status: string) => {
-    setUpdating(id);
-    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
-    setUpdating(null);
-    if (error) {
-      toast({ title: "Failed", description: error.message, variant: "destructive" });
+  const openDelivery = (o: OrderRow) => {
+    setDeliveryOrder(o);
+    setDeliveryMessage(
+      `မင်္ဂလာပါ 👋\n\nသင်ဝယ်ယူထားသော "${o.products?.name || "Digital Product"}" အတွက် access details ပေးပို့လိုက်ပါပြီ။\n\nUsername: \nPassword: \n\nProblem ရှိရင် ဒီ chat မှာ ပြန်ပြောပါ။\nကျေးဇူးတင်ပါတယ်။`
+    );
+  };
+
+  const sendDeliveryAndComplete = async () => {
+    if (!deliveryOrder || !deliveryMessage.trim()) return;
+    setSendingDelivery(true);
+    const { error: msgErr } = await (supabase as any).from("support_messages").insert({
+      user_id: deliveryOrder.user_id,
+      sender_role: "admin",
+      body: deliveryMessage.trim(),
+      order_id: deliveryOrder.id,
+    });
+    if (msgErr) {
+      toast({ title: "Send failed", description: msgErr.message, variant: "destructive" });
+      setSendingDelivery(false);
       return;
     }
-    toast({ title: "Updated", description: `Order marked as ${status}` });
+    const { error: ordErr } = await supabase
+      .from("orders")
+      .update({ status: "approved" })
+      .eq("id", deliveryOrder.id);
+    setSendingDelivery(false);
+    if (ordErr) {
+      toast({ title: "Order update failed", description: ordErr.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Delivered ✅", description: "Message sent and order marked complete." });
+    setDeliveryOrder(null);
+    setDeliveryMessage("");
     load();
+  };
+
+  const rejectAndRefund = async (o: OrderRow) => {
+    if (["rejected", "cancelled"].includes(o.status)) return;
+    if (!confirm(`Reject this order and refund ${Number(o.price).toLocaleString()} MMK to user's wallet?`)) return;
+    setUpdating(o.id);
+    try {
+      // Lock-check: re-read current status to avoid double refund
+      const { data: fresh } = await supabase
+        .from("orders")
+        .select("status, price, user_id")
+        .eq("id", o.id)
+        .maybeSingle();
+      if (!fresh) throw new Error("Order not found");
+      if (["rejected", "cancelled"].includes(fresh.status)) {
+        toast({ title: "Already rejected", description: "No refund issued." });
+        return;
+      }
+
+      const { data: prof, error: pErr } = await supabase
+        .from("profiles")
+        .select("wallet_balance")
+        .eq("id", fresh.user_id)
+        .single();
+      if (pErr) throw pErr;
+      const current = Number(prof?.wallet_balance || 0);
+      const refund = Number(fresh.price);
+      const newBalance = current + refund;
+
+      const { error: uErr } = await supabase
+        .from("orders")
+        .update({ status: "rejected" })
+        .eq("id", o.id);
+      if (uErr) throw uErr;
+
+      const { error: bErr } = await supabase
+        .from("profiles")
+        .update({ wallet_balance: newBalance })
+        .eq("id", fresh.user_id);
+      if (bErr) throw bErr;
+
+      await supabase.from("wallet_transactions").insert({
+        user_id: fresh.user_id,
+        amount: refund,
+        transaction_type: "refund",
+        reference_id: o.id,
+        description: `Refund for cancelled order #${o.id.slice(0, 8).toUpperCase()}`,
+        balance_after: newBalance,
+      });
+
+      await (supabase as any).from("support_messages").insert({
+        user_id: fresh.user_id,
+        sender_role: "admin",
+        body: `Order #${o.id.slice(0, 8).toUpperCase()} ကို rejection ဖြစ်သွားပါသည်။ သင်၏ wallet ထဲသို့ ${refund.toLocaleString()} MMK auto refund ပြန်လုပ်ပေးထားပါပြီ။`,
+        order_id: o.id,
+      });
+
+      toast({
+        title: "Rejected & refunded",
+        description: `${refund.toLocaleString()} MMK returned to user's wallet.`,
+      });
+      load();
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message || "Could not reject", variant: "destructive" });
+    } finally {
+      setUpdating(null);
+    }
   };
 
   return (
@@ -196,6 +303,8 @@ const DigitalOrdersManage = () => {
             {filtered.map((o) => {
               const s = statusStyle(o.status);
               const SIcon = s.Icon;
+              const completed = ["approved", "finished", "completed"].includes(o.status);
+              const cancelled = ["rejected", "cancelled"].includes(o.status);
               return (
                 <Card key={o.id} className="rounded-2xl border-border/40">
                   <CardContent className="p-3 space-y-3">
@@ -243,30 +352,31 @@ const DigitalOrdersManage = () => {
                       >
                         <MessageCircle className="h-3 w-3" /> Open Chat
                       </Button>
-                      {o.status !== "approved" && o.status !== "finished" && (
+                      {!completed && (
                         <Button
                           size="sm"
                           className="rounded-lg h-8 text-xs gap-1 bg-emerald-500 hover:bg-emerald-600 text-white"
-                          disabled={updating === o.id}
-                          onClick={() => updateStatus(o.id, "approved")}
+                          onClick={() => openDelivery(o)}
                         >
-                          {updating === o.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Check className="h-3 w-3" />
-                          )}{" "}
-                          Complete
+                          <Send className="h-3 w-3" /> Deliver & Complete
                         </Button>
                       )}
-                      {o.status !== "rejected" && o.status !== "cancelled" && (
+                      {!cancelled && (
                         <Button
                           size="sm"
                           variant="outline"
                           className="rounded-lg h-8 text-xs gap-1 text-rose-600 border-rose-500/30"
                           disabled={updating === o.id}
-                          onClick={() => updateStatus(o.id, "rejected")}
+                          onClick={() => rejectAndRefund(o)}
                         >
-                          <X className="h-3 w-3" /> Cancel
+                          {updating === o.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <>
+                              <X className="h-3 w-3" /> Reject + Refund
+                              <Wallet className="h-3 w-3 ml-0.5" />
+                            </>
+                          )}
                         </Button>
                       )}
                     </div>
@@ -277,6 +387,66 @@ const DigitalOrdersManage = () => {
           </div>
         )}
       </div>
+
+      {/* Delivery dialog */}
+      <Dialog open={!!deliveryOrder} onOpenChange={(o) => !o && setDeliveryOrder(null)}>
+        <DialogContent className="rounded-2xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-emerald-500" /> Send Delivery Message
+            </DialogTitle>
+            <DialogDescription>
+              The user will receive this in their Support chat, and the order will be marked as <b>Completed</b>.
+            </DialogDescription>
+          </DialogHeader>
+          {deliveryOrder && (
+            <div className="space-y-3">
+              <div className="rounded-xl bg-muted/40 p-2 text-xs">
+                <p className="font-semibold">{deliveryOrder.products?.name}</p>
+                <p className="text-muted-foreground">
+                  #{deliveryOrder.id.slice(0, 8).toUpperCase()} • {deliveryOrder.profiles?.name || "User"}
+                </p>
+              </div>
+              <Textarea
+                value={deliveryMessage}
+                onChange={(e) => setDeliveryMessage(e.target.value)}
+                rows={9}
+                placeholder="Delivery / access details…"
+                className="text-sm"
+              />
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "Account ready — login link sent above ✅",
+                  "License key: ",
+                  "Activation code: ",
+                  "Please change password after first login.",
+                ].map((tpl) => (
+                  <button
+                    key={tpl}
+                    onClick={() => setDeliveryMessage((prev) => (prev ? prev + "\n" + tpl : tpl))}
+                    className="text-[11px] px-2.5 py-1 rounded-full bg-muted hover:bg-muted/70 border border-border"
+                  >
+                    {tpl.length > 32 ? tpl.slice(0, 32) + "…" : tpl}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDeliveryOrder(null)} disabled={sendingDelivery}>
+              Cancel
+            </Button>
+            <Button
+              onClick={sendDeliveryAndComplete}
+              disabled={sendingDelivery || !deliveryMessage.trim()}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2"
+            >
+              {sendingDelivery ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Send & Complete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
   );
 };
