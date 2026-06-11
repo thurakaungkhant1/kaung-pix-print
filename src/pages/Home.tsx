@@ -35,7 +35,23 @@ interface PromotionalBanner {
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Percent, Crown, Package, Flame, Sparkles, Clock, Star, ShoppingBag, Camera, Shield, Users,
+  Zap, Gamepad2, Smartphone, Wifi, Receipt, Wallet, ShoppingCart: ShoppingBag,
 };
+
+const DIGITAL_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  package: Package, shield: Shield, sparkles: Sparkles, star: Star, zap: Zap,
+  crown: Crown, gamepad: Gamepad2, smartphone: Smartphone, wifi: Wifi,
+  receipt: Receipt, wallet: Wallet, camera: Camera, flame: Flame,
+};
+
+interface DigitalCategory {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  display_order: number;
+  is_active: boolean;
+}
 
 const getBannerColor = (colorName: string): string => {
   const colorMap: Record<string, string> = {
@@ -54,6 +70,7 @@ const EARN_POINTS_GAMES = [
 ];
 
 const Home = () => {
+  const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [recentPhotos, setRecentPhotos] = useState<any[]>([]);
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
@@ -126,6 +143,23 @@ const Home = () => {
           setBanners(filtered);
         }
       });
+  }, []);
+
+  useEffect(() => {
+    const loadDigital = async () => {
+      const { data } = await (supabase as any)
+        .from('digital_categories')
+        .select('id,name,slug,icon,display_order,is_active')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      setDigitalCats((data || []) as DigitalCategory[]);
+    };
+    loadDigital();
+    const channel = supabase
+      .channel('home-digital-cats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'digital_categories' }, () => loadDigital())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   useEffect(() => {
@@ -252,24 +286,24 @@ const Home = () => {
                     <ArrowRight className="h-5 w-5 text-emerald-300 mt-2 group-hover:translate-x-1 transition-transform" />
                   </div>
 
-                  <div className="mt-5 grid grid-cols-4 gap-2">
-                    {[
-                      { label: "Software", icon: Shield },
-                      { label: "Streaming", icon: Sparkles },
-                      { label: "Gift Cards", icon: Star },
-                      { label: "Courses", icon: Zap },
-                    ].map((f) => (
-                      <div
-                        key={f.label}
-                        className="rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 hover:bg-emerald-500/10 hover:border-emerald-400/30"
-                      >
-                        <f.icon className="h-4 w-4 text-emerald-300" />
-                        <span className="text-white/90 text-[10px] font-semibold tracking-wide">
-                          {f.label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  {digitalCats.length > 0 && (
+                    <div className="mt-5 grid grid-cols-4 gap-2">
+                      {digitalCats.slice(0, 4).map((c) => {
+                        const Icon = DIGITAL_ICON_MAP[(c.icon || "package").toLowerCase()] || Package;
+                        return (
+                          <div
+                            key={c.id}
+                            className="rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 hover:bg-emerald-500/10 hover:border-emerald-400/30"
+                          >
+                            <Icon className="h-4 w-4 text-emerald-300" />
+                            <span className="text-white/90 text-[10px] font-semibold tracking-wide text-center line-clamp-1">
+                              {c.name}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   <div className="mt-5 flex items-center justify-between gap-3">
                     <span className="inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-emerald-400 text-black font-bold text-xs shadow-[0_8px_24px_-6px_rgba(16,185,129,0.6)]">
