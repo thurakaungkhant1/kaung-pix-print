@@ -2196,9 +2196,14 @@ const AdminDashboard = () => {
                     <p className="text-sm text-muted-foreground">
                       Software, streaming accounts, gift cards & courses. Create, edit, or delete subcategories.
                     </p>
-                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/digital-categories")}>
-                      Manage Digital Categories
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" onClick={() => navigate("/admin/digital-products")}>
+                        <Plus className="h-4 w-4 mr-1" /> Add / Manage Products
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => navigate("/admin/digital-categories")}>
+                        Manage Categories
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Mobile Services Section */}

@@ -99,6 +99,7 @@ const Support = lazy(() => import("./pages/Support"));
 const SupportManage = lazy(() => import("./pages/admin/SupportManage"));
 const DiamondTiersManage = lazy(() => import("./pages/admin/DiamondTiersManage"));
 const DigitalCategoriesManage = lazy(() => import("./pages/admin/DigitalCategoriesManage"));
+const DigitalProductsManage = lazy(() => import("./pages/admin/DigitalProductsManage"));
 const ChatEarningSettingsManage = lazy(() => import("./pages/admin/ChatEarningSettingsManage"));
 const ChatRewardLogs = lazy(() => import("./pages/admin/ChatRewardLogs"));
 import InterstitialAd from "@/components/InterstitialAd";
@@ -608,6 +609,7 @@ const App = () => {
                 <Route path="/admin/support" element={<ProtectedAdminRoute><SupportManage /></ProtectedAdminRoute>} />
                 <Route path="/admin/diamond-tiers" element={<ProtectedAdminRoute><DiamondTiersManage /></ProtectedAdminRoute>} />
                 <Route path="/admin/digital-categories" element={<ProtectedAdminRoute><DigitalCategoriesManage /></ProtectedAdminRoute>} />
+                <Route path="/admin/digital-products" element={<ProtectedAdminRoute><DigitalProductsManage /></ProtectedAdminRoute>} />
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
