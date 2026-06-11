@@ -586,44 +586,51 @@ const Messages = () => {
   const totalRequests = incoming.length;
 
   return (
-    <MobileLayout className="flex flex-col bg-background">
-      <header className="bg-gradient-primary text-primary-foreground px-4 py-3 sticky top-0 z-40 shadow-md">
+    <MobileLayout className="flex flex-col bg-background relative overflow-hidden">
+      {/* Ambient luxe glow */}
+      <div className="pointer-events-none absolute -top-32 -left-24 w-[420px] h-[280px] bg-primary/15 blur-[120px] rounded-full" />
+      <div className="pointer-events-none absolute top-1/3 -right-24 w-[300px] h-[260px] bg-primary/10 blur-[120px] rounded-full" />
+
+      <header className="relative z-10 px-5 pt-4 pb-3 sticky top-0 backdrop-blur-2xl bg-background/70 border-b border-white/5">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 rounded-full hover:bg-primary-foreground/10"
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/10 active:scale-95 transition-transform"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 text-foreground/80" />
           </button>
-          <div className="w-10 h-10 rounded-full bg-primary-foreground/15 flex items-center justify-center">
-            <MessageCircle className="h-5 w-5" />
+          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_18px_-4px_hsl(var(--primary)/0.4)]">
+            <MessageCircle className="h-[18px] w-[18px] text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-base font-display font-bold leading-tight">Messages</h1>
+            <h1 className="text-xl font-display font-bold tracking-tight leading-none">Messages</h1>
+            <p className="text-[10px] text-muted-foreground/70 mt-1 tracking-wider uppercase">Private · Encrypted</p>
           </div>
         </div>
       </header>
 
-      <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col">
-        <TabsList className="mx-3 mt-3 grid grid-cols-4 rounded-full h-11 bg-muted p-1">
-          <TabsTrigger value="chats" className="rounded-full text-xs gap-1">
-            <Inbox className="h-3.5 w-3.5" /> Chats
-          </TabsTrigger>
-          <TabsTrigger value="friends" className="rounded-full text-xs gap-1">
-            <Users className="h-3.5 w-3.5" /> Friends
-          </TabsTrigger>
-          <TabsTrigger value="discover" className="rounded-full text-xs gap-1">
-            <Compass className="h-3.5 w-3.5" /> Discover
-          </TabsTrigger>
-          <TabsTrigger value="requests" className="rounded-full text-xs gap-1 relative">
-            <UserPlus className="h-3.5 w-3.5" /> Requests
-            {totalRequests > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] bg-destructive text-destructive-foreground">
-                {totalRequests}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col relative z-10">
+        <div className="px-4 pt-3">
+          <TabsList className="grid grid-cols-4 h-11 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/5 p-1 w-full">
+            <TabsTrigger value="chats" className="rounded-xl text-xs gap-1 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/25 data-[state=active]:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.35)] data-[state=active]:font-semibold transition-all">
+              <Inbox className="h-3.5 w-3.5" /> Chats
+            </TabsTrigger>
+            <TabsTrigger value="friends" className="rounded-xl text-xs gap-1 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/25 data-[state=active]:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.35)] data-[state=active]:font-semibold transition-all">
+              <Users className="h-3.5 w-3.5" /> Friends
+            </TabsTrigger>
+            <TabsTrigger value="discover" className="rounded-xl text-xs gap-1 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/25 data-[state=active]:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.35)] data-[state=active]:font-semibold transition-all">
+              <Compass className="h-3.5 w-3.5" /> Discover
+            </TabsTrigger>
+            <TabsTrigger value="requests" className="rounded-xl text-xs gap-1 relative data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/25 data-[state=active]:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.35)] data-[state=active]:font-semibold transition-all">
+              <UserPlus className="h-3.5 w-3.5" /> Requests
+              {totalRequests > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] bg-destructive text-destructive-foreground border-2 border-background">
+                  {totalRequests}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* CHATS TAB */}
         <TabsContent value="chats" className="flex-1 mt-0 overflow-hidden flex flex-col">
