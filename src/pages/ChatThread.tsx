@@ -59,6 +59,14 @@ const ChatThread = () => {
           .eq("id", otherId)
           .maybeSingle();
         setOther(prof ?? null);
+
+        // block status (both directions)
+        const [{ data: mine }, { data: theirs }] = await Promise.all([
+          supabase.from("blocked_users").select("id").eq("blocker_id", user.id).eq("blocked_id", otherId).maybeSingle(),
+          supabase.from("blocked_users").select("id").eq("blocker_id", otherId).eq("blocked_id", user.id).maybeSingle(),
+        ]);
+        setIBlockedThem(!!mine);
+        setTheyBlockedMe(!!theirs);
       }
 
       const { data: msgs } = await supabase
