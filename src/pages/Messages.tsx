@@ -351,6 +351,28 @@ const Messages = () => {
     else {
       toast.success("User blocked");
       setStatusMap((m) => ({ ...m, [otherId]: "blocked" }));
+      loadBlocked();
+    }
+  };
+
+  const handleUnblock = async (otherId: string) => {
+    if (!user) return;
+    setActing(otherId);
+    const { error } = await supabase
+      .from("blocked_users")
+      .delete()
+      .eq("blocker_id", user.id)
+      .eq("blocked_id", otherId);
+    setActing(null);
+    if (error) toast.error("Unblock failed", { description: error.message });
+    else {
+      toast.success("User unblocked", { description: "ယခု message ပြန်ပို့လို့ ရပါပြီ" });
+      setStatusMap((m) => {
+        const n = { ...m };
+        delete n[otherId];
+        return n;
+      });
+      setBlockedList((p) => p.filter((u) => u.id !== otherId));
     }
   };
 
