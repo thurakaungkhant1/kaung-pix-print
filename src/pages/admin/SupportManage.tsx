@@ -24,6 +24,7 @@ interface ThreadInfo {
   last_body: string;
   last_at: string;
   unread: number;
+  last_order_id?: string | null;
 }
 
 const SupportManage = () => {
@@ -58,6 +59,7 @@ const SupportManage = () => {
           last_body: m.body,
           last_at: m.created_at,
           unread: 0,
+          last_order_id: m.order_id || null,
         });
       }
       const t = map.get(m.user_id)!;
@@ -269,6 +271,17 @@ const SupportManage = () => {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground truncate">{t.last_body}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {t.last_order_id && (
+                      <Badge variant="secondary" className="gap-1 text-[9px] py-0 h-4">
+                        <Package className="h-2.5 w-2.5" />
+                        #{t.last_order_id.slice(0, 8).toUpperCase()}
+                      </Badge>
+                    )}
+                    <span className="text-[9px] text-muted-foreground">
+                      {new Date(t.last_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
                 </div>
               </button>
             ));
