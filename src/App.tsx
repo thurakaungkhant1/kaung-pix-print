@@ -99,6 +99,7 @@ const Support = lazy(() => import("./pages/Support"));
 const SupportManage = lazy(() => import("./pages/admin/SupportManage"));
 const DiamondTiersManage = lazy(() => import("./pages/admin/DiamondTiersManage"));
 const DigitalCategoriesManage = lazy(() => import("./pages/admin/DigitalCategoriesManage"));
+const DigitalProductsManage = lazy(() => import("./pages/admin/DigitalProductsManage"));
 const ChatEarningSettingsManage = lazy(() => import("./pages/admin/ChatEarningSettingsManage"));
 const ChatRewardLogs = lazy(() => import("./pages/admin/ChatRewardLogs"));
 import InterstitialAd from "@/components/InterstitialAd";
