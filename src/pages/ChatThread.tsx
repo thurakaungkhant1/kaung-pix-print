@@ -11,6 +11,7 @@ import ChatSettingsDialog from "@/components/ChatSettingsDialog";
 import { useToast } from "@/hooks/use-toast";
 import { usePresenceMap, formatLastSeen } from "@/hooks/usePresence";
 import { getFriendStatus, sendFriendRequest, FriendStatus } from "@/lib/friendship";
+import { awardChatPoints } from "@/lib/chatEarning";
 
 interface Msg {
   id: string;
@@ -139,6 +140,11 @@ const ChatThread = () => {
         .from("conversations")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", conversationId);
+      // Reward small coin for active chatting (capped per day)
+      const earned = await awardChatPoints(user.id);
+      if (earned > 0) {
+        toast({ title: `+${earned} coin`, description: "Chat reward earned" });
+      }
     }
     setSending(false);
     inputRef.current?.focus();
