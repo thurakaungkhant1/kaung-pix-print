@@ -6,9 +6,10 @@ import BottomNav from "@/components/BottomNav";
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  hideNav?: boolean;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, hideNav }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,9 +32,10 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   return user ? (
     <>
       {children}
-      <BottomNav />
+      {!hideNav && <BottomNav />}
     </>
   ) : null;
 };
+
 
 export default ProtectedRoute;
