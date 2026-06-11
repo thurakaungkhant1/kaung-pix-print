@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Send, Smile, MoreVertical, Ban, UserPlus, Clock } from "lucide-react";
+import { ArrowLeft, Send, Smile, MoreVertical, Ban, UserPlus, Clock, Check, CheckCheck } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import ChatSettingsDialog from "@/components/ChatSettingsDialog";
 import { useToast } from "@/hooks/use-toast";
