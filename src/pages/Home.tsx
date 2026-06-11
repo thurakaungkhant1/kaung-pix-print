@@ -300,7 +300,49 @@ const Home = () => {
                     <ArrowRight className="h-5 w-5 text-emerald-300 mt-2 group-hover:translate-x-1 transition-transform" />
                   </div>
 
-                  {digitalCats.length > 0 && (
+                  {digitalLoading ? (
+                    <div className="mt-5 grid grid-cols-4 gap-2" aria-busy="true" aria-label="Loading categories">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="rounded-xl px-2 py-2.5 flex flex-col items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm"
+                        >
+                          <div className="h-4 w-4 rounded bg-white/10 animate-pulse" />
+                          <div className="h-2.5 w-12 rounded bg-white/10 animate-pulse" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : digitalError ? (
+                    <div className="mt-5 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-3 flex items-center justify-between gap-3">
+                      <span className="text-[11px] text-rose-200/90">
+                        Couldn’t load categories. {digitalError}
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDigitalReloadKey((k) => k + 1); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setDigitalReloadKey((k) => k + 1); } }}
+                        className="text-[11px] font-bold text-emerald-300 underline-offset-2 hover:underline cursor-pointer"
+                      >
+                        Retry
+                      </span>
+                    </div>
+                  ) : digitalCats.length === 0 ? (
+                    <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 flex items-center justify-between gap-3">
+                      <span className="text-[11px] text-white/70">
+                        No categories yet — admin can add some.
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDigitalReloadKey((k) => k + 1); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setDigitalReloadKey((k) => k + 1); } }}
+                        className="text-[11px] font-bold text-emerald-300 underline-offset-2 hover:underline cursor-pointer"
+                      >
+                        Refresh
+                      </span>
+                    </div>
+                  ) : (
                     <div className="mt-5 grid grid-cols-4 gap-2">
                       {digitalCats.slice(0, 4).map((c) => {
                         const Icon = DIGITAL_ICON_MAP[(c.icon || "package").toLowerCase()] || Package;
