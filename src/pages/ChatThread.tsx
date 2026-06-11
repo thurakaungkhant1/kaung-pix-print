@@ -45,6 +45,8 @@ const ChatThread = () => {
   const [theyBlockedMe, setTheyBlockedMe] = useState(false);
   const [friendStatus, setFriendStatus] = useState<FriendStatus>("none");
   const [requestingFriend, setRequestingFriend] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
   const online = usePresenceMap();
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
