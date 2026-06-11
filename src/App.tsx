@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { MusicProvider } from "@/contexts/MusicContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MessageNotifier from "@/components/MessageNotifier";
+import FriendRequestNotifier from "@/components/FriendRequestNotifier";
 import PresenceTracker from "@/components/PresenceTracker";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -167,6 +168,7 @@ const App = () => {
               <MusicProvider>
               <InterstitialAd />
               <MessageNotifier />
+              <FriendRequestNotifier />
               <PresenceTracker />
               <Suspense fallback={<PageLoader />}>
                 <Routes>

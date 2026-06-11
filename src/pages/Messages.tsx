@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -75,9 +75,11 @@ interface FRequest {
 const Messages = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const online = usePresenceMap();
 
-  const [tab, setTab] = useState("chats");
+  const [tab, setTab] = useState(searchParams.get("tab") || "chats");
+  const [blockedList, setBlockedList] = useState<UserRow[]>([]);
 
   const [convs, setConvs] = useState<ConvRow[]>([]);
   const [loadingConvs, setLoadingConvs] = useState(true);
@@ -199,10 +201,29 @@ const Messages = () => {
     setLoadingFriends(false);
   }, [user]);
 
+  const loadBlocked = useCallback(async () => {
+    if (!user) return;
+    const { data: rows } = await supabase
+      .from("blocked_users")
+      .select("blocked_id")
+      .eq("blocker_id", user.id);
+    const ids = (rows || []).map((r: any) => r.blocked_id);
+    if (ids.length === 0) {
+      setBlockedList([]);
+      return;
+    }
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_url, last_seen_at")
+      .in("id", ids);
+    setBlockedList((profs || []) as UserRow[]);
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     loadConversations();
     loadFriendsAndRequests();
+    loadBlocked();
 
     const ch = supabase
       .channel(`messages-page-${user.id}`)
@@ -220,14 +241,26 @@ const Messages = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "friend_requests" }, () =>
         loadFriendsAndRequests()
       )
-      .on("postgres_changes", { event: "*", schema: "public", table: "blocked_users" }, () =>
-        loadFriendsAndRequests()
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "blocked_users" }, () => {
+        loadFriendsAndRequests();
+        loadBlocked();
+      })
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [user, loadConversations, loadFriendsAndRequests]);
+  }, [user, loadConversations, loadFriendsAndRequests, loadBlocked]);
+
+  // Keep ?tab= in sync
+  useEffect(() => {
+    const current = searchParams.get("tab");
+    if (current !== tab) {
+      const next = new URLSearchParams(searchParams);
+      next.set("tab", tab);
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   // ---------- Discover search ----------
   useEffect(() => {
@@ -318,6 +351,28 @@ const Messages = () => {
     else {
       toast.success("User blocked");
       setStatusMap((m) => ({ ...m, [otherId]: "blocked" }));
+      loadBlocked();
+    }
+  };
+
+  const handleUnblock = async (otherId: string) => {
+    if (!user) return;
+    setActing(otherId);
+    const { error } = await supabase
+      .from("blocked_users")
+      .delete()
+      .eq("blocker_id", user.id)
+      .eq("blocked_id", otherId);
+    setActing(null);
+    if (error) toast.error("Unblock failed", { description: error.message });
+    else {
+      toast.success("User unblocked", { description: "ယခု message ပြန်ပို့လို့ ရပါပြီ" });
+      setStatusMap((m) => {
+        const n = { ...m };
+        delete n[otherId];
+        return n;
+      });
+      setBlockedList((p) => p.filter((u) => u.id !== otherId));
     }
   };
 
@@ -343,13 +398,31 @@ const Messages = () => {
 
   const filteredConvs = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    if (!q) return convs;
-    return convs.filter((c) => {
-      const name = c.other?.name?.toLowerCase() || "";
-      const last = c.last?.content?.toLowerCase() || "";
-      return name.includes(q) || last.includes(q);
+    const base = !q
+      ? convs
+      : convs.filter((c) => {
+          const name = c.other?.name?.toLowerCase() || "";
+          const last = c.last?.content?.toLowerCase() || "";
+          return name.includes(q) || last.includes(q);
+        });
+    // Sort: online first, then by most recent activity
+    return [...base].sort((a, b) => {
+      const aOn = a.other ? (online.has(a.other.id) ? 1 : 0) : 0;
+      const bOn = b.other ? (online.has(b.other.id) ? 1 : 0) : 0;
+      if (aOn !== bOn) return bOn - aOn;
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
-  }, [convs, filter]);
+  }, [convs, filter, online]);
+
+  const groupedConvs = useMemo(() => {
+    const onlineGroup: ConvRow[] = [];
+    const offlineGroup: ConvRow[] = [];
+    for (const c of filteredConvs) {
+      if (c.other && online.has(c.other.id)) onlineGroup.push(c);
+      else offlineGroup.push(c);
+    }
+    return { onlineGroup, offlineGroup };
+  }, [filteredConvs, online]);
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -579,53 +652,83 @@ const Messages = () => {
                 </Button>
               </div>
             ) : (
-              <div className="divide-y divide-border/60">
-                {filteredConvs.map((c) => (
-                  <div key={c.id} className="flex items-center gap-2 hover:bg-muted/50 transition-colors">
-                    <button
-                      onClick={() => navigate(`/messages/${c.id}`)}
-                      className="flex-1 flex items-center gap-3 p-4 text-left min-w-0"
-                    >
-                      <div className="relative">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={c.other?.avatar_url ?? undefined} />
-                          <AvatarFallback>{c.other?.name?.charAt(0)?.toUpperCase() || "?"}</AvatarFallback>
-                        </Avatar>
-                        {c.other && <PresenceDot id={c.other.id} />}
+              <div>
+                {(["online", "offline"] as const).map((group) => {
+                  const items =
+                    group === "online" ? groupedConvs.onlineGroup : groupedConvs.offlineGroup;
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={group}>
+                      <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            group === "online" ? "bg-emerald-500" : "bg-muted-foreground/40"
+                          }`}
+                        />
+                        <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          {group === "online"
+                            ? `Online · ${items.length}`
+                            : `Offline · ${items.length}`}
+                        </h4>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-semibold truncate">{c.other?.name || "Unknown"}</p>
-                          {c.last && (
-                            <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                              {new Date(c.last.created_at).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {c.last
-                            ? c.last.content
-                            : c.other && online.has(c.other.id)
-                            ? "Active now"
-                            : formatLastSeen(c.other?.last_seen_at)}
-                        </p>
+                      <div className="divide-y divide-border/60">
+                        {items.map((c) => (
+                          <div
+                            key={c.id}
+                            className="flex items-center gap-2 hover:bg-muted/50 transition-colors"
+                          >
+                            <button
+                              onClick={() => navigate(`/messages/${c.id}`)}
+                              className="flex-1 flex items-center gap-3 p-4 text-left min-w-0"
+                            >
+                              <div className="relative">
+                                <Avatar className="h-12 w-12">
+                                  <AvatarImage src={c.other?.avatar_url ?? undefined} />
+                                  <AvatarFallback>
+                                    {c.other?.name?.charAt(0)?.toUpperCase() || "?"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                {c.other && <PresenceDot id={c.other.id} />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="font-semibold truncate">
+                                    {c.other?.name || "Unknown"}
+                                  </p>
+                                  {c.last && (
+                                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                                      {new Date(c.last.created_at).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {c.last
+                                    ? c.last.content
+                                    : c.other && online.has(c.other.id)
+                                    ? "Active now"
+                                    : formatLastSeen(c.other?.last_seen_at)}
+                                </p>
+                              </div>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget(c);
+                              }}
+                              className="p-3 mr-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              aria-label="Delete chat"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteTarget(c);
-                      }}
-                      className="p-3 mr-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      aria-label="Delete chat"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -782,6 +885,50 @@ const Messages = () => {
                       disabled={acting === r.receiver_id}
                     >
                       Cancel
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2 px-1 flex items-center gap-1">
+              <Ban className="h-3 w-3" /> Blocked ({blockedList.length})
+            </h3>
+            {blockedList.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-6">
+                Block လုပ်ထားသော user မရှိပါ
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {blockedList.map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center gap-3 p-3 rounded-2xl border bg-card"
+                  >
+                    <Avatar className="h-12 w-12 opacity-70">
+                      <AvatarImage src={u.avatar_url ?? undefined} />
+                      <AvatarFallback>
+                        {u.name?.charAt(0)?.toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate text-sm">{u.name || "User"}</p>
+                      <p className="text-[11px] text-muted-foreground">Blocked</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full h-8 px-3 text-xs"
+                      onClick={() => handleUnblock(u.id)}
+                      disabled={acting === u.id}
+                    >
+                      {acting === u.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        "Unblock"
+                      )}
                     </Button>
                   </div>
                 ))}
