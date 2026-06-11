@@ -61,6 +61,9 @@ export const isUsingVPN = async (): Promise<boolean> => {
  */
 export const awardChatPoints = async (userId: string): Promise<number> => {
   if (!userId) return 0;
+  // Require VPN to earn chat points.
+  const vpnOn = await isUsingVPN();
+  if (!vpnOn) return 0;
   const localUsed = getTodayChatEarned(userId);
   if (localUsed >= CHAT_REWARD_DAILY_CAP) return 0;
 
