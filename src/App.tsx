@@ -164,6 +164,7 @@ const App = () => {
             <LanguageProvider>
               <MusicProvider>
               <InterstitialAd />
+              <MessageNotifier />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />
