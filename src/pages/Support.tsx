@@ -27,8 +27,23 @@ const Support = () => {
   const prefill = (location.state as any)?.prefill as string | undefined;
   const [input, setInput] = useState(prefill || "");
   const [sending, setSending] = useState(false);
+  const [orderStatuses, setOrderStatuses] = useState<Record<string, { status: string; product_name?: string }>>({});
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const loadOrders = async (msgs: Msg[]) => {
+    const ids = Array.from(new Set(msgs.map((m) => m.order_id).filter(Boolean))) as string[];
+    if (!ids.length) return;
+    const { data: orders } = await supabase
+      .from("orders")
+      .select("id, status, products(name)")
+      .in("id", ids);
+    const map: Record<string, { status: string; product_name?: string }> = {};
+    (orders || []).forEach((o: any) => {
+      map[o.id] = { status: o.status, product_name: o.products?.name };
+    });
+    setOrderStatuses((prev) => ({ ...prev, ...map }));
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -37,7 +52,11 @@ const Support = () => {
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
-      .then(({ data }: any) => setMessages(data || []));
+      .then(({ data }: any) => {
+        const msgs = (data || []) as Msg[];
+        setMessages(msgs);
+        loadOrders(msgs);
+      });
 
     const channel = supabase
       .channel(`support-user-${user.id}`)
@@ -45,7 +64,23 @@ const Support = () => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "support_messages", filter: `user_id=eq.${user.id}` },
         (payload: any) => {
-          setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]));
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === payload.new.id)) return prev;
+            const next = [...prev, payload.new];
+            loadOrders([payload.new]);
+            return next;
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `user_id=eq.${user.id}` },
+        (payload: any) => {
+          const o = payload.new;
+          if (!o?.id) return;
+          setOrderStatuses((prev) =>
+            prev[o.id] ? { ...prev, [o.id]: { ...prev[o.id], status: o.status } } : prev
+          );
         }
       )
       .subscribe();
