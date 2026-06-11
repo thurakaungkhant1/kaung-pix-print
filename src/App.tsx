@@ -609,6 +609,7 @@ const App = () => {
                 <Route path="/admin/support" element={<ProtectedAdminRoute><SupportManage /></ProtectedAdminRoute>} />
                 <Route path="/admin/diamond-tiers" element={<ProtectedAdminRoute><DiamondTiersManage /></ProtectedAdminRoute>} />
                 <Route path="/admin/digital-categories" element={<ProtectedAdminRoute><DigitalCategoriesManage /></ProtectedAdminRoute>} />
+                <Route path="/admin/digital-products" element={<ProtectedAdminRoute><DigitalProductsManage /></ProtectedAdminRoute>} />
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
