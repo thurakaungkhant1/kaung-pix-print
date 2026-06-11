@@ -51,6 +51,7 @@ const ProductDetail = () => {
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [showInsufficientBalanceDialog, setShowInsufficientBalanceDialog] = useState(false);
+  const [showDigitalInfoDialog, setShowDigitalInfoDialog] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
