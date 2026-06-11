@@ -789,6 +789,36 @@ export type Database = {
           },
         ]
       }
+      mlbb_diamond_tiers: {
+        Row: {
+          created_at: string
+          display_order: number
+          emoji: string | null
+          id: string
+          is_active: boolean
+          label: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       mobile_operators: {
         Row: {
           code: string
@@ -1752,6 +1782,33 @@ export type Database = {
           id?: string
           points_won?: number
           spin_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          sender_role: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_role: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_role?: string
           user_id?: string
         }
         Relationships: []
