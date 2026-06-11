@@ -237,8 +237,27 @@ const ProductDetail = () => {
       });
       loadProduct();
 
-      // For Digital Products: prompt the buyer to send required info to admin via chat
+      // For Digital Products: prompt the buyer to confirm/edit message before sending to admin
       if (product.category === 'Digital Products') {
+        // mark order as awaiting admin info
+        await supabase.from('orders').update({ status: 'awaiting_info' }).eq('id', orderData.id);
+        const shortId = String(orderData.id).slice(0, 8).toUpperCase();
+        const prefill =
+`မင်္ဂလာပါ Admin 👋
+
+အောက်ပါ Digital Product ဝယ်ယူပြီးပါပြီ။ Activation အတွက် ကျေးဇူးပြုပါ။
+
+• နာမည် (Name): ${profile?.name || "-"}
+• ဖုန်း (Phone): ${profile?.phone_number || "-"}
+• ပစ္စည်း (Product): ${product.name} × ${quantity}
+• Order ID: #${shortId}
+
+Account info / Username / Email:
+- 
+
+ကျေးဇူးတင်ပါတယ်။`;
+        setDraftMessage(prefill);
+        setDraftOrderId(orderData.id);
         setShowDigitalInfoDialog(true);
       }
     } catch (error: any) {
