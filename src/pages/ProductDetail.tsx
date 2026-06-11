@@ -641,9 +641,6 @@ Account info / Username / Email:
             </DialogFooter>
           </DialogContent>
         </Dialog>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
     </AnimatedPage>
