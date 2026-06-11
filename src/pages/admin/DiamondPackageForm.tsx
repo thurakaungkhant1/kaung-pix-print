@@ -10,12 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Gem } from "lucide-react";
 
+interface Tier { id: string; slug: string; label: string; emoji: string | null; }
 
 const DiamondPackageForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [tiers, setTiers] = useState<Tier[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -24,6 +26,11 @@ const DiamondPackageForm = () => {
     points_value: "0",
     diamond_tier: "auto",
   });
+
+  useEffect(() => {
+    (supabase as any).from("mlbb_diamond_tiers").select("*").eq("is_active", true).order("display_order")
+      .then(({ data }: any) => setTiers(data || []));
+  }, []);
 
 
   useEffect(() => {
