@@ -229,6 +229,11 @@ const ProductDetail = () => {
         description: `Order placed for ${product.name}. You earned ${product.points_value * quantity} points!`,
       });
       loadProduct();
+
+      // For Digital Products: prompt the buyer to send required info to admin via chat
+      if (product.category === 'Digital Products') {
+        setShowDigitalInfoDialog(true);
+      }
     } catch (error: any) {
       toast({
         title: "Purchase failed",
