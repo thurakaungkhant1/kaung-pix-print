@@ -2203,6 +2203,12 @@ const AdminDashboard = () => {
                       <Button variant="outline" size="sm" onClick={() => navigate("/admin/digital-categories")}>
                         Manage Categories
                       </Button>
+                      <Button variant="outline" size="sm" onClick={() => navigate("/admin/digital-orders")}>
+                        <Package className="h-4 w-4 mr-1" /> Digital Orders
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => navigate("/admin/support")}>
+                        Support Chat
+                      </Button>
                     </div>
                   </div>
 
