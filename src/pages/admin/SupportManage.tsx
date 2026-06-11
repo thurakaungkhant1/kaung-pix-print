@@ -151,11 +151,73 @@ const SupportManage = () => {
 
       <div className="grid md:grid-cols-[320px_1fr] h-[calc(100vh-56px)]">
         {/* Threads list */}
-        <aside className={cn("border-r border-border overflow-y-auto bg-card/40", activeUserId && "hidden md:block")}>
-          {threads.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">No conversations yet.</p>
-          ) : (
-            threads.map((t) => (
+        <aside className={cn("border-r border-border overflow-y-auto bg-card/40 flex flex-col", activeUserId && "hidden md:flex")}>
+          <div className="p-3 border-b border-border space-y-2 sticky top-0 bg-card/80 backdrop-blur z-10">
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search name, email, or message…"
+                className="pl-9 pr-9 h-10"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-muted"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+            <div className="flex gap-1.5">
+              {(["all", "unread"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={cn(
+                    "flex-1 text-xs font-semibold px-3 h-8 rounded-full border transition-colors",
+                    filter === f
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-border hover:bg-muted"
+                  )}
+                >
+                  {f === "all" ? "All" : "Unread"}
+                  {f === "unread" && (
+                    <span className="ml-1 opacity-80">
+                      ({threads.reduce((a, t) => a + (t.unread > 0 ? 1 : 0), 0)})
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {(() => {
+            const q = search.trim().toLowerCase();
+            let list = threads;
+            if (filter === "unread") list = list.filter((t) => t.unread > 0);
+            if (q) {
+              list = list.filter((t) => {
+                if (
+                  t.name?.toLowerCase().includes(q) ||
+                  t.email?.toLowerCase().includes(q) ||
+                  t.last_body?.toLowerCase().includes(q)
+                )
+                  return true;
+                const msgs = allMessages[t.user_id] || [];
+                return msgs.some((m) => m.body?.toLowerCase().includes(q));
+              });
+            }
+            if (list.length === 0) {
+              return (
+                <p className="p-6 text-sm text-muted-foreground">
+                  {threads.length === 0 ? "No conversations yet." : "No matches."}
+                </p>
+              );
+            }
+            return list.map((t) => (
               <button
                 key={t.user_id}
                 onClick={() => setActiveUserId(t.user_id)}
@@ -179,9 +241,10 @@ const SupportManage = () => {
                   <p className="text-xs text-muted-foreground truncate">{t.last_body}</p>
                 </div>
               </button>
-            ))
-          )}
+            ));
+          })()}
         </aside>
+
 
         {/* Active conversation */}
         <section className={cn("flex flex-col", !activeUserId && "hidden md:flex")}>
