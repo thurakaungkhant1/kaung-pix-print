@@ -652,53 +652,83 @@ const Messages = () => {
                 </Button>
               </div>
             ) : (
-              <div className="divide-y divide-border/60">
-                {filteredConvs.map((c) => (
-                  <div key={c.id} className="flex items-center gap-2 hover:bg-muted/50 transition-colors">
-                    <button
-                      onClick={() => navigate(`/messages/${c.id}`)}
-                      className="flex-1 flex items-center gap-3 p-4 text-left min-w-0"
-                    >
-                      <div className="relative">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={c.other?.avatar_url ?? undefined} />
-                          <AvatarFallback>{c.other?.name?.charAt(0)?.toUpperCase() || "?"}</AvatarFallback>
-                        </Avatar>
-                        {c.other && <PresenceDot id={c.other.id} />}
+              <div>
+                {(["online", "offline"] as const).map((group) => {
+                  const items =
+                    group === "online" ? groupedConvs.onlineGroup : groupedConvs.offlineGroup;
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={group}>
+                      <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            group === "online" ? "bg-emerald-500" : "bg-muted-foreground/40"
+                          }`}
+                        />
+                        <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          {group === "online"
+                            ? `Online · ${items.length}`
+                            : `Offline · ${items.length}`}
+                        </h4>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-semibold truncate">{c.other?.name || "Unknown"}</p>
-                          {c.last && (
-                            <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                              {new Date(c.last.created_at).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {c.last
-                            ? c.last.content
-                            : c.other && online.has(c.other.id)
-                            ? "Active now"
-                            : formatLastSeen(c.other?.last_seen_at)}
-                        </p>
+                      <div className="divide-y divide-border/60">
+                        {items.map((c) => (
+                          <div
+                            key={c.id}
+                            className="flex items-center gap-2 hover:bg-muted/50 transition-colors"
+                          >
+                            <button
+                              onClick={() => navigate(`/messages/${c.id}`)}
+                              className="flex-1 flex items-center gap-3 p-4 text-left min-w-0"
+                            >
+                              <div className="relative">
+                                <Avatar className="h-12 w-12">
+                                  <AvatarImage src={c.other?.avatar_url ?? undefined} />
+                                  <AvatarFallback>
+                                    {c.other?.name?.charAt(0)?.toUpperCase() || "?"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                {c.other && <PresenceDot id={c.other.id} />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="font-semibold truncate">
+                                    {c.other?.name || "Unknown"}
+                                  </p>
+                                  {c.last && (
+                                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                                      {new Date(c.last.created_at).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {c.last
+                                    ? c.last.content
+                                    : c.other && online.has(c.other.id)
+                                    ? "Active now"
+                                    : formatLastSeen(c.other?.last_seen_at)}
+                                </p>
+                              </div>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget(c);
+                              }}
+                              className="p-3 mr-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              aria-label="Delete chat"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteTarget(c);
-                      }}
-                      className="p-3 mr-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      aria-label="Delete chat"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
