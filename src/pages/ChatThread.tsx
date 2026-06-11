@@ -48,12 +48,25 @@ const ChatThread = () => {
   const [requestingFriend, setRequestingFriend] = useState(false);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [otherTyping, setOtherTyping] = useState(false);
   const online = usePresenceMap();
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentRef = useRef<number>(0);
+  const otherTypingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Consider "online" if presence channel says so OR last_seen_at within 90s
+  const isOtherOnline = !!other && (
+    online.has(other.id) ||
+    (!!other.last_seen_at && Date.now() - new Date(other.last_seen_at).getTime() < 90_000)
+  );
 
   useEffect(() => {
     if (!conversationId || !user) return;
+
+
 
     (async () => {
       const { data: conv } = await supabase
