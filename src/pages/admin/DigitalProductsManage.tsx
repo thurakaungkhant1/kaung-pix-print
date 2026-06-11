@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ import {
   Save,
   Search,
   Package,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
@@ -60,6 +62,8 @@ const DigitalProductsManage = () => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<typeof emptyForm>({ ...emptyForm });
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const load = async () => {
     setLoading(true);
@@ -82,6 +86,16 @@ const DigitalProductsManage = () => {
   const filtered = items.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   const openNew = () => {
     setForm({ ...emptyForm });
@@ -181,47 +195,75 @@ const DigitalProductsManage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-2">
-            {filtered.map((p) => (
-              <Card key={p.id}>
-                <CardContent className="p-3 flex items-center gap-3">
-                  <img
-                    src={p.image_url}
-                    alt={p.name}
-                    className="w-14 h-14 rounded-lg object-cover bg-muted flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm truncate">{p.name}</h3>
-                      {p.is_premium && (
-                        <Badge className="text-[9px] bg-amber-500">Premium</Badge>
+          <div className="space-y-3">
+            <div className="grid gap-2">
+              {paginated.map((p) => (
+                <Card key={p.id}>
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <img
+                      src={p.image_url}
+                      alt={p.name}
+                      className="w-14 h-14 rounded-lg object-cover bg-muted flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-sm truncate">{p.name}</h3>
+                        {p.is_premium && (
+                          <Badge className="text-[9px] bg-amber-500">Premium</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-primary font-bold">
+                        {p.price.toLocaleString()} MMK
+                      </p>
+                      {p.points_value > 0 && (
+                        <p className="text-[10px] text-muted-foreground">
+                          +{p.points_value} pts
+                        </p>
                       )}
                     </div>
-                    <p className="text-xs text-primary font-bold">
-                      {p.price.toLocaleString()} MMK
-                    </p>
-                    {p.points_value > 0 && (
-                      <p className="text-[10px] text-muted-foreground">
-                        +{p.points_value} pts
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-1">
-                    <Button size="icon" variant="outline" onClick={() => openEdit(p)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="text-destructive"
-                      onClick={() => remove(p)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="outline" onClick={() => openEdit(p)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="text-destructive"
+                        onClick={() => remove(p)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between bg-card/80 backdrop-blur-sm rounded-xl border border-border/40 px-3 py-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Prev
+                </Button>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
