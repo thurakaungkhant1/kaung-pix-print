@@ -54,6 +54,10 @@ const ProductDetail = () => {
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [showInsufficientBalanceDialog, setShowInsufficientBalanceDialog] = useState(false);
   const [showDigitalInfoDialog, setShowDigitalInfoDialog] = useState(false);
+  const [draftMessage, setDraftMessage] = useState("");
+  const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
+  const [sendingDraft, setSendingDraft] = useState(false);
+  const [profile, setProfile] = useState<{ name: string; phone_number: string | null } | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
