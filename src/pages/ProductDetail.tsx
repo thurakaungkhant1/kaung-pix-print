@@ -552,6 +552,41 @@ const ProductDetail = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Digital Product: ask admin for account info via chat */}
+        <AlertDialog open={showDigitalInfoDialog} onOpenChange={setShowDigitalInfoDialog}>
+          <AlertDialogContent className="max-w-sm">
+            <AlertDialogHeader>
+              <div className="flex justify-center mb-4">
+                <div className="p-4 rounded-full bg-primary/10">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
+              </div>
+              <AlertDialogTitle className="text-center">အကောင့်အချက်အလက် ပေးပို့ပါ</AlertDialogTitle>
+              <AlertDialogDescription className="text-center">
+                {product?.name} ကို ဝယ်ယူပြီးပါပြီ 🎉
+                <br />
+                Admin team ထံ chat မှ သင့်ရဲ့ <span className="font-semibold text-foreground">account info (email / username / package)</span> ကို ပို့ပေးပါ။ Admin က မကြာမီ activation လုပ်ပေးပါမည်။
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+              <AlertDialogAction
+                onClick={() => {
+                  setShowDigitalInfoDialog(false);
+                  navigate("/support", {
+                    state: {
+                      prefill: `မင်္ဂလာပါ Admin 👋\n\nကျွန်တော်/မ ${product?.name} (x${quantity}) ကို ဝယ်ယူပြီးပါပြီ။\nAccount info / Username / Email:\n- \n\nကျေးဇူးပြု၍ activation လုပ်ပေးပါ။`,
+                    },
+                  });
+                }}
+                className="w-full"
+              >
+                Admin ကို Message ပို့မယ်
+              </AlertDialogAction>
+              <AlertDialogCancel className="w-full">နောက်မှ</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
     </AnimatedPage>
