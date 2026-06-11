@@ -19,9 +19,11 @@ interface Msg {
 const Support = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Msg[]>([]);
-  const [input, setInput] = useState("");
+  const prefill = (location.state as any)?.prefill as string | undefined;
+  const [input, setInput] = useState(prefill || "");
   const [sending, setSending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
