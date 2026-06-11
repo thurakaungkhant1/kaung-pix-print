@@ -37,6 +37,7 @@ const SupportManage = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [allMessages, setAllMessages] = useState<Record<string, Msg[]>>({});
+  const [orderStatuses, setOrderStatuses] = useState<Record<string, { status: string; product_name?: string }>>({});
   const endRef = useRef<HTMLDivElement>(null);
 
   const loadThreads = async () => {
