@@ -282,7 +282,7 @@ const ChatThread = () => {
             {other && (
               <span
                 className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-primary ${
-                  online.has(other.id) ? "bg-emerald-400" : "bg-muted-foreground/60"
+                  isOtherOnline ? "bg-emerald-400" : "bg-muted-foreground/60"
                 }`}
               />
             )}
@@ -296,17 +296,27 @@ const ChatThread = () => {
                 "Blocked"
               ) : theyBlockedMe ? (
                 "Unavailable"
-              ) : other && online.has(other.id) ? (
+              ) : otherTyping ? (
+                <span className="inline-flex items-center gap-1 text-emerald-200">
+                  <span className="flex gap-0.5">
+                    <span className="h-1 w-1 rounded-full bg-emerald-300 animate-bounce [animation-delay:-0.3s]" />
+                    <span className="h-1 w-1 rounded-full bg-emerald-300 animate-bounce [animation-delay:-0.15s]" />
+                    <span className="h-1 w-1 rounded-full bg-emerald-300 animate-bounce" />
+                  </span>
+                  typing…
+                </span>
+              ) : isOtherOnline ? (
                 <>
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Active now
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online
                 </>
               ) : (
                 <>
-                  <Clock className="h-3 w-3" /> {formatLastSeen(other?.last_seen_at)}
+                  <Clock className="h-3 w-3" /> Last seen {formatLastSeen(other?.last_seen_at)}
                 </>
               )}
             </p>
           </div>
+
           <button
             onClick={() => setSettingsOpen(true)}
             className="p-2 -mr-2 rounded-full hover:bg-primary-foreground/10"
