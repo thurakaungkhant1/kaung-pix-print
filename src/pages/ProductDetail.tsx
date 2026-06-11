@@ -36,6 +36,7 @@ interface Product {
   image_url_3?: string;
   image_url_4?: string;
   is_premium?: boolean;
+  category?: string;
 }
 
 const ProductDetail = () => {
