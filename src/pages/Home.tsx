@@ -149,21 +149,32 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const loadDigital = async () => {
-      const { data } = await (supabase as any)
+      setDigitalLoading(true);
+      setDigitalError(null);
+      const { data, error } = await (supabase as any)
         .from('digital_categories')
         .select('id,name,slug,icon,display_order,is_active')
         .eq('is_active', true)
-        .order('display_order', { ascending: true });
-      setDigitalCats((data || []) as DigitalCategory[]);
+        .order('display_order', { ascending: true })
+        .order('name', { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        setDigitalError(error.message || 'Failed to load');
+        setDigitalCats([]);
+      } else {
+        setDigitalCats((data || []) as DigitalCategory[]);
+      }
+      setDigitalLoading(false);
     };
     loadDigital();
     const channel = supabase
       .channel('home-digital-cats')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'digital_categories' }, () => loadDigital())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [digitalReloadKey]);
 
   useEffect(() => {
     if (!user) return;
