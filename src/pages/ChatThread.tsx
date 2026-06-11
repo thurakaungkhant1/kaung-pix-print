@@ -95,6 +95,40 @@ const ChatThread = () => {
           setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]));
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "blocked_users" },
+        async () => {
+          const { data: conv } = await supabase
+            .from("conversations")
+            .select("participant1_id, participant2_id")
+            .eq("id", conversationId)
+            .maybeSingle();
+          if (!conv || !user) return;
+          const otherId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
+          const [{ data: mine }, { data: theirs }] = await Promise.all([
+            supabase.from("blocked_users").select("id").eq("blocker_id", user.id).eq("blocked_id", otherId).maybeSingle(),
+            supabase.from("blocked_users").select("id").eq("blocker_id", otherId).eq("blocked_id", user.id).maybeSingle(),
+          ]);
+          setIBlockedThem(!!mine);
+          setTheyBlockedMe(!!theirs);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "friend_requests" },
+        async () => {
+          const { data: conv } = await supabase
+            .from("conversations")
+            .select("participant1_id, participant2_id")
+            .eq("id", conversationId)
+            .maybeSingle();
+          if (!conv || !user) return;
+          const otherId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
+          const fs = await getFriendStatus(user.id, otherId);
+          setFriendStatus(fs.status);
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
