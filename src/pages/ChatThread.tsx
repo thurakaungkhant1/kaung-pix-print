@@ -267,6 +267,41 @@ const ChatThread = () => {
     inputRef.current?.focus();
   };
 
+  const broadcastTyping = () => {
+    if (!user || !channelRef.current) return;
+    const t = Date.now();
+    // throttle to once every 1.5s
+    if (t - lastTypingSentRef.current > 1500) {
+      lastTypingSentRef.current = t;
+      channelRef.current.send({
+        type: "broadcast",
+        event: "typing",
+        payload: { user_id: user.id },
+      });
+    }
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      lastTypingSentRef.current = 0;
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "stop_typing",
+        payload: { user_id: user.id },
+      });
+    }, 2500);
+  };
+
+  const sendStopTyping = () => {
+    if (!user || !channelRef.current) return;
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    lastTypingSentRef.current = 0;
+    channelRef.current.send({
+      type: "broadcast",
+      event: "stop_typing",
+      payload: { user_id: user.id },
+    });
+  };
+
+
   return (
     <MobileLayout className="flex flex-col bg-background">
       <header className="bg-gradient-primary text-primary-foreground px-4 py-3 sticky top-0 z-40 shadow-md">
