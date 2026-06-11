@@ -60,14 +60,37 @@ const Login = () => {
     }
   };
 
+  const logGoogleError = async (err: any) => {
+    const message = err?.message || String(err) || "Unknown Google sign-in error";
+    const code = err?.code || err?.status || err?.error || null;
+    // Console log with full details for the developer console
+    console.error("[GoogleLogin] failed", { message, code, error: err });
+    // Server-side log (admins can review later)
+    try {
+      await supabase.from("auth_error_logs").insert({
+        provider: "google",
+        error_message: String(message).slice(0, 1000),
+        error_code: code ? String(code).slice(0, 100) : null,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null,
+        url: typeof window !== "undefined" ? window.location.href.slice(0, 500) : null,
+      });
+    } catch (logErr) {
+      console.warn("[GoogleLogin] failed to record error", logErr);
+    }
+    return message;
+  };
+
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
+    setGoogleError(null);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast({ title: "Google sign-in failed", description: (result.error as any).message || "Try again", variant: "destructive" });
+        const message = await logGoogleError(result.error);
+        setGoogleError(message);
+        toast({ title: "Google sign-in failed", description: message, variant: "destructive" });
         setGoogleLoading(false);
         return;
       }
@@ -75,10 +98,13 @@ const Login = () => {
       if (redirectTo) navigate(redirectTo);
       else navigate("/");
     } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Google sign-in failed", variant: "destructive" });
+      const message = await logGoogleError(e);
+      setGoogleError(message);
+      toast({ title: "Google sign-in failed", description: message, variant: "destructive" });
       setGoogleLoading(false);
     }
   };
+
 
   return (
     <MobileLayout className="min-h-screen flex flex-col bg-background">
