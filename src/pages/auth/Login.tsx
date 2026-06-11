@@ -242,6 +242,21 @@ const Login = () => {
               )}
             </Button>
 
+            {googleError && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Google sign-in မအောင်မြင်ပါ</AlertTitle>
+                <AlertDescription className="space-y-1">
+                  <p className="text-xs break-words">{googleError}</p>
+                  <ul className="text-[11px] list-disc pl-4 opacity-90">
+                    <li>Pop-up/redirect block လုပ်ထားရင် browser setting မှာ ပြန်ဖွင့်ပါ</li>
+                    <li>VPN ဖွင့်ထားရင် ပိတ်ပြီး ပြန်ကြိုးစားကြည့်ပါ</li>
+                    <li>ဆက်ဖြစ်နေပါက email/password နဲ့ ဝင်ပါ ဒါမှမဟုတ် support ကို ဆက်သွယ်ပါ</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border" />
