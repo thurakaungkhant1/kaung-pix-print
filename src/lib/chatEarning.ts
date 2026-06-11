@@ -25,6 +25,35 @@ const setTodayChatEarned = (uid: string, n: number) => {
   } catch {}
 };
 
+// Detect VPN by checking if user's IP country is outside Myanmar (MM).
+// Result cached for 10 minutes in sessionStorage.
+const VPN_CACHE_KEY = "vpn_check_v1";
+const VPN_CACHE_TTL = 10 * 60 * 1000;
+
+export const isUsingVPN = async (): Promise<boolean> => {
+  try {
+    const cached = sessionStorage.getItem(VPN_CACHE_KEY);
+    if (cached) {
+      const { ts, vpn } = JSON.parse(cached);
+      if (Date.now() - ts < VPN_CACHE_TTL) return vpn;
+    }
+  } catch {}
+
+  try {
+    const res = await fetch("https://ipapi.co/json/", { cache: "no-store" });
+    const data = await res.json();
+    // If country is NOT Myanmar, treat as VPN-on.
+    const country = (data?.country || data?.country_code || "").toUpperCase();
+    const vpn = !!country && country !== "MM";
+    try {
+      sessionStorage.setItem(VPN_CACHE_KEY, JSON.stringify({ ts: Date.now(), vpn }));
+    } catch {}
+    return vpn;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Award chat coins for sending a message. Capped per day client-side and
  * server-side (we read today's point_transactions before inserting).
@@ -32,6 +61,9 @@ const setTodayChatEarned = (uid: string, n: number) => {
  */
 export const awardChatPoints = async (userId: string): Promise<number> => {
   if (!userId) return 0;
+  // Require VPN to earn chat points.
+  const vpnOn = await isUsingVPN();
+  if (!vpnOn) return 0;
   const localUsed = getTodayChatEarned(userId);
   if (localUsed >= CHAT_REWARD_DAILY_CAP) return 0;
 
