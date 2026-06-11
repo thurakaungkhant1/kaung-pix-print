@@ -141,6 +141,20 @@ const ChatThread = () => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Tick for cooldown countdown
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= cooldownUntil) {
+        setCooldownUntil(null);
+        clearInterval(id);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [cooldownUntil]);
+
   const send = async () => {
     if (!user || !conversationId || !input.trim() || sending) return;
     if (iBlockedThem) {
