@@ -94,6 +94,9 @@ const Messages = () => {
   const [loadingConvs, setLoadingConvs] = useState(true);
 
   const [filter, setFilter] = useState("");
+  const [onlineOnly, setOnlineOnly] = useState(false);
+  const [friendsOnly, setFriendsOnly] = useState(false);
+  const [blockedSheetOpen, setBlockedSheetOpen] = useState(false);
   const [discoverQuery, setDiscoverQuery] = useState("");
   const [discoverResults, setDiscoverResults] = useState<UserRow[]>([]);
   const [discoverLoading, setDiscoverLoading] = useState(false);
