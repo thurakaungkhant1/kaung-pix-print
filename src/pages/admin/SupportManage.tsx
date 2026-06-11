@@ -107,7 +107,24 @@ const SupportManage = () => {
       .select("*")
       .eq("user_id", activeUserId)
       .order("created_at", { ascending: true })
-      .then(({ data }: any) => setMessages(data || []));
+      .then(async ({ data }: any) => {
+        const msgs = (data || []) as Msg[];
+        setMessages(msgs);
+        const ids = Array.from(new Set(msgs.map((m) => m.order_id).filter(Boolean))) as string[];
+        if (ids.length) {
+          const { data: orders } = await supabase
+            .from("orders")
+            .select("id, status, product_id, products(name)")
+            .in("id", ids);
+          const map: Record<string, { status: string; product_name?: string }> = {};
+          (orders || []).forEach((o: any) => {
+            map[o.id] = { status: o.status, product_name: o.products?.name };
+          });
+          setOrderStatuses(map);
+        } else {
+          setOrderStatuses({});
+        }
+      });
     // mark user messages as read
     (supabase as any)
       .from("support_messages")
@@ -116,6 +133,16 @@ const SupportManage = () => {
       .eq("sender_role", "user")
       .then(() => loadThreads());
   }, [activeUserId]);
+
+  const markOrderCompleted = async (orderId: string) => {
+    const { error } = await supabase.from("orders").update({ status: "approved" }).eq("id", orderId);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setOrderStatuses((prev) => ({ ...prev, [orderId]: { ...prev[orderId], status: "approved" } }));
+    toast({ title: "Order marked completed ✅" });
+  };
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
