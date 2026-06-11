@@ -300,6 +300,8 @@ const SupportManage = () => {
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map((m) => {
                   const mine = m.sender_role === "admin";
+                  const ord = m.order_id ? orderStatuses[m.order_id] : null;
+                  const completed = ord?.status === "approved" || ord?.status === "finished" || ord?.status === "completed";
                   return (
                     <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                       <div
@@ -309,6 +311,33 @@ const SupportManage = () => {
                             : "bg-card border border-border rounded-bl-md"
                         }`}
                       >
+                        {m.order_id && (
+                          <div className={`mb-2 flex flex-wrap items-center gap-2 pb-2 border-b ${mine ? "border-primary-foreground/20" : "border-border"}`}>
+                            <Badge variant={completed ? "default" : "secondary"} className="gap-1 text-[10px]">
+                              <Package className="h-3 w-3" />
+                              Order #{m.order_id.slice(0, 8).toUpperCase()}
+                            </Badge>
+                            <Badge variant={completed ? "default" : "outline"} className="text-[10px]">
+                              {completed ? "Completed" : "Pending Admin Info"}
+                            </Badge>
+                            {ord?.product_name && (
+                              <span className={`text-[10px] ${mine ? "opacity-80" : "text-muted-foreground"}`}>
+                                {ord.product_name}
+                              </span>
+                            )}
+                            {!completed && !mine && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => markOrderCompleted(m.order_id!)}
+                              >
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                Mark Completed
+                              </Button>
+                            )}
+                          </div>
+                        )}
                         <p className="whitespace-pre-wrap">{m.body}</p>
                         <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
                           {new Date(m.created_at).toLocaleString()}
