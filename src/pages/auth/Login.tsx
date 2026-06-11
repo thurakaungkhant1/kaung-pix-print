@@ -58,6 +58,26 @@ const Login = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast({ title: "Google sign-in failed", description: (result.error as any).message || "Try again", variant: "destructive" });
+        setGoogleLoading(false);
+        return;
+      }
+      if (result.redirected) return;
+      if (redirectTo) navigate(redirectTo);
+      else navigate("/");
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Google sign-in failed", variant: "destructive" });
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <MobileLayout className="min-h-screen flex flex-col bg-background">
       {/* Hero header */}
