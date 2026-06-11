@@ -173,6 +173,7 @@ const App = () => {
               <InterstitialAd />
               <MessageNotifier />
               <FriendRequestNotifier />
+              <AdminSupportNotifier />
               <PresenceTracker />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
