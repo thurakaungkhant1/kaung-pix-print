@@ -333,8 +333,15 @@ const ChatThread = () => {
                 }`}
               >
                 <p className="whitespace-pre-wrap">{m.content}</p>
-                <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
-                  {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                <p className={`text-[10px] mt-1 flex items-center gap-1 ${mine ? "justify-end opacity-80" : "text-muted-foreground"}`}>
+                  <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  {mine && (
+                    m.read_at ? (
+                      <CheckCheck className="h-3.5 w-3.5 text-sky-300" aria-label="Seen" />
+                    ) : (
+                      <Check className="h-3.5 w-3.5 opacity-80" aria-label="Sent" />
+                    )
+                  )}
                 </p>
               </div>
             </div>
