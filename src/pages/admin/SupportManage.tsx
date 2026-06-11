@@ -72,6 +72,12 @@ const SupportManage = () => {
       });
     }
     setThreads([...map.values()].sort((a, b) => +new Date(b.last_at) - +new Date(a.last_at)));
+
+    const grouped: Record<string, Msg[]> = {};
+    for (const m of msgs as Msg[]) {
+      (grouped[m.user_id] ||= []).push(m);
+    }
+    setAllMessages(grouped);
   };
 
   useEffect(() => {
