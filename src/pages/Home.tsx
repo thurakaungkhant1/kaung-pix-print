@@ -146,6 +146,23 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    const loadDigital = async () => {
+      const { data } = await (supabase as any)
+        .from('digital_categories')
+        .select('id,name,slug,icon,display_order,is_active')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      setDigitalCats((data || []) as DigitalCategory[]);
+    };
+    loadDigital();
+    const channel = supabase
+      .channel('home-digital-cats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'digital_categories' }, () => loadDigital())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     supabase.from('profiles').select('name, wallet_balance').eq('id', user.id).single()
       .then(({ data }) => {
