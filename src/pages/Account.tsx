@@ -460,8 +460,6 @@ const Account = () => {
 
             <Card className="rounded-2xl border-border/40 shadow-sm">
               <CardContent className="p-1">
-                <SettingItem icon={MessageCircle} label="Messages" description="User ချင်း စကားပြောရန်" onClick={() => navigate("/messages")} />
-                <Separator className="my-0.5" />
                 <SettingItem icon={Sparkles} label="AI Assistant" onClick={() => navigate("/ai-chat")} />
                 <Separator className="my-0.5" />
                 {isAdmin && (

@@ -258,8 +258,11 @@ const Messages = () => {
         loadBlocked();
       })
       .subscribe();
+    // Refresh conversation list every 30s so last_seen timestamps stay current
+    const refreshTimer = setInterval(() => loadConversations(), 30_000);
     return () => {
       supabase.removeChannel(ch);
+      clearInterval(refreshTimer);
     };
   }, [user, loadConversations, loadFriendsAndRequests, loadBlocked]);
 

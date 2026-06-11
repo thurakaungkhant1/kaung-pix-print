@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Send, Smile, MoreVertical, Ban, UserPlus, Clock } from "lucide-react";
+import { ArrowLeft, Send, Smile, MoreVertical, Ban, UserPlus, Clock, Check, CheckCheck } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import ChatSettingsDialog from "@/components/ChatSettingsDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ interface Msg {
   sender_id: string;
   content: string;
   created_at: string;
+  read_at: string | null;
 }
 
 interface OtherProfile {
@@ -82,10 +83,18 @@ const ChatThread = () => {
 
       const { data: msgs } = await supabase
         .from("messages")
-        .select("id, conversation_id, sender_id, content, created_at")
+        .select("id, conversation_id, sender_id, content, created_at, read_at")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
       setMessages(msgs || []);
+
+      // Mark received messages as read
+      if (user && msgs && msgs.length) {
+        const unreadIds = msgs.filter((m: any) => m.sender_id !== user.id && !m.read_at).map((m: any) => m.id);
+        if (unreadIds.length) {
+          await supabase.from("messages").update({ read_at: new Date().toISOString() }).in("id", unreadIds);
+        }
+      }
     })();
 
     const channel = supabase
@@ -93,8 +102,19 @@ const ChatThread = () => {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
-        (payload: any) => {
+        async (payload: any) => {
           setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]));
+          // If incoming message is from the other user, mark it as read immediately
+          if (user && payload.new.sender_id !== user.id) {
+            await supabase.from("messages").update({ read_at: new Date().toISOString() }).eq("id", payload.new.id);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
+        (payload: any) => {
+          setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new } : m)));
         }
       )
       .on(
@@ -140,6 +160,22 @@ const ChatThread = () => {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Refresh other user's last_seen_at periodically so "X minutes ago" is real-time
+  useEffect(() => {
+    if (!other?.id) return;
+    const refresh = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("last_seen_at")
+        .eq("id", other.id)
+        .maybeSingle();
+      if (data) setOther((prev) => (prev ? { ...prev, last_seen_at: data.last_seen_at } : prev));
+    };
+    const id = setInterval(refresh, 30_000);
+    return () => clearInterval(id);
+  }, [other?.id]);
+
 
   // Tick for cooldown countdown
   useEffect(() => {
@@ -297,8 +333,15 @@ const ChatThread = () => {
                 }`}
               >
                 <p className="whitespace-pre-wrap">{m.content}</p>
-                <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
-                  {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                <p className={`text-[10px] mt-1 flex items-center gap-1 ${mine ? "justify-end opacity-80" : "text-muted-foreground"}`}>
+                  <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  {mine && (
+                    m.read_at ? (
+                      <CheckCheck className="h-3.5 w-3.5 text-sky-300" aria-label="Seen" />
+                    ) : (
+                      <Check className="h-3.5 w-3.5 opacity-80" aria-label="Sent" />
+                    )
+                  )}
                 </p>
               </div>
             </div>
