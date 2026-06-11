@@ -72,11 +72,21 @@ const DigitalOrdersManage = () => {
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, user_id, quantity, price, status, created_at, payment_method, transaction_id, products!inner(name, image_url, category), profiles(name, phone_number, email)"
+        "id, user_id, quantity, price, status, created_at, payment_method, transaction_id, products!inner(name, image_url, category)"
       )
       .in("products.category", DIGITAL_CATS)
       .order("created_at", { ascending: false });
-    setOrders((data as any) || []);
+    const rows = (data as any[]) || [];
+    const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+    let profileMap: Record<string, any> = {};
+    if (userIds.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, name, phone_number, email")
+        .in("id", userIds);
+      (profs || []).forEach((p: any) => (profileMap[p.id] = p));
+    }
+    setOrders(rows.map((r) => ({ ...r, profiles: profileMap[r.user_id] || null })));
     setLoading(false);
   };
 
