@@ -349,22 +349,46 @@ const SupportManage = () => {
                 <div ref={endRef} />
               </div>
 
-              <div className="p-3 border-t border-border flex gap-2 bg-background">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      send();
-                    }
-                  }}
-                  placeholder="Reply…"
-                  className="h-11 rounded-full px-4"
-                />
-                <Button onClick={send} disabled={sending || !input.trim()} size="icon" className="h-11 w-11 rounded-full">
-                  <Send className="h-4 w-4" />
-                </Button>
+              <div className="p-3 border-t border-border bg-background space-y-2">
+                <div className="flex gap-1.5 flex-wrap">
+                  {[
+                    "မင်္ဂလာပါ 👋 အချက်အလက် လက်ခံရရှိပါပြီ။ စစ်ဆေးပေးနေပါတယ်။",
+                    "Activation လုပ်ပေးပြီးပါပြီ ✅ ကျေးဇူးတင်ပါတယ်။",
+                    "ပိုပြီးအချက်အလက် (Email / Username / Package) ပို့ပေးပါ။",
+                    "Order ID အတည်ပြုပေးနိုင်ပါသလား?",
+                  ].map((tpl) => (
+                    <button
+                      key={tpl}
+                      onClick={() => setInput((prev) => (prev ? prev + "\n" + tpl : tpl))}
+                      className="text-[11px] px-2.5 py-1 rounded-full bg-muted hover:bg-muted/70 border border-border transition-colors"
+                    >
+                      {tpl.length > 32 ? tpl.slice(0, 32) + "…" : tpl}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2 items-end">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        send();
+                      }
+                    }}
+                    placeholder="Reply… (Ctrl/⌘ + Enter to send)"
+                    rows={2}
+                    className="flex-1 min-h-[44px] max-h-40 rounded-2xl border border-border bg-background px-4 py-2.5 text-sm resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary"
+                  />
+                  <Button
+                    onClick={send}
+                    disabled={sending || !input.trim()}
+                    className="h-11 rounded-full px-4 gap-2"
+                  >
+                    <Send className="h-4 w-4" />
+                    Send
+                  </Button>
+                </div>
               </div>
             </>
           )}
