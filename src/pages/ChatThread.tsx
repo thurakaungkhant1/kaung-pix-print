@@ -495,8 +495,11 @@ const ChatThread = () => {
             <Input
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={(e) => {
+                setInput(e.target.value);
+                if (e.target.value.trim()) broadcastTyping();
+              }}
+
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   send();
