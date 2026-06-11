@@ -499,12 +499,13 @@ const ChatThread = () => {
                 setInput(e.target.value);
                 if (e.target.value.trim()) broadcastTyping();
               }}
-
+              onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   send();
                 }
               }}
+
               placeholder="စာရိုက်ပါ…"
               maxLength={2000}
               className="h-11 rounded-full px-4"
