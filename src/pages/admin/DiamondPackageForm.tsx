@@ -10,12 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Gem } from "lucide-react";
 
+interface Tier { id: string; slug: string; label: string; emoji: string | null; }
 
 const DiamondPackageForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [tiers, setTiers] = useState<Tier[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -24,6 +26,11 @@ const DiamondPackageForm = () => {
     points_value: "0",
     diamond_tier: "auto",
   });
+
+  useEffect(() => {
+    (supabase as any).from("mlbb_diamond_tiers").select("*").eq("is_active", true).order("display_order")
+      .then(({ data }: any) => setTiers(data || []));
+  }, []);
 
 
   useEffect(() => {
@@ -203,11 +210,11 @@ const DiamondPackageForm = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="auto">🤖 Auto (detect from name)</SelectItem>
-                    <SelectItem value="special">🎁 Special Offers</SelectItem>
-                    <SelectItem value="starter">✨ Starter Packs</SelectItem>
-                    <SelectItem value="popular">💎 Popular Packs</SelectItem>
-                    <SelectItem value="pro">🔥 Pro Packs</SelectItem>
-                    <SelectItem value="mega">👑 Mega Packs</SelectItem>
+                    {tiers.map((t) => (
+                      <SelectItem key={t.id} value={t.slug}>
+                        {t.emoji || "💎"} {t.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground mt-1">

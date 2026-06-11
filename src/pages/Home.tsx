@@ -428,6 +428,48 @@ const Home = () => {
             </section>
           </AnimatedSection>
 
+          {/* ── Digital Products + Support ── */}
+          <AnimatedSection delay={0.25}>
+            <section className="px-5 mt-6 grid grid-cols-2 gap-3">
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ y: -3 }}
+                onClick={() => navigate("/category/Digital%20Products")}
+                className="relative text-left rounded-2xl overflow-hidden p-4 min-h-[120px] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg ring-1 ring-white/10"
+              >
+                <div className="absolute -right-3 -bottom-3 opacity-25">
+                  <Package className="h-20 w-20" />
+                </div>
+                <div className="relative">
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 backdrop-blur text-[10px] font-bold tracking-wide">
+                    NEW
+                  </div>
+                  <h3 className="mt-2 text-base font-display font-black leading-tight">Digital Products</h3>
+                  <p className="text-[11px] opacity-90 mt-0.5">Software · Gift Cards · Courses</p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold">
+                    Browse <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ y: -3 }}
+                onClick={() => navigate("/support")}
+                className="relative text-left rounded-2xl overflow-hidden p-4 min-h-[120px] bg-card border border-border hover:border-primary/40 hover:shadow-lg transition-all"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center mb-2">
+                  <Bell className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="text-base font-display font-bold leading-tight">Chat with Admin</h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Need help? Message us anytime.</p>
+                <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-primary">
+                  Open chat <ArrowRight className="h-3 w-3" />
+                </span>
+              </motion.button>
+            </section>
+          </AnimatedSection>
+
           {/* ── Photo Gallery Preview ── */}
           <AnimatedSection delay={0.3}>
             <section className="px-5 mt-6">
