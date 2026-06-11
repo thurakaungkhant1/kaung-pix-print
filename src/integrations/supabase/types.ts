@@ -278,6 +278,36 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_error_logs: {
+        Row: {
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          provider: string
+          url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          provider: string
+          url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          provider?: string
+          url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       background_music: {
         Row: {
           created_at: string
@@ -366,6 +396,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chat_earning_settings: {
+        Row: {
+          cooldown_seconds: number
+          daily_cap: number
+          enabled: boolean
+          home_country: string
+          id: boolean
+          min_message_length: number
+          require_vpn: boolean
+          reward_per_message: number
+          updated_at: string
+        }
+        Insert: {
+          cooldown_seconds?: number
+          daily_cap?: number
+          enabled?: boolean
+          home_country?: string
+          id?: boolean
+          min_message_length?: number
+          require_vpn?: boolean
+          reward_per_message?: number
+          updated_at?: string
+        }
+        Update: {
+          cooldown_seconds?: number
+          daily_cap?: number
+          enabled?: boolean
+          home_country?: string
+          id?: boolean
+          min_message_length?: number
+          require_vpn?: boolean
+          reward_per_message?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       conversations: {
         Row: {

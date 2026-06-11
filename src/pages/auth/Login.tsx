@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -16,6 +17,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -58,14 +60,37 @@ const Login = () => {
     }
   };
 
+  const logGoogleError = async (err: any) => {
+    const message = err?.message || String(err) || "Unknown Google sign-in error";
+    const code = err?.code || err?.status || err?.error || null;
+    // Console log with full details for the developer console
+    console.error("[GoogleLogin] failed", { message, code, error: err });
+    // Server-side log (admins can review later)
+    try {
+      await supabase.from("auth_error_logs").insert({
+        provider: "google",
+        error_message: String(message).slice(0, 1000),
+        error_code: code ? String(code).slice(0, 100) : null,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null,
+        url: typeof window !== "undefined" ? window.location.href.slice(0, 500) : null,
+      });
+    } catch (logErr) {
+      console.warn("[GoogleLogin] failed to record error", logErr);
+    }
+    return message;
+  };
+
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
+    setGoogleError(null);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast({ title: "Google sign-in failed", description: (result.error as any).message || "Try again", variant: "destructive" });
+        const message = await logGoogleError(result.error);
+        setGoogleError(message);
+        toast({ title: "Google sign-in failed", description: message, variant: "destructive" });
         setGoogleLoading(false);
         return;
       }
@@ -73,10 +98,13 @@ const Login = () => {
       if (redirectTo) navigate(redirectTo);
       else navigate("/");
     } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Google sign-in failed", variant: "destructive" });
+      const message = await logGoogleError(e);
+      setGoogleError(message);
+      toast({ title: "Google sign-in failed", description: message, variant: "destructive" });
       setGoogleLoading(false);
     }
   };
+
 
   return (
     <MobileLayout className="min-h-screen flex flex-col bg-background">
@@ -213,6 +241,21 @@ const Login = () => {
                 </>
               )}
             </Button>
+
+            {googleError && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Google sign-in မအောင်မြင်ပါ</AlertTitle>
+                <AlertDescription className="space-y-1">
+                  <p className="text-xs break-words">{googleError}</p>
+                  <ul className="text-[11px] list-disc pl-4 opacity-90">
+                    <li>Pop-up/redirect block လုပ်ထားရင် browser setting မှာ ပြန်ဖွင့်ပါ</li>
+                    <li>VPN ဖွင့်ထားရင် ပိတ်ပြီး ပြန်ကြိုးစားကြည့်ပါ</li>
+                    <li>ဆက်ဖြစ်နေပါက email/password နဲ့ ဝင်ပါ ဒါမှမဟုတ် support ကို ဆက်သွယ်ပါ</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
 
             <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">
