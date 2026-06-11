@@ -161,6 +161,22 @@ const ChatThread = () => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Refresh other user's last_seen_at periodically so "X minutes ago" is real-time
+  useEffect(() => {
+    if (!other?.id) return;
+    const refresh = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("last_seen_at")
+        .eq("id", other.id)
+        .maybeSingle();
+      if (data) setOther((prev) => (prev ? { ...prev, last_seen_at: data.last_seen_at } : prev));
+    };
+    const id = setInterval(refresh, 30_000);
+    return () => clearInterval(id);
+  }, [other?.id]);
+
+
   // Tick for cooldown countdown
   useEffect(() => {
     if (!cooldownUntil) return;
