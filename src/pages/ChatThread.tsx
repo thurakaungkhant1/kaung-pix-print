@@ -323,6 +323,15 @@ const ChatThread = () => {
         </div>
       )}
 
+      {cooldownUntil && cooldownUntil > now && (
+        <div className="px-3 py-2 bg-amber-500/10 border-t border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-center gap-2">
+          <Clock className="h-3.5 w-3.5" />
+          <span>
+            Rate limit — နောက် <strong>{Math.max(0, Math.ceil((cooldownUntil - now) / 1000))}s</strong> ကြာရင် point ထပ်ရနိုင်ပါမည်။
+          </span>
+        </div>
+      )}
+
       <div className="p-3 border-t bg-background/95 backdrop-blur sticky bottom-0">
         {(iBlockedThem || theyBlockedMe) ? (
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-3">
