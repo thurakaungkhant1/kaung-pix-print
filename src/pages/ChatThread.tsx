@@ -173,10 +173,16 @@ const ChatThread = () => {
         />
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 pb-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 pb-4 bg-gradient-to-b from-background to-muted/20">
         {messages.length === 0 && (
-          <div className="text-center py-16 text-sm text-muted-foreground">
-            မင်္ဂလာပါ 👋 စကားစပြောလိုက်ပါ။
+          <div className="text-center py-20 px-6">
+            <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <Smile className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-1">မင်္ဂလာပါ 👋</h3>
+            <p className="text-sm text-muted-foreground">
+              {other?.name ? `${other.name} ကို စကားစပြောလိုက်ပါ။` : "စကားစပြောလိုက်ပါ။"}
+            </p>
           </div>
         )}
         {messages.map((m) => {
