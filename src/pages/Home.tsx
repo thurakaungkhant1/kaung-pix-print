@@ -206,84 +206,86 @@ const Home = () => {
             </motion.div>
           </header>
 
-          {/* ── AI Suite Card (mesh gradient + glassmorphism) ── */}
+          {/* ── Onyx Emerald Premium Preview + Digital Products ── */}
           <AnimatedSection delay={0.05}>
             <section className="px-5 pb-4">
               <motion.button
                 whileTap={{ scale: 0.98 }}
-                whileHover={{ y: -2 }}
-                onClick={() => navigate("/ai")}
-                aria-label="Open As You Like AI Suite"
-                className="w-full text-left relative overflow-hidden rounded-3xl group shadow-2xl ring-1 ring-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary mesh-hero"
+                whileHover={{ y: -3 }}
+                onClick={() => navigate("/category/Digital%20Products")}
+                aria-label="Browse Digital Products"
+                className="w-full text-left relative overflow-hidden rounded-3xl group shadow-2xl ring-1 ring-emerald-400/20"
+                style={{
+                  background:
+                    "radial-gradient(120% 80% at 0% 0%, rgba(16,185,129,0.25), transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(20,184,166,0.18), transparent 55%), linear-gradient(135deg, #050505 0%, #0a0f0d 55%, #06140f 100%)",
+                }}
               >
-                {/* Layered gradient + mesh blobs */}
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-600/95 via-fuchsia-500/90 to-blue-500/95" />
-                <motion.div
-                  animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-                  transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-20 -right-10 w-60 h-60 bg-pink-400/40 rounded-full blur-3xl"
+                <div className="absolute inset-0 opacity-40 mix-blend-screen pointer-events-none">
+                  <div className="absolute -top-10 -left-10 w-72 h-72 rounded-full bg-emerald-500/25 blur-3xl" />
+                  <div className="absolute -bottom-16 -right-10 w-72 h-72 rounded-full bg-teal-400/15 blur-3xl" />
+                </div>
+                <div
+                  className="absolute inset-0 opacity-[0.08] pointer-events-none"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+                    backgroundSize: "28px 28px",
+                  }}
                 />
-                <motion.div
-                  animate={{ x: [0, -25, 0], y: [0, 25, 0] }}
-                  transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-20 -left-10 w-56 h-56 bg-cyan-400/30 rounded-full blur-3xl"
-                />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.22),transparent_55%)]" />
 
                 <div className="relative z-10 p-6">
                   <div className="flex items-start gap-3">
-                    <div className="p-3 glass-chip rounded-2xl shadow-inner">
-                      <Sparkles className="h-6 w-6 text-white drop-shadow" />
+                    <div className="p-3 rounded-2xl bg-emerald-500/15 ring-1 ring-emerald-400/30 backdrop-blur">
+                      <Package className="h-6 w-6 text-emerald-300" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <Badge className="glass-chip text-white border-0 text-[10px] mb-1.5 hover:opacity-90 tracking-wider">
-                        ✨ NEW • AI SUITE
+                      <Badge className="bg-emerald-400/15 text-emerald-300 border border-emerald-400/30 text-[10px] mb-1.5 tracking-[0.18em] font-bold rounded-full px-2.5 py-0.5">
+                        ONYX • EMERALD
                       </Badge>
-                      <h3 className="text-xl sm:text-2xl font-display font-black text-white leading-tight drop-shadow-md tracking-tight">
-                        As You Like AI
+                      <h3 className="text-2xl font-display font-black text-white leading-tight tracking-tight drop-shadow">
+                        Digital Products
                       </h3>
-                      <p className="text-white/85 text-xs mt-1">
-                        Generate. Create. Share. Instantly.
+                      <p className="text-white/70 text-xs mt-1">
+                        Premium software, streaming, gift cards & courses.
                       </p>
                     </div>
-                    <ArrowRight className="h-5 w-5 text-white mt-2 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="h-5 w-5 text-emerald-300 mt-2 group-hover:translate-x-1 transition-transform" />
                   </div>
 
-                  {/* Interactive pill tags */}
                   <div className="mt-5 grid grid-cols-4 gap-2">
                     {[
-                      { label: "Photo", icon: Camera },
-                      { label: "Passport", icon: Shield },
-                      { label: "Prompts", icon: Zap },
-                      { label: "Gift", icon: Sparkles },
+                      { label: "Software", icon: Shield },
+                      { label: "Streaming", icon: Sparkles },
+                      { label: "Gift Cards", icon: Star },
+                      { label: "Courses", icon: Zap },
                     ].map((f) => (
                       <div
                         key={f.label}
-                        className="glass-chip rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 transition-all duration-300 group-hover:-translate-y-0.5 hover:bg-white/30"
+                        className="rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 hover:bg-emerald-500/10 hover:border-emerald-400/30"
                       >
-                        <f.icon className="h-4 w-4 text-white" />
-                        <span className="text-white text-[10px] font-semibold tracking-wide">
+                        <f.icon className="h-4 w-4 text-emerald-300" />
+                        <span className="text-white/90 text-[10px] font-semibold tracking-wide">
                           {f.label}
                         </span>
                       </div>
                     ))}
                   </div>
 
-                  {/* Pulsing gradient-border CTA */}
                   <div className="mt-5 flex items-center justify-between gap-3">
-                    <span className="cta-pulse-border inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-white text-purple-700 font-bold text-xs shadow-xl">
+                    <span className="inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-emerald-400 text-black font-bold text-xs shadow-[0_8px_24px_-6px_rgba(16,185,129,0.6)]">
                       <Sparkles className="h-3.5 w-3.5" />
-                      Try AI Now
+                      Browse Catalog
                       <ArrowRight className="h-3.5 w-3.5" />
                     </span>
-                    <span className="text-[10px] text-white/80 font-medium">
-                      5 free / day
+                    <span className="text-[10px] text-emerald-300/80 font-medium tracking-wider">
+                      NEW LOOK
                     </span>
                   </div>
                 </div>
               </motion.button>
             </section>
           </AnimatedSection>
+
 
           {/* ── Hero Banner ── */}
           {banners.length > 0 && (
