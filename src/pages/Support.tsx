@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Headphones, Shield } from "lucide-react";
+import { ArrowLeft, Send, Headphones, Shield, Package, CheckCircle2, Clock } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface Msg {
   id: string;
@@ -14,6 +15,7 @@ interface Msg {
   sender_role: "user" | "admin";
   body: string;
   created_at: string;
+  order_id?: string | null;
 }
 
 const Support = () => {
