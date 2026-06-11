@@ -579,37 +579,68 @@ Account info / Username / Email:
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Digital Product: ask admin for account info via chat */}
-        <AlertDialog open={showDigitalInfoDialog} onOpenChange={setShowDigitalInfoDialog}>
-          <AlertDialogContent className="max-w-sm">
-            <AlertDialogHeader>
-              <div className="flex justify-center mb-4">
-                <div className="p-4 rounded-full bg-primary/10">
-                  <Sparkles className="h-8 w-8 text-primary" />
+        {/* Digital Product: confirm / edit / copy the message before sending to admin */}
+        <Dialog open={showDigitalInfoDialog} onOpenChange={setShowDigitalInfoDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <div className="flex justify-center mb-2">
+                <div className="p-3 rounded-full bg-primary/10">
+                  <Sparkles className="h-7 w-7 text-primary" />
                 </div>
               </div>
-              <AlertDialogTitle className="text-center">အကောင့်အချက်အလက် ပေးပို့ပါ</AlertDialogTitle>
-              <AlertDialogDescription className="text-center">
-                {product?.name} ကို ဝယ်ယူပြီးပါပြီ 🎉
-                <br />
-                Admin team ထံ chat မှ သင့်ရဲ့ <span className="font-semibold text-foreground">account info (email / username / package)</span> ကို ပို့ပေးပါ။ Admin က မကြာမီ activation လုပ်ပေးပါမည်။
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-              <AlertDialogAction
-                onClick={() => {
-                  setShowDigitalInfoDialog(false);
-                  navigate("/support", {
-                    state: {
-                      prefill: `မင်္ဂလာပါ Admin 👋\n\nကျွန်တော်/မ ${product?.name} (x${quantity}) ကို ဝယ်ယူပြီးပါပြီ။\nAccount info / Username / Email:\n- \n\nကျေးဇူးပြု၍ activation လုပ်ပေးပါ။`,
-                    },
-                  });
-                }}
+              <DialogTitle className="text-center">Admin ကို Message အတည်ပြုပါ</DialogTitle>
+              <DialogDescription className="text-center text-xs">
+                ပို့မည့်စာကို ဖတ်ပြီး လိုအပ်ရင် ပြင်နိုင်ပါတယ်။ Copy လည်း လုပ်နိုင်ပါတယ်။
+              </DialogDescription>
+            </DialogHeader>
+            <Textarea
+              value={draftMessage}
+              onChange={(e) => setDraftMessage(e.target.value)}
+              rows={12}
+              className="text-xs font-mono"
+            />
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
+              <Button
+                variant="outline"
                 className="w-full"
+                onClick={() => {
+                  navigator.clipboard.writeText(draftMessage);
+                  toast({ title: "Copied!", description: "Message ကို copy လုပ်ပြီးပါပြီ" });
+                }}
               >
-                Admin ကို Message ပို့မယ်
-              </AlertDialogAction>
-              <AlertDialogCancel className="w-full">နောက်မှ</AlertDialogCancel>
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Message
+              </Button>
+              <Button
+                className="w-full"
+                disabled={sendingDraft || !draftMessage.trim()}
+                onClick={async () => {
+                  if (!user) return;
+                  setSendingDraft(true);
+                  const { error } = await (supabase as any).from("support_messages").insert({
+                    user_id: user.id,
+                    sender_role: "user",
+                    body: draftMessage.trim(),
+                    order_id: draftOrderId,
+                  });
+                  setSendingDraft(false);
+                  if (error) {
+                    toast({ title: "Send failed", description: error.message, variant: "destructive" });
+                    return;
+                  }
+                  setShowDigitalInfoDialog(false);
+                  navigate("/support");
+                }}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                {sendingDraft ? "Sending…" : "Admin ထံ ပို့မယ်"}
+              </Button>
+              <Button variant="ghost" className="w-full" onClick={() => setShowDigitalInfoDialog(false)}>
+                နောက်မှ
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
