@@ -117,12 +117,33 @@ export interface AwardResult {
   cooldownRemaining?: number;
 }
 
+const logAttempt = async (
+  userId: string,
+  amount: number,
+  reason: AwardReason,
+  message?: string,
+  cooldownRemaining?: number,
+  country?: string | null
+) => {
+  try {
+    await supabase.from("chat_reward_logs").insert({
+      user_id: userId,
+      amount,
+      reason,
+      message_preview: message ? message.slice(0, 120) : null,
+      cooldown_remaining: cooldownRemaining ?? null,
+      country: country ?? null,
+    });
+  } catch {}
+};
+
 /**
  * Award chat coins for sending a message with anti-abuse guards:
  * - admin-controlled settings (enabled, VPN required, caps, cooldown, min length)
  * - per-message cooldown (rate limit)
  * - duplicate message guard
  * - daily cap cross-checked against `point_transactions`
+ * Every attempt is also written to `chat_reward_logs` for admin audit.
  */
 export const awardChatPoints = async (
   userId: string,
@@ -131,11 +152,15 @@ export const awardChatPoints = async (
   if (!userId) return { amount: 0, reason: "no_user" };
 
   const settings = await getChatEarningSettings();
-  if (!settings.enabled) return { amount: 0, reason: "disabled" };
+  if (!settings.enabled) {
+    await logAttempt(userId, 0, "disabled", message);
+    return { amount: 0, reason: "disabled" };
+  }
 
   // Min message length
   const text = (message || "").trim();
   if (text.length < settings.min_message_length) {
+    await logAttempt(userId, 0, "too_short", text);
     return { amount: 0, reason: "too_short" };
   }
 
@@ -143,6 +168,7 @@ export const awardChatPoints = async (
   try {
     const prev = localStorage.getItem(lastMsgKey(userId));
     if (prev && prev === text) {
+      await logAttempt(userId, 0, "duplicate", text);
       return { amount: 0, reason: "duplicate" };
     }
     localStorage.setItem(lastMsgKey(userId), text);
@@ -154,22 +180,28 @@ export const awardChatPoints = async (
     const elapsedMs = Date.now() - last;
     const cdMs = settings.cooldown_seconds * 1000;
     if (last && elapsedMs < cdMs) {
-      return {
-        amount: 0,
-        reason: "cooldown",
-        cooldownRemaining: Math.ceil((cdMs - elapsedMs) / 1000),
-      };
+      const remaining = Math.ceil((cdMs - elapsedMs) / 1000);
+      await logAttempt(userId, 0, "cooldown", text, remaining);
+      return { amount: 0, reason: "cooldown", cooldownRemaining: remaining };
     }
   } catch {}
 
   // VPN requirement
+  let detectedCountry: string | null = null;
   if (settings.require_vpn) {
-    const vpnOn = await isUsingVPN(settings.home_country);
-    if (!vpnOn) return { amount: 0, reason: "vpn_required" };
+    detectedCountry = await detectCountry();
+    const vpnOn = !!detectedCountry && detectedCountry !== settings.home_country.toUpperCase();
+    if (!vpnOn) {
+      await logAttempt(userId, 0, "vpn_required", text, undefined, detectedCountry);
+      return { amount: 0, reason: "vpn_required" };
+    }
   }
 
   const localUsed = getTodayChatEarned(userId);
-  if (localUsed >= settings.daily_cap) return { amount: 0, reason: "daily_cap" };
+  if (localUsed >= settings.daily_cap) {
+    await logAttempt(userId, 0, "daily_cap", text, undefined, detectedCountry);
+    return { amount: 0, reason: "daily_cap" };
+  }
 
   // Cross-check daily cap with DB
   const start = new Date();
@@ -183,12 +215,16 @@ export const awardChatPoints = async (
   const dbUsed = (txns || []).reduce((s, t: any) => s + (t.amount || 0), 0);
   if (dbUsed >= settings.daily_cap) {
     setTodayChatEarned(userId, dbUsed);
+    await logAttempt(userId, 0, "daily_cap", text, undefined, detectedCountry);
     return { amount: 0, reason: "daily_cap" };
   }
 
   const remaining = settings.daily_cap - dbUsed;
   const amount = Math.max(0, Math.min(settings.reward_per_message, remaining));
-  if (amount === 0) return { amount: 0, reason: "daily_cap" };
+  if (amount === 0) {
+    await logAttempt(userId, 0, "daily_cap", text, undefined, detectedCountry);
+    return { amount: 0, reason: "daily_cap" };
+  }
 
   const { data: prof } = await supabase
     .from("profiles")
@@ -201,7 +237,10 @@ export const awardChatPoints = async (
     .from("profiles")
     .update({ points: next })
     .eq("id", userId);
-  if (upErr) return { amount: 0, reason: "error" };
+  if (upErr) {
+    await logAttempt(userId, 0, "error", text, undefined, detectedCountry);
+    return { amount: 0, reason: "error" };
+  }
 
   await supabase.from("point_transactions").insert({
     user_id: userId,
@@ -214,5 +253,6 @@ export const awardChatPoints = async (
   try {
     localStorage.setItem(lastAwardKey(userId), String(Date.now()));
   } catch {}
+  await logAttempt(userId, amount, "ok", text, undefined, detectedCountry);
   return { amount, reason: "ok" };
 };

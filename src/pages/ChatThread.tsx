@@ -45,6 +45,8 @@ const ChatThread = () => {
   const [theyBlockedMe, setTheyBlockedMe] = useState(false);
   const [friendStatus, setFriendStatus] = useState<FriendStatus>("none");
   const [requestingFriend, setRequestingFriend] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
   const online = usePresenceMap();
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -139,6 +141,20 @@ const ChatThread = () => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Tick for cooldown countdown
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= cooldownUntil) {
+        setCooldownUntil(null);
+        clearInterval(id);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [cooldownUntil]);
+
   const send = async () => {
     if (!user || !conversationId || !input.trim() || sending) return;
     if (iBlockedThem) {
@@ -178,11 +194,13 @@ const ChatThread = () => {
       const result = await awardChatPoints(user.id, body);
       if (result.amount > 0) {
         toast({ title: `+${result.amount} coin`, description: "Chat reward earned" });
+        setCooldownUntil(null);
       } else if (result.reason === "vpn_required") {
         toast({ title: "VPN required", description: "Turn on VPN to earn chat coins." });
       } else if (result.reason === "cooldown" && result.cooldownRemaining) {
-        // Silent-ish hint; don't spam
-        console.debug(`[chat-earn] cooldown ${result.cooldownRemaining}s`);
+        setCooldownUntil(Date.now() + result.cooldownRemaining * 1000);
+      } else if (result.reason === "daily_cap") {
+        toast({ title: "Daily cap reached", description: "Come back tomorrow for more chat coins." });
       }
     }
     setSending(false);
@@ -302,6 +320,15 @@ const ChatThread = () => {
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {cooldownUntil && cooldownUntil > now && (
+        <div className="px-3 py-2 bg-amber-500/10 border-t border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-center gap-2">
+          <Clock className="h-3.5 w-3.5" />
+          <span>
+            Rate limit — နောက် <strong>{Math.max(0, Math.ceil((cooldownUntil - now) / 1000))}s</strong> ကြာရင် point ထပ်ရနိုင်ပါမည်။
+          </span>
         </div>
       )}
 

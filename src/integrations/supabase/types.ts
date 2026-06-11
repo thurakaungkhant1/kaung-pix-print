@@ -433,6 +433,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_reward_logs: {
+        Row: {
+          amount: number
+          cooldown_remaining: number | null
+          country: string | null
+          created_at: string
+          id: string
+          message_preview: string | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          cooldown_remaining?: number | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          message_preview?: string | null
+          reason: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          cooldown_remaining?: number | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          message_preview?: string | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string | null
