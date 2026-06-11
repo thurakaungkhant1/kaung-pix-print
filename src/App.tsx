@@ -93,6 +93,7 @@ const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
 const Support = lazy(() => import("./pages/Support"));
 const SupportManage = lazy(() => import("./pages/admin/SupportManage"));
 const DiamondTiersManage = lazy(() => import("./pages/admin/DiamondTiersManage"));
+const DigitalCategoriesManage = lazy(() => import("./pages/admin/DigitalCategoriesManage"));
 import InterstitialAd from "@/components/InterstitialAd";
 
 const queryClient = new QueryClient();
