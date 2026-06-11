@@ -164,30 +164,36 @@ const ChatThread = () => {
           setFriendStatus(fs.status);
         }
       )
+      .on("broadcast", { event: "typing" }, (payload: any) => {
+        if (!user || payload?.payload?.user_id === user.id) return;
+        setOtherTyping(true);
+        if (otherTypingClearRef.current) clearTimeout(otherTypingClearRef.current);
+        otherTypingClearRef.current = setTimeout(() => setOtherTyping(false), 3500);
+      })
+      .on("broadcast", { event: "stop_typing" }, (payload: any) => {
+        if (!user || payload?.payload?.user_id === user.id) return;
+        setOtherTyping(false);
+      })
       .subscribe();
+    channelRef.current = channel;
     return () => {
+      channelRef.current = null;
       supabase.removeChannel(channel);
+      if (otherTypingClearRef.current) clearTimeout(otherTypingClearRef.current);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [conversationId, user]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, otherTyping]);
 
-  // Refresh other user's last_seen_at periodically so "X minutes ago" is real-time
+  // Re-render once a minute so "X minutes ago" stays fresh without polling the DB
   useEffect(() => {
-    if (!other?.id) return;
-    const refresh = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("last_seen_at")
-        .eq("id", other.id)
-        .maybeSingle();
-      if (data) setOther((prev) => (prev ? { ...prev, last_seen_at: data.last_seen_at } : prev));
-    };
-    const id = setInterval(refresh, 30_000);
+    const id = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(id);
-  }, [other?.id]);
+  }, []);
+
 
 
   // Tick for cooldown countdown
