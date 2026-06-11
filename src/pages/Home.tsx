@@ -70,6 +70,7 @@ const EARN_POINTS_GAMES = [
 ];
 
 const Home = () => {
+  const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [recentPhotos, setRecentPhotos] = useState<any[]>([]);
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
