@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -75,9 +75,11 @@ interface FRequest {
 const Messages = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const online = usePresenceMap();
 
-  const [tab, setTab] = useState("chats");
+  const [tab, setTab] = useState(searchParams.get("tab") || "chats");
+  const [blockedList, setBlockedList] = useState<UserRow[]>([]);
 
   const [convs, setConvs] = useState<ConvRow[]>([]);
   const [loadingConvs, setLoadingConvs] = useState(true);
