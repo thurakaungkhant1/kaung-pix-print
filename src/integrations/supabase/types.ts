@@ -1061,7 +1061,6 @@ export type Database = {
           category: string | null
           client_name: string
           created_at: string | null
-          download_pin: string | null
           file_size: number
           file_url: string
           id: number
@@ -1073,7 +1072,6 @@ export type Database = {
           category?: string | null
           client_name: string
           created_at?: string | null
-          download_pin?: string | null
           file_size: number
           file_url: string
           id?: number
@@ -1085,7 +1083,6 @@ export type Database = {
           category?: string | null
           client_name?: string
           created_at?: string | null
-          download_pin?: string | null
           file_size?: number
           file_url?: string
           id?: number
@@ -1461,7 +1458,6 @@ export type Database = {
           created_at: string | null
           daily_ai_credits: number
           daily_credits_reset_date: string | null
-          download_pin: string | null
           email: string | null
           game_points: number
           id: string
@@ -1482,7 +1478,6 @@ export type Database = {
           created_at?: string | null
           daily_ai_credits?: number
           daily_credits_reset_date?: string | null
-          download_pin?: string | null
           email?: string | null
           game_points?: number
           id: string
@@ -1503,7 +1498,6 @@ export type Database = {
           created_at?: string | null
           daily_ai_credits?: number
           daily_credits_reset_date?: string | null
-          download_pin?: string | null
           email?: string | null
           game_points?: number
           id?: string
