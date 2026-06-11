@@ -13,7 +13,7 @@ import {
   User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, 
   Lock, Coins, Gift, Trophy, ChevronRight, Sparkles, Camera, Loader2, 
   Trash2, Crown, Settings, History, AlertTriangle, Info, ShieldCheck,
-  Check, X, Pencil, CreditCard, Zap, Heart
+  Check, X, Pencil, CreditCard, Zap, Heart, MessageCircle
 } from "lucide-react";
 import AccountQualityBadge from "@/components/AccountQualityBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -460,6 +460,8 @@ const Account = () => {
 
             <Card className="rounded-2xl border-border/40 shadow-sm">
               <CardContent className="p-1">
+                <SettingItem icon={MessageCircle} label="Messages" description="User ချင်း စကားပြောရန်" onClick={() => navigate("/messages")} />
+                <Separator className="my-0.5" />
                 <SettingItem icon={Sparkles} label="AI Assistant" onClick={() => navigate("/ai-chat")} />
                 <Separator className="my-0.5" />
                 {isAdmin && (
