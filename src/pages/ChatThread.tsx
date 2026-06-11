@@ -114,6 +114,14 @@ const ChatThread = () => {
       toast({ title: "Cannot send", description: "This user has blocked you.", variant: "destructive" });
       return;
     }
+    if (friendStatus !== "accepted") {
+      toast({
+        title: "Not friends yet",
+        description: "Friend request လက်ခံပြီးမှသာ message ပို့လို့ ရပါသည်။",
+        variant: "destructive",
+      });
+      return;
+    }
     setSending(true);
     const body = input.trim().slice(0, 2000);
     setInput("");
@@ -148,16 +156,37 @@ const ChatThread = () => {
           <button onClick={() => navigate("/messages")} className="p-2 -ml-2 rounded-full hover:bg-primary-foreground/10">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <Avatar className="h-10 w-10 ring-2 ring-primary-foreground/30">
-            <AvatarImage src={other?.avatar_url ?? undefined} />
-            <AvatarFallback>{other?.name?.charAt(0)?.toUpperCase() || "?"}</AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-10 w-10 ring-2 ring-primary-foreground/30">
+              <AvatarImage src={other?.avatar_url ?? undefined} />
+              <AvatarFallback>{other?.name?.charAt(0)?.toUpperCase() || "?"}</AvatarFallback>
+            </Avatar>
+            {other && (
+              <span
+                className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-primary ${
+                  online.has(other.id) ? "bg-emerald-400" : "bg-muted-foreground/60"
+                }`}
+              />
+            )}
+          </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-display font-bold leading-tight truncate">
               {other?.name || "Chat"}
             </h1>
-            <p className="text-[11px] opacity-80">
-              {iBlockedThem ? "Blocked" : theyBlockedMe ? "Unavailable" : "Text & emoji only"}
+            <p className="text-[11px] opacity-80 flex items-center gap-1">
+              {iBlockedThem ? (
+                "Blocked"
+              ) : theyBlockedMe ? (
+                "Unavailable"
+              ) : other && online.has(other.id) ? (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Active now
+                </>
+              ) : (
+                <>
+                  <Clock className="h-3 w-3" /> {formatLastSeen(other?.last_seen_at)}
+                </>
+              )}
             </p>
           </div>
           <button
