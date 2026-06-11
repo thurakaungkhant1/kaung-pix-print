@@ -35,7 +35,23 @@ interface PromotionalBanner {
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Percent, Crown, Package, Flame, Sparkles, Clock, Star, ShoppingBag, Camera, Shield, Users,
+  Zap, Gamepad2, Smartphone, Wifi, Receipt, Wallet, ShoppingCart: ShoppingBag,
 };
+
+const DIGITAL_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  package: Package, shield: Shield, sparkles: Sparkles, star: Star, zap: Zap,
+  crown: Crown, gamepad: Gamepad2, smartphone: Smartphone, wifi: Wifi,
+  receipt: Receipt, wallet: Wallet, camera: Camera, flame: Flame,
+};
+
+interface DigitalCategory {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  display_order: number;
+  is_active: boolean;
+}
 
 const getBannerColor = (colorName: string): string => {
   const colorMap: Record<string, string> = {
