@@ -586,82 +586,90 @@ const Messages = () => {
   const totalRequests = incoming.length;
 
   return (
-    <MobileLayout className="flex flex-col bg-background">
-      <header className="bg-gradient-primary text-primary-foreground px-4 py-3 sticky top-0 z-40 shadow-md">
+    <MobileLayout className="flex flex-col bg-background relative overflow-hidden">
+      {/* Ambient luxe glow */}
+      <div className="pointer-events-none absolute -top-32 -left-24 w-[420px] h-[280px] bg-primary/15 blur-[120px] rounded-full" />
+      <div className="pointer-events-none absolute top-1/3 -right-24 w-[300px] h-[260px] bg-primary/10 blur-[120px] rounded-full" />
+
+      <header className="relative z-10 px-5 pt-4 pb-3 sticky top-0 backdrop-blur-2xl bg-background/70 border-b border-white/5">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 rounded-full hover:bg-primary-foreground/10"
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/10 active:scale-95 transition-transform"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 text-foreground/80" />
           </button>
-          <div className="w-10 h-10 rounded-full bg-primary-foreground/15 flex items-center justify-center">
-            <MessageCircle className="h-5 w-5" />
+          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_18px_-4px_hsl(var(--primary)/0.4)]">
+            <MessageCircle className="h-[18px] w-[18px] text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-base font-display font-bold leading-tight">Messages</h1>
+            <h1 className="text-xl font-display font-bold tracking-tight leading-none">Messages</h1>
+            <p className="text-[10px] text-muted-foreground/70 mt-1 tracking-wider uppercase">Private · Encrypted</p>
           </div>
         </div>
       </header>
 
-      <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col">
-        <TabsList className="mx-3 mt-3 grid grid-cols-4 rounded-full h-11 bg-muted p-1">
-          <TabsTrigger value="chats" className="rounded-full text-xs gap-1">
-            <Inbox className="h-3.5 w-3.5" /> Chats
-          </TabsTrigger>
-          <TabsTrigger value="friends" className="rounded-full text-xs gap-1">
-            <Users className="h-3.5 w-3.5" /> Friends
-          </TabsTrigger>
-          <TabsTrigger value="discover" className="rounded-full text-xs gap-1">
-            <Compass className="h-3.5 w-3.5" /> Discover
-          </TabsTrigger>
-          <TabsTrigger value="requests" className="rounded-full text-xs gap-1 relative">
-            <UserPlus className="h-3.5 w-3.5" /> Requests
-            {totalRequests > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] bg-destructive text-destructive-foreground">
-                {totalRequests}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col relative z-10">
+        <div className="px-4 pt-3">
+          <TabsList className="grid grid-cols-4 h-11 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/5 p-1 w-full">
+            <TabsTrigger value="chats" className="rounded-xl text-xs gap-1 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/25 data-[state=active]:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.35)] data-[state=active]:font-semibold transition-all">
+              <Inbox className="h-3.5 w-3.5" /> Chats
+            </TabsTrigger>
+            <TabsTrigger value="friends" className="rounded-xl text-xs gap-1 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/25 data-[state=active]:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.35)] data-[state=active]:font-semibold transition-all">
+              <Users className="h-3.5 w-3.5" /> Friends
+            </TabsTrigger>
+            <TabsTrigger value="discover" className="rounded-xl text-xs gap-1 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/25 data-[state=active]:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.35)] data-[state=active]:font-semibold transition-all">
+              <Compass className="h-3.5 w-3.5" /> Discover
+            </TabsTrigger>
+            <TabsTrigger value="requests" className="rounded-xl text-xs gap-1 relative data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/25 data-[state=active]:shadow-[0_0_18px_-4px_hsl(var(--primary)/0.35)] data-[state=active]:font-semibold transition-all">
+              <UserPlus className="h-3.5 w-3.5" /> Requests
+              {totalRequests > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] bg-destructive text-destructive-foreground border-2 border-background">
+                  {totalRequests}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* CHATS TAB */}
         <TabsContent value="chats" className="flex-1 mt-0 overflow-hidden flex flex-col">
-          <div className="px-3 pt-3 pb-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="px-4 pt-4 pb-2 space-y-3">
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder="Search by name or message…"
-                className="pl-9 pr-9 h-10 rounded-full"
+                className="pl-11 pr-10 h-12 rounded-2xl bg-white/[0.03] border border-white/5 focus:border-primary/40 focus:bg-white/[0.05] focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 transition-all"
               />
               {filter && (
                 <button
                   onClick={() => setFilter("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/5"
                 >
                   <X className="h-4 w-4 text-muted-foreground" />
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-2 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
               <button
                 onClick={() => setOnlineOnly((v) => !v)}
-                className={`flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-medium border transition-all whitespace-nowrap ${
                   onlineOnly
-                    ? "bg-emerald-500 text-white border-emerald-500"
-                    : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                    ? "bg-primary/15 border-primary/30 text-primary shadow-[0_0_15px_-4px_hsl(var(--primary)/0.5)]"
+                    : "bg-white/[0.03] border-white/5 text-muted-foreground hover:border-primary/20"
                 }`}
               >
-                <Wifi className="h-3 w-3" /> Online only
+                <span className={`w-1.5 h-1.5 rounded-full ${onlineOnly ? "bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" : "bg-muted-foreground/40"}`} />
+                Online only
               </button>
               <button
                 onClick={() => setFriendsOnly((v) => !v)}
-                className={`flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-medium border transition-all whitespace-nowrap ${
                   friendsOnly
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                    ? "bg-primary/15 border-primary/30 text-primary shadow-[0_0_15px_-4px_hsl(var(--primary)/0.5)]"
+                    : "bg-white/[0.03] border-white/5 text-muted-foreground hover:border-primary/20"
                 }`}
               >
                 <UserCheck className="h-3 w-3" /> Friends only
@@ -672,18 +680,18 @@ const Messages = () => {
                     setOnlineOnly(false);
                     setFriendsOnly(false);
                   }}
-                  className="flex items-center gap-1 px-2 h-7 rounded-full text-[11px] text-muted-foreground hover:text-foreground"
+                  className="flex items-center gap-1 px-2 h-8 rounded-full text-[11px] text-muted-foreground hover:text-foreground"
                 >
                   <X className="h-3 w-3" /> Clear
                 </button>
               )}
               <button
                 onClick={() => setBlockedSheetOpen(true)}
-                className="ml-auto flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border border-destructive/30 text-destructive bg-destructive/5 hover:bg-destructive/10 whitespace-nowrap"
+                className="ml-auto flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-medium border border-destructive/25 text-destructive bg-destructive/5 hover:bg-destructive/10 whitespace-nowrap"
               >
                 <Ban className="h-3 w-3" /> Blocked
                 {blockedList.length > 0 && (
-                  <span className="ml-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] flex items-center justify-center">
+                  <span className="ml-0.5 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
                     {blockedList.length}
                   </span>
                 )}
@@ -696,18 +704,25 @@ const Messages = () => {
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             ) : filteredConvs.length === 0 ? (
-              <div className="text-center py-20 px-6">
-                <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <MessageCircle className="h-8 w-8 text-primary" />
+              <div className="text-center py-16 px-8 flex flex-col items-center">
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+                  <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-inner">
+                    <MessageCircle className="h-10 w-10 text-primary" strokeWidth={1.5} />
+                  </div>
                 </div>
-                <h3 className="font-semibold mb-1">
+                <h3 className="font-display font-semibold text-lg mb-2">
                   {filter ? "ရှာဖွေမှု ရလဒ်မရှိပါ" : "စကားပြောစရာ မရှိသေးပါ"}
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground/80 leading-relaxed mb-6 max-w-[260px]">
                   Friends tab မှ သူငယ်ချင်းတွေကို မက်ဆေ့ပို့ပါ။
                 </p>
-                <Button onClick={() => setTab("friends")} className="rounded-full">
-                  <Users className="h-4 w-4 mr-1" /> View Friends
+                <Button
+                  onClick={() => setTab("friends")}
+                  className="group relative h-12 px-8 rounded-2xl font-semibold shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.5)] active:scale-[0.98] transition-all overflow-hidden"
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  <Users className="h-4 w-4 mr-2 relative" /> <span className="relative">View Friends</span>
                 </Button>
               </div>
             ) : (
