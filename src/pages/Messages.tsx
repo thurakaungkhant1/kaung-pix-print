@@ -408,23 +408,26 @@ const Messages = () => {
     if (id) navigate(`/messages/${id}`);
   };
 
+  const friendIds = useMemo(() => new Set(friends.map((f) => f.id)), [friends]);
+
   const filteredConvs = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    const base = !q
-      ? convs
-      : convs.filter((c) => {
-          const name = c.other?.name?.toLowerCase() || "";
-          const last = c.last?.content?.toLowerCase() || "";
-          return name.includes(q) || last.includes(q);
-        });
-    // Sort: online first, then by most recent activity
+    let base = convs;
+    if (q)
+      base = base.filter((c) => {
+        const name = c.other?.name?.toLowerCase() || "";
+        const last = c.last?.content?.toLowerCase() || "";
+        return name.includes(q) || last.includes(q);
+      });
+    if (onlineOnly) base = base.filter((c) => c.other && online.has(c.other.id));
+    if (friendsOnly) base = base.filter((c) => c.other && friendIds.has(c.other.id));
     return [...base].sort((a, b) => {
       const aOn = a.other ? (online.has(a.other.id) ? 1 : 0) : 0;
       const bOn = b.other ? (online.has(b.other.id) ? 1 : 0) : 0;
       if (aOn !== bOn) return bOn - aOn;
       return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
-  }, [convs, filter, online]);
+  }, [convs, filter, online, onlineOnly, friendsOnly, friendIds]);
 
   const groupedConvs = useMemo(() => {
     const onlineGroup: ConvRow[] = [];
