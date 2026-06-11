@@ -83,10 +83,18 @@ const ChatThread = () => {
 
       const { data: msgs } = await supabase
         .from("messages")
-        .select("id, conversation_id, sender_id, content, created_at")
+        .select("id, conversation_id, sender_id, content, created_at, read_at")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
       setMessages(msgs || []);
+
+      // Mark received messages as read
+      if (user && msgs && msgs.length) {
+        const unreadIds = msgs.filter((m: any) => m.sender_id !== user.id && !m.read_at).map((m: any) => m.id);
+        if (unreadIds.length) {
+          await supabase.from("messages").update({ read_at: new Date().toISOString() }).in("id", unreadIds);
+        }
+      }
     })();
 
     const channel = supabase
