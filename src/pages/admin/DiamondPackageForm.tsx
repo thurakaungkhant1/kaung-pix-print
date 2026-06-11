@@ -210,11 +210,11 @@ const DiamondPackageForm = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="auto">🤖 Auto (detect from name)</SelectItem>
-                    <SelectItem value="special">🎁 Special Offers</SelectItem>
-                    <SelectItem value="starter">✨ Starter Packs</SelectItem>
-                    <SelectItem value="popular">💎 Popular Packs</SelectItem>
-                    <SelectItem value="pro">🔥 Pro Packs</SelectItem>
-                    <SelectItem value="mega">👑 Mega Packs</SelectItem>
+                    {tiers.map((t) => (
+                      <SelectItem key={t.id} value={t.slug}>
+                        {t.emoji || "💎"} {t.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground mt-1">
