@@ -1529,6 +1529,7 @@ export type Database = {
           id: string
           is_active_visible: boolean | null
           language: string | null
+          last_seen_at: string | null
           name: string
           phone_number: string
           points: number
@@ -1549,6 +1550,7 @@ export type Database = {
           id: string
           is_active_visible?: boolean | null
           language?: string | null
+          last_seen_at?: string | null
           name: string
           phone_number: string
           points?: number
@@ -1569,6 +1571,7 @@ export type Database = {
           id?: string
           is_active_visible?: boolean | null
           language?: string | null
+          last_seen_at?: string | null
           name?: string
           phone_number?: string
           points?: number

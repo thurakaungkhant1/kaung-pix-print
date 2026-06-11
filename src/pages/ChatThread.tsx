@@ -5,10 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Send, Smile, MoreVertical, Ban } from "lucide-react";
+import { ArrowLeft, Send, Smile, MoreVertical, Ban, UserPlus, Clock } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import ChatSettingsDialog from "@/components/ChatSettingsDialog";
 import { useToast } from "@/hooks/use-toast";
+import { usePresenceMap, formatLastSeen } from "@/hooks/usePresence";
+import { getFriendStatus, sendFriendRequest, FriendStatus } from "@/lib/friendship";
 
 interface Msg {
   id: string;
@@ -22,6 +24,7 @@ interface OtherProfile {
   id: string;
   name: string;
   avatar_url: string | null;
+  last_seen_at: string | null;
 }
 
 const QUICK_EMOJIS = ["😀", "😂", "😍", "👍", "🙏", "🔥", "🎉", "❤️", "😢", "😎", "🤔", "👏"];
@@ -39,6 +42,9 @@ const ChatThread = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [iBlockedThem, setIBlockedThem] = useState(false);
   const [theyBlockedMe, setTheyBlockedMe] = useState(false);
+  const [friendStatus, setFriendStatus] = useState<FriendStatus>("none");
+  const [requestingFriend, setRequestingFriend] = useState(false);
+  const online = usePresenceMap();
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,18 +61,20 @@ const ChatThread = () => {
         const otherId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
         const { data: prof } = await supabase
           .from("profiles")
-          .select("id, name, avatar_url")
+          .select("id, name, avatar_url, last_seen_at")
           .eq("id", otherId)
           .maybeSingle();
         setOther(prof ?? null);
 
         // block status (both directions)
-        const [{ data: mine }, { data: theirs }] = await Promise.all([
+        const [{ data: mine }, { data: theirs }, fs] = await Promise.all([
           supabase.from("blocked_users").select("id").eq("blocker_id", user.id).eq("blocked_id", otherId).maybeSingle(),
           supabase.from("blocked_users").select("id").eq("blocker_id", otherId).eq("blocked_id", user.id).maybeSingle(),
+          getFriendStatus(user.id, otherId),
         ]);
         setIBlockedThem(!!mine);
         setTheyBlockedMe(!!theirs);
+        setFriendStatus(fs.status);
       }
 
       const { data: msgs } = await supabase
@@ -106,6 +114,14 @@ const ChatThread = () => {
       toast({ title: "Cannot send", description: "This user has blocked you.", variant: "destructive" });
       return;
     }
+    if (friendStatus !== "accepted") {
+      toast({
+        title: "Not friends yet",
+        description: "Friend request လက်ခံပြီးမှသာ message ပို့လို့ ရပါသည်။",
+        variant: "destructive",
+      });
+      return;
+    }
     setSending(true);
     const body = input.trim().slice(0, 2000);
     setInput("");
@@ -140,16 +156,37 @@ const ChatThread = () => {
           <button onClick={() => navigate("/messages")} className="p-2 -ml-2 rounded-full hover:bg-primary-foreground/10">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <Avatar className="h-10 w-10 ring-2 ring-primary-foreground/30">
-            <AvatarImage src={other?.avatar_url ?? undefined} />
-            <AvatarFallback>{other?.name?.charAt(0)?.toUpperCase() || "?"}</AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-10 w-10 ring-2 ring-primary-foreground/30">
+              <AvatarImage src={other?.avatar_url ?? undefined} />
+              <AvatarFallback>{other?.name?.charAt(0)?.toUpperCase() || "?"}</AvatarFallback>
+            </Avatar>
+            {other && (
+              <span
+                className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-primary ${
+                  online.has(other.id) ? "bg-emerald-400" : "bg-muted-foreground/60"
+                }`}
+              />
+            )}
+          </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-display font-bold leading-tight truncate">
               {other?.name || "Chat"}
             </h1>
-            <p className="text-[11px] opacity-80">
-              {iBlockedThem ? "Blocked" : theyBlockedMe ? "Unavailable" : "Text & emoji only"}
+            <p className="text-[11px] opacity-80 flex items-center gap-1">
+              {iBlockedThem ? (
+                "Blocked"
+              ) : theyBlockedMe ? (
+                "Unavailable"
+              ) : other && online.has(other.id) ? (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Active now
+                </>
+              ) : (
+                <>
+                  <Clock className="h-3 w-3" /> {formatLastSeen(other?.last_seen_at)}
+                </>
+              )}
             </p>
           </div>
           <button
@@ -230,6 +267,37 @@ const ChatThread = () => {
             {iBlockedThem
               ? "User ကို block လုပ်ထားသည်။ Unblock လုပ်ပါ။"
               : "ဤ user မှ block လုပ်ထားသည်။"}
+          </div>
+        ) : friendStatus !== "accepted" ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-3 px-2">
+            <p className="text-xs text-muted-foreground text-center">
+              {friendStatus === "pending_out"
+                ? "Friend request ပို့ပြီးပြီ။ တစ်ဖက်က လက်ခံမှ စကားပြောလို့ ရပါမည်။"
+                : friendStatus === "pending_in"
+                ? "Friend request တောင်းခံထားသည်။ Accept လုပ်ပြီးမှ စကားပြောလို့ ရပါမည်။"
+                : "Friend request ပို့ပြီးမှ စကားပြောလို့ ရပါမည်။"}
+            </p>
+            {friendStatus === "none" && other && (
+              <Button
+                size="sm"
+                className="rounded-full"
+                disabled={requestingFriend}
+                onClick={async () => {
+                  if (!user || !other) return;
+                  setRequestingFriend(true);
+                  const { error } = await sendFriendRequest(user.id, other.id);
+                  setRequestingFriend(false);
+                  if (error) {
+                    toast({ title: "Failed", description: error.message, variant: "destructive" });
+                  } else {
+                    setFriendStatus("pending_out");
+                    toast({ title: "Friend request sent" });
+                  }
+                }}
+              >
+                <UserPlus className="h-4 w-4 mr-1" /> Send friend request
+              </Button>
+            )}
           </div>
         ) : (
           <div className="flex gap-2 items-center">
