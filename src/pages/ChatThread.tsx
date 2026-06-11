@@ -98,6 +98,14 @@ const ChatThread = () => {
 
   const send = async () => {
     if (!user || !conversationId || !input.trim() || sending) return;
+    if (iBlockedThem) {
+      toast({ title: "Blocked", description: "Unblock to send messages.", variant: "destructive" });
+      return;
+    }
+    if (theyBlockedMe) {
+      toast({ title: "Cannot send", description: "This user has blocked you.", variant: "destructive" });
+      return;
+    }
     setSending(true);
     const body = input.trim().slice(0, 2000);
     setInput("");
