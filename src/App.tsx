@@ -12,6 +12,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { MusicProvider } from "@/contexts/MusicContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import MessageNotifier from "@/components/MessageNotifier";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import LoadingScreen from "@/components/LoadingScreen";
 
