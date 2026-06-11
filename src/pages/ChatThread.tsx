@@ -102,8 +102,19 @@ const ChatThread = () => {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
-        (payload: any) => {
+        async (payload: any) => {
           setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]));
+          // If incoming message is from the other user, mark it as read immediately
+          if (user && payload.new.sender_id !== user.id) {
+            await supabase.from("messages").update({ read_at: new Date().toISOString() }).eq("id", payload.new.id);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
+        (payload: any) => {
+          setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new } : m)));
         }
       )
       .on(
