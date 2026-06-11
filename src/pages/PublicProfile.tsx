@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Coins, Calendar, Trophy, Users, Download, Loader2, Flag } from "lucide-react";
+import { ArrowLeft, User, Coins, Calendar, Trophy, Users, Download, Loader2, Flag, MessageCircle } from "lucide-react";
+import { getOrCreateConversation } from "@/lib/chat";
 import { useAuth } from "@/contexts/AuthContext";
 import VerificationBadge, { VERIFICATION_THRESHOLD } from "@/components/VerificationBadge";
 import { cn } from "@/lib/utils";
@@ -337,6 +338,22 @@ const PublicProfile = () => {
             onClick={() => navigate("/account")}
           >
             Edit Profile
+          </Button>
+        )}
+
+        {/* Message Button - Only for other users */}
+        {!isOwnProfile && user && profile && (
+          <Button
+            className="w-full h-12 rounded-xl animate-slide-up"
+            style={{ animationDelay: "150ms" }}
+            onClick={async () => {
+              const id = await getOrCreateConversation(user.id, profile.id);
+              if (id) navigate(`/messages/${id}`);
+              else toast({ title: "Failed to start chat", variant: "destructive" });
+            }}
+          >
+            <MessageCircle className="mr-2 h-4 w-4" />
+            Message
           </Button>
         )}
 
