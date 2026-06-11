@@ -174,10 +174,15 @@ const ChatThread = () => {
         .from("conversations")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", conversationId);
-      // Reward small coin for active chatting (capped per day)
-      const earned = await awardChatPoints(user.id);
-      if (earned > 0) {
-        toast({ title: `+${earned} coin`, description: "Chat reward earned" });
+      // Reward small coin for active chatting (capped per day, rate-limited)
+      const result = await awardChatPoints(user.id, body);
+      if (result.amount > 0) {
+        toast({ title: `+${result.amount} coin`, description: "Chat reward earned" });
+      } else if (result.reason === "vpn_required") {
+        toast({ title: "VPN required", description: "Turn on VPN to earn chat coins." });
+      } else if (result.reason === "cooldown" && result.cooldownRemaining) {
+        // Silent-ish hint; don't spam
+        console.debug(`[chat-earn] cooldown ${result.cooldownRemaining}s`);
       }
     }
     setSending(false);
