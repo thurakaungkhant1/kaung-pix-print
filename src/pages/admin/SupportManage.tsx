@@ -1,0 +1,246 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Send, Headphones, User as UserIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
+interface Msg {
+  id: string;
+  user_id: string;
+  sender_role: "user" | "admin";
+  body: string;
+  created_at: string;
+}
+
+interface ThreadInfo {
+  user_id: string;
+  name: string;
+  email: string | null;
+  last_body: string;
+  last_at: string;
+  unread: number;
+}
+
+const SupportManage = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [threads, setThreads] = useState<ThreadInfo[]>([]);
+  const [activeUserId, setActiveUserId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  const loadThreads = async () => {
+    const { data: msgs } = await (supabase as any)
+      .from("support_messages")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (!msgs) return;
+    const map = new Map<string, ThreadInfo>();
+    for (const m of msgs as Msg[]) {
+      const existing = map.get(m.user_id);
+      if (!existing) {
+        map.set(m.user_id, {
+          user_id: m.user_id,
+          name: "",
+          email: null,
+          last_body: m.body,
+          last_at: m.created_at,
+          unread: 0,
+        });
+      }
+      const t = map.get(m.user_id)!;
+      if (m.sender_role === "user" && !((m as any).is_read)) t.unread += 1;
+    }
+    const ids = [...map.keys()];
+    if (ids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, name, email").in("id", ids);
+      profs?.forEach((p: any) => {
+        const t = map.get(p.id);
+        if (t) {
+          t.name = p.name || "User";
+          t.email = p.email;
+        }
+      });
+    }
+    setThreads([...map.values()].sort((a, b) => +new Date(b.last_at) - +new Date(a.last_at)));
+  };
+
+  useEffect(() => {
+    loadThreads();
+    const channel = supabase
+      .channel("admin-support")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages" }, (payload: any) => {
+        loadThreads();
+        if (payload.new.user_id === activeUserId) {
+          setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]));
+        }
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeUserId]);
+
+  useEffect(() => {
+    if (!activeUserId) return;
+    (supabase as any)
+      .from("support_messages")
+      .select("*")
+      .eq("user_id", activeUserId)
+      .order("created_at", { ascending: true })
+      .then(({ data }: any) => setMessages(data || []));
+    // mark user messages as read
+    (supabase as any)
+      .from("support_messages")
+      .update({ is_read: true })
+      .eq("user_id", activeUserId)
+      .eq("sender_role", "user")
+      .then(() => loadThreads());
+  }, [activeUserId]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const send = async () => {
+    if (!activeUserId || !input.trim() || sending) return;
+    setSending(true);
+    const body = input.trim();
+    setInput("");
+    const { error } = await (supabase as any).from("support_messages").insert({
+      user_id: activeUserId,
+      sender_role: "admin",
+      body,
+    });
+    if (error) {
+      toast({ title: "Send failed", description: error.message, variant: "destructive" });
+      setInput(body);
+    }
+    setSending(false);
+  };
+
+  const active = useMemo(() => threads.find((t) => t.user_id === activeUserId), [threads, activeUserId]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="bg-gradient-primary text-primary-foreground px-4 py-3 sticky top-0 z-40 shadow-md">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} className="hover:bg-primary-foreground/10">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <Headphones className="h-5 w-5" />
+          <h1 className="text-base font-display font-bold">Support Inbox</h1>
+        </div>
+      </header>
+
+      <div className="grid md:grid-cols-[320px_1fr] h-[calc(100vh-56px)]">
+        {/* Threads list */}
+        <aside className={cn("border-r border-border overflow-y-auto bg-card/40", activeUserId && "hidden md:block")}>
+          {threads.length === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">No conversations yet.</p>
+          ) : (
+            threads.map((t) => (
+              <button
+                key={t.user_id}
+                onClick={() => setActiveUserId(t.user_id)}
+                className={cn(
+                  "w-full text-left p-3 border-b border-border hover:bg-muted/50 transition-colors flex gap-3 items-center",
+                  activeUserId === t.user_id && "bg-muted"
+                )}
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                  <UserIcon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-sm truncate">{t.name || "User"}</p>
+                    {t.unread > 0 && (
+                      <span className="text-[10px] bg-destructive text-destructive-foreground rounded-full px-2 py-0.5 font-bold">
+                        {t.unread}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{t.last_body}</p>
+                </div>
+              </button>
+            ))
+          )}
+        </aside>
+
+        {/* Active conversation */}
+        <section className={cn("flex flex-col", !activeUserId && "hidden md:flex")}>
+          {!activeUserId ? (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+              Select a conversation
+            </div>
+          ) : (
+            <>
+              <div className="px-4 py-3 border-b border-border flex items-center gap-3 bg-card/40">
+                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setActiveUserId(null)}>
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
+                  <UserIcon className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm truncate">{active?.name || "User"}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{active?.email || "—"}</p>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {messages.map((m) => {
+                  const mine = m.sender_role === "admin";
+                  return (
+                    <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
+                          mine
+                            ? "bg-primary text-primary-foreground rounded-br-md"
+                            : "bg-card border border-border rounded-bl-md"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{m.body}</p>
+                        <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
+                          {new Date(m.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={endRef} />
+              </div>
+
+              <div className="p-3 border-t border-border flex gap-2 bg-background">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      send();
+                    }
+                  }}
+                  placeholder="Reply…"
+                  className="h-11 rounded-full px-4"
+                />
+                <Button onClick={send} disabled={sending || !input.trim()} size="icon" className="h-11 w-11 rounded-full">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default SupportManage;
