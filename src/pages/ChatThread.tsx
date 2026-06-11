@@ -224,35 +224,44 @@ const ChatThread = () => {
       )}
 
       <div className="p-3 border-t bg-background/95 backdrop-blur sticky bottom-0">
-        <div className="flex gap-2 items-center">
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-11 w-11 rounded-full flex-shrink-0"
-            onClick={() => setShowEmoji((v) => !v)}
-            aria-label="Toggle emoji"
-          >
-            <Smile className="h-5 w-5" />
-          </Button>
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send();
-              }
-            }}
-            placeholder="စာရိုက်ပါ…"
-            maxLength={2000}
-            className="h-11 rounded-full px-4"
-          />
-          <Button onClick={send} disabled={sending || !input.trim()} size="icon" className="h-11 w-11 rounded-full flex-shrink-0">
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+        {(iBlockedThem || theyBlockedMe) ? (
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-3">
+            <Ban className="h-4 w-4" />
+            {iBlockedThem
+              ? "User ကို block လုပ်ထားသည်။ Unblock လုပ်ပါ။"
+              : "ဤ user မှ block လုပ်ထားသည်။"}
+          </div>
+        ) : (
+          <div className="flex gap-2 items-center">
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-11 w-11 rounded-full flex-shrink-0"
+              onClick={() => setShowEmoji((v) => !v)}
+              aria-label="Toggle emoji"
+            >
+              <Smile className="h-5 w-5" />
+            </Button>
+            <Input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              placeholder="စာရိုက်ပါ…"
+              maxLength={2000}
+              className="h-11 rounded-full px-4"
+            />
+            <Button onClick={send} disabled={sending || !input.trim()} size="icon" className="h-11 w-11 rounded-full flex-shrink-0">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </MobileLayout>
   );
