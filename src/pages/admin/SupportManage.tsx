@@ -32,6 +32,9 @@ const SupportManage = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [allMessages, setAllMessages] = useState<Record<string, Msg[]>>({});
   const endRef = useRef<HTMLDivElement>(null);
 
   const loadThreads = async () => {
