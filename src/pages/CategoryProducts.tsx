@@ -126,11 +126,11 @@ const CategoryProducts = () => {
             <p className="text-muted-foreground">No products in this category yet</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
             {products.map((product) => (
               <Card
                 key={product.id}
-                className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group"
+                className="overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300 hover:scale-[1.03] group rounded-xl"
                 onClick={() => navigate(`/product/${product.id}`)}
               >
                 <div className="relative aspect-square bg-muted overflow-hidden">
@@ -144,21 +144,20 @@ const CategoryProducts = () => {
                       e.stopPropagation();
                       toggleFavourite(product.id);
                     }}
-                    className="absolute top-2 right-2 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background transition-colors"
+                    className="absolute top-1 right-1 p-1 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background transition-colors"
                   >
                     <Heart
-                      className={`h-4 w-4 transition-colors ${
+                      className={`h-3 w-3 transition-colors ${
                         favourites.has(product.id)
                           ? "fill-primary text-primary"
                           : "text-muted-foreground"
                       }`}
                     />
                   </button>
-                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/60 to-transparent pointer-events-none" />
                 </div>
-                <CardContent className="p-3">
-                  <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                  <p className="text-primary font-bold">{product.price.toLocaleString()} MMK</p>
+                <CardContent className="p-1.5">
+                  <h3 className="font-medium text-[11px] leading-tight line-clamp-2 min-h-[26px]">{product.name}</h3>
+                  <p className="text-primary font-bold text-[11px] mt-0.5">{product.price.toLocaleString()} MMK</p>
                 </CardContent>
               </Card>
             ))}
