@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import AIGameHint from "@/components/AIGameHint";
 
 // Lazy load all games
 const TicTacToe = lazy(() => import("@/games/TicTacToe"));
@@ -225,6 +226,7 @@ const GamesPortal = () => {
               {!canPlay(activeGame) && (
                 <Badge variant="secondary" className="text-xs shrink-0">⏱ {getCooldownRemaining(activeGame)}s</Badge>
               )}
+              <AIGameHint gameName={game?.name || activeGame} gameDesc={game?.desc} />
             </div>
             <Card className="rounded-none sm:rounded-2xl border-x-0 sm:border-x border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
               <div className="p-2 sm:p-6 w-full">
