@@ -36,6 +36,9 @@ const ChatThread = () => {
   const [sending, setSending] = useState(false);
   const [other, setOther] = useState<OtherProfile | null>(null);
   const [showEmoji, setShowEmoji] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [iBlockedThem, setIBlockedThem] = useState(false);
+  const [theyBlockedMe, setTheyBlockedMe] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
