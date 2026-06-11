@@ -180,11 +180,13 @@ const ChatThread = () => {
       const result = await awardChatPoints(user.id, body);
       if (result.amount > 0) {
         toast({ title: `+${result.amount} coin`, description: "Chat reward earned" });
+        setCooldownUntil(null);
       } else if (result.reason === "vpn_required") {
         toast({ title: "VPN required", description: "Turn on VPN to earn chat coins." });
       } else if (result.reason === "cooldown" && result.cooldownRemaining) {
-        // Silent-ish hint; don't spam
-        console.debug(`[chat-earn] cooldown ${result.cooldownRemaining}s`);
+        setCooldownUntil(Date.now() + result.cooldownRemaining * 1000);
+      } else if (result.reason === "daily_cap") {
+        toast({ title: "Daily cap reached", description: "Come back tomorrow for more chat coins." });
       }
     }
     setSending(false);
