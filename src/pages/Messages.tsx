@@ -398,13 +398,31 @@ const Messages = () => {
 
   const filteredConvs = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    if (!q) return convs;
-    return convs.filter((c) => {
-      const name = c.other?.name?.toLowerCase() || "";
-      const last = c.last?.content?.toLowerCase() || "";
-      return name.includes(q) || last.includes(q);
+    const base = !q
+      ? convs
+      : convs.filter((c) => {
+          const name = c.other?.name?.toLowerCase() || "";
+          const last = c.last?.content?.toLowerCase() || "";
+          return name.includes(q) || last.includes(q);
+        });
+    // Sort: online first, then by most recent activity
+    return [...base].sort((a, b) => {
+      const aOn = a.other ? (online.has(a.other.id) ? 1 : 0) : 0;
+      const bOn = b.other ? (online.has(b.other.id) ? 1 : 0) : 0;
+      if (aOn !== bOn) return bOn - aOn;
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
-  }, [convs, filter]);
+  }, [convs, filter, online]);
+
+  const groupedConvs = useMemo(() => {
+    const onlineGroup: ConvRow[] = [];
+    const offlineGroup: ConvRow[] = [];
+    for (const c of filteredConvs) {
+      if (c.other && online.has(c.other.id)) onlineGroup.push(c);
+      else offlineGroup.push(c);
+    }
+    return { onlineGroup, offlineGroup };
+  }, [filteredConvs, online]);
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
