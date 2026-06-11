@@ -1930,6 +1930,7 @@ export type Database = {
           created_at: string
           id: string
           is_read: boolean
+          order_id: string | null
           sender_role: string
           user_id: string
         }
@@ -1938,6 +1939,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean
+          order_id?: string | null
           sender_role: string
           user_id: string
         }
@@ -1946,10 +1948,19 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean
+          order_id?: string | null
           sender_role?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

@@ -1,0 +1,2 @@
+ALTER TABLE public.support_messages ADD COLUMN IF NOT EXISTS order_id uuid REFERENCES public.orders(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS support_messages_order_id_idx ON public.support_messages(order_id);
