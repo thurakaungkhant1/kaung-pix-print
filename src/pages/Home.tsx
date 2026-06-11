@@ -534,27 +534,36 @@ const Home = () => {
                 </button>
               </div>
               {photosLoading ? (
-                <div className="aspect-[16/10] rounded-2xl bg-muted animate-pulse" />
+                <div className="grid grid-cols-3 gap-2">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
+                  ))}
+                </div>
               ) : recentPhotos.length > 0 ? (
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate(`/photo/${recentPhotos[0].id}`)}
-                  className="w-full text-left rounded-2xl overflow-hidden bg-card border border-border/60 hover:shadow-lg transition-all"
-                >
-                  <div className="aspect-[16/10] relative bg-muted overflow-hidden">
-                    <img
-                      src={recentPhotos[0].preview_image || recentPhotos[0].file_url}
-                      alt={recentPhotos[0].client_name}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 text-white">
-                      <Camera className="h-4 w-4" />
-                      <p className="text-sm font-semibold drop-shadow-lg truncate">View Exclusive Wallpapers</p>
-                    </div>
-                  </div>
-                </motion.button>
+                <div className="grid grid-cols-3 gap-2">
+                  {recentPhotos.slice(0, 3).map((p) => (
+                    <motion.button
+                      key={p.id}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => navigate(`/photo/${p.id}`)}
+                      className="relative aspect-[3/4] rounded-xl overflow-hidden bg-card border border-border/60 hover:shadow-lg transition-all group"
+                    >
+                      <img
+                        src={p.preview_image || p.file_url}
+                        alt={p.client_name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                      <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1 text-white">
+                        <Camera className="h-3 w-3 flex-shrink-0" />
+                        <p className="text-[10px] font-semibold drop-shadow-lg truncate">
+                          {p.client_name || "Wallpaper"}
+                        </p>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
               ) : (
                 <Card className="p-8 text-center border-dashed rounded-2xl">
                   <Camera className="h-7 w-7 mx-auto text-muted-foreground/60 mb-2" />
