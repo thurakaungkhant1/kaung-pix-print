@@ -13,6 +13,7 @@ interface Msg {
   sender_role: "user" | "admin";
   body: string;
   created_at: string;
+  order_id?: string | null;
 }
 
 interface ThreadInfo {
