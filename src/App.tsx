@@ -93,6 +93,7 @@ const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
 const Support = lazy(() => import("./pages/Support"));
 const SupportManage = lazy(() => import("./pages/admin/SupportManage"));
 const DiamondTiersManage = lazy(() => import("./pages/admin/DiamondTiersManage"));
+const DigitalCategoriesManage = lazy(() => import("./pages/admin/DigitalCategoriesManage"));
 import InterstitialAd from "@/components/InterstitialAd";
 
 const queryClient = new QueryClient();
@@ -578,6 +579,7 @@ const App = () => {
                 <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
                 <Route path="/admin/support" element={<ProtectedAdminRoute><SupportManage /></ProtectedAdminRoute>} />
                 <Route path="/admin/diamond-tiers" element={<ProtectedAdminRoute><DiamondTiersManage /></ProtectedAdminRoute>} />
+                <Route path="/admin/digital-categories" element={<ProtectedAdminRoute><DigitalCategoriesManage /></ProtectedAdminRoute>} />
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

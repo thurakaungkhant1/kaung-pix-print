@@ -2185,6 +2185,20 @@ const AdminDashboard = () => {
                     </div>
                   </div>
 
+                  {/* Digital Products Section */}
+                  <div className="p-4 bg-emerald-500/10 rounded-xl space-y-3 border border-emerald-500/20">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-5 w-5 text-emerald-500" />
+                      <h3 className="font-semibold">Digital Products</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Software, streaming accounts, gift cards & courses. Create, edit, or delete subcategories.
+                    </p>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/digital-categories")}>
+                      Manage Digital Categories
+                    </Button>
+                  </div>
+
                   {/* Mobile Services Section */}
                   <div className="p-4 bg-muted/50 rounded-xl space-y-3">
                     <div className="flex items-center gap-2">

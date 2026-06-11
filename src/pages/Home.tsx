@@ -428,47 +428,89 @@ const Home = () => {
             </section>
           </AnimatedSection>
 
-          {/* ── Digital Products + Support ── */}
+          {/* ── Onyx Emerald Premium Preview + Digital Products ── */}
           <AnimatedSection delay={0.25}>
-            <section className="px-5 mt-6 grid grid-cols-2 gap-3">
+            <section className="px-5 mt-6">
               <motion.button
-                whileTap={{ scale: 0.97 }}
+                whileTap={{ scale: 0.98 }}
                 whileHover={{ y: -3 }}
                 onClick={() => navigate("/category/Digital%20Products")}
-                className="relative text-left rounded-2xl overflow-hidden p-4 min-h-[120px] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg ring-1 ring-white/10"
+                aria-label="Browse Digital Products"
+                className="w-full text-left relative overflow-hidden rounded-3xl group shadow-2xl ring-1 ring-emerald-400/20"
+                style={{
+                  background:
+                    "radial-gradient(120% 80% at 0% 0%, rgba(16,185,129,0.25), transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(20,184,166,0.18), transparent 55%), linear-gradient(135deg, #050505 0%, #0a0f0d 55%, #06140f 100%)",
+                }}
               >
-                <div className="absolute -right-3 -bottom-3 opacity-25">
-                  <Package className="h-20 w-20" />
+                {/* shimmer */}
+                <div className="absolute inset-0 opacity-40 mix-blend-screen pointer-events-none">
+                  <div className="absolute -top-10 -left-10 w-72 h-72 rounded-full bg-emerald-500/25 blur-3xl" />
+                  <div className="absolute -bottom-16 -right-10 w-72 h-72 rounded-full bg-teal-400/15 blur-3xl" />
                 </div>
-                <div className="relative">
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 backdrop-blur text-[10px] font-bold tracking-wide">
-                    NEW
-                  </div>
-                  <h3 className="mt-2 text-base font-display font-black leading-tight">Digital Products</h3>
-                  <p className="text-[11px] opacity-90 mt-0.5">Software · Gift Cards · Courses</p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold">
-                    Browse <ArrowRight className="h-3 w-3" />
-                  </span>
-                </div>
-              </motion.button>
+                {/* hairline grid */}
+                <div
+                  className="absolute inset-0 opacity-[0.08] pointer-events-none"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+                    backgroundSize: "28px 28px",
+                  }}
+                />
 
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                whileHover={{ y: -3 }}
-                onClick={() => navigate("/support")}
-                className="relative text-left rounded-2xl overflow-hidden p-4 min-h-[120px] bg-card border border-border hover:border-primary/40 hover:shadow-lg transition-all"
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center mb-2">
-                  <Bell className="h-5 w-5 text-primary" />
+                <div className="relative z-10 p-6">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 rounded-2xl bg-emerald-500/15 ring-1 ring-emerald-400/30 backdrop-blur">
+                      <Package className="h-6 w-6 text-emerald-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Badge className="bg-emerald-400/15 text-emerald-300 border border-emerald-400/30 text-[10px] mb-1.5 tracking-[0.18em] font-bold rounded-full px-2.5 py-0.5">
+                        ONYX • EMERALD
+                      </Badge>
+                      <h3 className="text-2xl font-display font-black text-white leading-tight tracking-tight drop-shadow">
+                        Digital Products
+                      </h3>
+                      <p className="text-white/70 text-xs mt-1">
+                        Premium software, streaming, gift cards & courses.
+                      </p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-emerald-300 mt-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
+
+                  {/* feature pills */}
+                  <div className="mt-5 grid grid-cols-4 gap-2">
+                    {[
+                      { label: "Software", icon: Shield },
+                      { label: "Streaming", icon: Sparkles },
+                      { label: "Gift Cards", icon: Star },
+                      { label: "Courses", icon: Zap },
+                    ].map((f) => (
+                      <div
+                        key={f.label}
+                        className="rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 hover:bg-emerald-500/10 hover:border-emerald-400/30"
+                      >
+                        <f.icon className="h-4 w-4 text-emerald-300" />
+                        <span className="text-white/90 text-[10px] font-semibold tracking-wide">
+                          {f.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between gap-3">
+                    <span className="inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-emerald-400 text-black font-bold text-xs shadow-[0_8px_24px_-6px_rgba(16,185,129,0.6)]">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Browse Catalog
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-[10px] text-emerald-300/80 font-medium tracking-wider">
+                      NEW LOOK
+                    </span>
+                  </div>
                 </div>
-                <h3 className="text-base font-display font-bold leading-tight">Chat with Admin</h3>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Need help? Message us anytime.</p>
-                <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-primary">
-                  Open chat <ArrowRight className="h-3 w-3" />
-                </span>
               </motion.button>
             </section>
           </AnimatedSection>
+
 
           {/* ── Photo Gallery Preview ── */}
           <AnimatedSection delay={0.3}>
