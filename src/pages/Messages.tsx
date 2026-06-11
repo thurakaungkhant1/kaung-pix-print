@@ -33,7 +33,16 @@ import {
   Compass,
   MessageSquare,
   Clock,
+  Filter,
+  Wifi,
 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import MobileLayout from "@/components/MobileLayout";
 import { getOrCreateConversation } from "@/lib/chat";
 import {
