@@ -223,6 +223,7 @@ const Messages = () => {
     if (!user) return;
     loadConversations();
     loadFriendsAndRequests();
+    loadBlocked();
 
     const ch = supabase
       .channel(`messages-page-${user.id}`)
@@ -240,14 +241,26 @@ const Messages = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "friend_requests" }, () =>
         loadFriendsAndRequests()
       )
-      .on("postgres_changes", { event: "*", schema: "public", table: "blocked_users" }, () =>
-        loadFriendsAndRequests()
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "blocked_users" }, () => {
+        loadFriendsAndRequests();
+        loadBlocked();
+      })
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [user, loadConversations, loadFriendsAndRequests]);
+  }, [user, loadConversations, loadFriendsAndRequests, loadBlocked]);
+
+  // Keep ?tab= in sync
+  useEffect(() => {
+    const current = searchParams.get("tab");
+    if (current !== tab) {
+      const next = new URLSearchParams(searchParams);
+      next.set("tab", tab);
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   // ---------- Discover search ----------
   useEffect(() => {
