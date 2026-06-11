@@ -48,12 +48,25 @@ const ChatThread = () => {
   const [requestingFriend, setRequestingFriend] = useState(false);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [otherTyping, setOtherTyping] = useState(false);
   const online = usePresenceMap();
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentRef = useRef<number>(0);
+  const otherTypingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Consider "online" if presence channel says so OR last_seen_at within 90s
+  const isOtherOnline = !!other && (
+    online.has(other.id) ||
+    (!!other.last_seen_at && Date.now() - new Date(other.last_seen_at).getTime() < 90_000)
+  );
 
   useEffect(() => {
     if (!conversationId || !user) return;
+
+
 
     (async () => {
       const { data: conv } = await supabase
@@ -151,30 +164,36 @@ const ChatThread = () => {
           setFriendStatus(fs.status);
         }
       )
+      .on("broadcast", { event: "typing" }, (payload: any) => {
+        if (!user || payload?.payload?.user_id === user.id) return;
+        setOtherTyping(true);
+        if (otherTypingClearRef.current) clearTimeout(otherTypingClearRef.current);
+        otherTypingClearRef.current = setTimeout(() => setOtherTyping(false), 3500);
+      })
+      .on("broadcast", { event: "stop_typing" }, (payload: any) => {
+        if (!user || payload?.payload?.user_id === user.id) return;
+        setOtherTyping(false);
+      })
       .subscribe();
+    channelRef.current = channel;
     return () => {
+      channelRef.current = null;
       supabase.removeChannel(channel);
+      if (otherTypingClearRef.current) clearTimeout(otherTypingClearRef.current);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [conversationId, user]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, otherTyping]);
 
-  // Refresh other user's last_seen_at periodically so "X minutes ago" is real-time
+  // Re-render once a minute so "X minutes ago" stays fresh without polling the DB
   useEffect(() => {
-    if (!other?.id) return;
-    const refresh = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("last_seen_at")
-        .eq("id", other.id)
-        .maybeSingle();
-      if (data) setOther((prev) => (prev ? { ...prev, last_seen_at: data.last_seen_at } : prev));
-    };
-    const id = setInterval(refresh, 30_000);
+    const id = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(id);
-  }, [other?.id]);
+  }, []);
+
 
 
   // Tick for cooldown countdown
@@ -213,6 +232,8 @@ const ChatThread = () => {
     const body = input.trim().slice(0, 2000);
     setInput("");
     setShowEmoji(false);
+    sendStopTyping();
+
     const { error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: user.id,
@@ -248,6 +269,41 @@ const ChatThread = () => {
     inputRef.current?.focus();
   };
 
+  const broadcastTyping = () => {
+    if (!user || !channelRef.current) return;
+    const t = Date.now();
+    // throttle to once every 1.5s
+    if (t - lastTypingSentRef.current > 1500) {
+      lastTypingSentRef.current = t;
+      channelRef.current.send({
+        type: "broadcast",
+        event: "typing",
+        payload: { user_id: user.id },
+      });
+    }
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      lastTypingSentRef.current = 0;
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "stop_typing",
+        payload: { user_id: user.id },
+      });
+    }, 2500);
+  };
+
+  const sendStopTyping = () => {
+    if (!user || !channelRef.current) return;
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    lastTypingSentRef.current = 0;
+    channelRef.current.send({
+      type: "broadcast",
+      event: "stop_typing",
+      payload: { user_id: user.id },
+    });
+  };
+
+
   return (
     <MobileLayout className="flex flex-col bg-background">
       <header className="bg-gradient-primary text-primary-foreground px-4 py-3 sticky top-0 z-40 shadow-md">
@@ -263,7 +319,7 @@ const ChatThread = () => {
             {other && (
               <span
                 className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-primary ${
-                  online.has(other.id) ? "bg-emerald-400" : "bg-muted-foreground/60"
+                  isOtherOnline ? "bg-emerald-400" : "bg-muted-foreground/60"
                 }`}
               />
             )}
@@ -277,17 +333,27 @@ const ChatThread = () => {
                 "Blocked"
               ) : theyBlockedMe ? (
                 "Unavailable"
-              ) : other && online.has(other.id) ? (
+              ) : otherTyping ? (
+                <span className="inline-flex items-center gap-1 text-emerald-200">
+                  <span className="flex gap-0.5">
+                    <span className="h-1 w-1 rounded-full bg-emerald-300 animate-bounce [animation-delay:-0.3s]" />
+                    <span className="h-1 w-1 rounded-full bg-emerald-300 animate-bounce [animation-delay:-0.15s]" />
+                    <span className="h-1 w-1 rounded-full bg-emerald-300 animate-bounce" />
+                  </span>
+                  typing…
+                </span>
+              ) : isOtherOnline ? (
                 <>
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Active now
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online
                 </>
               ) : (
                 <>
-                  <Clock className="h-3 w-3" /> {formatLastSeen(other?.last_seen_at)}
+                  <Clock className="h-3 w-3" /> Last seen {formatLastSeen(other?.last_seen_at)}
                 </>
               )}
             </p>
           </div>
+
           <button
             onClick={() => setSettingsOpen(true)}
             className="p-2 -mr-2 rounded-full hover:bg-primary-foreground/10"
@@ -429,13 +495,17 @@ const ChatThread = () => {
             <Input
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                if (e.target.value.trim()) broadcastTyping();
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   send();
                 }
               }}
+
               placeholder="စာရိုက်ပါ…"
               maxLength={2000}
               className="h-11 rounded-full px-4"
