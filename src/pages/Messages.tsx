@@ -1020,6 +1020,66 @@ const Messages = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Sheet open={blockedSheetOpen} onOpenChange={setBlockedSheetOpen}>
+        <SheetContent side="bottom" className="rounded-t-3xl max-h-[80vh] overflow-y-auto">
+          <SheetHeader className="text-left">
+            <SheetTitle className="flex items-center gap-2">
+              <Ban className="h-4 w-4 text-destructive" /> Blocked Users
+              <span className="ml-1 text-xs text-muted-foreground font-normal">
+                ({blockedList.length})
+              </span>
+            </SheetTitle>
+            <SheetDescription>
+              Unblock လုပ်ပြီးရင် ပြန် message ပို့လို့ ရပါပြီ။
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-4 space-y-2 pb-6">
+            {blockedList.length === 0 ? (
+              <div className="text-center py-10">
+                <div className="w-14 h-14 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
+                  <Ban className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Block လုပ်ထားသော user မရှိပါ
+                </p>
+              </div>
+            ) : (
+              blockedList.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center gap-3 p-3 rounded-2xl border bg-card"
+                >
+                  <Avatar className="h-12 w-12 opacity-70">
+                    <AvatarImage src={u.avatar_url ?? undefined} />
+                    <AvatarFallback>
+                      {u.name?.charAt(0)?.toUpperCase() || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate text-sm">{u.name || "User"}</p>
+                    <p className="text-[11px] text-muted-foreground">Blocked</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="rounded-full h-8 px-4 text-xs"
+                    onClick={() => handleUnblock(u.id)}
+                    disabled={acting === u.id}
+                  >
+                    {acting === u.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <UserCheck className="h-3.5 w-3.5 mr-1" /> Unblock
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </MobileLayout>
   );
 };
