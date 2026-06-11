@@ -891,6 +891,50 @@ const Messages = () => {
               </div>
             )}
           </section>
+
+          <section>
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2 px-1 flex items-center gap-1">
+              <Ban className="h-3 w-3" /> Blocked ({blockedList.length})
+            </h3>
+            {blockedList.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-6">
+                Block လုပ်ထားသော user မရှိပါ
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {blockedList.map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center gap-3 p-3 rounded-2xl border bg-card"
+                  >
+                    <Avatar className="h-12 w-12 opacity-70">
+                      <AvatarImage src={u.avatar_url ?? undefined} />
+                      <AvatarFallback>
+                        {u.name?.charAt(0)?.toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate text-sm">{u.name || "User"}</p>
+                      <p className="text-[11px] text-muted-foreground">Blocked</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full h-8 px-3 text-xs"
+                      onClick={() => handleUnblock(u.id)}
+                      disabled={acting === u.id}
+                    >
+                      {acting === u.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        "Unblock"
+                      )}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </TabsContent>
       </Tabs>
 
