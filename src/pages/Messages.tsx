@@ -33,7 +33,16 @@ import {
   Compass,
   MessageSquare,
   Clock,
+  Filter,
+  Wifi,
 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import MobileLayout from "@/components/MobileLayout";
 import { getOrCreateConversation } from "@/lib/chat";
 import {
@@ -85,6 +94,9 @@ const Messages = () => {
   const [loadingConvs, setLoadingConvs] = useState(true);
 
   const [filter, setFilter] = useState("");
+  const [onlineOnly, setOnlineOnly] = useState(false);
+  const [friendsOnly, setFriendsOnly] = useState(false);
+  const [blockedSheetOpen, setBlockedSheetOpen] = useState(false);
   const [discoverQuery, setDiscoverQuery] = useState("");
   const [discoverResults, setDiscoverResults] = useState<UserRow[]>([]);
   const [discoverLoading, setDiscoverLoading] = useState(false);
@@ -396,23 +408,26 @@ const Messages = () => {
     if (id) navigate(`/messages/${id}`);
   };
 
+  const friendIds = useMemo(() => new Set(friends.map((f) => f.id)), [friends]);
+
   const filteredConvs = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    const base = !q
-      ? convs
-      : convs.filter((c) => {
-          const name = c.other?.name?.toLowerCase() || "";
-          const last = c.last?.content?.toLowerCase() || "";
-          return name.includes(q) || last.includes(q);
-        });
-    // Sort: online first, then by most recent activity
+    let base = convs;
+    if (q)
+      base = base.filter((c) => {
+        const name = c.other?.name?.toLowerCase() || "";
+        const last = c.last?.content?.toLowerCase() || "";
+        return name.includes(q) || last.includes(q);
+      });
+    if (onlineOnly) base = base.filter((c) => c.other && online.has(c.other.id));
+    if (friendsOnly) base = base.filter((c) => c.other && friendIds.has(c.other.id));
     return [...base].sort((a, b) => {
       const aOn = a.other ? (online.has(a.other.id) ? 1 : 0) : 0;
       const bOn = b.other ? (online.has(b.other.id) ? 1 : 0) : 0;
       if (aOn !== bOn) return bOn - aOn;
       return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
-  }, [convs, filter, online]);
+  }, [convs, filter, online, onlineOnly, friendsOnly, friendIds]);
 
   const groupedConvs = useMemo(() => {
     const onlineGroup: ConvRow[] = [];
@@ -629,6 +644,50 @@ const Messages = () => {
                   <X className="h-4 w-4 text-muted-foreground" />
                 </button>
               )}
+            </div>
+            <div className="flex items-center gap-2 mt-2 overflow-x-auto scrollbar-hide">
+              <button
+                onClick={() => setOnlineOnly((v) => !v)}
+                className={`flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border transition-colors whitespace-nowrap ${
+                  onlineOnly
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <Wifi className="h-3 w-3" /> Online only
+              </button>
+              <button
+                onClick={() => setFriendsOnly((v) => !v)}
+                className={`flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border transition-colors whitespace-nowrap ${
+                  friendsOnly
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <UserCheck className="h-3 w-3" /> Friends only
+              </button>
+              {(onlineOnly || friendsOnly) && (
+                <button
+                  onClick={() => {
+                    setOnlineOnly(false);
+                    setFriendsOnly(false);
+                  }}
+                  className="flex items-center gap-1 px-2 h-7 rounded-full text-[11px] text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3 w-3" /> Clear
+                </button>
+              )}
+              <button
+                onClick={() => setBlockedSheetOpen(true)}
+                className="ml-auto flex items-center gap-1 px-3 h-7 rounded-full text-[11px] font-semibold border border-destructive/30 text-destructive bg-destructive/5 hover:bg-destructive/10 whitespace-nowrap"
+              >
+                <Ban className="h-3 w-3" /> Blocked
+                {blockedList.length > 0 && (
+                  <span className="ml-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] flex items-center justify-center">
+                    {blockedList.length}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -961,6 +1020,66 @@ const Messages = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Sheet open={blockedSheetOpen} onOpenChange={setBlockedSheetOpen}>
+        <SheetContent side="bottom" className="rounded-t-3xl max-h-[80vh] overflow-y-auto">
+          <SheetHeader className="text-left">
+            <SheetTitle className="flex items-center gap-2">
+              <Ban className="h-4 w-4 text-destructive" /> Blocked Users
+              <span className="ml-1 text-xs text-muted-foreground font-normal">
+                ({blockedList.length})
+              </span>
+            </SheetTitle>
+            <SheetDescription>
+              Unblock လုပ်ပြီးရင် ပြန် message ပို့လို့ ရပါပြီ။
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-4 space-y-2 pb-6">
+            {blockedList.length === 0 ? (
+              <div className="text-center py-10">
+                <div className="w-14 h-14 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
+                  <Ban className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Block လုပ်ထားသော user မရှိပါ
+                </p>
+              </div>
+            ) : (
+              blockedList.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center gap-3 p-3 rounded-2xl border bg-card"
+                >
+                  <Avatar className="h-12 w-12 opacity-70">
+                    <AvatarImage src={u.avatar_url ?? undefined} />
+                    <AvatarFallback>
+                      {u.name?.charAt(0)?.toUpperCase() || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate text-sm">{u.name || "User"}</p>
+                    <p className="text-[11px] text-muted-foreground">Blocked</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="rounded-full h-8 px-4 text-xs"
+                    onClick={() => handleUnblock(u.id)}
+                    disabled={acting === u.id}
+                  >
+                    {acting === u.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <UserCheck className="h-3.5 w-3.5 mr-1" /> Unblock
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </MobileLayout>
   );
 };
