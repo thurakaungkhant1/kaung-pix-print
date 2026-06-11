@@ -99,6 +99,8 @@ const Support = lazy(() => import("./pages/Support"));
 const SupportManage = lazy(() => import("./pages/admin/SupportManage"));
 const DiamondTiersManage = lazy(() => import("./pages/admin/DiamondTiersManage"));
 const DigitalCategoriesManage = lazy(() => import("./pages/admin/DigitalCategoriesManage"));
+const ChatEarningSettingsManage = lazy(() => import("./pages/admin/ChatEarningSettingsManage"));
+const ChatRewardLogs = lazy(() => import("./pages/admin/ChatRewardLogs"));
 import InterstitialAd from "@/components/InterstitialAd";
 
 const queryClient = new QueryClient();
@@ -349,6 +351,22 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <ApiSettings />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/chat-earning"
+                  element={
+                    <ProtectedAdminRoute>
+                      <ChatEarningSettingsManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/chat-reward-logs"
+                  element={
+                    <ProtectedAdminRoute>
+                      <ChatRewardLogs />
                     </ProtectedAdminRoute>
                   }
                 />
