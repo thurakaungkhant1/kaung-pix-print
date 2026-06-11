@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Headphones, Shield } from "lucide-react";
+import { ArrowLeft, Send, Headphones, Shield, Package, CheckCircle2, Clock } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface Msg {
   id: string;
@@ -14,6 +15,7 @@ interface Msg {
   sender_role: "user" | "admin";
   body: string;
   created_at: string;
+  order_id?: string | null;
 }
 
 const Support = () => {
@@ -25,8 +27,23 @@ const Support = () => {
   const prefill = (location.state as any)?.prefill as string | undefined;
   const [input, setInput] = useState(prefill || "");
   const [sending, setSending] = useState(false);
+  const [orderStatuses, setOrderStatuses] = useState<Record<string, { status: string; product_name?: string }>>({});
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const loadOrders = async (msgs: Msg[]) => {
+    const ids = Array.from(new Set(msgs.map((m) => m.order_id).filter(Boolean))) as string[];
+    if (!ids.length) return;
+    const { data: orders } = await supabase
+      .from("orders")
+      .select("id, status, products(name)")
+      .in("id", ids);
+    const map: Record<string, { status: string; product_name?: string }> = {};
+    (orders || []).forEach((o: any) => {
+      map[o.id] = { status: o.status, product_name: o.products?.name };
+    });
+    setOrderStatuses((prev) => ({ ...prev, ...map }));
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -35,7 +52,11 @@ const Support = () => {
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
-      .then(({ data }: any) => setMessages(data || []));
+      .then(({ data }: any) => {
+        const msgs = (data || []) as Msg[];
+        setMessages(msgs);
+        loadOrders(msgs);
+      });
 
     const channel = supabase
       .channel(`support-user-${user.id}`)
@@ -43,7 +64,23 @@ const Support = () => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "support_messages", filter: `user_id=eq.${user.id}` },
         (payload: any) => {
-          setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]));
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === payload.new.id)) return prev;
+            const next = [...prev, payload.new];
+            loadOrders([payload.new]);
+            return next;
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `user_id=eq.${user.id}` },
+        (payload: any) => {
+          const o = payload.new;
+          if (!o?.id) return;
+          setOrderStatuses((prev) =>
+            prev[o.id] ? { ...prev, [o.id]: { ...prev[o.id], status: o.status } } : prev
+          );
         }
       )
       .subscribe();
@@ -110,6 +147,9 @@ const Support = () => {
         )}
         {messages.map((m) => {
           const mine = m.sender_role === "user";
+          const ord = m.order_id ? orderStatuses[m.order_id] : null;
+          const completed =
+            ord?.status === "approved" || ord?.status === "finished" || ord?.status === "completed";
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
               <div className={`flex items-end gap-2 max-w-[85%] ${mine ? "flex-row-reverse" : ""}`}>
@@ -125,6 +165,37 @@ const Support = () => {
                       : "bg-card border border-border text-card-foreground rounded-bl-md"
                   }`}
                 >
+                  {m.order_id && (
+                    <div
+                      className={`mb-2 flex flex-wrap items-center gap-1.5 pb-2 border-b ${
+                        mine ? "border-primary-foreground/20" : "border-border"
+                      }`}
+                    >
+                      <Badge variant="secondary" className="gap-1 text-[10px]">
+                        <Package className="h-3 w-3" />
+                        #{m.order_id.slice(0, 8).toUpperCase()}
+                      </Badge>
+                      <Badge
+                        variant={completed ? "default" : "outline"}
+                        className="gap-1 text-[10px]"
+                      >
+                        {completed ? (
+                          <>
+                            <CheckCircle2 className="h-3 w-3" /> Completed
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3 w-3" /> Pending Admin Info
+                          </>
+                        )}
+                      </Badge>
+                      {ord?.product_name && (
+                        <span className={`text-[10px] ${mine ? "opacity-80" : "text-muted-foreground"}`}>
+                          {ord.product_name}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <p className="whitespace-pre-wrap">{m.body}</p>
                   <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
                     {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
