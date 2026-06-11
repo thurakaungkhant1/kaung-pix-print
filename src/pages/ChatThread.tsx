@@ -232,6 +232,8 @@ const ChatThread = () => {
     const body = input.trim().slice(0, 2000);
     setInput("");
     setShowEmoji(false);
+    sendStopTyping();
+
     const { error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: user.id,
