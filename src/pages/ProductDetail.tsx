@@ -78,10 +78,11 @@ const ProductDetail = () => {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('wallet_balance')
+      .select('wallet_balance, name, phone_number')
       .eq('id', user.id)
       .single();
     setWalletBalance(data?.wallet_balance || 0);
+    if (data) setProfile({ name: (data as any).name || "", phone_number: (data as any).phone_number || null });
   };
 
   const loadProduct = async () => {
