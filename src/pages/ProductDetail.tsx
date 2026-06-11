@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Minus, Plus, ArrowLeft, Sparkles, Star, Crown, Lock, Share2, Wallet, AlertTriangle } from "lucide-react";
+import { Heart, Minus, Plus, ArrowLeft, Sparkles, Star, Crown, Lock, Share2, Wallet, AlertTriangle, Copy, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,6 +14,8 @@ import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import ReviewSection from "@/components/ReviewSection";
 import ImageViewer from "@/components/ImageViewer";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
