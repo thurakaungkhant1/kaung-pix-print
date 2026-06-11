@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Home, ImageIcon, User, Settings, ShoppingBag } from "lucide-react";
+import { Home, MessageCircle, User, Settings, ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ const BottomNav = () => {
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/game", icon: ShoppingBag, label: "Shop" },
-    { to: "/photo", icon: ImageIcon, label: "Gallery" },
+    { to: "/messages", icon: MessageCircle, label: "Chat" },
     {
       to: isAdmin ? "/admin" : "/account",
       icon: isAdmin ? Settings : User,
