@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Headphones, User as UserIcon, Search, Filter, X } from "lucide-react";
+import { ArrowLeft, Send, Headphones, User as UserIcon, Search, Filter, X, Package, CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,7 @@ interface Msg {
   sender_role: "user" | "admin";
   body: string;
   created_at: string;
+  order_id?: string | null;
 }
 
 interface ThreadInfo {
@@ -35,6 +37,7 @@ const SupportManage = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [allMessages, setAllMessages] = useState<Record<string, Msg[]>>({});
+  const [orderStatuses, setOrderStatuses] = useState<Record<string, { status: string; product_name?: string }>>({});
   const endRef = useRef<HTMLDivElement>(null);
 
   const loadThreads = async () => {
@@ -104,7 +107,24 @@ const SupportManage = () => {
       .select("*")
       .eq("user_id", activeUserId)
       .order("created_at", { ascending: true })
-      .then(({ data }: any) => setMessages(data || []));
+      .then(async ({ data }: any) => {
+        const msgs = (data || []) as Msg[];
+        setMessages(msgs);
+        const ids = Array.from(new Set(msgs.map((m) => m.order_id).filter(Boolean))) as string[];
+        if (ids.length) {
+          const { data: orders } = await supabase
+            .from("orders")
+            .select("id, status, product_id, products(name)")
+            .in("id", ids);
+          const map: Record<string, { status: string; product_name?: string }> = {};
+          (orders || []).forEach((o: any) => {
+            map[o.id] = { status: o.status, product_name: o.products?.name };
+          });
+          setOrderStatuses(map);
+        } else {
+          setOrderStatuses({});
+        }
+      });
     // mark user messages as read
     (supabase as any)
       .from("support_messages")
@@ -113,6 +133,16 @@ const SupportManage = () => {
       .eq("sender_role", "user")
       .then(() => loadThreads());
   }, [activeUserId]);
+
+  const markOrderCompleted = async (orderId: string) => {
+    const { error } = await supabase.from("orders").update({ status: "approved" }).eq("id", orderId);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setOrderStatuses((prev) => ({ ...prev, [orderId]: { ...prev[orderId], status: "approved" } }));
+    toast({ title: "Order marked completed ✅" });
+  };
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -270,6 +300,8 @@ const SupportManage = () => {
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map((m) => {
                   const mine = m.sender_role === "admin";
+                  const ord = m.order_id ? orderStatuses[m.order_id] : null;
+                  const completed = ord?.status === "approved" || ord?.status === "finished" || ord?.status === "completed";
                   return (
                     <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                       <div
@@ -279,6 +311,33 @@ const SupportManage = () => {
                             : "bg-card border border-border rounded-bl-md"
                         }`}
                       >
+                        {m.order_id && (
+                          <div className={`mb-2 flex flex-wrap items-center gap-2 pb-2 border-b ${mine ? "border-primary-foreground/20" : "border-border"}`}>
+                            <Badge variant={completed ? "default" : "secondary"} className="gap-1 text-[10px]">
+                              <Package className="h-3 w-3" />
+                              Order #{m.order_id.slice(0, 8).toUpperCase()}
+                            </Badge>
+                            <Badge variant={completed ? "default" : "outline"} className="text-[10px]">
+                              {completed ? "Completed" : "Pending Admin Info"}
+                            </Badge>
+                            {ord?.product_name && (
+                              <span className={`text-[10px] ${mine ? "opacity-80" : "text-muted-foreground"}`}>
+                                {ord.product_name}
+                              </span>
+                            )}
+                            {!completed && !mine && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => markOrderCompleted(m.order_id!)}
+                              >
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                Mark Completed
+                              </Button>
+                            )}
+                          </div>
+                        )}
                         <p className="whitespace-pre-wrap">{m.body}</p>
                         <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
                           {new Date(m.created_at).toLocaleString()}
