@@ -201,6 +201,24 @@ const Messages = () => {
     setLoadingFriends(false);
   }, [user]);
 
+  const loadBlocked = useCallback(async () => {
+    if (!user) return;
+    const { data: rows } = await supabase
+      .from("blocked_users")
+      .select("blocked_id")
+      .eq("blocker_id", user.id);
+    const ids = (rows || []).map((r: any) => r.blocked_id);
+    if (ids.length === 0) {
+      setBlockedList([]);
+      return;
+    }
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_url, last_seen_at")
+      .in("id", ids);
+    setBlockedList((profs || []) as UserRow[]);
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     loadConversations();
