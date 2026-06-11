@@ -147,6 +147,9 @@ const Support = () => {
         )}
         {messages.map((m) => {
           const mine = m.sender_role === "user";
+          const ord = m.order_id ? orderStatuses[m.order_id] : null;
+          const completed =
+            ord?.status === "approved" || ord?.status === "finished" || ord?.status === "completed";
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
               <div className={`flex items-end gap-2 max-w-[85%] ${mine ? "flex-row-reverse" : ""}`}>
@@ -162,6 +165,37 @@ const Support = () => {
                       : "bg-card border border-border text-card-foreground rounded-bl-md"
                   }`}
                 >
+                  {m.order_id && (
+                    <div
+                      className={`mb-2 flex flex-wrap items-center gap-1.5 pb-2 border-b ${
+                        mine ? "border-primary-foreground/20" : "border-border"
+                      }`}
+                    >
+                      <Badge variant="secondary" className="gap-1 text-[10px]">
+                        <Package className="h-3 w-3" />
+                        #{m.order_id.slice(0, 8).toUpperCase()}
+                      </Badge>
+                      <Badge
+                        variant={completed ? "default" : "outline"}
+                        className="gap-1 text-[10px]"
+                      >
+                        {completed ? (
+                          <>
+                            <CheckCircle2 className="h-3 w-3" /> Completed
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3 w-3" /> Pending Admin Info
+                          </>
+                        )}
+                      </Badge>
+                      {ord?.product_name && (
+                        <span className={`text-[10px] ${mine ? "opacity-80" : "text-muted-foreground"}`}>
+                          {ord.product_name}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <p className="whitespace-pre-wrap">{m.body}</p>
                   <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
                     {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
