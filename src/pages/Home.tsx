@@ -71,6 +71,9 @@ const EARN_POINTS_GAMES = [
 
 const Home = () => {
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
+  const [digitalLoading, setDigitalLoading] = useState(true);
+  const [digitalError, setDigitalError] = useState<string | null>(null);
+  const [digitalReloadKey, setDigitalReloadKey] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [recentPhotos, setRecentPhotos] = useState<any[]>([]);
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
@@ -146,21 +149,32 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const loadDigital = async () => {
-      const { data } = await (supabase as any)
+      setDigitalLoading(true);
+      setDigitalError(null);
+      const { data, error } = await (supabase as any)
         .from('digital_categories')
         .select('id,name,slug,icon,display_order,is_active')
         .eq('is_active', true)
-        .order('display_order', { ascending: true });
-      setDigitalCats((data || []) as DigitalCategory[]);
+        .order('display_order', { ascending: true })
+        .order('name', { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        setDigitalError(error.message || 'Failed to load');
+        setDigitalCats([]);
+      } else {
+        setDigitalCats((data || []) as DigitalCategory[]);
+      }
+      setDigitalLoading(false);
     };
     loadDigital();
     const channel = supabase
       .channel('home-digital-cats')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'digital_categories' }, () => loadDigital())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [digitalReloadKey]);
 
   useEffect(() => {
     if (!user) return;
@@ -286,7 +300,49 @@ const Home = () => {
                     <ArrowRight className="h-5 w-5 text-emerald-300 mt-2 group-hover:translate-x-1 transition-transform" />
                   </div>
 
-                  {digitalCats.length > 0 && (
+                  {digitalLoading ? (
+                    <div className="mt-5 grid grid-cols-4 gap-2" aria-busy="true" aria-label="Loading categories">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="rounded-xl px-2 py-2.5 flex flex-col items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm"
+                        >
+                          <div className="h-4 w-4 rounded bg-white/10 animate-pulse" />
+                          <div className="h-2.5 w-12 rounded bg-white/10 animate-pulse" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : digitalError ? (
+                    <div className="mt-5 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-3 flex items-center justify-between gap-3">
+                      <span className="text-[11px] text-rose-200/90">
+                        Couldn’t load categories. {digitalError}
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDigitalReloadKey((k) => k + 1); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setDigitalReloadKey((k) => k + 1); } }}
+                        className="text-[11px] font-bold text-emerald-300 underline-offset-2 hover:underline cursor-pointer"
+                      >
+                        Retry
+                      </span>
+                    </div>
+                  ) : digitalCats.length === 0 ? (
+                    <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 flex items-center justify-between gap-3">
+                      <span className="text-[11px] text-white/70">
+                        No categories yet — admin can add some.
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDigitalReloadKey((k) => k + 1); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setDigitalReloadKey((k) => k + 1); } }}
+                        className="text-[11px] font-bold text-emerald-300 underline-offset-2 hover:underline cursor-pointer"
+                      >
+                        Refresh
+                      </span>
+                    </div>
+                  ) : (
                     <div className="mt-5 grid grid-cols-4 gap-2">
                       {digitalCats.slice(0, 4).map((c) => {
                         const Icon = DIGITAL_ICON_MAP[(c.icon || "package").toLowerCase()] || Package;
