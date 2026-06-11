@@ -268,6 +268,37 @@ const ChatThread = () => {
               ? "User ကို block လုပ်ထားသည်။ Unblock လုပ်ပါ။"
               : "ဤ user မှ block လုပ်ထားသည်။"}
           </div>
+        ) : friendStatus !== "accepted" ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-3 px-2">
+            <p className="text-xs text-muted-foreground text-center">
+              {friendStatus === "pending_out"
+                ? "Friend request ပို့ပြီးပြီ။ တစ်ဖက်က လက်ခံမှ စကားပြောလို့ ရပါမည်။"
+                : friendStatus === "pending_in"
+                ? "Friend request တောင်းခံထားသည်။ Accept လုပ်ပြီးမှ စကားပြောလို့ ရပါမည်။"
+                : "Friend request ပို့ပြီးမှ စကားပြောလို့ ရပါမည်။"}
+            </p>
+            {friendStatus === "none" && other && (
+              <Button
+                size="sm"
+                className="rounded-full"
+                disabled={requestingFriend}
+                onClick={async () => {
+                  if (!user || !other) return;
+                  setRequestingFriend(true);
+                  const { error } = await sendFriendRequest(user.id, other.id);
+                  setRequestingFriend(false);
+                  if (error) {
+                    toast({ title: "Failed", description: error.message, variant: "destructive" });
+                  } else {
+                    setFriendStatus("pending_out");
+                    toast({ title: "Friend request sent" });
+                  }
+                }}
+              >
+                <UserPlus className="h-4 w-4 mr-1" /> Send friend request
+              </Button>
+            )}
+          </div>
         ) : (
           <div className="flex gap-2 items-center">
             <Button
