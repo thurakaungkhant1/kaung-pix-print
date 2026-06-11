@@ -5,10 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Send, Smile, MoreVertical, Ban } from "lucide-react";
+import { ArrowLeft, Send, Smile, MoreVertical, Ban, UserPlus, Clock } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import ChatSettingsDialog from "@/components/ChatSettingsDialog";
 import { useToast } from "@/hooks/use-toast";
+import { usePresenceMap, formatLastSeen } from "@/hooks/usePresence";
+import { getFriendStatus, sendFriendRequest, FriendStatus } from "@/lib/friendship";
 
 interface Msg {
   id: string;
@@ -22,6 +24,7 @@ interface OtherProfile {
   id: string;
   name: string;
   avatar_url: string | null;
+  last_seen_at: string | null;
 }
 
 const QUICK_EMOJIS = ["😀", "😂", "😍", "👍", "🙏", "🔥", "🎉", "❤️", "😢", "😎", "🤔", "👏"];
@@ -39,6 +42,9 @@ const ChatThread = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [iBlockedThem, setIBlockedThem] = useState(false);
   const [theyBlockedMe, setTheyBlockedMe] = useState(false);
+  const [friendStatus, setFriendStatus] = useState<FriendStatus>("none");
+  const [requestingFriend, setRequestingFriend] = useState(false);
+  const online = usePresenceMap();
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,18 +61,20 @@ const ChatThread = () => {
         const otherId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
         const { data: prof } = await supabase
           .from("profiles")
-          .select("id, name, avatar_url")
+          .select("id, name, avatar_url, last_seen_at")
           .eq("id", otherId)
           .maybeSingle();
         setOther(prof ?? null);
 
         // block status (both directions)
-        const [{ data: mine }, { data: theirs }] = await Promise.all([
+        const [{ data: mine }, { data: theirs }, fs] = await Promise.all([
           supabase.from("blocked_users").select("id").eq("blocker_id", user.id).eq("blocked_id", otherId).maybeSingle(),
           supabase.from("blocked_users").select("id").eq("blocker_id", otherId).eq("blocked_id", user.id).maybeSingle(),
+          getFriendStatus(user.id, otherId),
         ]);
         setIBlockedThem(!!mine);
         setTheyBlockedMe(!!theirs);
+        setFriendStatus(fs.status);
       }
 
       const { data: msgs } = await supabase
