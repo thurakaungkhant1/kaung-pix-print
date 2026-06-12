@@ -26,6 +26,8 @@ import {
   Package,
   ChevronLeft,
   ChevronRight,
+  Layers,
+  X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
@@ -41,13 +43,24 @@ interface Product {
   is_premium: boolean;
 }
 
+interface Plan {
+  id?: string;
+  name: string;
+  duration_label: string;
+  price: number;
+  sort_order: number;
+  is_active: boolean;
+  _deleted?: boolean;
+  _new?: boolean;
+}
+
 const CATEGORY = "Digital Products";
 
 const emptyForm = {
   id: 0 as number,
   name: "",
   description: "",
-  price: 5000,
+  price: 0,
   image_url: "",
   points_value: 0,
   is_premium: false,
@@ -62,6 +75,7 @@ const DigitalProductsManage = () => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<typeof emptyForm>({ ...emptyForm });
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
 
@@ -99,10 +113,13 @@ const DigitalProductsManage = () => {
 
   const openNew = () => {
     setForm({ ...emptyForm });
+    setPlans([
+      { name: "1 Month", duration_label: "1 month", price: 0, sort_order: 0, is_active: true, _new: true },
+    ]);
     setOpen(true);
   };
 
-  const openEdit = (p: Product) => {
+  const openEdit = async (p: Product) => {
     setForm({
       id: p.id,
       name: p.name,
@@ -112,7 +129,48 @@ const DigitalProductsManage = () => {
       points_value: p.points_value || 0,
       is_premium: !!p.is_premium,
     });
+    const { data } = await supabase
+      .from("digital_product_plans")
+      .select("*")
+      .eq("product_id", p.id)
+      .order("sort_order", { ascending: true });
+    setPlans(
+      (data || []).map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        duration_label: d.duration_label || "",
+        price: Number(d.price),
+        sort_order: d.sort_order,
+        is_active: d.is_active,
+      }))
+    );
     setOpen(true);
+  };
+
+  const addPlan = () => {
+    setPlans((prev) => [
+      ...prev,
+      {
+        name: "",
+        duration_label: "",
+        price: 0,
+        sort_order: prev.filter((p) => !p._deleted).length,
+        is_active: true,
+        _new: true,
+      },
+    ]);
+  };
+
+  const updatePlan = (idx: number, patch: Partial<Plan>) => {
+    setPlans((prev) => prev.map((p, i) => (i === idx ? { ...p, ...patch } : p)));
+  };
+
+  const removePlan = (idx: number) => {
+    setPlans((prev) =>
+      prev
+        .map((p, i) => (i === idx ? { ...p, _deleted: true } : p))
+        .filter((p) => !(p._new && p._deleted))
+    );
   };
 
   const save = async () => {
@@ -120,24 +178,77 @@ const DigitalProductsManage = () => {
       toast({ title: "Name and image URL required", variant: "destructive" });
       return;
     }
+    const activePlans = plans.filter((p) => !p._deleted);
+    if (activePlans.length === 0) {
+      toast({ title: "Add at least one plan", variant: "destructive" });
+      return;
+    }
+    if (activePlans.some((p) => !p.name.trim() || !p.price || p.price <= 0)) {
+      toast({ title: "Each plan needs a name and price", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
+    // Use the lowest plan price as the product's base/display price
+    const basePrice = Math.min(...activePlans.map((p) => Number(p.price)));
+
     const payload = {
       name: form.name.trim(),
       description: form.description || null,
-      price: Number(form.price) || 0,
+      price: basePrice,
       image_url: form.image_url.trim(),
       points_value: Number(form.points_value) || 0,
       is_premium: form.is_premium,
       category: CATEGORY,
     };
-    const { error } = form.id
-      ? await supabase.from("products").update(payload).eq("id", form.id)
-      : await supabase.from("products").insert(payload as any);
-    setSaving(false);
-    if (error) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
-      return;
+
+    let productId = form.id;
+    if (form.id) {
+      const { error } = await supabase.from("products").update(payload).eq("id", form.id);
+      if (error) {
+        setSaving(false);
+        toast({ title: "Save failed", description: error.message, variant: "destructive" });
+        return;
+      }
+    } else {
+      const { data, error } = await supabase
+        .from("products")
+        .insert(payload as any)
+        .select("id")
+        .single();
+      if (error || !data) {
+        setSaving(false);
+        toast({ title: "Save failed", description: error?.message, variant: "destructive" });
+        return;
+      }
+      productId = data.id;
     }
+
+    // Sync plans
+    const toDelete = plans.filter((p) => p._deleted && p.id).map((p) => p.id!);
+    if (toDelete.length) {
+      await supabase.from("digital_product_plans").delete().in("id", toDelete);
+    }
+
+    for (let i = 0; i < plans.length; i++) {
+      const p = plans[i];
+      if (p._deleted) continue;
+      const row = {
+        product_id: productId,
+        name: p.name.trim(),
+        duration_label: p.duration_label?.trim() || null,
+        price: Number(p.price),
+        sort_order: i,
+        is_active: p.is_active,
+      };
+      if (p.id) {
+        await supabase.from("digital_product_plans").update(row).eq("id", p.id);
+      } else {
+        await supabase.from("digital_product_plans").insert(row);
+      }
+    }
+
+    setSaving(false);
     toast({ title: form.id ? "Updated" : "Created" });
     setOpen(false);
     load();
@@ -191,7 +302,7 @@ const DigitalProductsManage = () => {
         ) : filtered.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground text-sm">
-              No digital products yet. Tap “New” to add one.
+              No digital products yet. Tap "New" to add one.
             </CardContent>
           </Card>
         ) : (
@@ -213,7 +324,7 @@ const DigitalProductsManage = () => {
                         )}
                       </div>
                       <p className="text-xs text-primary font-bold">
-                        {p.price.toLocaleString()} MMK
+                        From {p.price.toLocaleString()} MMK
                       </p>
                       {p.points_value > 0 && (
                         <p className="text-[10px] text-muted-foreground">
@@ -273,13 +384,13 @@ const DigitalProductsManage = () => {
           <DialogHeader>
             <DialogTitle>{form.id ? "Edit" : "New"} Digital Product</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <Label>Name</Label>
+              <Label>Product Name</Label>
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="e.g. Netflix Premium 1 Month"
+                placeholder="e.g. NordVPN"
               />
             </div>
             <div>
@@ -305,25 +416,91 @@ const DigitalProductsManage = () => {
                 />
               )}
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Price (MMK)</Label>
-                <Input
-                  type="number"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-                />
+
+            {/* Plans section */}
+            <div className="rounded-lg border p-3 space-y-3 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <Label className="m-0 flex items-center gap-2">
+                  <Layers className="h-4 w-4" /> Plans / Pricing
+                </Label>
+                <Button size="sm" type="button" variant="outline" onClick={addPlan}>
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add plan
+                </Button>
               </div>
-              <div>
-                <Label>Points</Label>
-                <Input
-                  type="number"
-                  value={form.points_value}
-                  onChange={(e) =>
-                    setForm({ ...form, points_value: Number(e.target.value) })
-                  }
-                />
+              <p className="text-[11px] text-muted-foreground">
+                User က ဒီ plan တွေထဲက တစ်ခုကို ရွေးပြီး ၀ယ်ပါမယ်။ ဥပမာ - 1 month / 4000 MMK
+              </p>
+
+              {plans.filter((p) => !p._deleted).length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  No plans yet.
+                </p>
+              )}
+
+              <div className="space-y-2">
+                {plans.map((p, idx) =>
+                  p._deleted ? null : (
+                    <div
+                      key={idx}
+                      className="rounded-md bg-background border p-2 space-y-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="Plan name (e.g. 1 Month)"
+                          value={p.name}
+                          onChange={(e) => updatePlan(idx, { name: e.target.value })}
+                          className="h-8 text-sm flex-1"
+                        />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => removePlan(idx)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          placeholder="Duration (e.g. 30 days)"
+                          value={p.duration_label}
+                          onChange={(e) =>
+                            updatePlan(idx, { duration_label: e.target.value })
+                          }
+                          className="h-8 text-sm"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Price MMK"
+                          value={p.price || ""}
+                          onChange={(e) =>
+                            updatePlan(idx, { price: Number(e.target.value) })
+                          }
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Active</span>
+                        <Switch
+                          checked={p.is_active}
+                          onCheckedChange={(v) => updatePlan(idx, { is_active: v })}
+                        />
+                      </div>
+                    </div>
+                  )
+                )}
               </div>
+            </div>
+
+            <div>
+              <Label>Points reward (per purchase)</Label>
+              <Input
+                type="number"
+                value={form.points_value}
+                onChange={(e) =>
+                  setForm({ ...form, points_value: Number(e.target.value) })
+                }
+              />
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <Label className="m-0">Premium only</Label>
