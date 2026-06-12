@@ -41,6 +41,15 @@ interface Product {
   category?: string;
 }
 
+interface Plan {
+  id: string;
+  name: string;
+  duration_label: string | null;
+  price: number;
+  is_active: boolean;
+}
+
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -58,10 +67,17 @@ const ProductDetail = () => {
   const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
   const [sendingDraft, setSendingDraft] = useState(false);
   const [profile, setProfile] = useState<{ name: string; phone_number: string | null } | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
   const { isPremium, loading: premiumLoading } = usePremiumMembership();
+
+  const isDigital = product?.category === "Digital Products";
+  const selectedPlan = plans.find((p) => p.id === selectedPlanId) || null;
+  const unitPrice = isDigital && selectedPlan ? Number(selectedPlan.price) : (product?.price || 0);
+
 
   // Check if product is premium and user doesn't have subscription
   const isLocked = product?.is_premium && !isPremium;
