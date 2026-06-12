@@ -41,6 +41,15 @@ interface Product {
   category?: string;
 }
 
+interface Plan {
+  id: string;
+  name: string;
+  duration_label: string | null;
+  price: number;
+  is_active: boolean;
+}
+
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -58,10 +67,17 @@ const ProductDetail = () => {
   const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
   const [sendingDraft, setSendingDraft] = useState(false);
   const [profile, setProfile] = useState<{ name: string; phone_number: string | null } | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
   const { isPremium, loading: premiumLoading } = usePremiumMembership();
+
+  const isDigital = product?.category === "Digital Products";
+  const selectedPlan = plans.find((p) => p.id === selectedPlanId) || null;
+  const unitPrice = isDigital && selectedPlan ? Number(selectedPlan.price) : (product?.price || 0);
+
 
   // Check if product is premium and user doesn't have subscription
   const isLocked = product?.is_premium && !isPremium;
@@ -100,9 +116,21 @@ const ProductDetail = () => {
     if (!error && data) {
       setProduct(data);
       setSelectedImage(data.image_url);
+      if (data.category === "Digital Products") {
+        const { data: planRows } = await supabase
+          .from("digital_product_plans")
+          .select("*")
+          .eq("product_id", productId)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+        const list = (planRows || []) as Plan[];
+        setPlans(list);
+        if (list.length > 0) setSelectedPlanId(list[0].id);
+      }
     }
     setLoading(false);
   };
+
 
   const getProductImages = () => {
     if (!product) return [];
@@ -185,7 +213,22 @@ const ProductDetail = () => {
 
     if (!product) return;
 
-    const totalPrice = product.price * quantity;
+    if (isDigital) {
+      if (plans.length === 0) {
+        toast({
+          title: "No plans available",
+          description: "Please contact admin — this product has no purchase plans yet.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!selectedPlan) {
+        toast({ title: "Select a plan", variant: "destructive" });
+        return;
+      }
+    }
+
+    const totalPrice = unitPrice * quantity;
 
     // Check wallet balance
     if (walletBalance < totalPrice) {
@@ -207,7 +250,7 @@ const ProductDetail = () => {
       if (balanceError) throw balanceError;
 
       // Create order
-      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
+      const orderInsert: any = {
         user_id: user.id,
         product_id: product.id,
         quantity: quantity,
@@ -216,7 +259,18 @@ const ProductDetail = () => {
         delivery_address: "",
         payment_method: "wallet",
         status: "pending",
-      }).select().single();
+      };
+      if (isDigital && selectedPlan) {
+        orderInsert.plan_id = selectedPlan.id;
+        orderInsert.plan_name = selectedPlan.duration_label
+          ? `${selectedPlan.name} (${selectedPlan.duration_label})`
+          : selectedPlan.name;
+      }
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert(orderInsert)
+        .select()
+        .single();
 
       if (orderError) throw orderError;
 
@@ -226,7 +280,7 @@ const ProductDetail = () => {
         amount: -totalPrice,
         transaction_type: 'purchase',
         reference_id: orderData.id,
-        description: `Purchase: ${product.name} x${quantity}`,
+        description: `Purchase: ${product.name}${selectedPlan ? ` — ${selectedPlan.name}` : ""} x${quantity}`,
         balance_after: newBalance
       });
 
@@ -242,6 +296,9 @@ const ProductDetail = () => {
         // mark order as awaiting admin info
         await supabase.from('orders').update({ status: 'awaiting_info' }).eq('id', orderData.id);
         const shortId = String(orderData.id).slice(0, 8).toUpperCase();
+        const planLine = selectedPlan
+          ? `• Plan: ${selectedPlan.name}${selectedPlan.duration_label ? ` (${selectedPlan.duration_label})` : ""} — ${Number(selectedPlan.price).toLocaleString()} MMK\n`
+          : "";
         const prefill =
 `မင်္ဂလာပါ Admin 👋
 
@@ -250,7 +307,7 @@ const ProductDetail = () => {
 • နာမည် (Name): ${profile?.name || "-"}
 • ဖုန်း (Phone): ${profile?.phone_number || "-"}
 • ပစ္စည်း (Product): ${product.name} × ${quantity}
-• Order ID: #${shortId}
+${planLine}• Order ID: #${shortId}
 
 Account info / Username / Email:
 - 
@@ -260,6 +317,7 @@ Account info / Username / Email:
         setDraftOrderId(orderData.id);
         setShowDigitalInfoDialog(true);
       }
+
     } catch (error: any) {
       toast({
         title: "Purchase failed",
@@ -403,10 +461,16 @@ Account info / Username / Email:
             <CardTitle className="text-2xl sm:text-3xl font-display font-bold tracking-tight">{product.name}</CardTitle>
             <div className="flex items-baseline gap-3 mt-3">
               <CardDescription className="text-3xl sm:text-4xl font-display font-black text-primary">
-                {product.price.toLocaleString()}
+                {unitPrice.toLocaleString()}
               </CardDescription>
               <span className="text-lg text-muted-foreground font-medium">MMK</span>
+              {isDigital && plans.length > 0 && (
+                <span className="text-xs text-muted-foreground ml-1">
+                  {selectedPlan ? `· ${selectedPlan.name}` : "· Select a plan"}
+                </span>
+              )}
             </div>
+
           </CardHeader>
           
           <CardContent className="space-y-6 pt-2">
@@ -438,6 +502,52 @@ Account info / Username / Email:
               </p>
             </div>
 
+
+
+            {isDigital && plans.length > 0 && (
+              <div className="animate-fade-in" style={{ animationDelay: '180ms' }}>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2">
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  Choose a plan
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {plans.map((p) => {
+                    const active = selectedPlanId === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPlanId(p.id)}
+                        className={cn(
+                          "text-left p-3 rounded-2xl border-2 transition-all",
+                          active
+                            ? "border-primary bg-primary/5 shadow-md"
+                            : "border-border hover:border-primary/40 bg-card"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-sm">{p.name}</p>
+                            {p.duration_label && (
+                              <p className="text-[11px] text-muted-foreground">
+                                {p.duration_label}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-primary">
+                              {Number(p.price).toLocaleString()}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">MMK</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Quantity Selector - Enhanced */}
             <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
               <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
@@ -466,7 +576,7 @@ Account info / Username / Email:
                 </div>
                 <div className="text-muted-foreground">
                   <span className="text-sm">Total:</span>
-                  <p className="font-bold text-foreground text-lg">{(product.price * quantity).toLocaleString()} MMK</p>
+                  <p className="font-bold text-foreground text-lg">{(unitPrice * quantity).toLocaleString()} MMK</p>
                 </div>
               </div>
             </div>
@@ -476,6 +586,7 @@ Account info / Username / Email:
           <CardFooter className="flex flex-col gap-4 p-6 bg-gradient-to-t from-muted/30 to-transparent">
             {/* Wallet Balance Display */}
             <div className="w-full p-4 bg-muted/60 rounded-2xl flex items-center justify-between backdrop-blur-sm">
+
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary/10">
                   <Wallet className="h-5 w-5 text-primary" />
@@ -484,7 +595,7 @@ Account info / Username / Email:
               </div>
               <span className={cn(
                 "font-bold text-lg",
-                walletBalance >= (product?.price || 0) * quantity ? "text-primary" : "text-destructive"
+                walletBalance >= unitPrice * quantity ? "text-primary" : "text-destructive"
               )}>
                 {walletBalance.toLocaleString()} MMK
               </span>
@@ -509,7 +620,7 @@ Account info / Username / Email:
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  Buy Now — {((product?.price || 0) * quantity).toLocaleString()} MMK
+                  Buy Now — {(unitPrice * quantity).toLocaleString()} MMK
                 </span>
               )}
             </Button>
@@ -557,7 +668,7 @@ Account info / Username / Email:
                 <div className="mt-3 p-3 bg-muted rounded-lg">
                   <p className="text-sm">
                     <span className="text-muted-foreground">Required: </span>
-                    <span className="font-bold text-foreground">{((product?.price || 0) * quantity).toLocaleString()} Ks</span>
+                    <span className="font-bold text-foreground">{(unitPrice * quantity).toLocaleString()} Ks</span>
                   </p>
                   <p className="text-sm">
                     <span className="text-muted-foreground">Your Balance: </span>
