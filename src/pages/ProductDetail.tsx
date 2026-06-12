@@ -116,9 +116,21 @@ const ProductDetail = () => {
     if (!error && data) {
       setProduct(data);
       setSelectedImage(data.image_url);
+      if (data.category === "Digital Products") {
+        const { data: planRows } = await supabase
+          .from("digital_product_plans")
+          .select("*")
+          .eq("product_id", productId)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+        const list = (planRows || []) as Plan[];
+        setPlans(list);
+        if (list.length > 0) setSelectedPlanId(list[0].id);
+      }
     }
     setLoading(false);
   };
+
 
   const getProductImages = () => {
     if (!product) return [];
