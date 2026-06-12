@@ -502,33 +502,8 @@ Account info / Username / Email:
               </p>
             </div>
 
-            {/* Quantity Selector - Enhanced */}
-            <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
-                <span className="h-1 w-1 rounded-full bg-primary" />
-                Quantity
-              </h3>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1 bg-muted/50 rounded-2xl p-1.5 shadow-inner">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-12 w-12 rounded-xl hover:bg-background hover:shadow-md transition-all active:scale-95"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  >
-                    <Minus className="h-5 w-5" />
-                  </Button>
-                  <span className="text-2xl font-bold w-14 text-center font-display">{quantity}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-12 w-12 rounded-xl hover:bg-background hover:shadow-md transition-all active:scale-95"
-                    onClick={() => setQuantity(quantity + 1)}
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
-                </div>
-            {/* Plan Selector for Digital Products */}
+
+
             {isDigital && plans.length > 0 && (
               <div className="animate-fade-in" style={{ animationDelay: '180ms' }}>
                 <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2">
