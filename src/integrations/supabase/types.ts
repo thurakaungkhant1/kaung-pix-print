@@ -559,6 +559,50 @@ export type Database = {
         }
         Relationships: []
       }
+      digital_product_plans: {
+        Row: {
+          created_at: string
+          duration_label: string | null
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          product_id: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_label?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          product_id: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_label?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          product_id?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_product_plans_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favourite_photos: {
         Row: {
           created_at: string | null
@@ -1065,6 +1109,8 @@ export type Database = {
           payment_method: string
           payment_proof_url: string | null
           phone_number: string
+          plan_id: string | null
+          plan_name: string | null
           price: number
           product_id: number
           quantity: number
@@ -1082,6 +1128,8 @@ export type Database = {
           payment_method?: string
           payment_proof_url?: string | null
           phone_number?: string
+          plan_id?: string | null
+          plan_name?: string | null
           price: number
           product_id: number
           quantity?: number
@@ -1099,6 +1147,8 @@ export type Database = {
           payment_method?: string
           payment_proof_url?: string | null
           phone_number?: string
+          plan_id?: string | null
+          plan_name?: string | null
           price?: number
           product_id?: number
           quantity?: number
@@ -1113,6 +1163,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "digital_product_plans"
             referencedColumns: ["id"]
           },
         ]
