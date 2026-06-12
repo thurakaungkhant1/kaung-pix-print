@@ -461,10 +461,16 @@ Account info / Username / Email:
             <CardTitle className="text-2xl sm:text-3xl font-display font-bold tracking-tight">{product.name}</CardTitle>
             <div className="flex items-baseline gap-3 mt-3">
               <CardDescription className="text-3xl sm:text-4xl font-display font-black text-primary">
-                {product.price.toLocaleString()}
+                {unitPrice.toLocaleString()}
               </CardDescription>
               <span className="text-lg text-muted-foreground font-medium">MMK</span>
+              {isDigital && plans.length > 0 && (
+                <span className="text-xs text-muted-foreground ml-1">
+                  {selectedPlan ? `· ${selectedPlan.name}` : "· Select a plan"}
+                </span>
+              )}
             </div>
+
           </CardHeader>
           
           <CardContent className="space-y-6 pt-2">
@@ -522,9 +528,80 @@ Account info / Username / Email:
                     <Plus className="h-5 w-5" />
                   </Button>
                 </div>
+            {/* Plan Selector for Digital Products */}
+            {isDigital && plans.length > 0 && (
+              <div className="animate-fade-in" style={{ animationDelay: '180ms' }}>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2">
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  Choose a plan
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {plans.map((p) => {
+                    const active = selectedPlanId === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPlanId(p.id)}
+                        className={cn(
+                          "text-left p-3 rounded-2xl border-2 transition-all",
+                          active
+                            ? "border-primary bg-primary/5 shadow-md"
+                            : "border-border hover:border-primary/40 bg-card"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-sm">{p.name}</p>
+                            {p.duration_label && (
+                              <p className="text-[11px] text-muted-foreground">
+                                {p.duration_label}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-primary">
+                              {Number(p.price).toLocaleString()}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">MMK</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity Selector - Enhanced */}
+            <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-primary" />
+                Quantity
+              </h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 bg-muted/50 rounded-2xl p-1.5 shadow-inner">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-12 w-12 rounded-xl hover:bg-background hover:shadow-md transition-all active:scale-95"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    <Minus className="h-5 w-5" />
+                  </Button>
+                  <span className="text-2xl font-bold w-14 text-center font-display">{quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-12 w-12 rounded-xl hover:bg-background hover:shadow-md transition-all active:scale-95"
+                    onClick={() => setQuantity(quantity + 1)}
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </div>
                 <div className="text-muted-foreground">
                   <span className="text-sm">Total:</span>
-                  <p className="font-bold text-foreground text-lg">{(product.price * quantity).toLocaleString()} MMK</p>
+                  <p className="font-bold text-foreground text-lg">{(unitPrice * quantity).toLocaleString()} MMK</p>
                 </div>
               </div>
             </div>
@@ -534,6 +611,7 @@ Account info / Username / Email:
           <CardFooter className="flex flex-col gap-4 p-6 bg-gradient-to-t from-muted/30 to-transparent">
             {/* Wallet Balance Display */}
             <div className="w-full p-4 bg-muted/60 rounded-2xl flex items-center justify-between backdrop-blur-sm">
+
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary/10">
                   <Wallet className="h-5 w-5 text-primary" />
