@@ -213,7 +213,22 @@ const ProductDetail = () => {
 
     if (!product) return;
 
-    const totalPrice = product.price * quantity;
+    if (isDigital) {
+      if (plans.length === 0) {
+        toast({
+          title: "No plans available",
+          description: "Please contact admin — this product has no purchase plans yet.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!selectedPlan) {
+        toast({ title: "Select a plan", variant: "destructive" });
+        return;
+      }
+    }
+
+    const totalPrice = unitPrice * quantity;
 
     // Check wallet balance
     if (walletBalance < totalPrice) {
@@ -235,7 +250,7 @@ const ProductDetail = () => {
       if (balanceError) throw balanceError;
 
       // Create order
-      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
+      const orderInsert: any = {
         user_id: user.id,
         product_id: product.id,
         quantity: quantity,
@@ -244,7 +259,18 @@ const ProductDetail = () => {
         delivery_address: "",
         payment_method: "wallet",
         status: "pending",
-      }).select().single();
+      };
+      if (isDigital && selectedPlan) {
+        orderInsert.plan_id = selectedPlan.id;
+        orderInsert.plan_name = selectedPlan.duration_label
+          ? `${selectedPlan.name} (${selectedPlan.duration_label})`
+          : selectedPlan.name;
+      }
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert(orderInsert)
+        .select()
+        .single();
 
       if (orderError) throw orderError;
 
@@ -254,7 +280,7 @@ const ProductDetail = () => {
         amount: -totalPrice,
         transaction_type: 'purchase',
         reference_id: orderData.id,
-        description: `Purchase: ${product.name} x${quantity}`,
+        description: `Purchase: ${product.name}${selectedPlan ? ` — ${selectedPlan.name}` : ""} x${quantity}`,
         balance_after: newBalance
       });
 
@@ -270,6 +296,9 @@ const ProductDetail = () => {
         // mark order as awaiting admin info
         await supabase.from('orders').update({ status: 'awaiting_info' }).eq('id', orderData.id);
         const shortId = String(orderData.id).slice(0, 8).toUpperCase();
+        const planLine = selectedPlan
+          ? `• Plan: ${selectedPlan.name}${selectedPlan.duration_label ? ` (${selectedPlan.duration_label})` : ""} — ${Number(selectedPlan.price).toLocaleString()} MMK\n`
+          : "";
         const prefill =
 `မင်္ဂလာပါ Admin 👋
 
@@ -278,7 +307,7 @@ const ProductDetail = () => {
 • နာမည် (Name): ${profile?.name || "-"}
 • ဖုန်း (Phone): ${profile?.phone_number || "-"}
 • ပစ္စည်း (Product): ${product.name} × ${quantity}
-• Order ID: #${shortId}
+${planLine}• Order ID: #${shortId}
 
 Account info / Username / Email:
 - 
@@ -288,6 +317,7 @@ Account info / Username / Email:
         setDraftOrderId(orderData.id);
         setShowDigitalInfoDialog(true);
       }
+
     } catch (error: any) {
       toast({
         title: "Purchase failed",
