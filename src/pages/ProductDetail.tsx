@@ -595,7 +595,7 @@ Account info / Username / Email:
               </div>
               <span className={cn(
                 "font-bold text-lg",
-                walletBalance >= (product?.price || 0) * quantity ? "text-primary" : "text-destructive"
+                walletBalance >= unitPrice * quantity ? "text-primary" : "text-destructive"
               )}>
                 {walletBalance.toLocaleString()} MMK
               </span>
@@ -620,7 +620,7 @@ Account info / Username / Email:
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  Buy Now — {((product?.price || 0) * quantity).toLocaleString()} MMK
+                  Buy Now — {(unitPrice * quantity).toLocaleString()} MMK
                 </span>
               )}
             </Button>
@@ -668,7 +668,7 @@ Account info / Username / Email:
                 <div className="mt-3 p-3 bg-muted rounded-lg">
                   <p className="text-sm">
                     <span className="text-muted-foreground">Required: </span>
-                    <span className="font-bold text-foreground">{((product?.price || 0) * quantity).toLocaleString()} Ks</span>
+                    <span className="font-bold text-foreground">{(unitPrice * quantity).toLocaleString()} Ks</span>
                   </p>
                   <p className="text-sm">
                     <span className="text-muted-foreground">Your Balance: </span>
