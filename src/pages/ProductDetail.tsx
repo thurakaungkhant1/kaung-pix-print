@@ -3,10 +3,24 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Minus, Plus, ArrowLeft, Sparkles, Star, Crown, Lock, Share2, Wallet, AlertTriangle, Copy, Send } from "lucide-react";
+import {
+  Heart,
+  Minus,
+  Plus,
+  ArrowLeft,
+  Sparkles,
+  Star,
+  Share2,
+  Wallet,
+  AlertTriangle,
+  Copy,
+  Send,
+  ChevronRight,
+  Zap,
+  ShieldCheck,
+  Package,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -15,7 +29,14 @@ import ReviewSection from "@/components/ReviewSection";
 import ImageViewer from "@/components/ImageViewer";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,7 +70,6 @@ interface Plan {
   is_active: boolean;
 }
 
-
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -78,8 +98,6 @@ const ProductDetail = () => {
   const selectedPlan = plans.find((p) => p.id === selectedPlanId) || null;
   const unitPrice = isDigital && selectedPlan ? Number(selectedPlan.price) : (product?.price || 0);
 
-
-  // Check if product is premium and user doesn't have subscription
   const isLocked = product?.is_premium && !isPremium;
 
   useEffect(() => {
@@ -93,9 +111,9 @@ const ProductDetail = () => {
   const loadWalletBalance = async () => {
     if (!user) return;
     const { data } = await supabase
-      .from('profiles')
-      .select('wallet_balance, name, phone_number')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("wallet_balance, name, phone_number")
+      .eq("id", user.id)
       .single();
     setWalletBalance(data?.wallet_balance || 0);
     if (data) setProfile({ name: (data as any).name || "", phone_number: (data as any).phone_number || null });
@@ -103,7 +121,6 @@ const ProductDetail = () => {
 
   const loadProduct = async () => {
     if (!id) return;
-    
     const productId = parseInt(id);
     if (isNaN(productId)) return;
 
@@ -131,7 +148,6 @@ const ProductDetail = () => {
     setLoading(false);
   };
 
-
   const getProductImages = () => {
     if (!product) return [];
     const images = [product.image_url];
@@ -143,34 +159,21 @@ const ProductDetail = () => {
 
   const checkFavourite = async () => {
     if (!user || !id) return;
-
     const productId = parseInt(id);
     if (isNaN(productId)) return;
-
     const { data } = await supabase
       .from("favourite_products")
       .select("id")
       .eq("user_id", user.id)
       .eq("product_id", productId)
       .maybeSingle();
-
     setIsFavourite(!!data);
   };
 
   const toggleFavourite = async () => {
     if (!user || !id) return;
-
     const productId = parseInt(id);
     if (isNaN(productId)) return;
-
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to add favourites",
-        variant: "destructive",
-      });
-      return;
-    }
 
     if (isFavourite) {
       await supabase
@@ -186,8 +189,7 @@ const ProductDetail = () => {
 
     setIsFavourite(!isFavourite);
     toast({
-      title: isFavourite ? "Removed from favourites" : "Added to favourites! ❤️",
-      description: isFavourite ? "Product removed from your favourites" : "You can find it in your favourites",
+      title: isFavourite ? "Removed from favourites" : "Added to favourites",
     });
   };
 
@@ -230,7 +232,6 @@ const ProductDetail = () => {
 
     const totalPrice = unitPrice * quantity;
 
-    // Check wallet balance
     if (walletBalance < totalPrice) {
       setShowInsufficientBalanceDialog(true);
       return;
@@ -241,15 +242,13 @@ const ProductDetail = () => {
     try {
       const newBalance = walletBalance - totalPrice;
 
-      // Deduct from wallet
       const { error: balanceError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ wallet_balance: newBalance })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (balanceError) throw balanceError;
 
-      // Create order
       const orderInsert: any = {
         user_id: user.id,
         product_id: product.id,
@@ -274,27 +273,24 @@ const ProductDetail = () => {
 
       if (orderError) throw orderError;
 
-      // Create wallet transaction
-      await supabase.from('wallet_transactions').insert({
+      await supabase.from("wallet_transactions").insert({
         user_id: user.id,
         amount: -totalPrice,
-        transaction_type: 'purchase',
+        transaction_type: "purchase",
         reference_id: orderData.id,
         description: `Purchase: ${product.name}${selectedPlan ? ` — ${selectedPlan.name}` : ""} x${quantity}`,
-        balance_after: newBalance
+        balance_after: newBalance,
       });
 
       setWalletBalance(newBalance);
       toast({
-        title: "Purchase Successful! 🎉",
+        title: "Purchase Successful!",
         description: `Order placed for ${product.name}. You earned ${product.points_value * quantity} points!`,
       });
       loadProduct();
 
-      // For Digital Products: prompt the buyer to confirm/edit message before sending to admin
-      if (product.category === 'Digital Products') {
-        // mark order as awaiting admin info
-        await supabase.from('orders').update({ status: 'awaiting_info' }).eq('id', orderData.id);
+      if (product.category === "Digital Products") {
+        await supabase.from("orders").update({ status: "awaiting_info" }).eq("id", orderData.id);
         const shortId = String(orderData.id).slice(0, 8).toUpperCase();
         const planLine = selectedPlan
           ? `• Plan: ${selectedPlan.name}${selectedPlan.duration_label ? ` (${selectedPlan.duration_label})` : ""} — ${Number(selectedPlan.price).toLocaleString()} MMK\n`
@@ -317,7 +313,6 @@ Account info / Username / Email:
         setDraftOrderId(orderData.id);
         setShowDigitalInfoDialog(true);
       }
-
     } catch (error: any) {
       toast({
         title: "Purchase failed",
@@ -340,312 +335,310 @@ Account info / Username / Email:
     );
   }
 
+  const images = getProductImages();
+
   return (
     <AnimatedPage>
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-8">
-      {/* Enhanced Header */}
-      <header className="bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground p-4 sticky top-0 z-40 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate(-1)}
-              className="p-2.5 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-all duration-300 hover:scale-105 active:scale-95"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <h1 className="text-xl font-display font-bold tracking-tight">Product Details</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
+      <div className="min-h-screen bg-background pb-28">
+        {/* ── Floating translucent top bar ── */}
+        <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-2 flex items-center justify-between pointer-events-none">
+          <button
+            onClick={() => navigate(-1)}
+            className="pointer-events-auto h-10 w-10 rounded-full bg-background/70 backdrop-blur-md border border-border/40 flex items-center justify-center shadow-sm hover:bg-background transition-colors active:scale-95"
+          >
+            <ArrowLeft className="h-5 w-5 text-foreground" />
+          </button>
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <button
               onClick={() => {
                 const shareUrl = `${window.location.origin}/product/${product.id}`;
                 if (navigator.share) {
-                  navigator.share({
-                    title: product.name,
-                    text: `Check out ${product.name} on Kaung Computer!`,
-                    url: shareUrl,
-                  });
+                  navigator.share({ title: product.name, text: `Check out ${product.name} on Kaung Computer!`, url: shareUrl });
                 } else {
                   navigator.clipboard.writeText(shareUrl);
-                  toast({
-                    title: "Link copied!",
-                    description: "Product link copied to clipboard",
-                  });
+                  toast({ title: "Link copied!" });
                 }
               }}
-              className="h-10 w-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-all"
+              className="h-10 w-10 rounded-full bg-background/70 backdrop-blur-md border border-border/40 flex items-center justify-center shadow-sm hover:bg-background transition-colors active:scale-95"
             >
-              <Share2 className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-screen-xl mx-auto space-y-6">
-        {/* Hero Image Section - Larger & More Immersive */}
-        <div className="relative">
-          <div 
-            className="aspect-[4/3] bg-gradient-to-b from-muted to-muted/50 relative group cursor-zoom-in overflow-hidden"
-            onClick={() => setImageViewerOpen(true)}
-          >
-            <img
-              src={selectedImage || product.image_url}
-              alt={product.name}
-              className="w-full h-full object-contain transition-all duration-700 group-hover:scale-110"
-            />
-            {/* Gradient overlays for depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/10 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-            
-            {/* Zoom indicator */}
-            <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-md px-3 py-2 rounded-full text-sm text-muted-foreground flex items-center gap-2 shadow-lg opacity-80 group-hover:opacity-100 transition-all">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-              </svg>
-              Tap to zoom
-            </div>
-            
-            {/* Favorite button - Floating */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFavourite();
-              }}
+              <Share2 className="h-4 w-4 text-foreground" />
+            </button>
+            <button
+              onClick={toggleFavourite}
               className={cn(
-                "absolute top-4 right-4 h-12 w-12 rounded-full shadow-lg backdrop-blur-md transition-all duration-300",
-                isFavourite 
-                  ? "bg-primary/90 hover:bg-primary text-primary-foreground scale-110" 
-                  : "bg-background/90 hover:bg-background text-foreground hover:scale-110"
+                "h-10 w-10 rounded-full backdrop-blur-md border flex items-center justify-center shadow-sm transition-all active:scale-95",
+                isFavourite
+                  ? "bg-rose-500/90 border-rose-400/30 text-white"
+                  : "bg-background/70 border-border/40 text-foreground hover:bg-background"
               )}
             >
-              <Heart
-                className={cn(
-                  "h-6 w-6 transition-all duration-300",
-                  isFavourite && "fill-current animate-pulse"
-                )}
-              />
-            </Button>
+              <Heart className={cn("h-4 w-4", isFavourite && "fill-current")} />
+            </button>
           </div>
-          
-          {/* Thumbnail Gallery - Enhanced */}
-          {getProductImages().length > 1 && (
-            <div className="p-4 flex gap-3 overflow-x-auto scrollbar-hide bg-gradient-to-t from-background to-transparent">
-              {getProductImages().map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(img)}
+        </div>
+
+        {/* ── Hero Image ── */}
+        <div
+          className="relative w-full aspect-square bg-muted cursor-zoom-in overflow-hidden"
+          onClick={() => setImageViewerOpen(true)}
+        >
+          <img
+            src={selectedImage || product.image_url}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+          />
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {images.map((_, i) => (
+                <div
+                  key={i}
                   className={cn(
-                    "w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all duration-300 flex-shrink-0 shadow-md hover:shadow-lg",
-                    selectedImage === img 
-                      ? "border-primary ring-2 ring-primary/30 scale-105" 
-                      : "border-transparent hover:border-primary/40 hover:scale-105"
+                    "h-1.5 rounded-full transition-all duration-300",
+                    selectedImage === images[i] ? "w-6 bg-white" : "w-1.5 bg-white/50"
                   )}
-                >
-                  <img
-                    src={img}
-                    alt={`${product.name} ${idx + 1}`}
-                    className="w-full h-full object-contain bg-muted"
-                  />
-                </button>
+                />
               ))}
             </div>
           )}
         </div>
-        {/* Product Info Card - Enhanced */}
-        <Card className="mx-4 rounded-3xl border-0 shadow-2xl overflow-hidden animate-slide-up">
-          <CardHeader className="pb-4 bg-gradient-to-b from-muted/30 to-transparent">
-            <CardTitle className="text-2xl sm:text-3xl font-display font-bold tracking-tight">{product.name}</CardTitle>
-            <div className="flex items-baseline gap-3 mt-3">
-              <CardDescription className="text-3xl sm:text-4xl font-display font-black text-primary">
-                {unitPrice.toLocaleString()}
-              </CardDescription>
-              <span className="text-lg text-muted-foreground font-medium">MMK</span>
-              {isDigital && plans.length > 0 && (
-                <span className="text-xs text-muted-foreground ml-1">
-                  {selectedPlan ? `· ${selectedPlan.name}` : "· Select a plan"}
-                </span>
+
+        {/* ── Thumbnail strip ── */}
+        {images.length > 1 && (
+          <div className="px-4 -mt-6 relative z-10 flex gap-2 overflow-x-auto scrollbar-hide">
+            {images.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedImage(img)}
+                className={cn(
+                  "w-16 h-16 rounded-2xl overflow-hidden border-2 transition-all duration-200 flex-shrink-0 shadow-lg",
+                  selectedImage === img
+                    ? "border-primary ring-2 ring-primary/20 scale-105"
+                    : "border-white/80 hover:border-primary/40"
+                )}
+              >
+                <img src={img} alt="" className="w-full h-full object-cover bg-muted" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── Content ── */}
+        <div className="px-5 pt-6 space-y-6 max-w-screen-sm mx-auto">
+          {/* Title & Price */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {isDigital && (
+                <Badge variant="secondary" className="rounded-lg bg-primary/10 text-primary border-0 text-xs font-semibold px-2.5 py-0.5">
+                  <Zap className="h-3 w-3 mr-1" />
+                  Digital
+                </Badge>
+              )}
+              {product.is_premium && (
+                <Badge className="rounded-lg bg-amber-500/10 text-amber-600 border-0 text-xs font-semibold px-2.5 py-0.5">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Premium
+                </Badge>
               )}
             </div>
-
-          </CardHeader>
-          
-          <CardContent className="space-y-6 pt-2">
-            {product.description && (
-              <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
-                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-primary" />
-                  Description
-                </h3>
-                <p className="text-muted-foreground leading-relaxed text-base">{product.description}</p>
-              </div>
+            <h1 className="text-2xl font-display font-bold tracking-tight leading-tight">
+              {product.name}
+            </h1>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-display font-black text-primary tracking-tight">
+                {unitPrice.toLocaleString()}
+              </span>
+              <span className="text-sm text-muted-foreground font-medium">MMK</span>
+            </div>
+            {isDigital && selectedPlan && (
+              <p className="text-xs text-muted-foreground">
+                Selected: <span className="text-foreground font-medium">{selectedPlan.name}</span>
+                {selectedPlan.duration_label ? ` · ${selectedPlan.duration_label}` : ""}
+              </p>
             )}
+          </div>
 
-            {/* Points Reward - Enhanced */}
-            <div 
-              className="p-5 bg-gradient-to-br from-primary/15 via-primary/10 to-accent/5 rounded-2xl border border-primary/20 animate-fade-in shadow-inner"
-              style={{ animationDelay: '150ms' }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-xl bg-primary/20">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                </div>
-                <p className="font-display font-bold text-lg text-primary">
-                  Earn {product.points_value} points per item!
-                </p>
-              </div>
-              <p className="text-muted-foreground">
-                Total reward: <span className="font-bold text-primary text-lg">{product.points_value * quantity} points</span> for {quantity} item(s)
+          {/* Divider */}
+          <div className="h-px bg-border/60" />
+
+          {/* Points Reward */}
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Earn {product.points_value} points per item
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {product.points_value * quantity} points total for {quantity} item(s)
               </p>
             </div>
+          </div>
 
-
-
-            {isDigital && plans.length > 0 && (
-              <div className="animate-fade-in" style={{ animationDelay: '180ms' }}>
-                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-primary" />
-                  Choose a plan
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {plans.map((p) => {
-                    const active = selectedPlanId === p.id;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => setSelectedPlanId(p.id)}
-                        className={cn(
-                          "text-left p-3 rounded-2xl border-2 transition-all",
-                          active
-                            ? "border-primary bg-primary/5 shadow-md"
-                            : "border-border hover:border-primary/40 bg-card"
-                        )}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-sm">{p.name}</p>
-                            {p.duration_label && (
-                              <p className="text-[11px] text-muted-foreground">
-                                {p.duration_label}
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-primary">
-                              {Number(p.price).toLocaleString()}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground">MMK</p>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Quantity Selector - Enhanced */}
-            <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
-                <span className="h-1 w-1 rounded-full bg-primary" />
-                Quantity
+          {/* Description */}
+          {product.description && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                Description
               </h3>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1 bg-muted/50 rounded-2xl p-1.5 shadow-inner">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-12 w-12 rounded-xl hover:bg-background hover:shadow-md transition-all active:scale-95"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  >
-                    <Minus className="h-5 w-5" />
-                  </Button>
-                  <span className="text-2xl font-bold w-14 text-center font-display">{quantity}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-12 w-12 rounded-xl hover:bg-background hover:shadow-md transition-all active:scale-95"
-                    onClick={() => setQuantity(quantity + 1)}
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
-                </div>
-                <div className="text-muted-foreground">
-                  <span className="text-sm">Total:</span>
-                  <p className="font-bold text-foreground text-lg">{(unitPrice * quantity).toLocaleString()} MMK</p>
-                </div>
-              </div>
+              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
+                {product.description}
+              </p>
             </div>
-          </CardContent>
-          
-          {/* Purchase Section - Enhanced CTA */}
-          <CardFooter className="flex flex-col gap-4 p-6 bg-gradient-to-t from-muted/30 to-transparent">
-            {/* Wallet Balance Display */}
-            <div className="w-full p-4 bg-muted/60 rounded-2xl flex items-center justify-between backdrop-blur-sm">
+          )}
 
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary/10">
-                  <Wallet className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-muted-foreground font-medium">Your Balance</span>
+          {/* Plans */}
+          {isDigital && plans.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                Choose a Plan
+              </h3>
+              <div className="grid grid-cols-1 gap-2">
+                {plans.map((p) => {
+                  const active = selectedPlanId === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSelectedPlanId(p.id)}
+                      className={cn(
+                        "relative flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 text-left",
+                        active
+                          ? "border-primary bg-primary/[0.04] shadow-sm"
+                          : "border-border/60 bg-card hover:border-primary/30"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                            active ? "border-primary" : "border-muted-foreground/30"
+                          )}
+                        >
+                          {active && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{p.name}</p>
+                          {p.duration_label && (
+                            <p className="text-xs text-muted-foreground">{p.duration_label}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={cn("font-bold text-base", active ? "text-primary" : "text-foreground")}>
+                          {Number(p.price).toLocaleString()}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">MMK</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-              <span className={cn(
-                "font-bold text-lg",
-                walletBalance >= unitPrice * quantity ? "text-primary" : "text-destructive"
-              )}>
-                {walletBalance.toLocaleString()} MMK
-              </span>
             </div>
-            
-            {/* Buy Now Button - Premium CTA */}
-            <Button 
-              className={cn(
-                "w-full h-14 text-lg font-bold rounded-2xl transition-all duration-300",
-                "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary",
-                "shadow-xl hover:shadow-2xl hover:shadow-primary/25",
-                "active:scale-[0.98]"
-              )}
-              size="lg" 
+          )}
+
+          {/* Quantity */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Quantity
+            </h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 bg-muted/60 rounded-2xl p-1.5">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="h-10 w-10 rounded-xl bg-card shadow-sm flex items-center justify-center hover:shadow transition-all active:scale-95 disabled:opacity-40"
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="text-lg font-bold w-10 text-center tabular-nums">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="h-10 w-10 rounded-xl bg-card shadow-sm flex items-center justify-center hover:shadow transition-all active:scale-95"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-xl font-bold text-foreground tabular-nums">
+                  {(unitPrice * quantity).toLocaleString()} <span className="text-sm font-medium text-muted-foreground">MMK</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust badges */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-muted/40 text-center">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              <span className="text-[10px] font-medium text-muted-foreground leading-tight">Secure Payment</span>
+            </div>
+            <div className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-muted/40 text-center">
+              <Package className="h-5 w-5 text-primary" />
+              <span className="text-[10px] font-medium text-muted-foreground leading-tight">Instant Delivery</span>
+            </div>
+            <div className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-muted/40 text-center">
+              <Zap className="h-5 w-5 text-primary" />
+              <span className="text-[10px] font-medium text-muted-foreground leading-tight">24/7 Support</span>
+            </div>
+          </div>
+
+          {/* Reviews */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              Reviews & Ratings
+            </h3>
+            <ReviewSection productId={product.id} />
+          </div>
+        </div>
+
+        {/* ── Sticky Bottom Bar ── */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border/40 px-5 py-4">
+          <div className="max-w-screen-sm mx-auto flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground truncate">
+                <Wallet className="h-3 w-3 inline mr-1 -mt-0.5" />
+                Balance: <span className={cn("font-semibold", walletBalance >= unitPrice * quantity ? "text-primary" : "text-destructive")}>
+                  {walletBalance.toLocaleString()} MMK
+                </span>
+              </p>
+              <p className="text-lg font-bold text-foreground truncate tabular-nums">
+                {(unitPrice * quantity).toLocaleString()} <span className="text-sm font-medium text-muted-foreground">MMK</span>
+              </p>
+            </div>
+            <Button
               onClick={handleBuyNow}
-              disabled={purchasing}
+              disabled={purchasing || isLocked}
+              className={cn(
+                "h-12 px-8 rounded-2xl font-bold text-base shadow-lg transition-all active:scale-[0.97]",
+                isLocked
+                  ? "bg-muted text-muted-foreground shadow-none"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/25"
+              )}
             >
               {purchasing ? (
-                <span className="flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Processing...
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Processing
+                </span>
+              ) : isLocked ? (
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Premium Only
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  Buy Now — {(unitPrice * quantity).toLocaleString()} MMK
+                  Buy Now
+                  <ChevronRight className="h-4 w-4" />
                 </span>
               )}
             </Button>
-          </CardFooter>
-        </Card>
-
-        {/* Product Reviews Section - Enhanced */}
-        <div className="px-4">
-          <Tabs defaultValue="reviews" className="w-full animate-fade-in" style={{ animationDelay: '250ms' }}>
-            <TabsList className="grid w-full grid-cols-1 bg-muted/50 p-1.5 rounded-2xl shadow-inner">
-              <TabsTrigger 
-                value="reviews"
-                className="rounded-xl h-12 data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-2 transition-all"
-              >
-                <Star className="h-4 w-4" />
-                Reviews & Ratings
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="reviews" className="mt-5">
-              <ReviewSection productId={product.id} />
-            </TabsContent>
-          </Tabs>
+          </div>
         </div>
 
-        {/* Image Viewer for pinch-to-zoom */}
+        {/* ── Dialogs ── */}
         <ImageViewer
           src={selectedImage || product.image_url}
           alt={product.name}
@@ -653,9 +646,8 @@ Account info / Username / Email:
           onOpenChange={setImageViewerOpen}
         />
 
-        {/* Insufficient Balance Dialog */}
         <AlertDialog open={showInsufficientBalanceDialog} onOpenChange={setShowInsufficientBalanceDialog}>
-          <AlertDialogContent className="max-w-sm">
+          <AlertDialogContent className="max-w-sm rounded-3xl">
             <AlertDialogHeader>
               <div className="flex justify-center mb-4">
                 <div className="p-4 rounded-full bg-destructive/10">
@@ -665,34 +657,30 @@ Account info / Username / Email:
               <AlertDialogTitle className="text-center">{t("insufficientBalance")}</AlertDialogTitle>
               <AlertDialogDescription className="text-center">
                 {t("depositFirst")}
-                <div className="mt-3 p-3 bg-muted rounded-lg">
-                  <p className="text-sm">
-                    <span className="text-muted-foreground">Required: </span>
+                <div className="mt-3 p-3 bg-muted rounded-2xl space-y-1">
+                  <p className="text-sm flex justify-between">
+                    <span className="text-muted-foreground">Required</span>
                     <span className="font-bold text-foreground">{(unitPrice * quantity).toLocaleString()} Ks</span>
                   </p>
-                  <p className="text-sm">
-                    <span className="text-muted-foreground">Your Balance: </span>
+                  <p className="text-sm flex justify-between">
+                    <span className="text-muted-foreground">Your Balance</span>
                     <span className="font-bold text-destructive">{walletBalance.toLocaleString()} Ks</span>
                   </p>
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-              <AlertDialogAction 
-                onClick={() => navigate("/top-up")}
-                className="w-full"
-              >
+              <AlertDialogAction onClick={() => navigate("/top-up")} className="w-full rounded-xl h-11">
                 <Wallet className="h-4 w-4 mr-2" />
                 {t("deposit")}
               </AlertDialogAction>
-              <AlertDialogCancel className="w-full">{t("cancel")}</AlertDialogCancel>
+              <AlertDialogCancel className="w-full rounded-xl h-11 mt-0">{t("cancel")}</AlertDialogCancel>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Digital Product: confirm / edit / copy the message before sending to admin */}
         <Dialog open={showDigitalInfoDialog} onOpenChange={setShowDigitalInfoDialog}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md rounded-3xl">
             <DialogHeader>
               <div className="flex justify-center mb-2">
                 <div className="p-3 rounded-full bg-primary/10">
@@ -704,16 +692,11 @@ Account info / Username / Email:
                 ပို့မည့်စာကို ဖတ်ပြီး လိုအပ်ရင် ပြင်နိုင်ပါတယ်။ Copy လည်း လုပ်နိုင်ပါတယ်။
               </DialogDescription>
             </DialogHeader>
-            <Textarea
-              value={draftMessage}
-              onChange={(e) => setDraftMessage(e.target.value)}
-              rows={12}
-              className="text-xs font-mono"
-            />
+            <Textarea value={draftMessage} onChange={(e) => setDraftMessage(e.target.value)} rows={12} className="text-xs font-mono rounded-xl" />
             <DialogFooter className="flex-col gap-2 sm:flex-col">
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full rounded-xl h-11"
                 onClick={() => {
                   navigator.clipboard.writeText(draftMessage);
                   toast({ title: "Copied!", description: "Message ကို copy လုပ်ပြီးပါပြီ" });
@@ -723,7 +706,7 @@ Account info / Username / Email:
                 Copy Message
               </Button>
               <Button
-                className="w-full"
+                className="w-full rounded-xl h-11"
                 disabled={sendingDraft || !draftMessage.trim()}
                 onClick={async () => {
                   if (!user) return;
@@ -746,14 +729,13 @@ Account info / Username / Email:
                 <Send className="h-4 w-4 mr-2" />
                 {sendingDraft ? "Sending…" : "Admin ထံ ပို့မယ်"}
               </Button>
-              <Button variant="ghost" className="w-full" onClick={() => setShowDigitalInfoDialog(false)}>
+              <Button variant="ghost" className="w-full rounded-xl h-11" onClick={() => setShowDigitalInfoDialog(false)}>
                 နောက်မှ
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
-    </div>
     </AnimatedPage>
   );
 };
