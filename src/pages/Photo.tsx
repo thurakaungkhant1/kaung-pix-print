@@ -94,7 +94,7 @@ const Photo = () => {
     // 1) Fast initial fetch: first 12 albums for instant display (only needed columns)
     const firstBatch = await supabase
       .from("photos")
-      .select("id, client_name, file_url, file_size, preview_image, category, created_at, photo_count")
+      .select("*")
       .order("created_at", { ascending: false })
       .range(0, 11);
 
@@ -108,7 +108,7 @@ const Photo = () => {
       if (firstBatch.data.length === 12) {
         supabase
           .from("photos")
-          .select("id, client_name, file_url, file_size, preview_image, category, created_at, photo_count")
+          .select("*")
           .order("created_at", { ascending: false })
           .range(12, 999)
           .then(({ data: rest }) => {
