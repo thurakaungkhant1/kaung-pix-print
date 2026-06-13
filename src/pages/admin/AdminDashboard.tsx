@@ -49,6 +49,7 @@ import {
   Wallet,
   Megaphone,
   Sparkles,
+  MessageCircle,
 } from "lucide-react";
 import {
   Dialog,
