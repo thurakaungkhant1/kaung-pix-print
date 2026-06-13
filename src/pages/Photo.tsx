@@ -91,12 +91,12 @@ const Photo = () => {
 
 
   const loadPhotos = async () => {
-    // 1) Fast initial fetch: first 24 albums for instant display
+    // 1) Fast initial fetch: first 12 albums for instant display (only needed columns)
     const firstBatch = await supabase
       .from("photos")
       .select("*")
       .order("created_at", { ascending: false })
-      .range(0, 23);
+      .range(0, 11);
 
     if (!firstBatch.error && firstBatch.data) {
       setPhotos(firstBatch.data);
@@ -105,12 +105,12 @@ const Photo = () => {
       setLoading(false);
 
       // 2) Background fetch: load the rest without blocking UI
-      if (firstBatch.data.length === 24) {
+      if (firstBatch.data.length === 12) {
         supabase
           .from("photos")
           .select("*")
           .order("created_at", { ascending: false })
-          .range(24, 999)
+          .range(12, 999)
           .then(({ data: rest }) => {
             if (rest && rest.length > 0) {
               setPhotos((prev) => {
@@ -189,20 +189,41 @@ const Photo = () => {
 
   if (loading) {
     return (
-      <MobileLayout>
+      <MobileLayout className="bg-background">
         <header className="px-5 pt-6 pb-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
-            <div className="w-24 h-9 bg-muted rounded-full animate-pulse" />
-            <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
+          <div className="flex items-center justify-between gap-2 mb-5">
+            <div className="w-10 h-10 rounded-full bg-muted animate-shimmer" />
+            <div className="w-24 h-10 rounded-full bg-muted animate-shimmer" />
+            <div className="w-10 h-10 rounded-full bg-muted animate-shimmer" />
           </div>
-          <div className="h-8 w-40 bg-muted rounded animate-pulse mb-2" />
-          <div className="h-4 w-56 bg-muted rounded animate-pulse" />
+          <div className="h-8 w-48 bg-muted rounded animate-shimmer mb-2" />
+          <div className="h-4 w-56 bg-muted rounded animate-shimmer" />
         </header>
-        <div className="px-5 space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-2xl bg-muted h-56 animate-pulse" />
-          ))}
+        <div className="px-5 pb-32 space-y-4">
+          <div className="h-16 rounded-2xl bg-muted animate-shimmer" />
+          <div className="flex gap-2 overflow-hidden">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-7 w-16 rounded-full bg-muted animate-shimmer flex-shrink-0" />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl overflow-hidden bg-card border border-border/60 animate-fade-in"
+                style={{ animationDelay: `${i * 40}ms` }}
+              >
+                <div className="aspect-[4/5] bg-muted animate-shimmer" />
+                <div className="p-2 space-y-1.5">
+                  <div className="h-3 bg-muted rounded animate-shimmer w-3/4" />
+                  <div className="h-2.5 bg-muted rounded animate-shimmer w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-xs text-muted-foreground pt-2 animate-pulse">
+            Loading gallery…
+          </p>
         </div>
       </MobileLayout>
     );

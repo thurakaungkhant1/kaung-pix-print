@@ -49,6 +49,7 @@ import {
   Wallet,
   Megaphone,
   Sparkles,
+  MessageCircle,
 } from "lucide-react";
 import {
   Dialog,
@@ -2206,8 +2207,8 @@ const AdminDashboard = () => {
                       <Button variant="outline" size="sm" onClick={() => navigate("/admin/digital-orders")}>
                         <Package className="h-4 w-4 mr-1" /> Digital Orders
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => navigate("/admin/support")}>
-                        Support Chat
+                      <Button variant="default" size="sm" onClick={() => navigate("/admin/support")} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <MessageCircle className="h-4 w-4 mr-1" /> Customer Support
                       </Button>
                     </div>
                   </div>
