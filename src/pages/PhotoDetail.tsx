@@ -174,6 +174,17 @@ const PhotoDetail = () => {
       navigate(`/auth/login?redirectTo=${encodeURIComponent(`/photo/${photo.id}`)}`);
       return;
     }
+
+    // If admin provided an external link (Google Drive, Terabox, MediaFire, Dropbox, MEGA, etc.),
+    // open it directly in a new tab so users land on the real download page.
+    const url = photo.file_url;
+    const isExternalLink = /drive\.google\.com|docs\.google\.com|terabox\.com|1024terabox\.com|teraboxapp\.com|mediafire\.com|dropbox\.com|mega\.nz|onedrive\.live\.com|1drv\.ms|pcloud\.|box\.com|wetransfer\.com|sendgb\.com/i.test(url);
+    if (isExternalLink) {
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast({ title: "✅ Opening download link", description: "External link မှာ ဆက်လက် download လုပ်ပါ။" });
+      return;
+    }
+
     setDownloading(true);
     setDownloadStage("fetching");
     setDownloadProgress(0);

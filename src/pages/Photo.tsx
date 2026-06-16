@@ -91,42 +91,59 @@ const Photo = () => {
 
 
   const loadPhotos = async () => {
-    // 1) Fast initial fetch: first 12 albums for instant display (only needed columns)
+    const SELECT_COLS = "id, client_name, file_url, file_size, preview_image, category, created_at";
+
+    // 1) Fast initial fetch: first 12 albums for instant display
     const firstBatch = await supabase
       .from("photos")
-      .select("*")
+      .select(SELECT_COLS)
       .order("created_at", { ascending: false })
       .range(0, 11);
 
     if (!firstBatch.error && firstBatch.data) {
-      setPhotos(firstBatch.data);
-      const uniqueCategories = Array.from(new Set(firstBatch.data.map((p) => p.category || "General")));
+      setPhotos(firstBatch.data as Photo[]);
+      const uniqueCategories = Array.from(new Set(firstBatch.data.map((p: any) => p.category || "General")));
       setCategories(["All", ...uniqueCategories.sort()]);
       setLoading(false);
 
-      // 2) Background fetch: load the rest without blocking UI
+      // 2) Background fetch: stream remaining albums in pages so UI stays responsive
       if (firstBatch.data.length === 12) {
-        supabase
-          .from("photos")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .range(12, 999)
-          .then(({ data: rest }) => {
-            if (rest && rest.length > 0) {
-              setPhotos((prev) => {
-                const seen = new Set(prev.map((p) => p.id));
-                const combined = [...prev, ...rest.filter((p) => !seen.has(p.id))];
-                const cats = Array.from(new Set(combined.map((p) => p.category || "General")));
-                setCategories(["All", ...cats.sort()]);
-                return combined;
-              });
-            }
+        const fetchPage = async (from: number, to: number) => {
+          const { data, error } = await supabase
+            .from("photos")
+            .select(SELECT_COLS)
+            .order("created_at", { ascending: false })
+            .range(from, to);
+          if (error || !data || data.length === 0) return 0;
+          setPhotos((prev) => {
+            const seen = new Set(prev.map((p) => p.id));
+            const combined = [...prev, ...(data as Photo[]).filter((p) => !seen.has(p.id))];
+            const cats = Array.from(new Set(combined.map((p) => p.category || "General")));
+            setCategories(["All", ...cats.sort()]);
+            return combined;
           });
+          return data.length;
+        };
+
+        // Chunked background loading (100 at a time)
+        (async () => {
+          let from = 12;
+          const CHUNK = 100;
+          // small idle delay so UI paint isn't blocked
+          await new Promise((r) => setTimeout(r, 50));
+          while (true) {
+            const n = await fetchPage(from, from + CHUNK - 1);
+            if (n < CHUNK) break;
+            from += CHUNK;
+            if (from > 5000) break; // safety cap
+          }
+        })();
       }
     } else {
       setLoading(false);
     }
   };
+
 
 
   const loadFavourites = async () => {
