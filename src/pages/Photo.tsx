@@ -91,7 +91,7 @@ const Photo = () => {
 
 
   const loadPhotos = async () => {
-    const SELECT_COLS = "id, client_name, file_url, file_size, preview_image, category, created_at, photo_count";
+    const SELECT_COLS = "id, client_name, file_url, file_size, preview_image, category, created_at";
 
     // 1) Fast initial fetch: first 12 albums for instant display
     const firstBatch = await supabase
