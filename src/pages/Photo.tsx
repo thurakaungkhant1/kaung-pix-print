@@ -67,7 +67,35 @@ const Photo = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const CACHE_KEY = "photo_gallery_cache_v1";
+  const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
+
   useEffect(() => {
+    // 0) Hydrate from cache instantly so the gallery appears with zero wait
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { ts: number; photos: Photo[] };
+        if (parsed?.photos?.length) {
+          setPhotos(parsed.photos);
+          const cats = Array.from(new Set(parsed.photos.map((p) => p.category || "General")));
+          setCategories(["All", ...cats.sort()]);
+          setLoading(false);
+
+          // Warm the browser image cache for the first visible previews
+          parsed.photos.slice(0, 24).forEach((p) => {
+            if (p.preview_image) {
+              const img = new Image();
+              img.decoding = "async";
+              img.src = p.preview_image;
+            }
+          });
+        }
+      }
+    } catch {
+      // ignore cache errors
+    }
+
     loadPhotos();
     loadBackgroundMusic();
     if (user) loadFavourites();
@@ -85,10 +113,21 @@ const Photo = () => {
     if (data?.file_url) setBackgroundMusic(data.file_url);
   };
 
-  // Watermark removed for thumbnails — was downloading full-res images and
-  // re-encoding via canvas, which made the gallery extremely slow. The CSS
-  // overlay below provides a visual watermark instead.
-
+  const writeCache = (photos: Photo[]) => {
+    try {
+      // Cap the cache so we don't blow past localStorage quota
+      const capped = photos.slice(0, 500);
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), photos: capped }));
+    } catch {
+      // quota exceeded — try a smaller slice, otherwise give up silently
+      try {
+        localStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ ts: Date.now(), photos: photos.slice(0, 200) })
+        );
+      } catch {}
+    }
+  };
 
   const loadPhotos = async () => {
     const SELECT_COLS = "id, client_name, file_url, file_size, preview_image, category, created_at";
@@ -101,10 +140,12 @@ const Photo = () => {
       .range(0, 11);
 
     if (!firstBatch.error && firstBatch.data) {
-      setPhotos(firstBatch.data as Photo[]);
-      const uniqueCategories = Array.from(new Set(firstBatch.data.map((p: any) => p.category || "General")));
+      const firstData = firstBatch.data as Photo[];
+      setPhotos(firstData);
+      const uniqueCategories = Array.from(new Set(firstData.map((p) => p.category || "General")));
       setCategories(["All", ...uniqueCategories.sort()]);
       setLoading(false);
+      writeCache(firstData);
 
       // 2) Background fetch: stream remaining albums in pages so UI stays responsive
       if (firstBatch.data.length === 12) {
@@ -115,13 +156,17 @@ const Photo = () => {
             .order("created_at", { ascending: false })
             .range(from, to);
           if (error || !data || data.length === 0) return 0;
+          let merged: Photo[] = [];
           setPhotos((prev) => {
             const seen = new Set(prev.map((p) => p.id));
             const combined = [...prev, ...(data as Photo[]).filter((p) => !seen.has(p.id))];
             const cats = Array.from(new Set(combined.map((p) => p.category || "General")));
             setCategories(["All", ...cats.sort()]);
+            merged = combined;
             return combined;
           });
+          // Persist progressively so reloads are fast even mid-stream
+          if (merged.length) writeCache(merged);
           return data.length;
         };
 
@@ -129,13 +174,12 @@ const Photo = () => {
         (async () => {
           let from = 12;
           const CHUNK = 100;
-          // small idle delay so UI paint isn't blocked
           await new Promise((r) => setTimeout(r, 50));
           while (true) {
             const n = await fetchPage(from, from + CHUNK - 1);
             if (n < CHUNK) break;
             from += CHUNK;
-            if (from > 5000) break; // safety cap
+            if (from > 5000) break;
           }
         })();
       }
@@ -143,6 +187,7 @@ const Photo = () => {
       setLoading(false);
     }
   };
+
 
 
 
