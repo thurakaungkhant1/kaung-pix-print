@@ -155,10 +155,14 @@ const Favourite = () => {
           <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
             {product.name}
           </h3>
-          <p className="text-primary font-display font-bold text-base">
-            {product.price.toLocaleString()}
-            <span className="text-[10px] font-medium text-muted-foreground ml-0.5">Ks</span>
-          </p>
+          {product.category === "Digital Products" ? (
+            <p className="text-primary font-display font-semibold text-xs">View details →</p>
+          ) : (
+            <p className="text-primary font-display font-bold text-base">
+              {product.price.toLocaleString()}
+              <span className="text-[10px] font-medium text-muted-foreground ml-0.5">Ks</span>
+            </p>
+          )}
         </CardContent>
       </Card>
     </motion.div>
