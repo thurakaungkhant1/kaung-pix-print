@@ -33,22 +33,65 @@ export const useGlobalPresence = () => {
         }
       });
 
-    // Update last_seen_at periodically
+    // Update last_seen_at frequently so each user's real activity time is recorded.
     const touch = () =>
-      supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
+      supabase
+        .from("profiles")
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq("id", user.id);
+
+    // Best-effort beacon touch on tab close / hide so we capture true exit time
+    // even when normal async fetches get cancelled.
+    const beaconTouch = () => {
+      try {
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`;
+        const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+        const token =
+          (supabase as any)?.auth?.session?.()?.access_token ||
+          JSON.parse(localStorage.getItem("sb-" + new URL(import.meta.env.VITE_SUPABASE_URL).host.split(".")[0] + "-auth-token") || "{}")?.access_token ||
+          apikey;
+        const body = JSON.stringify({ last_seen_at: new Date().toISOString() });
+        const headers: Record<string, string> = {
+          "content-type": "application/json",
+          apikey,
+          authorization: `Bearer ${token}`,
+          prefer: "return=minimal",
+        };
+        // fetch with keepalive survives page unload; PATCH is required for PostgREST updates
+        fetch(url, { method: "PATCH", headers, body, keepalive: true }).catch(() => {});
+      } catch {
+        // ignore — fall back to normal touch
+      }
+    };
+
     touch();
-    lastSeenInterval = setInterval(touch, 60_000);
-    const onVis = () => document.visibilityState === "visible" && touch();
+    lastSeenInterval = setInterval(touch, 30_000);
+
+    const onVis = () => {
+      if (document.visibilityState === "visible") touch();
+      else beaconTouch();
+    };
+    const onHide = () => beaconTouch();
+    const onFocus = () => touch();
+
     document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pagehide", onHide);
+    window.addEventListener("beforeunload", onHide);
+    window.addEventListener("focus", onFocus);
 
     return () => {
       channelStarted = false;
       if (lastSeenInterval) clearInterval(lastSeenInterval);
       document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pagehide", onHide);
+      window.removeEventListener("beforeunload", onHide);
+      window.removeEventListener("focus", onFocus);
+      beaconTouch();
       supabase.removeChannel(channel);
     };
   }, [user]);
 };
+
 
 export const usePresenceMap = () => {
   const [set, setSet] = useState<Set<string>>(new Set(onlineSet));
