@@ -88,9 +88,6 @@ const PubgUcPackageForm = lazy(() => import("./pages/admin/PubgUcPackageForm"));
 const ApiSettings = lazy(() => import("./pages/admin/ApiSettings"));
 
 const GamePointsManage = lazy(() => import("./pages/admin/GamePointsManage"));
-const AIDashboard = lazy(() => import("./pages/admin/AIDashboard"));
-const PassportPromptsManage = lazy(() => import("./pages/admin/PassportPromptsManage"));
-const PopularPromptsManage = lazy(() => import("./pages/admin/PopularPromptsManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PremiumUpgrade = lazy(() => import("./pages/PremiumUpgrade"));
@@ -231,8 +228,6 @@ const App = () => {
                 <Route path="/ai/gift" element={<ProtectedRoute><AIGift /></ProtectedRoute>} />
                 <Route path="/ai/passport" element={<ProtectedRoute><AIPassport /></ProtectedRoute>} />
                 <Route path="/g/:slug" element={<GiftView />} />
-                <Route path="/admin/passport-prompts" element={<ProtectedAdminRoute><PassportPromptsManage /></ProtectedAdminRoute>} />
-                <Route path="/admin/popular-prompts" element={<ProtectedAdminRoute><PopularPromptsManage /></ProtectedAdminRoute>} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/photo/:id" element={<PhotoDetail />} />
                 <Route
@@ -525,14 +520,6 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <GamePointsManage />
-                    </ProtectedAdminRoute>
-                  }
-                />
-                <Route
-                  path="/admin/ai"
-                  element={
-                    <ProtectedAdminRoute>
-                      <AIDashboard />
                     </ProtectedAdminRoute>
                   }
                 />
