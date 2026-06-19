@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { nextAIItem, prefetchAI } from "@/lib/aiQuestions";
 
 interface Props { onGameEnd: (score: number, isWin: boolean) => void; }
 
-const WORDS = ["hello","world","gaming","points","reward","speed","quick","smart","pixel","magic",
-  "power","light","brave","charm","swift","peace","storm","flame","tiger","ocean",
-  "music","dance","dream","cloud","stone","heart","royal","eagle","frost","candy"];
+const FALLBACK = ["hello","world","gaming","points","reward","speed","quick","smart","pixel","magic",
+  "power","light","brave","charm","swift","peace","storm","flame","tiger","ocean"];
 
 const TypingRace = ({ onGameEnd }: Props) => {
   const [score, setScore] = useState(0);
@@ -25,19 +25,27 @@ const TypingRace = ({ onGameEnd }: Props) => {
     return () => clearTimeout(t);
   }, [timeLeft, started, gameOver]);
 
-  const nextWord = () => {
-    setCurrentWord(WORDS[Math.floor(Math.random() * WORDS.length)]);
+  const nextWord = async () => {
+    const ai = await nextAIItem<{ word: string }>("typing");
+    let w = ai?.word?.toLowerCase().replace(/[^a-z]/g, "") ?? "";
+    if (w.length < 3 || w.length > 8) w = FALLBACK[Math.floor(Math.random() * FALLBACK.length)];
+    setCurrentWord(w);
     setInput("");
   };
 
-  const start = () => { setStarted(true); setGameOver(false); setScore(0); setTimeLeft(30); setWordsTyped(0); nextWord(); setTimeout(() => inputRef.current?.focus(), 100); };
+  const start = async () => {
+    prefetchAI("typing");
+    setStarted(true); setGameOver(false); setScore(0); setTimeLeft(30); setWordsTyped(0);
+    await nextWord();
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
 
   const handleInput = (val: string) => {
     setInput(val);
     if (val.toLowerCase() === currentWord) {
       setScore(s => s + 10);
       setWordsTyped(w => w + 1);
-      nextWord();
+      void nextWord();
     }
   };
 
@@ -45,7 +53,7 @@ const TypingRace = ({ onGameEnd }: Props) => {
     <div className="flex flex-col items-center gap-4 py-8">
       <div className="text-5xl">⌨️</div>
       <h2 className="text-xl font-bold">Typing Race</h2>
-      <p className="text-sm text-muted-foreground">Type words as fast as you can in 30 seconds!</p>
+      <p className="text-sm text-muted-foreground">AI-curated words for 30 seconds!</p>
       <Button onClick={start} size="lg" className="rounded-xl">Start Game</Button>
     </div>
   );
@@ -70,7 +78,7 @@ const TypingRace = ({ onGameEnd }: Props) => {
         <span className="text-sm text-muted-foreground">{wordsTyped} words</span>
         <span className="text-sm font-mono bg-muted px-2 py-1 rounded">{timeLeft}s</span>
       </div>
-      <div className="text-3xl font-black text-primary tracking-widest py-6">
+      <div className="text-3xl font-black text-primary tracking-widest py-6 min-h-[64px]">
         {currentWord.split("").map((l, i) => (
           <span key={i} className={i < input.length ? (input[i] === l ? "text-green-500" : "text-red-500") : ""}>
             {l}
