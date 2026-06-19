@@ -88,9 +88,6 @@ const PubgUcPackageForm = lazy(() => import("./pages/admin/PubgUcPackageForm"));
 const ApiSettings = lazy(() => import("./pages/admin/ApiSettings"));
 
 const GamePointsManage = lazy(() => import("./pages/admin/GamePointsManage"));
-const AIDashboard = lazy(() => import("./pages/admin/AIDashboard"));
-const PassportPromptsManage = lazy(() => import("./pages/admin/PassportPromptsManage"));
-const PopularPromptsManage = lazy(() => import("./pages/admin/PopularPromptsManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
 const TopUp = lazy(() => import("./pages/TopUp"));
 const PremiumUpgrade = lazy(() => import("./pages/PremiumUpgrade"));
