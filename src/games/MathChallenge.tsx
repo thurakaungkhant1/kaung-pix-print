@@ -1,8 +1,27 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { nextAIItem, prefetchAI } from "@/lib/aiQuestions";
 
 interface Props { onGameEnd: (score: number, isWin: boolean) => void; }
+interface AIMath { expression: string; answer: number; options: number[] }
+
+const fallback = (): AIMath => {
+  const ops = ["+", "-", "×"];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  let a = Math.floor(Math.random() * 20) + 1;
+  let b = Math.floor(Math.random() * 15) + 1;
+  let ans = 0;
+  if (op === "+") ans = a + b;
+  else if (op === "-") { if (a < b) [a, b] = [b, a]; ans = a - b; }
+  else { a = Math.floor(Math.random() * 12) + 1; b = Math.floor(Math.random() * 12) + 1; ans = a * b; }
+  const opts = [ans];
+  while (opts.length < 4) {
+    const w = ans + (Math.floor(Math.random() * 10) - 5);
+    if (w !== ans && !opts.includes(w) && w >= 0) opts.push(w);
+  }
+  return { expression: `${a} ${op} ${b}`, answer: ans, options: opts };
+};
 
 const MathChallenge = ({ onGameEnd }: Props) => {
   const [score, setScore] = useState(0);
@@ -15,22 +34,15 @@ const MathChallenge = ({ onGameEnd }: Props) => {
   const [started, setStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(5);
 
-  const generate = useCallback(() => {
-    const ops = ["+", "-", "×"];
-    const op = ops[Math.floor(Math.random() * ops.length)];
-    let a = Math.floor(Math.random() * 20) + 1;
-    let b = Math.floor(Math.random() * 15) + 1;
-    let ans = 0;
-    if (op === "+") ans = a + b;
-    else if (op === "-") { if (a < b) [a, b] = [b, a]; ans = a - b; }
-    else { a = Math.floor(Math.random() * 12) + 1; b = Math.floor(Math.random() * 12) + 1; ans = a * b; }
-    setQuestion(`${a} ${op} ${b}`);
-    setAnswer(ans);
-    const opts = [ans];
-    while (opts.length < 4) {
-      const wrong = ans + (Math.floor(Math.random() * 10) - 5);
-      if (wrong !== ans && !opts.includes(wrong) && wrong >= 0) opts.push(wrong);
+  const generate = useCallback(async () => {
+    let item = await nextAIItem<AIMath>("math");
+    if (!item || typeof item.answer !== "number" || !Array.isArray(item.options) || item.options.length !== 4) {
+      item = fallback();
     }
+    const opts = Array.from(new Set([item.answer, ...item.options])).slice(0, 4);
+    while (opts.length < 4) opts.push(item.answer + Math.floor(Math.random() * 10) - 5);
+    setQuestion(item.expression);
+    setAnswer(item.answer);
     setOptions(opts.sort(() => Math.random() - 0.5));
     setTimeLeft(5);
     setRound(r => r + 1);
@@ -41,24 +53,29 @@ const MathChallenge = ({ onGameEnd }: Props) => {
     if (timeLeft <= 0) { handleWrong(); return; }
     const t = setTimeout(() => setTimeLeft(p => p - 1), 1000);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, started, gameOver]);
 
   const handleAnswer = (val: number) => {
-    if (val === answer) { setScore(s => s + 10 + timeLeft * 2); generate(); }
+    if (val === answer) { setScore(s => s + 10 + timeLeft * 2); void generate(); }
     else handleWrong();
   };
 
   const handleWrong = () => {
-    if (lives <= 1) { setGameOver(true); setLives(0); } else { setLives(l => l - 1); generate(); }
+    if (lives <= 1) { setGameOver(true); setLives(0); } else { setLives(l => l - 1); void generate(); }
   };
 
-  const start = () => { setStarted(true); setScore(0); setLives(3); setRound(0); setGameOver(false); generate(); };
+  const start = async () => {
+    prefetchAI("math");
+    setStarted(true); setScore(0); setLives(3); setRound(0); setGameOver(false);
+    await generate();
+  };
 
   if (!started) return (
     <div className="flex flex-col items-center gap-4 py-8">
       <div className="text-5xl">🧮</div>
       <h2 className="text-xl font-bold">Math Challenge</h2>
-      <p className="text-sm text-muted-foreground text-center">Solve math problems quickly! Faster = more points.</p>
+      <p className="text-sm text-muted-foreground text-center">AI generates fresh problems each round. Faster = more points.</p>
       <Button onClick={start} size="lg" className="rounded-xl">Start Game</Button>
     </div>
   );
