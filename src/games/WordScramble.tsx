@@ -2,12 +2,12 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
+import { nextAIItem, prefetchAI } from "@/lib/aiQuestions";
 
 interface Props { onGameEnd: (score: number, isWin: boolean) => void; }
 
-const WORDS = ["APPLE","HOUSE","TRAIN","WATER","LIGHT","MUSIC","DANCE","RIVER","STONE","CLOUD",
-  "BREAD","CHAIR","DREAM","FLAME","GLOBE","HEART","OCEAN","PLANE","QUEEN","SHEEP",
-  "TIGER","WORLD","BRAIN","CANDY","EAGLE","FROST","GRAPE","HAPPY","IVORY","JEWEL"];
+const FALLBACK = ["APPLE","HOUSE","TRAIN","WATER","LIGHT","MUSIC","DANCE","RIVER","STONE","CLOUD",
+  "BREAD","CHAIR","DREAM","FLAME","GLOBE","HEART","OCEAN","PLANE","QUEEN","SHEEP"];
 
 const scramble = (w: string) => w.split("").sort(() => Math.random() - 0.5).join("");
 
@@ -22,8 +22,10 @@ const WordScramble = ({ onGameEnd }: Props) => {
   const [started, setStarted] = useState(false);
   const [feedback, setFeedback] = useState("");
 
-  const nextWord = useCallback(() => {
-    const w = WORDS[Math.floor(Math.random() * WORDS.length)];
+  const nextWord = useCallback(async () => {
+    const ai = await nextAIItem<{ word: string }>("word");
+    let w = ai?.word?.toUpperCase().replace(/[^A-Z]/g, "") ?? "";
+    if (w.length < 4 || w.length > 8) w = FALLBACK[Math.floor(Math.random() * FALLBACK.length)];
     setWord(w);
     let s = scramble(w);
     while (s === w) s = scramble(w);
@@ -33,11 +35,15 @@ const WordScramble = ({ onGameEnd }: Props) => {
     setRound(r => r + 1);
   }, []);
 
-  const start = () => { setStarted(true); setScore(0); setLives(3); setRound(0); setGameOver(false); nextWord(); };
+  const start = async () => {
+    prefetchAI("word");
+    setStarted(true); setScore(0); setLives(3); setRound(0); setGameOver(false);
+    await nextWord();
+  };
 
   const submit = () => {
     if (guess.toUpperCase() === word) {
-      setScore(s => s + 15); setFeedback("✅ Correct!"); setTimeout(nextWord, 800);
+      setScore(s => s + 15); setFeedback("✅ Correct!"); setTimeout(() => { void nextWord(); }, 800);
     } else {
       if (lives <= 1) { setGameOver(true); setLives(0); }
       else { setLives(l => l - 1); setFeedback("❌ Try again!"); setGuess(""); }
@@ -46,14 +52,14 @@ const WordScramble = ({ onGameEnd }: Props) => {
 
   const skip = () => {
     if (lives <= 1) { setGameOver(true); setLives(0); }
-    else { setLives(l => l - 1); nextWord(); }
+    else { setLives(l => l - 1); void nextWord(); }
   };
 
   if (!started) return (
     <div className="flex flex-col items-center gap-4 py-8">
       <div className="text-5xl">🔤</div>
       <h2 className="text-xl font-bold">Word Scramble</h2>
-      <p className="text-sm text-muted-foreground text-center">Unscramble the letters to find the word!</p>
+      <p className="text-sm text-muted-foreground text-center">AI picks a fresh word each round!</p>
       <Button onClick={start} size="lg" className="rounded-xl">Start Game</Button>
     </div>
   );
@@ -79,7 +85,7 @@ const WordScramble = ({ onGameEnd }: Props) => {
         <span className="text-sm text-muted-foreground">Round {round}</span>
       </div>
       <motion.div key={scrambled} initial={{ rotateX: 90 }} animate={{ rotateX: 0 }}
-        className="flex gap-2 justify-center">
+        className="flex gap-2 justify-center flex-wrap">
         {scrambled.split("").map((l, i) => (
           <div key={i} className="w-10 h-12 rounded-lg bg-primary/10 border-2 border-primary/30 flex items-center justify-center text-lg font-bold text-primary">
             {l}
