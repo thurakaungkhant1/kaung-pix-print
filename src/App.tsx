@@ -527,14 +527,6 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/admin/ai"
-                  element={
-                    <ProtectedAdminRoute>
-                      <AIDashboard />
-                    </ProtectedAdminRoute>
-                  }
-                />
-                <Route
                   path="/wallet-history"
                   element={
                     <ProtectedRoute>
