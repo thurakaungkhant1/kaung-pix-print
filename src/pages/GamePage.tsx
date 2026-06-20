@@ -98,6 +98,44 @@ const GamePage = () => {
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(() => localStorage.getItem("shopGameCat"));
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
   const [selectedDiamondTier, setSelectedDiamondTier] = useState<string | null>(null);
+  const [nameCheckLoading, setNameCheckLoading] = useState(false);
+  const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
+  const [nameCheckError, setNameCheckError] = useState<{ id?: string; server?: string }>({});
+
+  const handleCheckGameName = async () => {
+    const errs: { id?: string; server?: string } = {};
+    if (!gameId.trim()) errs.id = "User ID required";
+    if (!serverId.trim()) errs.server = "Zone ID required";
+    setNameCheckError(errs);
+    if (Object.keys(errs).length) return;
+    setNameCheckLoading(true);
+    setNameCheckResult(null);
+    try {
+      const projectRef = "ojoenxchuzqonpixomkl";
+      const res = await fetch(
+        `https://${projectRef}.supabase.co/functions/v1/ml-nickname?id=${encodeURIComponent(gameId.trim())}&zone=${encodeURIComponent(serverId.trim())}`,
+      );
+      const data = await res.json();
+      if (data?.success && data?.name) {
+        setNameCheckResult({ ok: true, name: data.name });
+      } else {
+        setNameCheckResult({ ok: false, message: data?.message || "Player not found" });
+      }
+    } catch {
+      setNameCheckResult({ ok: false, message: "Cannot retrieve game name" });
+    } finally {
+      setNameCheckLoading(false);
+    }
+  };
+
+  const handleCopyName = async () => {
+    if (!nameCheckResult?.name) return;
+    try {
+      await navigator.clipboard.writeText(nameCheckResult.name);
+      toast({ title: "Copied", description: "Player name copied to clipboard" });
+    } catch {}
+  };
+
   const [filterLoading, setFilterLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const { user } = useAuth();
