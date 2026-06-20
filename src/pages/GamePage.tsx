@@ -14,7 +14,12 @@ import {
   CreditCard,
   Wallet,
   Plus,
-  Percent
+  Percent,
+  Loader2,
+  Copy,
+  CheckCircle2,
+  AlertCircle,
+  Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,6 +103,44 @@ const GamePage = () => {
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(() => localStorage.getItem("shopGameCat"));
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
   const [selectedDiamondTier, setSelectedDiamondTier] = useState<string | null>(null);
+  const [nameCheckLoading, setNameCheckLoading] = useState(false);
+  const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
+  const [nameCheckError, setNameCheckError] = useState<{ id?: string; server?: string }>({});
+
+  const handleCheckGameName = async () => {
+    const errs: { id?: string; server?: string } = {};
+    if (!gameId.trim()) errs.id = "User ID required";
+    if (!serverId.trim()) errs.server = "Zone ID required";
+    setNameCheckError(errs);
+    if (Object.keys(errs).length) return;
+    setNameCheckLoading(true);
+    setNameCheckResult(null);
+    try {
+      const projectRef = "ojoenxchuzqonpixomkl";
+      const res = await fetch(
+        `https://${projectRef}.supabase.co/functions/v1/ml-nickname?id=${encodeURIComponent(gameId.trim())}&zone=${encodeURIComponent(serverId.trim())}`,
+      );
+      const data = await res.json();
+      if (data?.success && data?.name) {
+        setNameCheckResult({ ok: true, name: data.name });
+      } else {
+        setNameCheckResult({ ok: false, message: data?.message || "Player not found" });
+      }
+    } catch {
+      setNameCheckResult({ ok: false, message: "Cannot retrieve game name" });
+    } finally {
+      setNameCheckLoading(false);
+    }
+  };
+
+  const handleCopyName = async () => {
+    if (!nameCheckResult?.name) return;
+    try {
+      await navigator.clipboard.writeText(nameCheckResult.name);
+      toast({ title: "Copied", description: "Player name copied to clipboard" });
+    } catch {}
+  };
+
   const [filterLoading, setFilterLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const { user } = useAuth();
@@ -558,7 +601,81 @@ const GamePage = () => {
                     />
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                       <svg viewBox="0 0 24 24" className="h-4 w-4 text-muted-foreground group-focus-within/input:text-accent transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+              </div>
+
+              {/* Inline validation errors */}
+              {(nameCheckError.id || nameCheckError.server) && needsServer && (
+                <div className="flex flex-col gap-1">
+                  {nameCheckError.id && (
+                    <p className="text-[11px] text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" />{nameCheckError.id}</p>
+                  )}
+                  {nameCheckError.server && (
+                    <p className="text-[11px] text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" />{nameCheckError.server}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Game Name Checker */}
+              {needsServer && (
+                <Button
+                  type="button"
+                  onClick={handleCheckGameName}
+                  disabled={nameCheckLoading}
+                  variant="outline"
+                  className="w-full h-11 rounded-xl border-primary/30 hover:border-primary/60 hover:bg-primary/5 font-semibold"
+                >
+                  {nameCheckLoading ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Checking...</>
+                  ) : (
+                    <><Search className="h-4 w-4" /> Game Name Checker</>
+                  )}
+                </Button>
+              )}
+
+              {/* Result Card */}
+              {needsServer && nameCheckResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className={cn(
+                    "rounded-xl border p-3.5",
+                    nameCheckResult.ok
+                      ? "border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent"
+                      : "border-destructive/30 bg-destructive/5"
+                  )}
+                >
+                  {nameCheckResult.ok ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="shrink-0 h-9 w-9 rounded-lg bg-primary/15 flex items-center justify-center">
+                          <CheckCircle2 className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Player Name</p>
+                          <p className="text-sm font-bold truncate">{nameCheckResult.name}</p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleCopyName}
+                        className="shrink-0 h-8 px-2.5 rounded-lg"
+                      >
+                        <Copy className="h-3.5 w-3.5" /> Copy
+                      </Button>
                     </div>
+                  ) : (
+                    <div className="flex items-center gap-2.5">
+                      <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                      <p className="text-xs text-destructive font-medium">
+                        {nameCheckResult.message || "Cannot retrieve game name"}
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
                   </div>
                 </div>
               )}

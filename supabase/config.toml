@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.verify-photo-pin]
 verify_jwt = true
+
+[functions.ml-nickname]
+verify_jwt = false
