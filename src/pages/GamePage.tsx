@@ -14,7 +14,12 @@ import {
   CreditCard,
   Wallet,
   Plus,
-  Percent
+  Percent,
+  Loader2,
+  Copy,
+  CheckCircle2,
+  AlertCircle,
+  Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
