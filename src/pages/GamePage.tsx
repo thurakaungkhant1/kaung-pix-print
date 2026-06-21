@@ -901,6 +901,38 @@ const GamePage = () => {
                   );
                 })}
               </div>
+
+              {/* Operator filter row */}
+              <div className="flex gap-2 overflow-x-auto no-scrollbar mt-2">
+                <button
+                  onClick={() => setSelectedOperator(null)}
+                  className={cn(
+                    "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold border transition-all",
+                    !selectedOperator
+                      ? "bg-accent text-accent-foreground border-accent"
+                      : "bg-card/40 text-muted-foreground border-border/40 hover:border-accent/50 hover:text-foreground"
+                  )}
+                >
+                  All Operators
+                </button>
+                {MOBILE_OPERATORS.map((op) => {
+                  const active = selectedOperator === op;
+                  return (
+                    <button
+                      key={op}
+                      onClick={() => setSelectedOperator(active ? null : op)}
+                      className={cn(
+                        "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold border transition-all",
+                        active
+                          ? "bg-accent text-accent-foreground border-accent"
+                          : "bg-card/40 text-muted-foreground border-border/40 hover:border-accent/50 hover:text-foreground"
+                      )}
+                    >
+                      {op}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Mobile Promo */}
