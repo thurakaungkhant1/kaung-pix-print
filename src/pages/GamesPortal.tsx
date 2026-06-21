@@ -118,8 +118,17 @@ const GamesPortal = () => {
   const [rewards, setRewards] = useState<RewardItem[]>([]);
   const [profileName, setProfileName] = useState<string>("");
   const [activeTab, setActiveTab] = useState("games");
+  const [gameSettings, setGameSettings] = useState<Record<string, { is_active: boolean; points_override: number | null }>>({});
 
-  const TAGS = ["All", ...Array.from(new Set(GAMES.map(g => g.tag)))];
+  // Apply admin settings: hide disabled games, override points
+  const visibleGames = GAMES
+    .filter(g => gameSettings[g.id]?.is_active !== false)
+    .map(g => {
+      const override = gameSettings[g.id]?.points_override;
+      return override != null ? { ...g, points: override } : g;
+    });
+
+  const TAGS = ["All", ...Array.from(new Set(visibleGames.map(g => g.tag)))];
   const initials = (profileName || user?.email || "U").slice(0, 2).toUpperCase();
 
   useEffect(() => {
@@ -136,6 +145,18 @@ const GamesPortal = () => {
       supabase.from("game_reward_items").select("*").eq("is_active", true).order("display_order")
         .then(({ data }) => { if (data) setRewards(data as RewardItem[]); });
     }
+  }, [isOnline]);
+
+  useEffect(() => {
+    if (!isOnline) return;
+    supabase.from("mini_game_settings").select("game_id,is_active,points_override")
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, { is_active: boolean; points_override: number | null }> = {};
+          data.forEach((r: any) => { map[r.game_id] = { is_active: r.is_active, points_override: r.points_override }; });
+          setGameSettings(map);
+        }
+      });
   }, [isOnline]);
 
   const handleGameEnd = async (gameName: string, score: number, isWin: boolean) => {
@@ -204,7 +225,7 @@ const GamesPortal = () => {
     setRedeeming(null);
   };
 
-  const filteredGames = filter === "All" ? GAMES : GAMES.filter(g => g.tag === filter);
+  const filteredGames = filter === "All" ? visibleGames : visibleGames.filter(g => g.tag === filter);
   const dailyProgress = dailyLimit > 0 ? Math.min((dailyEarned / dailyLimit) * 100, 100) : 0;
 
   // Active game view

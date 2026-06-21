@@ -87,6 +87,14 @@ const MOBILE_CATEGORIES = [
   { id: "Data Plans", name: "Data Plans", icon: Wifi },
 ];
 
+const MOBILE_OPERATORS = ["MPT", "Ooredoo", "Mytel", "Atom"] as const;
+
+const matchesOperator = (productName: string, operator: string) => {
+  const n = productName.toLowerCase().trim();
+  const o = operator.toLowerCase();
+  return n.startsWith(o + " ") || n.startsWith(o + "-") || n === o;
+};
+
 
 const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -102,6 +110,7 @@ const GamePage = () => {
   const [activeCategory, setActiveCategory] = useState<string>(() => localStorage.getItem("shopActiveTab") || "games");
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(() => localStorage.getItem("shopGameCat"));
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
+  const [selectedOperator, setSelectedOperator] = useState<string | null>(() => localStorage.getItem("shopMobileOperator"));
   const [selectedDiamondTier, setSelectedDiamondTier] = useState<string | null>(null);
   const [nameCheckLoading, setNameCheckLoading] = useState(false);
   const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
@@ -170,13 +179,17 @@ const GamePage = () => {
     if (selectedMobileService) localStorage.setItem("shopMobileCat", selectedMobileService);
     else localStorage.removeItem("shopMobileCat");
   }, [selectedMobileService]);
+  useEffect(() => {
+    if (selectedOperator) localStorage.setItem("shopMobileOperator", selectedOperator);
+    else localStorage.removeItem("shopMobileOperator");
+  }, [selectedOperator]);
 
   // Brief shimmer when switching mobile/game filters for snappier feedback
   useEffect(() => {
     setFilterLoading(true);
     const t = setTimeout(() => setFilterLoading(false), 280);
     return () => clearTimeout(t);
-  }, [selectedGameCategory, selectedMobileService, activeCategory]);
+  }, [selectedGameCategory, selectedMobileService, selectedOperator, activeCategory]);
 
   const loadWalletBalance = async () => {
     if (!user) return;
@@ -242,12 +255,14 @@ const GamePage = () => {
       }
       return products.filter(p => isGameProduct(p.category));
     } else if (activeCategory === "mobile") {
-      // Filter by selected mobile service (Phone Top-up or Data Plans)
+      let list = products.filter(p => isMobileProduct(p.category));
       if (selectedMobileService) {
-        return products.filter(p => p.category === selectedMobileService);
+        list = list.filter(p => p.category === selectedMobileService);
       }
-      // If no service selected, show all mobile products
-      return products.filter(p => isMobileProduct(p.category));
+      if (selectedOperator) {
+        list = list.filter(p => matchesOperator(p.name, selectedOperator));
+      }
+      return list;
     }
     return products;
   };
@@ -881,6 +896,38 @@ const GamePage = () => {
                     >
                       <Icon className="h-3.5 w-3.5" />
                       {cat.name}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Operator filter row */}
+              <div className="flex gap-2 overflow-x-auto no-scrollbar mt-2">
+                <button
+                  onClick={() => setSelectedOperator(null)}
+                  className={cn(
+                    "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold border transition-all",
+                    !selectedOperator
+                      ? "bg-accent text-accent-foreground border-accent"
+                      : "bg-card/40 text-muted-foreground border-border/40 hover:border-accent/50 hover:text-foreground"
+                  )}
+                >
+                  All Operators
+                </button>
+                {MOBILE_OPERATORS.map((op) => {
+                  const active = selectedOperator === op;
+                  return (
+                    <button
+                      key={op}
+                      onClick={() => setSelectedOperator(active ? null : op)}
+                      className={cn(
+                        "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold border transition-all",
+                        active
+                          ? "bg-accent text-accent-foreground border-accent"
+                          : "bg-card/40 text-muted-foreground border-border/40 hover:border-accent/50 hover:text-foreground"
+                      )}
+                    >
+                      {op}
                     </button>
                   );
                 })}

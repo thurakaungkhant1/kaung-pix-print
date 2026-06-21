@@ -901,6 +901,7 @@ const AdminDashboard = () => {
         label: "Engagement",
         items: [
           { id: "game-points", label: "Game Points", icon: Gamepad2, badge: 0, route: "/admin/game-points" },
+          { id: "mini-games", label: "Mini Games", icon: Gamepad2, badge: 0, route: "/admin/mini-games" },
         ]
       },
       {
