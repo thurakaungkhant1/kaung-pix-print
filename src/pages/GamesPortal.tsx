@@ -147,6 +147,18 @@ const GamesPortal = () => {
     }
   }, [isOnline]);
 
+  useEffect(() => {
+    if (!isOnline) return;
+    supabase.from("mini_game_settings").select("game_id,is_active,points_override")
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, { is_active: boolean; points_override: number | null }> = {};
+          data.forEach((r: any) => { map[r.game_id] = { is_active: r.is_active, points_override: r.points_override }; });
+          setGameSettings(map);
+        }
+      });
+  }, [isOnline]);
+
   const handleGameEnd = async (gameName: string, score: number, isWin: boolean) => {
     if (!isOnline) {
       const pending = JSON.parse(localStorage.getItem("pending_scores") || "[]");
