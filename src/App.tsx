@@ -525,6 +525,14 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/admin/mini-games"
+                  element={
+                    <ProtectedAdminRoute>
+                      <MiniGamesManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
                   path="/wallet-history"
                   element={
                     <ProtectedRoute>
