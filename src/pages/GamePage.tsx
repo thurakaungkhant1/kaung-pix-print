@@ -256,12 +256,14 @@ const GamePage = () => {
       }
       return products.filter(p => isGameProduct(p.category));
     } else if (activeCategory === "mobile") {
-      // Filter by selected mobile service (Phone Top-up or Data Plans)
+      let list = products.filter(p => isMobileProduct(p.category));
       if (selectedMobileService) {
-        return products.filter(p => p.category === selectedMobileService);
+        list = list.filter(p => p.category === selectedMobileService);
       }
-      // If no service selected, show all mobile products
-      return products.filter(p => isMobileProduct(p.category));
+      if (selectedOperator) {
+        list = list.filter(p => matchesOperator(p.name, selectedOperator));
+      }
+      return list;
     }
     return products;
   };
