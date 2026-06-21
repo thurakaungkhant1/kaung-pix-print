@@ -87,6 +87,15 @@ const MOBILE_CATEGORIES = [
   { id: "Data Plans", name: "Data Plans", icon: Wifi },
 ];
 
+const MOBILE_OPERATORS = ["MPT", "Ooredoo", "Mytel", "Atom"] as const;
+
+const matchesOperator = (productName: string, operator: string) => {
+  const n = productName.toLowerCase();
+  const o = operator.toLowerCase();
+  // matches "MPT - ...", "MPT-...", "MPT ", or any occurrence at start of a word
+  return n.startsWith(o + " ") || n.startsWith(o + "-") || n.includes(" " + o + " ") || n.includes("-" + o + "-") || n.includes(o);
+};
+
 
 const GamePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
