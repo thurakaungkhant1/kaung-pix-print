@@ -118,8 +118,17 @@ const GamesPortal = () => {
   const [rewards, setRewards] = useState<RewardItem[]>([]);
   const [profileName, setProfileName] = useState<string>("");
   const [activeTab, setActiveTab] = useState("games");
+  const [gameSettings, setGameSettings] = useState<Record<string, { is_active: boolean; points_override: number | null }>>({});
 
-  const TAGS = ["All", ...Array.from(new Set(GAMES.map(g => g.tag)))];
+  // Apply admin settings: hide disabled games, override points
+  const visibleGames = GAMES
+    .filter(g => gameSettings[g.id]?.is_active !== false)
+    .map(g => {
+      const override = gameSettings[g.id]?.points_override;
+      return override != null ? { ...g, points: override } : g;
+    });
+
+  const TAGS = ["All", ...Array.from(new Set(visibleGames.map(g => g.tag)))];
   const initials = (profileName || user?.email || "U").slice(0, 2).toUpperCase();
 
   useEffect(() => {
