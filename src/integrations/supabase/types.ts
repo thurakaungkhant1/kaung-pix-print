@@ -968,6 +968,33 @@ export type Database = {
           },
         ]
       }
+      mini_game_settings: {
+        Row: {
+          display_order: number
+          game_id: string
+          is_active: boolean
+          points_override: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          display_order?: number
+          game_id: string
+          is_active?: boolean
+          points_override?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          display_order?: number
+          game_id?: string
+          is_active?: boolean
+          points_override?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       mlbb_diamond_tiers: {
         Row: {
           created_at: string
