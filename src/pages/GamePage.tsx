@@ -180,13 +180,17 @@ const GamePage = () => {
     if (selectedMobileService) localStorage.setItem("shopMobileCat", selectedMobileService);
     else localStorage.removeItem("shopMobileCat");
   }, [selectedMobileService]);
+  useEffect(() => {
+    if (selectedOperator) localStorage.setItem("shopMobileOperator", selectedOperator);
+    else localStorage.removeItem("shopMobileOperator");
+  }, [selectedOperator]);
 
   // Brief shimmer when switching mobile/game filters for snappier feedback
   useEffect(() => {
     setFilterLoading(true);
     const t = setTimeout(() => setFilterLoading(false), 280);
     return () => clearTimeout(t);
-  }, [selectedGameCategory, selectedMobileService, activeCategory]);
+  }, [selectedGameCategory, selectedMobileService, selectedOperator, activeCategory]);
 
   const loadWalletBalance = async () => {
     if (!user) return;
