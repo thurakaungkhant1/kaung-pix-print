@@ -111,6 +111,7 @@ const GamePage = () => {
   const [activeCategory, setActiveCategory] = useState<string>(() => localStorage.getItem("shopActiveTab") || "games");
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(() => localStorage.getItem("shopGameCat"));
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
+  const [selectedOperator, setSelectedOperator] = useState<string | null>(() => localStorage.getItem("shopMobileOperator"));
   const [selectedDiamondTier, setSelectedDiamondTier] = useState<string | null>(null);
   const [nameCheckLoading, setNameCheckLoading] = useState(false);
   const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
