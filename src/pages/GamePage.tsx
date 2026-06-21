@@ -90,10 +90,9 @@ const MOBILE_CATEGORIES = [
 const MOBILE_OPERATORS = ["MPT", "Ooredoo", "Mytel", "Atom"] as const;
 
 const matchesOperator = (productName: string, operator: string) => {
-  const n = productName.toLowerCase();
+  const n = productName.toLowerCase().trim();
   const o = operator.toLowerCase();
-  // matches "MPT - ...", "MPT-...", "MPT ", or any occurrence at start of a word
-  return n.startsWith(o + " ") || n.startsWith(o + "-") || n.includes(" " + o + " ") || n.includes("-" + o + "-") || n.includes(o);
+  return n.startsWith(o + " ") || n.startsWith(o + "-") || n === o;
 };
 
 
