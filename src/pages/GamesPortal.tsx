@@ -213,7 +213,7 @@ const GamesPortal = () => {
     setRedeeming(null);
   };
 
-  const filteredGames = filter === "All" ? GAMES : GAMES.filter(g => g.tag === filter);
+  const filteredGames = filter === "All" ? visibleGames : visibleGames.filter(g => g.tag === filter);
   const dailyProgress = dailyLimit > 0 ? Math.min((dailyEarned / dailyLimit) * 100, 100) : 0;
 
   // Active game view
