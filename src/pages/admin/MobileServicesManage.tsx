@@ -266,7 +266,7 @@ const MobileServicesManage = () => {
             <div>
               <h1 className="text-xl font-bold">Mobile Services</h1>
               <p className="text-sm text-muted-foreground">
-                Manage Phone Top-up & Data Plans
+                Manage Phone Top-up, Data & Voice Plans
               </p>
             </div>
           </div>
