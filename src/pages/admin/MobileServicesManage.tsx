@@ -414,6 +414,8 @@ const MobileServicesManage = () => {
                         <Badge variant="secondary" className="gap-1">
                           {product.category === "Phone Top-up" ? (
                             <Smartphone className="h-3 w-3" />
+                          ) : product.category === "Voice Plans" ? (
+                            <Phone className="h-3 w-3" />
                           ) : (
                             <Wifi className="h-3 w-3" />
                           )}
