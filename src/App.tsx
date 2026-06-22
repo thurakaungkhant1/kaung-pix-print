@@ -494,6 +494,14 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/admin/mobile-panel"
+                  element={
+                    <ProtectedAdminRoute>
+                      <MobileAdminPanel />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
                   path="/admin/payment-methods"
                   element={
                     <ProtectedAdminRoute>
