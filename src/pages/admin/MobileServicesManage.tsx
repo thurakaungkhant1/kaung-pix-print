@@ -99,7 +99,7 @@ const MobileServicesManage = () => {
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .in("category", ["Phone Top-up", "Data Plans"])
+      .in("category", ["Phone Top-up", "Data Plans", "Voice Plans"])
       .order("price", { ascending: true });
 
     if (!error && data) {
