@@ -666,7 +666,7 @@ const MobileServicesManage = () => {
               <Input
                 value={newService.name}
                 onChange={(e) => setNewService({ ...newService, name: e.target.value })}
-                placeholder={newService.category === "Data Plans" ? "e.g. 5GB / 30 Days" : "e.g. 1000 Ks Top-up"}
+                placeholder={newService.category === "Data Plans" ? "e.g. 5GB / 30 Days" : newService.category === "Voice Plans" ? "e.g. 100 mins / 30 Days" : "e.g. 1000 Ks Top-up"}
               />
               <p className="text-[11px] text-muted-foreground">
                 Final name will be: "{operators.find((o) => o.id === newService.operator_id)?.name || "Operator"} - {newService.name || "Name"}"
