@@ -894,6 +894,7 @@ const AdminDashboard = () => {
         { id: "shop", label: "Shop", icon: Package, badge: 0 },
         { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
         { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
+        { id: "mobile-panel", label: "Mobile Panel", icon: Phone, badge: 0, route: "/admin/mobile-panel" },
         { id: "photos", label: "Photos", icon: Image, badge: 0 },
       ]
     },
