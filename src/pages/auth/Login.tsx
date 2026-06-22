@@ -33,17 +33,20 @@ const Login = () => {
         return;
       }
 
-      const { data: roleData } = await supabase
+      const { data: rolesData } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", data.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
+        .eq("user_id", data.user.id);
+
+      const roles = (rolesData ?? []).map((r: any) => r.role);
+      const isAdmin = roles.includes("admin");
+      const isMobileAdmin = roles.includes("mobile_admin");
 
       toast({ title: "Success", description: "Logged in successfully" });
 
       if (redirectTo) navigate(redirectTo);
-      else if (roleData) navigate("/admin");
+      else if (isAdmin) navigate("/admin");
+      else if (isMobileAdmin) navigate("/admin/mobile-panel");
       else navigate("/");
     } catch (error: any) {
       let errorMessage = error.message || "Failed to login";
