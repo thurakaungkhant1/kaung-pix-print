@@ -8,6 +8,7 @@ import {
   Sparkles, 
   Smartphone, 
   Wifi, 
+  Phone, 
   ShoppingBag,
   Zap,
   Gift,
