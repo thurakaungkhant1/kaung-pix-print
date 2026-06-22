@@ -80,6 +80,7 @@ const WalletManage = lazy(() => import("./pages/admin/WalletManage"));
 const BannersManage = lazy(() => import("./pages/admin/BannersManage"));
 const MobileOperatorsManage = lazy(() => import("./pages/admin/MobileOperatorsManage"));
 const MobileServicesManage = lazy(() => import("./pages/admin/MobileServicesManage"));
+const MobileAdminPanel = lazy(() => import("./pages/admin/MobileAdminPanel"));
 const PaymentMethodsManage = lazy(() => import("./pages/admin/PaymentMethodsManage"));
 const BackgroundMusicManage = lazy(() => import("./pages/admin/BackgroundMusicManage"));
 const AdsManage = lazy(() => import("./pages/admin/AdsManage"));
@@ -489,6 +490,14 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <MobileServicesManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/mobile-panel"
+                  element={
+                    <ProtectedAdminRoute>
+                      <MobileAdminPanel />
                     </ProtectedAdminRoute>
                   }
                 />

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +60,7 @@ interface Order {
 
 // Game categories that require game IDs
 const GAME_CATEGORIES = ["MLBB Diamonds", "PUBG UC", "Free Fire", "Genshin", "Gift Cards"];
-const MOBILE_CATEGORIES = ["Phone Top-up", "Data Plans"];
+const MOBILE_CATEGORIES = ["Phone Top-up", "Data Plans", "Voice Plans"];
 
 // Track loading and preview states per order
 type LoadingState = { [orderId: string]: boolean };
@@ -86,6 +86,8 @@ const OrdersManage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const typeFilter = searchParams.get("type"); // "mobile" | "game" | null
 
   // Filter orders based on search and filters
   const filteredOrders = useMemo(() => {
@@ -126,9 +128,14 @@ const OrdersManage = () => {
         }
       }
       
+      // Category-group filter (?type=mobile|game)
+      const cat = order.products?.category || "";
+      if (typeFilter === "mobile" && !MOBILE_CATEGORIES.includes(cat)) return false;
+      if (typeFilter === "game" && !GAME_CATEGORIES.includes(cat)) return false;
+
       return true;
     });
-  }, [orders, searchQuery, statusFilter, paymentFilter, dateFrom, dateTo]);
+  }, [orders, searchQuery, statusFilter, paymentFilter, dateFrom, dateTo, typeFilter]);
 
   // Clear all filters
   const clearFilters = () => {

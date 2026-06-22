@@ -22,6 +22,7 @@ import {
   Trash2,
   Smartphone,
   Wifi,
+  Phone,
   Package,
   Eye,
   EyeOff,
@@ -50,6 +51,7 @@ interface Product {
 const MOBILE_CATEGORIES = [
   { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone },
   { id: "Data Plans", name: "Data Plans", icon: Wifi },
+  { id: "Voice Plans", name: "Voice Plans", icon: Phone },
 ];
 
 interface Operator {
@@ -97,7 +99,7 @@ const MobileServicesManage = () => {
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .in("category", ["Phone Top-up", "Data Plans"])
+      .in("category", ["Phone Top-up", "Data Plans", "Voice Plans"])
       .order("price", { ascending: true });
 
     if (!error && data) {
@@ -264,7 +266,7 @@ const MobileServicesManage = () => {
             <div>
               <h1 className="text-xl font-bold">Mobile Services</h1>
               <p className="text-sm text-muted-foreground">
-                Manage Phone Top-up & Data Plans
+                Manage Phone Top-up, Data & Voice Plans
               </p>
             </div>
           </div>
@@ -412,6 +414,8 @@ const MobileServicesManage = () => {
                         <Badge variant="secondary" className="gap-1">
                           {product.category === "Phone Top-up" ? (
                             <Smartphone className="h-3 w-3" />
+                          ) : product.category === "Voice Plans" ? (
+                            <Phone className="h-3 w-3" />
                           ) : (
                             <Wifi className="h-3 w-3" />
                           )}
@@ -662,7 +666,7 @@ const MobileServicesManage = () => {
               <Input
                 value={newService.name}
                 onChange={(e) => setNewService({ ...newService, name: e.target.value })}
-                placeholder={newService.category === "Data Plans" ? "e.g. 5GB / 30 Days" : "e.g. 1000 Ks Top-up"}
+                placeholder={newService.category === "Data Plans" ? "e.g. 5GB / 30 Days" : newService.category === "Voice Plans" ? "e.g. 100 mins / 30 Days" : "e.g. 1000 Ks Top-up"}
               />
               <p className="text-[11px] text-muted-foreground">
                 Final name will be: "{operators.find((o) => o.id === newService.operator_id)?.name || "Operator"} - {newService.name || "Name"}"
