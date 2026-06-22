@@ -1005,7 +1005,7 @@ const GamePage = () => {
                       </div>
                     )}
                     <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-md bg-background/70 backdrop-blur text-[9px] font-semibold text-foreground border border-border/40">
-                      {product.category === "Data Plans" ? "DATA" : "TOP-UP"}
+                      {product.category === "Data Plans" ? "DATA" : product.category === "Voice Plans" ? "VOICE" : "TOP-UP"}
                     </div>
                     <div className="aspect-square bg-gradient-to-br from-muted/60 to-muted/20 overflow-hidden">
                       <img
