@@ -496,11 +496,12 @@ const App = () => {
                 <Route
                   path="/admin/mobile-panel"
                   element={
-                    <ProtectedAdminRoute>
+                    <ProtectedRoute hideNav>
                       <MobileAdminPanel />
-                    </ProtectedAdminRoute>
+                    </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/admin/payment-methods"
                   element={

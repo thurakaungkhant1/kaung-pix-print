@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import AdminBottomNav from "@/components/AdminBottomNav";
-import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useMobileAdminCheck } from "@/hooks/useMobileAdminCheck";
 import {
   ArrowLeft,
   Plus,
@@ -16,7 +16,7 @@ import {
 
 const MobileAdminPanel = () => {
   const navigate = useNavigate();
-  useAdminCheck({ redirectTo: "/", redirectOnFail: true });
+  useMobileAdminCheck({ redirectTo: "/", redirectOnFail: true });
 
   const sections = [
     {
