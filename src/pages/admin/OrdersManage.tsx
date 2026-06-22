@@ -86,6 +86,8 @@ const OrdersManage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const typeFilter = searchParams.get("type"); // "mobile" | "game" | null
 
   // Filter orders based on search and filters
   const filteredOrders = useMemo(() => {
