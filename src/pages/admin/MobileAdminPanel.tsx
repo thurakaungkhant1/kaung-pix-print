@@ -104,7 +104,7 @@ const MobileAdminPanel = () => {
         </div>
       </main>
 
-      <AdminBottomNav />
+      <AdminBottomNav activeTab="mobile-panel" onTabChange={() => {}} />
     </div>
   );
 };
