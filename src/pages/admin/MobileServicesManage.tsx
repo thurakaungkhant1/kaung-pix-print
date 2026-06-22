@@ -22,6 +22,7 @@ import {
   Trash2,
   Smartphone,
   Wifi,
+  Phone,
   Package,
   Eye,
   EyeOff,
