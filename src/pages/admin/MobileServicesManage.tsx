@@ -51,6 +51,7 @@ interface Product {
 const MOBILE_CATEGORIES = [
   { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone },
   { id: "Data Plans", name: "Data Plans", icon: Wifi },
+  { id: "Voice Plans", name: "Voice Plans", icon: Phone },
 ];
 
 interface Operator {
