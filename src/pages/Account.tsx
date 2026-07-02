@@ -479,6 +479,17 @@ const Account = () => {
                     <Separator className="my-0.5" />
                   </>
                 )}
+                {!isAdmin && isMobileAdmin && (
+                  <>
+                    <SettingItem
+                      icon={Shield}
+                      label="Mobile Admin Panel"
+                      description="Manage mobile services & orders"
+                      onClick={() => navigate("/admin/mobile-panel")}
+                    />
+                    <Separator className="my-0.5" />
+                  </>
+                )}
                 <SettingItem
                   icon={Heart}
                   label="My Favourites"
