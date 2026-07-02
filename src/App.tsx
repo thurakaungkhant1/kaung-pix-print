@@ -392,9 +392,9 @@ const App = () => {
                 <Route
                   path="/admin/orders"
                   element={
-                    <ProtectedAdminRoute>
+                    <ProtectedMobileAdminRoute>
                       <OrdersManage />
-                    </ProtectedAdminRoute>
+                    </ProtectedMobileAdminRoute>
                   }
                 />
                 <Route
