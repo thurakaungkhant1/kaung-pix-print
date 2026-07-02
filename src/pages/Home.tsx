@@ -69,6 +69,10 @@ const EARN_POINTS_GAMES = [
   { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 via-violet-500 to-cyan-400", pattern: "game-pattern-bubbles", emoji: "🫧" },
 ];
 
+// Curated web arcade games (loaded lazily from lib)
+import { WEB_ARCADE_GAMES, getGameThumb } from "@/lib/webArcadeGames";
+const HOME_WEB_GAMES = WEB_ARCADE_GAMES.slice(0, 6);
+
 const Home = () => {
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [digitalLoading, setDigitalLoading] = useState(true);
