@@ -87,7 +87,10 @@ const OrdersManage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const typeFilter = searchParams.get("type"); // "mobile" | "game" | null
+  const [isMobileOnlyAdmin, setIsMobileOnlyAdmin] = useState(false);
+  const rawTypeFilter = searchParams.get("type"); // "mobile" | "game" | null
+  // Mobile-only admins are locked to mobile orders
+  const typeFilter = isMobileOnlyAdmin ? "mobile" : rawTypeFilter;
 
   // Filter orders based on search and filters
   const filteredOrders = useMemo(() => {
@@ -297,11 +300,16 @@ const OrdersManage = () => {
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
+      .in("role", ["admin", "mobile_admin"] as any);
 
-    if (!data) {
+    const roles = (data ?? []).map((r: any) => r.role);
+    if (roles.length === 0) {
       navigate("/");
+      return;
+    }
+    // If user only has mobile_admin (no full admin), lock to mobile orders
+    if (!roles.includes("admin") && roles.includes("mobile_admin")) {
+      setIsMobileOnlyAdmin(true);
     }
   };
 
