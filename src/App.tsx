@@ -17,6 +17,7 @@ import FriendRequestNotifier from "@/components/FriendRequestNotifier";
 import AdminSupportNotifier from "@/components/AdminSupportNotifier";
 import PresenceTracker from "@/components/PresenceTracker";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
+import ProtectedMobileAdminRoute from "@/components/ProtectedMobileAdminRoute";
 import LoadingScreen from "@/components/LoadingScreen";
 
 
