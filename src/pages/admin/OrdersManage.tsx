@@ -87,7 +87,10 @@ const OrdersManage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const typeFilter = searchParams.get("type"); // "mobile" | "game" | null
+  const [isMobileOnlyAdmin, setIsMobileOnlyAdmin] = useState(false);
+  const rawTypeFilter = searchParams.get("type"); // "mobile" | "game" | null
+  // Mobile-only admins are locked to mobile orders
+  const typeFilter = isMobileOnlyAdmin ? "mobile" : rawTypeFilter;
 
   // Filter orders based on search and filters
   const filteredOrders = useMemo(() => {
