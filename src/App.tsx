@@ -259,6 +259,22 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/web-arcade"
+                  element={
+                    <ProtectedRoute>
+                      <WebArcade />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/web-arcade/play/:slug"
+                  element={
+                    <ProtectedRoute hideNav>
+                      <WebArcadePlay />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
