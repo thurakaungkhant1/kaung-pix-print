@@ -69,6 +69,10 @@ const EARN_POINTS_GAMES = [
   { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 via-violet-500 to-cyan-400", pattern: "game-pattern-bubbles", emoji: "🫧" },
 ];
 
+// Curated web arcade games (loaded lazily from lib)
+import { WEB_ARCADE_GAMES, getGameThumb } from "@/lib/webArcadeGames";
+const HOME_WEB_GAMES = WEB_ARCADE_GAMES.slice(0, 6);
+
 const Home = () => {
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [digitalLoading, setDigitalLoading] = useState(true);
@@ -519,6 +523,65 @@ const Home = () => {
               </div>
             </section>
           </AnimatedSection>
+
+          {/* ── Web Arcade (Online HTML5 Games) ── */}
+          <AnimatedSection delay={0.25}>
+            <section className="px-5 mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="text-base font-display font-bold flex items-center gap-1.5">
+                    <Sparkles className="h-4 w-4 text-primary" /> Web Arcade
+                  </h2>
+                  <p className="text-[11px] text-muted-foreground -mt-0.5">
+                    Play instantly · No download needed
+                  </p>
+                </div>
+                <button onClick={() => navigate("/web-arcade")} className="text-xs text-primary font-semibold flex items-center gap-0.5">
+                  See All <ChevronRight className="h-3 w-3" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2.5">
+                {HOME_WEB_GAMES.map((g, i) => (
+                  <motion.button
+                    key={g.slug}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + i * 0.04 }}
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ y: -3 }}
+                    onClick={() => navigate(`/web-arcade/play/${g.slug}`)}
+                    className="relative text-left rounded-2xl overflow-hidden border border-border/60 hover:shadow-xl hover:border-primary/40 transition-all group"
+                  >
+                    <div className={cn("aspect-square bg-gradient-to-br relative", g.gradient)}>
+                      <img
+                        src={getGameThumb(g.slug)}
+                        alt={g.name}
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        onError={(e) => ((e.currentTarget.style.display = "none"))}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                      <div className="absolute top-1.5 right-1.5 text-lg drop-shadow-lg">{g.emoji}</div>
+                      <div className="absolute inset-x-1.5 bottom-1.5">
+                        <p className="text-[10px] font-bold text-white drop-shadow line-clamp-1">{g.name}</p>
+                        <p className="text-[9px] text-white/70">{g.category}</p>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => navigate("/web-arcade")}
+                className="mt-3 w-full py-2.5 rounded-full bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary/15 transition"
+              >
+                Explore all {WEB_ARCADE_GAMES.length}+ online games →
+              </button>
+            </section>
+          </AnimatedSection>
+
+
 
 
 

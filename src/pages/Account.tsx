@@ -60,6 +60,7 @@ interface WithdrawalSettings {
 const Account = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isMobileAdmin, setIsMobileAdmin] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -156,8 +157,14 @@ const Account = () => {
 
   const checkAdmin = async () => {
     if (!user) return;
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    setIsAdmin(!!data);
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "mobile_admin"] as any);
+    const roles = (data ?? []).map((r: any) => r.role);
+    setIsAdmin(roles.includes("admin"));
+    setIsMobileAdmin(roles.includes("mobile_admin"));
   };
 
   const handleSaveName = async () => {
@@ -469,6 +476,17 @@ const Account = () => {
                 {isAdmin && (
                   <>
                     <SettingItem icon={Shield} label="Admin Dashboard" onClick={() => navigate("/admin")} />
+                    <Separator className="my-0.5" />
+                  </>
+                )}
+                {!isAdmin && isMobileAdmin && (
+                  <>
+                    <SettingItem
+                      icon={Shield}
+                      label="Mobile Admin Panel"
+                      description="Manage mobile services & orders"
+                      onClick={() => navigate("/admin/mobile-panel")}
+                    />
                     <Separator className="my-0.5" />
                   </>
                 )}

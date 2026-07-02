@@ -38,6 +38,8 @@ const PhotoDetail = lazy(() => import("./pages/PhotoDetail"));
 const CategoryProducts = lazy(() => import("./pages/CategoryProducts"));
 const GamePage = lazy(() => import("./pages/GamePage"));
 const GamesPortal = lazy(() => import("./pages/GamesPortal"));
+const WebArcade = lazy(() => import("./pages/WebArcade"));
+const WebArcadePlay = lazy(() => import("./pages/WebArcadePlay"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Contact = lazy(() => import("./pages/Contact"));
 const About = lazy(() => import("./pages/About"));
@@ -254,6 +256,22 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <GamesPortal />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/web-arcade"
+                  element={
+                    <ProtectedRoute>
+                      <WebArcade />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/web-arcade/play/:slug"
+                  element={
+                    <ProtectedRoute hideNav>
+                      <WebArcadePlay />
                     </ProtectedRoute>
                   }
                 />
