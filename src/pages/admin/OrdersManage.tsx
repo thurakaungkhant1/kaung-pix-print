@@ -300,11 +300,16 @@ const OrdersManage = () => {
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
+      .in("role", ["admin", "mobile_admin"] as any);
 
-    if (!data) {
+    const roles = (data ?? []).map((r: any) => r.role);
+    if (roles.length === 0) {
       navigate("/");
+      return;
+    }
+    // If user only has mobile_admin (no full admin), lock to mobile orders
+    if (!roles.includes("admin") && roles.includes("mobile_admin")) {
+      setIsMobileOnlyAdmin(true);
     }
   };
 
