@@ -157,8 +157,14 @@ const Account = () => {
 
   const checkAdmin = async () => {
     if (!user) return;
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    setIsAdmin(!!data);
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "mobile_admin"] as any);
+    const roles = (data ?? []).map((r: any) => r.role);
+    setIsAdmin(roles.includes("admin"));
+    setIsMobileAdmin(roles.includes("mobile_admin"));
   };
 
   const handleSaveName = async () => {
