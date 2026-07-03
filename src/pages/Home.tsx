@@ -64,13 +64,20 @@ const getBannerColor = (colorName: string): string => {
   return colorMap[colorName] || colorMap['blue-500'];
 };
 
-const EARN_POINTS_GAMES = [
-  { id: "car-dodge", name: "Car Dodge", points: 20, gradient: "from-rose-500 via-pink-500 to-orange-400", pattern: "game-pattern-dodge", emoji: "🏎️" },
-  { id: "bubble-pop", name: "Bubble Pop", points: 15, gradient: "from-fuchsia-500 via-violet-500 to-cyan-400", pattern: "game-pattern-bubbles", emoji: "🫧" },
-];
-
 // Curated web arcade games (loaded lazily from lib)
-import { WEB_ARCADE_GAMES, getGameThumb } from "@/lib/webArcadeGames";
+import { WEB_ARCADE_GAMES, getGameThumb, findGame } from "@/lib/webArcadeGames";
+import { getHistory as getArcadeHistory, getFavorites as getArcadeFavorites, ARCADE_REWARD_PER_SESSION } from "@/lib/webArcadeLocal";
+
+// Featured e.tubhai games used in the Earn Points block (replaces old canvas games)
+const EARN_POINTS_GAMES = WEB_ARCADE_GAMES.slice(0, 2).map((g) => ({
+  id: g.slug,
+  name: g.name,
+  points: ARCADE_REWARD_PER_SESSION,
+  gradient: g.gradient,
+  emoji: g.emoji,
+  slug: g.slug,
+}));
+
 const HOME_WEB_GAMES = WEB_ARCADE_GAMES.slice(0, 6);
 
 const Home = () => {
