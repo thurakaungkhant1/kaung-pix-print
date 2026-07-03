@@ -642,7 +642,7 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+                <Route path="/support" element={<ProtectedRoute hideNav><Support /></ProtectedRoute>} />
                 <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                 <Route path="/messages/:conversationId" element={<ProtectedRoute hideNav><ChatThread /></ProtectedRoute>} />
                 <Route path="/admin/support" element={<ProtectedAdminRoute><SupportManage /></ProtectedAdminRoute>} />
