@@ -560,6 +560,64 @@ const Home = () => {
             </section>
           </AnimatedSection>
 
+          {/* ── Recently Played (Web Arcade) ── */}
+          {recentArcade.length > 0 && (
+            <AnimatedSection delay={0.22}>
+              <section className="px-5 mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-display font-bold flex items-center gap-1.5">
+                    <Clock className="h-4 w-4 text-primary" /> Recently Played
+                  </h2>
+                  <button onClick={() => navigate("/web-arcade")} className="text-xs text-primary font-semibold">See All</button>
+                </div>
+                <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-5 px-5 pb-1">
+                  {recentArcade.slice(0, 10).map((g) => (
+                    <button
+                      key={g.slug}
+                      onClick={() => navigate(`/web-arcade/play/${g.slug}`)}
+                      className="relative flex-shrink-0 w-24 rounded-2xl overflow-hidden border border-border/60 hover:shadow-lg transition"
+                    >
+                      <div className={cn("aspect-square bg-gradient-to-br relative", g.gradient)}>
+                        <img src={getGameThumb(g.slug)} alt={g.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                        <p className="absolute inset-x-1 bottom-1 text-[9px] font-bold text-white line-clamp-1 drop-shadow">{g.name}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </AnimatedSection>
+          )}
+
+          {/* ── Favorite Arcade Games ── */}
+          {favArcade.length > 0 && (
+            <AnimatedSection delay={0.23}>
+              <section className="px-5 mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-display font-bold flex items-center gap-1.5">
+                    <span className="text-rose-500">❤️</span> Favorite Games
+                  </h2>
+                  <button onClick={() => navigate("/web-arcade")} className="text-xs text-primary font-semibold">See All</button>
+                </div>
+                <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-5 px-5 pb-1">
+                  {favArcade.map((g) => (
+                    <button
+                      key={g.slug}
+                      onClick={() => navigate(`/web-arcade/play/${g.slug}`)}
+                      className="relative flex-shrink-0 w-24 rounded-2xl overflow-hidden border border-rose-300/50 hover:shadow-lg transition"
+                    >
+                      <div className={cn("aspect-square bg-gradient-to-br relative", g.gradient)}>
+                        <img src={getGameThumb(g.slug)} alt={g.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                        <p className="absolute inset-x-1 bottom-1 text-[9px] font-bold text-white line-clamp-1 drop-shadow">{g.name}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </AnimatedSection>
+          )}
+
           {/* ── Web Arcade (Online HTML5 Games) ── */}
           <AnimatedSection delay={0.25}>
             <section className="px-5 mt-6">
