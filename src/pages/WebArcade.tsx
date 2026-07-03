@@ -18,6 +18,27 @@ const WebArcade = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("All");
+  const [recent, setRecent] = useState(() =>
+    getHistory().map((h) => findGame(h.slug)).filter(Boolean) as typeof WEB_ARCADE_GAMES
+  );
+  const [favorites, setFavorites] = useState(() =>
+    getFavorites().map((s) => findGame(s)).filter(Boolean) as typeof WEB_ARCADE_GAMES
+  );
+
+  useEffect(() => {
+    const refresh = () => {
+      setRecent(getHistory().map((h) => findGame(h.slug)).filter(Boolean) as typeof WEB_ARCADE_GAMES);
+      setFavorites(getFavorites().map((s) => findGame(s)).filter(Boolean) as typeof WEB_ARCADE_GAMES);
+    };
+    window.addEventListener("webArcadeHistoryUpdate", refresh);
+    window.addEventListener("webArcadeFavoritesUpdate", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.removeEventListener("webArcadeHistoryUpdate", refresh);
+      window.removeEventListener("webArcadeFavoritesUpdate", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -29,6 +50,7 @@ const WebArcade = () => {
   }, [query, category]);
 
   const featured = WEB_ARCADE_GAMES.slice(0, 5);
+  const showSections = !query && category === "All";
 
   return (
     <MobileLayout className="min-h-screen bg-background pb-24">
