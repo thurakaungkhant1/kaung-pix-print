@@ -35,10 +35,10 @@ const MobileAdminPanel = () => {
     },
     {
       title: "Customer Support",
-      desc: "User တွေနဲ့ တိုက်ရိုက် chat ဖြေဆိုရန်",
+      desc: "User တွေနဲ့ တိုက်ရိုက် chat ဖြေဆိုရန် · Mobile order များကို attach လုပ်နိုင်",
       icon: Headphones,
       color: "bg-green-500/10 text-green-500",
-      route: "/admin/support",
+      route: "/admin/mobile-panel/support",
     },
   ];
 
