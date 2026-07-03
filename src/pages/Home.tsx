@@ -471,8 +471,11 @@ const Home = () => {
           <AnimatedSection delay={0.2}>
             <section className="px-5 mt-6">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-display font-bold">Earn Points</h2>
-                <button onClick={() => navigate("/games")} className="text-xs text-primary font-semibold">
+                <div>
+                  <h2 className="text-base font-display font-bold">Earn Coins</h2>
+                  <p className="text-[11px] text-muted-foreground -mt-0.5">Play & earn {ARCADE_REWARD_PER_SESSION} coins/day per game</p>
+                </div>
+                <button onClick={() => navigate("/web-arcade")} className="text-xs text-primary font-semibold">
                   See All
                 </button>
               </div>
