@@ -345,6 +345,16 @@ const Account = () => {
                   {profile?.name || "Loading..."}
                 </h1>
                 {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
+                {isMobileAdmin && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-bold shadow-sm">
+                    <Shield className="h-2.5 w-2.5" /> Mobile Admin
+                  </span>
+                )}
+                {isAdmin && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold shadow-sm">
+                    <Shield className="h-2.5 w-2.5" /> Admin
+                  </span>
+                )}
               </div>
               <p className="text-xs text-primary-foreground/60 mt-1 flex items-center gap-1.5">
                 <Mail className="h-3 w-3" />
