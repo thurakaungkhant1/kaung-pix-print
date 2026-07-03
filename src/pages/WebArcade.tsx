@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Search, Sparkles, Gamepad2, Flame } from "lucide-react";
+import { ArrowLeft, Search, Sparkles, Gamepad2, Flame, Clock, Heart } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,9 @@ import {
   WEB_ARCADE_GAMES,
   WEB_ARCADE_CATEGORIES,
   getGameThumb,
+  findGame,
 } from "@/lib/webArcadeGames";
+import { getFavorites, getHistory } from "@/lib/webArcadeLocal";
 
 const WebArcade = () => {
   const navigate = useNavigate();
