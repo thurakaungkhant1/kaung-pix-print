@@ -98,8 +98,29 @@ const Home = () => {
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [recentArcade, setRecentArcade] = useState<typeof WEB_ARCADE_GAMES>(() =>
+    getArcadeHistory().map((h) => findGame(h.slug)).filter(Boolean) as typeof WEB_ARCADE_GAMES
+  );
+  const [favArcade, setFavArcade] = useState<typeof WEB_ARCADE_GAMES>(() =>
+    getArcadeFavorites().map((s) => findGame(s)).filter(Boolean) as typeof WEB_ARCADE_GAMES
+  );
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const refresh = () => {
+      setRecentArcade(getArcadeHistory().map((h) => findGame(h.slug)).filter(Boolean) as typeof WEB_ARCADE_GAMES);
+      setFavArcade(getArcadeFavorites().map((s) => findGame(s)).filter(Boolean) as typeof WEB_ARCADE_GAMES);
+    };
+    window.addEventListener("webArcadeHistoryUpdate", refresh);
+    window.addEventListener("webArcadeFavoritesUpdate", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.removeEventListener("webArcadeHistoryUpdate", refresh);
+      window.removeEventListener("webArcadeFavoritesUpdate", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, []);
 
   useEffect(() => {
     if (banners.length <= 1) return;
