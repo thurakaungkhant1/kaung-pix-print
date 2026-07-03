@@ -106,8 +106,59 @@ const WebArcade = () => {
       </header>
 
       <main className="px-4 pt-4 space-y-6">
+        {/* Recently played */}
+        {showSections && recent.length > 0 && (
+          <section>
+            <div className="flex items-center gap-1.5 mb-3">
+              <Clock className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-display font-bold">Recently Played</h2>
+            </div>
+            <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-4 px-4 pb-1">
+              {recent.slice(0, 12).map((g) => (
+                <button
+                  key={g.slug}
+                  onClick={() => navigate(`/web-arcade/play/${g.slug}`)}
+                  className="relative flex-shrink-0 w-28 rounded-2xl overflow-hidden border border-border/60 hover:shadow-lg transition"
+                >
+                  <div className={cn("aspect-square bg-gradient-to-br relative", g.gradient)}>
+                    <img src={getGameThumb(g.slug)} alt={g.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <p className="absolute inset-x-1.5 bottom-1.5 text-[10px] font-bold text-white line-clamp-1 drop-shadow">{g.name}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Favorites */}
+        {showSections && favorites.length > 0 && (
+          <section>
+            <div className="flex items-center gap-1.5 mb-3">
+              <Heart className="h-4 w-4 text-rose-500 fill-rose-500" />
+              <h2 className="text-sm font-display font-bold">My Favorites</h2>
+            </div>
+            <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-4 px-4 pb-1">
+              {favorites.map((g) => (
+                <button
+                  key={g.slug}
+                  onClick={() => navigate(`/web-arcade/play/${g.slug}`)}
+                  className="relative flex-shrink-0 w-28 rounded-2xl overflow-hidden border border-rose-300/50 hover:shadow-lg transition"
+                >
+                  <div className={cn("aspect-square bg-gradient-to-br relative", g.gradient)}>
+                    <img src={getGameThumb(g.slug)} alt={g.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <Heart className="absolute top-1.5 right-1.5 h-3.5 w-3.5 fill-rose-500 text-rose-500 drop-shadow" />
+                    <p className="absolute inset-x-1.5 bottom-1.5 text-[10px] font-bold text-white line-clamp-1 drop-shadow">{g.name}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Featured strip */}
-        {!query && category === "All" && (
+        {showSections && (
           <section>
             <div className="flex items-center gap-1.5 mb-3">
               <Flame className="h-4 w-4 text-orange-500" />
