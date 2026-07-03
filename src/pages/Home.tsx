@@ -485,12 +485,17 @@ const Home = () => {
                     transition={{ delay: 0.1 + i * 0.05 }}
                     whileTap={{ scale: 0.97 }}
                     whileHover={{ y: -3 }}
-                    onClick={() => navigate("/games")}
+                    onClick={() => navigate(`/web-arcade/play/${game.slug}`)}
                     className="text-left rounded-2xl overflow-hidden bg-card border border-border/60 hover:shadow-2xl hover:border-primary/30 transition-all group"
                   >
                     <div className={cn("aspect-[4/3] bg-gradient-to-br relative overflow-hidden", game.gradient)}>
-                      {/* Abstract pattern overlay */}
-                      <div className={cn("absolute inset-0 opacity-80", game.pattern)} />
+                      <img
+                        src={getGameThumb(game.slug)}
+                        alt={game.name}
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover opacity-90"
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                      />
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),transparent_55%)]" />
 
                       {/* Floating game emoji */}
