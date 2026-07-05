@@ -7,12 +7,24 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 
 
+interface AuditRow {
+  id: string;
+  source: string;
+  reason: string | null;
+  actor: string;
+  related_entity: string | null;
+  related_entity_id: string | null;
+  country: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
 interface Transaction {
   id: string;
   amount: number;
   transaction_type: string;
   description: string | null;
   created_at: string;
+  audit?: AuditRow | null;
 }
 
 interface Withdrawal {
@@ -54,7 +66,20 @@ const PointHistory = () => {
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    if (data) setTransactions(data);
+    const txs = (data as Transaction[]) || [];
+    if (txs.length) {
+      const ids = txs.map((t) => t.id);
+      const { data: auditRows } = await supabase
+        .from("point_credit_audit")
+        .select("id, transaction_id, source, reason, actor, related_entity, related_entity_id, country, metadata")
+        .in("transaction_id", ids);
+      const auditMap = new Map<string, AuditRow>();
+      (auditRows || []).forEach((a: any) => {
+        if (a.transaction_id) auditMap.set(a.transaction_id, a as AuditRow);
+      });
+      txs.forEach((t) => (t.audit = auditMap.get(t.id) ?? null));
+    }
+    setTransactions(txs);
   };
 
   const loadWithdrawals = async () => {
