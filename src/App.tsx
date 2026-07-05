@@ -56,6 +56,7 @@ const Signup = lazy(() => import("./pages/auth/Signup"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -187,6 +188,7 @@ const App = () => {
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/auth/verify-email" element={<VerifyEmail />} />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route
                   path="/"
                   element={
