@@ -1786,6 +1786,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       promotional_banners: {
@@ -2242,6 +2249,36 @@ export type Database = {
           id?: string | null
           name?: string | null
           points?: number | null
+        }
+        Relationships: []
+      }
+      public_profiles: {
+        Row: {
+          account_status: string | null
+          avatar_url: string | null
+          created_at: string | null
+          id: string | null
+          is_active_visible: boolean | null
+          last_seen_at: string | null
+          name: string | null
+        }
+        Insert: {
+          account_status?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active_visible?: boolean | null
+          last_seen_at?: string | null
+          name?: string | null
+        }
+        Update: {
+          account_status?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active_visible?: boolean | null
+          last_seen_at?: string | null
+          name?: string | null
         }
         Relationships: []
       }
