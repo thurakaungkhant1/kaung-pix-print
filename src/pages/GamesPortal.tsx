@@ -139,7 +139,7 @@ const GamesPortal = () => {
 
   useEffect(() => {
     if (isOnline) {
-      supabase.from("profiles").select("id, name, avatar_url, game_points")
+      supabase.from("public_profiles").select("id, name, avatar_url, game_points")
         .order("game_points", { ascending: false }).limit(10)
         .then(({ data }) => { if (data) setLeaderboard(data); });
       supabase.from("game_reward_items").select("*").eq("is_active", true).order("display_order")

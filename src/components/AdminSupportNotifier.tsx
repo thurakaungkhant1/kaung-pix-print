@@ -45,7 +45,7 @@ const AdminSupportNotifier = () => {
 
           let userName = "User";
           const { data: prof } = await supabase
-            .from("profiles")
+            .from("public_profiles")
             .select("name")
             .eq("id", m.user_id)
             .maybeSingle();

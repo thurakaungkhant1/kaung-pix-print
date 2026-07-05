@@ -35,7 +35,7 @@ const TopEarners = () => {
   const loadLeaderboard = async () => {
     // Fetch profiles with avatar for the leaderboard
     const { data } = await supabase
-      .from("profiles")
+      .from("public_profiles")
       .select("id, name, points, avatar_url")
       .order("points", { ascending: false })
       .limit(50);
