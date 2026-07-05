@@ -73,35 +73,23 @@ export const awardArcadeCoins = async (slug: string): Promise<number> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return 0;
 
+    // Local guard: don't hit the server twice for the same day
     const log = getRewardLog();
     const key = `${user.id}:${slug}:${todayKey()}`;
     if (log[key]) return 0;
 
-    // Optimistically mark to prevent double-award on fast remount
-    log[key] = "1";
-    setRewardLog(log);
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("points")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile) return 0;
-
-    await supabase
-      .from("profiles")
-      .update({ points: (profile.points || 0) + REWARD_PER_SESSION })
-      .eq("id", user.id);
-
-    await supabase.from("point_transactions").insert({
-      user_id: user.id,
-      amount: REWARD_PER_SESSION,
-      transaction_type: "web_arcade_play",
-      description: `Played ${slug} on Web Arcade`,
+    // All positive credits go through the `award-points` edge function.
+    // Server enforces once-per-day-per-slug and writes point_credit_audit.
+    const { data, error } = await supabase.functions.invoke("award-points", {
+      body: { source: "arcade", slug },
     });
-
-    return REWARD_PER_SESSION;
+    if (error) return 0;
+    const amount = Number(data?.amount ?? 0);
+    if (amount > 0) {
+      log[key] = "1";
+      setRewardLog(log);
+    }
+    return amount;
   } catch (e) {
     console.error("awardArcadeCoins failed", e);
     return 0;
