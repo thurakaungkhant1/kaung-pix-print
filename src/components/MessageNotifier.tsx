@@ -79,7 +79,7 @@ const MessageNotifier = () => {
           if (locationRef.current === `/messages/${m.conversation_id}`) return;
 
           const { data: prof } = await supabase
-            .from("profiles")
+            .from("public_profiles")
             .select("name")
             .eq("id", m.sender_id)
             .maybeSingle();

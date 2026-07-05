@@ -90,43 +90,27 @@ export const useGamePoints = () => {
       return { success: false, pointsEarned: 0, cooldown: true };
     }
 
-    let pointsEarned = settings.base_play_points;
-    if (isWin) pointsEarned += settings.win_bonus_points;
-    if (score > settings.high_score_threshold) pointsEarned += settings.high_score_bonus_points;
-
-    // Check daily limit
-    if (dailyEarned + pointsEarned > settings.daily_limit) {
-      pointsEarned = Math.max(0, settings.daily_limit - dailyEarned);
-    }
-
-    if (pointsEarned === 0) {
-      return { success: true, pointsEarned: 0, dailyLimitReached: true };
-    }
-
     try {
-      // Insert score
-      await supabase.from("game_scores").insert({
-        user_id: user.id,
-        game_name: gameName,
-        score,
-        points_earned: pointsEarned,
-        is_win: isWin,
+      // Server-verified credit via edge function.
+      // All positive game_points writes go through service_role.
+      const { data, error } = await supabase.functions.invoke("award-points", {
+        body: { source: "game", game_name: gameName, score, is_win: isWin },
       });
+      if (error) {
+        console.error("award-points error", error);
+        return { success: false, pointsEarned: 0 };
+      }
+      const pointsEarned = Number(data?.amount ?? 0);
+      const reason = data?.reason as string | undefined;
 
-      // Update game points
-      await supabase
-        .from("profiles")
-        .update({ game_points: gamePoints + pointsEarned })
-        .eq("id", user.id);
-
-      // Update daily missions
+      // Local mission / streak bookkeeping still runs client-side (non-credit data)
       const today = new Date().toISOString().split("T")[0];
       const { data: mission } = await supabase
         .from("daily_missions")
         .select("*")
         .eq("user_id", user.id)
         .eq("mission_date", today)
-        .single();
+        .maybeSingle();
 
       if (mission) {
         await supabase
@@ -147,13 +131,11 @@ export const useGamePoints = () => {
         });
       }
 
-      // Update streak
       const { data: streakData } = await supabase
         .from("game_streaks")
         .select("*")
         .eq("user_id", user.id)
-        .single();
-
+        .maybeSingle();
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split("T")[0];
@@ -183,16 +165,23 @@ export const useGamePoints = () => {
         setStreak(1);
       }
 
-      setGamePoints((prev) => prev + pointsEarned);
-      setDailyEarned((prev) => prev + pointsEarned);
+      if (pointsEarned > 0) {
+        setGamePoints((prev) => prev + pointsEarned);
+        setDailyEarned((prev) => prev + pointsEarned);
+      }
       setLastGameTime((prev) => ({ ...prev, [gameName]: Date.now() }));
 
-      return { success: true, pointsEarned };
+      return {
+        success: true,
+        pointsEarned,
+        dailyLimitReached: reason === "daily_cap",
+        cooldown: reason === "cooldown",
+      };
     } catch (e) {
       console.error("Error submitting score:", e);
       return { success: false, pointsEarned: 0 };
     }
-  }, [user, gamePoints, dailyEarned, canPlay, settings]);
+  }, [user, canPlay]);
 
   return {
     gamePoints,

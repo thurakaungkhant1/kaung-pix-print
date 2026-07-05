@@ -128,7 +128,7 @@ const Messages = () => {
         const otherId = c.participant1_id === user.id ? c.participant2_id : c.participant1_id;
         const [{ data: profile }, { data: lastMsg }] = await Promise.all([
           supabase
-            .from("profiles")
+            .from("public_profiles")
             .select("id, name, avatar_url, last_seen_at")
             .eq("id", otherId)
             .maybeSingle(),
@@ -171,7 +171,7 @@ const Messages = () => {
     );
     const { data: profs } = otherIds.length
       ? await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, name, avatar_url, last_seen_at")
           .in("id", otherIds)
       : { data: [] as UserRow[] };

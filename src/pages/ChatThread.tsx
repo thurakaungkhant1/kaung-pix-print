@@ -77,7 +77,7 @@ const ChatThread = () => {
       if (conv) {
         const otherId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
         const { data: prof } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, name, avatar_url, last_seen_at")
           .eq("id", otherId)
           .maybeSingle();

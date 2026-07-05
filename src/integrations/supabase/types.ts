@@ -1374,6 +1374,68 @@ export type Database = {
         }
         Relationships: []
       }
+      point_credit_audit: {
+        Row: {
+          actor: string
+          actor_user_id: string | null
+          amount: number
+          country: string | null
+          created_at: string
+          id: string
+          ip: unknown
+          metadata: Json
+          reason: string | null
+          related_entity: string | null
+          related_entity_id: string | null
+          source: string
+          transaction_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          actor?: string
+          actor_user_id?: string | null
+          amount: number
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip?: unknown
+          metadata?: Json
+          reason?: string | null
+          related_entity?: string | null
+          related_entity_id?: string | null
+          source: string
+          transaction_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          actor?: string
+          actor_user_id?: string | null
+          amount?: number
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip?: unknown
+          metadata?: Json
+          reason?: string | null
+          related_entity?: string | null
+          related_entity_id?: string | null
+          source?: string
+          transaction_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_credit_audit_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "point_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       point_transactions: {
         Row: {
           amount: number
@@ -2257,6 +2319,7 @@ export type Database = {
           account_status: string | null
           avatar_url: string | null
           created_at: string | null
+          game_points: number | null
           id: string | null
           is_active_visible: boolean | null
           last_seen_at: string | null
@@ -2266,6 +2329,7 @@ export type Database = {
           account_status?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          game_points?: number | null
           id?: string | null
           is_active_visible?: boolean | null
           last_seen_at?: string | null
@@ -2275,6 +2339,7 @@ export type Database = {
           account_status?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          game_points?: number | null
           id?: string | null
           is_active_visible?: boolean | null
           last_seen_at?: string | null

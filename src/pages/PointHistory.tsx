@@ -7,12 +7,24 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 
 
+interface AuditRow {
+  id: string;
+  source: string;
+  reason: string | null;
+  actor: string;
+  related_entity: string | null;
+  related_entity_id: string | null;
+  country: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
 interface Transaction {
   id: string;
   amount: number;
   transaction_type: string;
   description: string | null;
   created_at: string;
+  audit?: AuditRow | null;
 }
 
 interface Withdrawal {
@@ -54,7 +66,20 @@ const PointHistory = () => {
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    if (data) setTransactions(data);
+    const txs = (data as Transaction[]) || [];
+    if (txs.length) {
+      const ids = txs.map((t) => t.id);
+      const { data: auditRows } = await supabase
+        .from("point_credit_audit")
+        .select("id, transaction_id, source, reason, actor, related_entity, related_entity_id, country, metadata")
+        .in("transaction_id", ids);
+      const auditMap = new Map<string, AuditRow>();
+      (auditRows || []).forEach((a: any) => {
+        if (a.transaction_id) auditMap.set(a.transaction_id, a as AuditRow);
+      });
+      txs.forEach((t) => (t.audit = auditMap.get(t.id) ?? null));
+    }
+    setTransactions(txs);
   };
 
   const loadWithdrawals = async () => {
@@ -117,14 +142,33 @@ const PointHistory = () => {
               </div>
             ) : (
               transactions.map((t, i) => (
-                <div key={t.id} className="flex items-center justify-between py-3 border-b last:border-0 animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
-                  <div>
-                    <p className="font-medium">{t.description || t.transaction_type}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</p>
+                <div key={t.id} className="py-3 border-b last:border-0 animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{t.description || t.transaction_type}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString()}</p>
+                    </div>
+                    <p className={`font-bold shrink-0 ml-2 ${t.amount > 0 ? "text-primary" : "text-destructive"}`}>
+                      {t.amount > 0 ? "+" : ""}{t.amount}
+                    </p>
                   </div>
-                  <p className={`font-bold ${t.amount > 0 ? "text-primary" : "text-destructive"}`}>
-                    {t.amount > 0 ? "+" : ""}{t.amount}
-                  </p>
+                  {t.audit && (
+                    <div className="mt-1 flex flex-wrap gap-1.5 text-[10px]">
+                      <Badge variant="outline" className="font-mono">source: {t.audit.source}</Badge>
+                      {t.audit.reason && t.audit.reason !== "ok" && (
+                        <Badge variant="secondary" className="font-mono">{t.audit.reason}</Badge>
+                      )}
+                      <Badge variant="outline" className="font-mono">by: {t.audit.actor}</Badge>
+                      {t.audit.related_entity_id && (
+                        <Badge variant="outline" className="font-mono truncate max-w-[160px]">
+                          {t.audit.related_entity}:{t.audit.related_entity_id.slice(0, 12)}
+                        </Badge>
+                      )}
+                      {t.audit.country && (
+                        <Badge variant="outline" className="font-mono">{t.audit.country}</Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))
             )}

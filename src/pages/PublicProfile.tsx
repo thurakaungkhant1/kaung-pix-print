@@ -47,7 +47,7 @@ const PublicProfile = () => {
     setLoading(true);
 
     const { data } = await supabase
-      .from("profiles")
+      .from("public_profiles")
       .select("id, name, points, created_at, avatar_url")
       .eq("id", userId)
       .single();
@@ -101,14 +101,14 @@ const PublicProfile = () => {
     if (!userId) return;
 
     const { data: userProfile } = await supabase
-      .from("profiles")
+      .from("public_profiles")
       .select("points")
       .eq("id", userId)
       .single();
 
     if (userProfile) {
       const { count } = await supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("*", { count: "exact", head: true })
         .gt("points", userProfile.points);
 
