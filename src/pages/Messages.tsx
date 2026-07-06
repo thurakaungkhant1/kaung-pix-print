@@ -480,6 +480,7 @@ const Messages = () => {
   }) => {
     const status = statusMap[u.id] || "none";
     const isOn = online.has(u.id);
+    const isFriend = status === "accepted";
     return (
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
         <div className="h-16 bg-gradient-to-br from-primary/30 via-primary/10 to-transparent" />
@@ -491,14 +492,20 @@ const Messages = () => {
                 {u.name?.charAt(0)?.toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
-            <PresenceDot id={u.id} />
+            {isFriend && <PresenceDot id={u.id} />}
           </div>
           <div className="mt-2">
             <p className="font-semibold text-sm truncate">{u.name || "Unnamed"}</p>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {isOn ? "Active now" : formatLastSeen(u.last_seen_at)}
-            </p>
+            {isFriend ? (
+              <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">
+                  {isOn ? "online" : formatLastSeenExact(u.last_seen_at)}
+                </span>
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground/70">Not friends yet</p>
+            )}
           </div>
 
           {showActions && (
