@@ -15,7 +15,7 @@ import ReportDialog from "@/components/ReportDialog";
 interface PublicProfileData {
   id: string;
   name: string;
-  points: number;
+  points: number; // mapped from game_points on the public view
   created_at: string;
   avatar_url: string | null;
 }
@@ -48,12 +48,19 @@ const PublicProfile = () => {
 
     const { data } = await supabase
       .from("public_profiles")
-      .select("id, name, points, created_at, avatar_url")
+      .select("id, name, game_points, created_at, avatar_url")
       .eq("id", userId)
       .single();
 
-    if (data) {
-      setProfile(data);
+    if (data && !(data as any).error) {
+      const d: any = data;
+      setProfile({
+        id: d.id,
+        name: d.name,
+        points: d.game_points ?? 0,
+        created_at: d.created_at,
+        avatar_url: d.avatar_url,
+      });
     }
     setLoading(false);
   };
@@ -102,15 +109,16 @@ const PublicProfile = () => {
 
     const { data: userProfile } = await supabase
       .from("public_profiles")
-      .select("points")
+      .select("game_points")
       .eq("id", userId)
       .single();
 
-    if (userProfile) {
+    if (userProfile && !(userProfile as any).error) {
+      const pts = (userProfile as any).game_points ?? 0;
       const { count } = await supabase
         .from("public_profiles")
         .select("*", { count: "exact", head: true })
-        .gt("points", userProfile.points);
+        .gt("game_points", pts);
 
       setRank((count || 0) + 1);
     }

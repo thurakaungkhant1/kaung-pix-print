@@ -116,3 +116,33 @@ export const formatLastSeen = (iso?: string | null): string => {
   const d = Math.floor(h / 24);
   return `${d}d ago`;
 };
+
+// Telegram-style precise last-seen: "last seen today at 14:32",
+// "last seen yesterday at 08:15", "last seen Mar 5 at 12:00",
+// "last seen Mar 5, 2025 at 12:00" for older years.
+export const formatLastSeenExact = (iso?: string | null): string => {
+  if (!iso) return "last seen a long time ago";
+  const then = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - then.getTime();
+  if (diffMs < 60_000) return "last seen just now";
+
+  const time = then.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const thenStart = new Date(then.getFullYear(), then.getMonth(), then.getDate()).getTime();
+  const dayDiff = Math.round((startOfToday - thenStart) / 86_400_000);
+
+  if (dayDiff <= 0) return `last seen today at ${time}`;
+  if (dayDiff === 1) return `last seen yesterday at ${time}`;
+  if (dayDiff < 7) {
+    const wd = then.toLocaleDateString([], { weekday: "long" });
+    return `last seen ${wd} at ${time}`;
+  }
+  const sameYear = then.getFullYear() === now.getFullYear();
+  const date = then.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+  return `last seen ${date} at ${time}`;
+};
