@@ -15,7 +15,7 @@ import ReportDialog from "@/components/ReportDialog";
 interface PublicProfileData {
   id: string;
   name: string;
-  points: number;
+  points: number; // mapped from game_points on the public view
   created_at: string;
   avatar_url: string | null;
 }
