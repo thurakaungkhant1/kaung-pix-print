@@ -36,12 +36,19 @@ const TopEarners = () => {
     // Fetch profiles with avatar for the leaderboard
     const { data } = await supabase
       .from("public_profiles")
-      .select("id, name, points, avatar_url")
-      .order("points", { ascending: false })
+      .select("id, name, game_points, avatar_url")
+      .order("game_points", { ascending: false })
       .limit(50);
 
-    if (data) {
-      setLeaderboard(data);
+    if (data && Array.isArray(data)) {
+      setLeaderboard(
+        (data as any[]).map((d) => ({
+          id: d.id,
+          name: d.name,
+          points: d.game_points ?? 0,
+          avatar_url: d.avatar_url,
+        }))
+      );
     }
   };
 
