@@ -109,15 +109,16 @@ const PublicProfile = () => {
 
     const { data: userProfile } = await supabase
       .from("public_profiles")
-      .select("points")
+      .select("game_points")
       .eq("id", userId)
       .single();
 
-    if (userProfile) {
+    if (userProfile && !(userProfile as any).error) {
+      const pts = (userProfile as any).game_points ?? 0;
       const { count } = await supabase
         .from("public_profiles")
         .select("*", { count: "exact", head: true })
-        .gt("points", userProfile.points);
+        .gt("game_points", pts);
 
       setRank((count || 0) + 1);
     }
