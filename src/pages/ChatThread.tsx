@@ -348,7 +348,7 @@ const ChatThread = () => {
                 </>
               ) : (
                 <>
-                  <Clock className="h-3 w-3" /> Last seen {formatLastSeen(other?.last_seen_at)}
+                  <Clock className="h-3 w-3" /> {formatLastSeenExact(other?.last_seen_at)}
                 </>
               )}
             </p>
