@@ -243,7 +243,7 @@ const ProductDetail = () => {
       const newBalance = walletBalance - totalPrice;
 
       const { error: balanceError } = await supabase
-        .from("public_profiles")
+        .from("profiles")
         .update({ wallet_balance: newBalance })
         .eq("id", user.id);
 
