@@ -793,7 +793,7 @@ const Messages = () => {
                                     ? c.last.content
                                     : c.other && online.has(c.other.id)
                                     ? "Active now"
-                                    : formatLastSeen(c.other?.last_seen_at)}
+                                    : formatLastSeenExact(c.other?.last_seen_at)}
                                 </p>
                               </div>
                             </button>
