@@ -53,7 +53,7 @@ import {
   unfriend,
   FriendStatus,
 } from "@/lib/friendship";
-import { usePresenceMap, formatLastSeen } from "@/hooks/usePresence";
+import { usePresenceMap, formatLastSeenExact } from "@/hooks/usePresence";
 import { toast } from "sonner";
 
 interface ConvRow {
