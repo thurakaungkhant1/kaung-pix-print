@@ -48,12 +48,19 @@ const PublicProfile = () => {
 
     const { data } = await supabase
       .from("public_profiles")
-      .select("id, name, points, created_at, avatar_url")
+      .select("id, name, game_points, created_at, avatar_url")
       .eq("id", userId)
       .single();
 
-    if (data) {
-      setProfile(data);
+    if (data && !(data as any).error) {
+      const d: any = data;
+      setProfile({
+        id: d.id,
+        name: d.name,
+        points: d.game_points ?? 0,
+        created_at: d.created_at,
+        avatar_url: d.avatar_url,
+      });
     }
     setLoading(false);
   };
