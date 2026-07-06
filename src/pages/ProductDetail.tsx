@@ -111,7 +111,7 @@ const ProductDetail = () => {
   const loadWalletBalance = async () => {
     if (!user) return;
     const { data } = await supabase
-      .from("public_profiles")
+      .from("profiles")
       .select("wallet_balance, name, phone_number")
       .eq("id", user.id)
       .single();
