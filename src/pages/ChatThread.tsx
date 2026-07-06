@@ -9,7 +9,7 @@ import { ArrowLeft, Send, Smile, MoreVertical, Ban, UserPlus, Clock, Check, Chec
 import MobileLayout from "@/components/MobileLayout";
 import ChatSettingsDialog from "@/components/ChatSettingsDialog";
 import { useToast } from "@/hooks/use-toast";
-import { usePresenceMap, formatLastSeen } from "@/hooks/usePresence";
+import { usePresenceMap, formatLastSeenExact } from "@/hooks/usePresence";
 import { getFriendStatus, sendFriendRequest, FriendStatus } from "@/lib/friendship";
 import { awardChatPoints } from "@/lib/chatEarning";
 
