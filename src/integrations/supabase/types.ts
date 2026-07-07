@@ -1775,6 +1775,7 @@ export type Database = {
           is_active_visible: boolean | null
           language: string | null
           last_seen_at: string | null
+          last_seen_privacy: string
           name: string
           phone_number: string
           points: number
@@ -1796,6 +1797,7 @@ export type Database = {
           is_active_visible?: boolean | null
           language?: string | null
           last_seen_at?: string | null
+          last_seen_privacy?: string
           name: string
           phone_number: string
           points?: number
@@ -1817,6 +1819,7 @@ export type Database = {
           is_active_visible?: boolean | null
           language?: string | null
           last_seen_at?: string | null
+          last_seen_privacy?: string
           name?: string
           phone_number?: string
           points?: number
@@ -2323,6 +2326,7 @@ export type Database = {
           id: string | null
           is_active_visible: boolean | null
           last_seen_at: string | null
+          last_seen_privacy: string | null
           name: string | null
         }
         Insert: {
@@ -2332,7 +2336,8 @@ export type Database = {
           game_points?: number | null
           id?: string | null
           is_active_visible?: boolean | null
-          last_seen_at?: string | null
+          last_seen_at?: never
+          last_seen_privacy?: string | null
           name?: string | null
         }
         Update: {
@@ -2342,7 +2347,8 @@ export type Database = {
           game_points?: number | null
           id?: string | null
           is_active_visible?: boolean | null
-          last_seen_at?: string | null
+          last_seen_at?: never
+          last_seen_privacy?: string | null
           name?: string | null
         }
         Relationships: []
