@@ -479,6 +479,32 @@ const Account = () => {
                 <SettingItem icon={AlertTriangle} label="Delete Account" description="Permanently delete your account" variant="danger" onClick={() => setDeleteAccountDialogOpen(true)} />
               </CardContent>
             </Card>
+
+            <Card className="rounded-2xl border-border/40 shadow-sm">
+              <CardContent className="p-3.5 space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-muted">
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-semibold text-sm">Privacy</h3>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">Last seen — Friends only</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {lastSeenPrivacy === "friends"
+                        ? "Only your friends can see when you were last online."
+                        : "Anyone can see when you were last online."}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={lastSeenPrivacy === "friends"}
+                    disabled={savingPrivacy}
+                    onCheckedChange={handleTogglePrivacy}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Preferences Tab */}
