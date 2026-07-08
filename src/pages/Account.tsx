@@ -325,285 +325,304 @@ const Account = () => {
     </div>
   );
 
+  // Colored setting row (Telegram/iOS style)
+  const Row = ({
+    icon: Icon,
+    label,
+    right,
+    onClick,
+    iconBg,
+    iconColor,
+    danger,
+  }: {
+    icon: React.ElementType;
+    label: string;
+    right?: React.ReactNode;
+    onClick?: () => void;
+    iconBg?: string;
+    iconColor?: string;
+    danger?: boolean;
+  }) => (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center gap-3 px-4 py-3.5 active:bg-muted/60 transition-colors",
+        danger && "text-destructive"
+      )}
+    >
+      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", iconBg || "bg-muted")}>
+        <Icon className={cn("h-4 w-4", iconColor || "text-muted-foreground")} />
+      </div>
+      <span className="flex-1 text-left text-[15px] font-medium">{label}</span>
+      {right !== undefined ? right : <ChevronRight className="h-4 w-4 text-muted-foreground/60" />}
+    </button>
+  );
+
   return (
     <AnimatedPage>
-    <MobileLayout className="pb-24">
-      {/* ── Hero Profile Header ── */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="absolute inset-0 bg-gradient-glow opacity-60" />
-        <div className="absolute -top-20 -right-20 w-56 h-56 bg-primary-foreground/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-primary-foreground/5 rounded-full blur-2xl" />
-        
-        <div className="relative z-10 px-5 pt-10 pb-8">
-          {/* Avatar & Info */}
-          <motion.div
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="flex items-start gap-4"
-          >
-            <div className="relative cursor-pointer group" onClick={() => fileInputRef.current?.click()}>
-              <div className="absolute inset-0 bg-primary-foreground/20 rounded-full blur-md opacity-60 group-hover:opacity-100 transition-opacity scale-110" />
-              <Avatar className={cn(
-                "h-20 w-20 border-3 border-primary-foreground/20 shadow-xl relative",
-                "ring-2 ring-primary-foreground/20 transition-all duration-500",
-                "group-hover:ring-primary-foreground/40 group-hover:scale-105"
-              )}>
-                <AvatarImage src={avatarPreview || profile?.avatar_url || undefined} alt="Profile" className="object-cover" />
-                <AvatarFallback className="bg-primary-foreground/10 text-2xl font-bold text-primary-foreground">
-                  {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-8 w-8" />}
-                </AvatarFallback>
-              </Avatar>
-              <div className={cn(
-                "absolute inset-0 flex items-center justify-center rounded-full",
-                "bg-foreground/50 backdrop-blur-sm opacity-0 group-hover:opacity-100",
-                "transition-all duration-300"
-              )}>
-                <Camera className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarSelect} className="hidden" />
-            </div>
-            
-            <div className="flex-1 pt-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-display font-bold text-primary-foreground tracking-tight">
-                  {profile?.name || "Loading..."}
-                </h1>
-                {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
-                {isMobileAdmin && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-bold shadow-sm">
-                    <Shield className="h-2.5 w-2.5" /> Mobile Admin
-                  </span>
-                )}
-                {isAdmin && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold shadow-sm">
-                    <Shield className="h-2.5 w-2.5" /> Admin
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-primary-foreground/60 mt-1 flex items-center gap-1.5">
-                <Mail className="h-3 w-3" />
-                {user?.email}
-              </p>
-              
-              {avatarFile && (
-                <Button 
-                  size="sm" onClick={uploadAvatar} disabled={uploadingAvatar}
-                  className="mt-2.5 h-8 rounded-full text-xs shadow-lg"
-                >
-                  {uploadingAvatar ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
-                  Save Photo
-                </Button>
-              )}
-            </div>
-          </motion.div>
-
-        </div>
-      </header>
-
-      {/* ── Tabs ── */}
-      <div className="p-4">
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="w-full h-12 p-1 rounded-xl bg-muted/50 backdrop-blur-sm">
-            <TabsTrigger value="profile" className="flex-1 h-full rounded-lg text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-              <User className="h-3.5 w-3.5 mr-1" /> Profile
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex-1 h-full rounded-lg text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-              <Shield className="h-3.5 w-3.5 mr-1" /> Security
-            </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex-1 h-full rounded-lg text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-              <Settings className="h-3.5 w-3.5 mr-1" /> More
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="mt-4 space-y-3">
-            <Card className="rounded-2xl border-border/40 shadow-sm overflow-hidden">
-              <CardContent className="p-0 divide-y divide-border/30">
-                <EditableField icon={User} label="Name" value={profile?.name || ""} editValue={editName} setEditValue={setEditName} isEditing={editingName} setIsEditing={setEditingName} onSave={handleSaveName} disabled={!isPremium} disabledMessage="Only premium members can change their name" />
-                <EditableField icon={Phone} label="Phone Number" value={profile?.phone_number || ""} editValue={editPhone} setEditValue={setEditPhone} isEditing={editingPhone} setIsEditing={setEditingPhone} onSave={handleSavePhone} />
-                <SettingItem icon={Mail} label="Email" description={user?.email || "Not set"} onClick={() => {}} rightElement={<></>} />
-              </CardContent>
-            </Card>
-
-            {profile && <AccountQualityBadge status={profile.account_status || "good"} />}
-
-            {profile?.avatar_url && !avatarFile && (
-              <Card className="rounded-2xl border-destructive/20 shadow-sm overflow-hidden">
-                <CardContent className="p-0">
-                  <SettingItem icon={Trash2} label="Remove Profile Photo" variant="danger" onClick={() => setDeleteDialogOpen(true)} rightElement={deletingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined} />
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Security Tab */}
-          <TabsContent value="security" className="mt-4 space-y-3">
-            <Card className="rounded-2xl border-border/40 shadow-sm">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 rounded-lg bg-muted">
-                    <Lock className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-semibold text-sm">Change Password</h3>
-                </div>
-                <div className="space-y-2.5">
-                  {[
-                    { id: "current-password", label: "Current Password", value: currentPassword, setValue: setCurrentPassword, show: showCurrentPassword, setShow: setShowCurrentPassword },
-                    { id: "new-password", label: "New Password", value: newPassword, setValue: setNewPassword, show: showNewPassword, setShow: setShowNewPassword },
-                    { id: "confirm-password", label: "Confirm Password", value: confirmPassword, setValue: setConfirmPassword, show: showConfirmPassword, setShow: setShowConfirmPassword },
-                  ].map((field) => (
-                    <div key={field.id} className="space-y-1">
-                      <Label htmlFor={field.id} className="text-xs">{field.label}</Label>
-                      <div className="relative">
-                        <Input id={field.id} type={field.show ? "text" : "password"} value={field.value} onChange={(e) => field.setValue(e.target.value)} placeholder={`Enter ${field.label.toLowerCase()}`} className="pr-10 h-10 rounded-lg text-sm" />
-                        <button type="button" onClick={() => field.setShow(!field.show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                          {field.show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <p className="text-[10px] text-muted-foreground">8+ chars, 1 uppercase, 1 number, 1 symbol</p>
-                  <Button onClick={handlePasswordChange} disabled={isChangingPassword} className="w-full h-10 rounded-lg text-sm">
-                    {isChangingPassword ? "Changing..." : "Update Password"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-destructive/20 shadow-sm">
-              <CardContent className="p-1">
-                <div className="px-3.5 py-2">
-                  <p className="text-[10px] font-semibold text-destructive uppercase tracking-wider">Danger Zone</p>
-                </div>
-                <SettingItem icon={AlertTriangle} label="Delete Account" description="Permanently delete your account" variant="danger" onClick={() => setDeleteAccountDialogOpen(true)} />
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-border/40 shadow-sm">
-              <CardContent className="p-3.5 space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-muted">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-semibold text-sm">Privacy</h3>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">Last seen — Friends only</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {lastSeenPrivacy === "friends"
-                        ? "Only your friends can see when you were last online."
-                        : "Anyone can see when you were last online."}
-                    </p>
-                  </div>
-                  <Switch
-                    checked={lastSeenPrivacy === "friends"}
-                    disabled={savingPrivacy}
-                    onCheckedChange={handleTogglePrivacy}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Preferences Tab */}
-          <TabsContent value="preferences" className="mt-4 space-y-3">
-            <Card className="rounded-2xl border-border/40 shadow-sm">
-              <CardContent className="p-3.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-muted">
-                      {theme === "dark" ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Dark Mode</p>
-                      <p className="text-xs text-muted-foreground">{theme === "dark" ? "Enabled" : "Disabled"}</p>
-                    </div>
-                  </div>
-                  <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-border/40 shadow-sm">
-              <CardContent className="p-1">
-                <SettingItem icon={ShoppingBag} label="My Orders" description="Digital, game & mobile purchases" onClick={() => navigate("/orders")} />
-                <Separator className="my-0.5" />
-                <SettingItem icon={Headphones} label="Customer Support" description="Chat with admin about your orders" onClick={() => navigate("/support")} />
-                <Separator className="my-0.5" />
-                <SettingItem icon={Sparkles} label="AI Assistant" onClick={() => navigate("/ai-chat")} />
-                <Separator className="my-0.5" />
-                {isAdmin && (
-                  <>
-                    <SettingItem icon={Shield} label="Admin Dashboard" onClick={() => navigate("/admin")} />
-                    <Separator className="my-0.5" />
-                  </>
-                )}
-                {!isAdmin && isMobileAdmin && (
-                  <>
-                    <SettingItem
-                      icon={Shield}
-                      label="Mobile Admin Panel"
-                      description="Manage mobile services & orders"
-                      onClick={() => navigate("/admin/mobile-panel")}
-                    />
-                    <Separator className="my-0.5" />
-                  </>
-                )}
-                <SettingItem
-                  icon={Heart}
-                  label="My Favourites"
-                  description="Saved games, mobile & photos"
-                  onClick={() => {
-                    const last = localStorage.getItem("favLastTab") || "games";
-                    navigate(`/favourite?tab=${last}`);
-                  }}
-                  rightElement={
-                    <div className="flex items-center gap-1">
-                      {[
-                        { k: "games", v: favCounts.games, cls: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
-                        { k: "mobile", v: favCounts.mobile, cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
-                        { k: "photos", v: favCounts.photos, cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400" },
-                      ].map((b) => (
-                        <span
-                          key={b.k}
-                          className={cn(
-                            "min-w-[22px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center",
-                            b.cls
-                          )}
-                          title={`${b.k}: ${b.v}`}
-                        >
-                          {b.v}
-                        </span>
-                      ))}
-                      <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />
-                    </div>
-                  }
-                />
-                <Separator className="my-0.5" />
-                <SettingItem icon={Camera} label="Photo Gallery" description="Browse all photos" onClick={() => navigate("/photo")} />
-                <Separator className="my-0.5" />
-                <SettingItem icon={Info} label="About Us" onClick={() => navigate("/about")} />
-                <Separator className="my-0.5" />
-                <SettingItem icon={ShieldCheck} label="Privacy Policy" onClick={() => navigate("/privacy")} />
-                <Separator className="my-0.5" />
-                <SettingItem icon={FileText} label="Terms & Conditions" onClick={() => navigate("/terms")} />
-                <Separator className="my-0.5" />
-                <SettingItem icon={Mail} label="Contact Us" onClick={() => navigate("/contact")} />
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-border/40 shadow-sm">
-              <CardContent className="p-1">
-                <SettingItem icon={LogOut} label="Logout" variant="danger" onClick={signOut} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+    <MobileLayout className="pb-24 bg-background">
+      <div className="px-5 pt-6 pb-3">
+        <h1 className="text-[22px] font-bold tracking-tight">Profile & Settings</h1>
       </div>
 
-      
+      {/* Profile card */}
+      <div className="px-4">
+        <div className="relative rounded-2xl bg-foreground text-background px-4 py-4 flex items-center gap-3 shadow-sm">
+          <div className="relative cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            <Avatar className="h-14 w-14 border-2 border-background/20">
+              <AvatarImage src={avatarPreview || profile?.avatar_url || undefined} alt="Profile" className="object-cover" />
+              <AvatarFallback className="bg-background/10 text-background text-lg font-bold">
+                {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-6 w-6" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-1 shadow">
+              <Camera className="h-3 w-3 text-foreground" />
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarSelect} className="hidden" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="font-semibold text-[15px] truncate">{profile?.name || "Loading..."}</p>
+              {isPremium && <PremiumBadge isPremium={isPremium} size="sm" />}
+            </div>
+            <p className="text-[12px] text-background/60 truncate">{user?.email}</p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-background/60 shrink-0" />
+        </div>
+
+        {avatarFile && (
+          <Button size="sm" onClick={uploadAvatar} disabled={uploadingAvatar} className="mt-2 w-full h-9 rounded-xl">
+            {uploadingAvatar ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
+            Save Photo
+          </Button>
+        )}
+      </div>
+
+      {/* Settings section */}
+      <div className="mt-5 px-5">
+        <p className="text-[13px] font-semibold text-primary">Settings</p>
+      </div>
+
+      <div className="mt-2 divide-y divide-border/40">
+        <Row
+          icon={User}
+          label={editingName ? "Editing name..." : (profile?.name ? `Name • ${profile.name}` : "Name")}
+          iconBg="bg-emerald-500/10"
+          iconColor="text-emerald-600 dark:text-emerald-400"
+          onClick={() => {
+            if (!isPremium) { toast({ title: "Premium Required", description: "Only premium members can change their name", variant: "destructive" }); return; }
+            setEditingName(true);
+          }}
+        />
+        {editingName && (
+          <div className="px-4 py-3 flex items-center gap-2 bg-muted/30">
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 rounded-lg text-sm" autoFocus />
+            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={handleSaveName} disabled={savingProfile}>
+              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-primary" />}
+            </Button>
+            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => { setEditingName(false); setEditName(profile?.name || ""); }}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        <Row
+          icon={Phone}
+          label={profile?.phone_number ? `Phone • ${profile.phone_number}` : "Phone Number"}
+          iconBg="bg-sky-500/10"
+          iconColor="text-sky-600 dark:text-sky-400"
+          onClick={() => setEditingPhone(true)}
+        />
+        {editingPhone && (
+          <div className="px-4 py-3 flex items-center gap-2 bg-muted/30">
+            <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9 rounded-lg text-sm" autoFocus />
+            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={handleSavePhone} disabled={savingProfile}>
+              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-primary" />}
+            </Button>
+            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => { setEditingPhone(false); setEditPhone(profile?.phone_number || ""); }}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        <Row
+          icon={theme === "dark" ? Moon : Sun}
+          label="Appearance"
+          iconBg="bg-amber-500/10"
+          iconColor="text-amber-600 dark:text-amber-400"
+          onClick={toggleTheme}
+          right={<span className="text-[13px] text-primary font-medium">{theme === "dark" ? "Dark" : "Light"}</span>}
+        />
+
+        <Row
+          icon={Sparkles}
+          label="Notifications"
+          iconBg="bg-violet-500/10"
+          iconColor="text-violet-600 dark:text-violet-400"
+          right={
+            <Switch checked={pushNotifications} onCheckedChange={handlePushNotificationToggle} />
+          }
+        />
+
+        <Row
+          icon={Eye}
+          label="Last seen privacy"
+          iconBg="bg-cyan-500/10"
+          iconColor="text-cyan-600 dark:text-cyan-400"
+          right={
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] text-muted-foreground">{lastSeenPrivacy === "friends" ? "Friends" : "Public"}</span>
+              <Switch
+                checked={lastSeenPrivacy === "friends"}
+                disabled={savingPrivacy}
+                onCheckedChange={handleTogglePrivacy}
+              />
+            </div>
+          }
+        />
+
+        <Row
+          icon={Heart}
+          label="My Favourites"
+          iconBg="bg-rose-500/10"
+          iconColor="text-rose-600 dark:text-rose-400"
+          onClick={() => {
+            const last = localStorage.getItem("favLastTab") || "games";
+            navigate(`/favourite?tab=${last}`);
+          }}
+        />
+
+        <Row
+          icon={ShoppingBag}
+          label="My Orders"
+          iconBg="bg-indigo-500/10"
+          iconColor="text-indigo-600 dark:text-indigo-400"
+          onClick={() => navigate("/orders")}
+        />
+
+        <Row
+          icon={Headphones}
+          label="Customer Support"
+          iconBg="bg-teal-500/10"
+          iconColor="text-teal-600 dark:text-teal-400"
+          onClick={() => navigate("/support")}
+        />
+
+        {isAdmin && (
+          <Row
+            icon={Shield}
+            label="Admin Dashboard"
+            iconBg="bg-amber-500/10"
+            iconColor="text-amber-600 dark:text-amber-400"
+            onClick={() => navigate("/admin")}
+          />
+        )}
+        {!isAdmin && isMobileAdmin && (
+          <Row
+            icon={Shield}
+            label="Mobile Admin Panel"
+            iconBg="bg-emerald-500/10"
+            iconColor="text-emerald-600 dark:text-emerald-400"
+            onClick={() => navigate("/admin/mobile-panel")}
+          />
+        )}
+
+        <Row
+          icon={ShieldCheck}
+          label="Privacy Policy"
+          iconBg="bg-blue-500/10"
+          iconColor="text-blue-600 dark:text-blue-400"
+          onClick={() => navigate("/privacy")}
+        />
+
+        <Row
+          icon={FileText}
+          label="Terms & Conditions"
+          iconBg="bg-fuchsia-500/10"
+          iconColor="text-fuchsia-600 dark:text-fuchsia-400"
+          onClick={() => navigate("/terms")}
+        />
+
+        <Row
+          icon={Info}
+          label="Help Center"
+          iconBg="bg-emerald-500/10"
+          iconColor="text-emerald-600 dark:text-emerald-400"
+          onClick={() => navigate("/contact")}
+        />
+
+        <Row
+          icon={Lock}
+          label="Change Password"
+          iconBg="bg-slate-500/10"
+          iconColor="text-slate-600 dark:text-slate-400"
+          onClick={() => {
+            const el = document.getElementById("password-section");
+            el?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
+
+        <Row
+          icon={LogOut}
+          label="Logout"
+          iconBg="bg-destructive/10"
+          iconColor="text-destructive"
+          danger
+          onClick={signOut}
+          right={<></>}
+        />
+      </div>
+
+      {/* Password change (collapsed-ish, scrolled to on demand) */}
+      <div id="password-section" className="px-4 mt-6">
+        <Card className="rounded-2xl border-border/40 shadow-sm">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-muted">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-sm">Change Password</h3>
+            </div>
+            <div className="space-y-2.5">
+              {[
+                { id: "current-password", label: "Current Password", value: currentPassword, setValue: setCurrentPassword, show: showCurrentPassword, setShow: setShowCurrentPassword },
+                { id: "new-password", label: "New Password", value: newPassword, setValue: setNewPassword, show: showNewPassword, setShow: setShowNewPassword },
+                { id: "confirm-password", label: "Confirm Password", value: confirmPassword, setValue: setConfirmPassword, show: showConfirmPassword, setShow: setShowConfirmPassword },
+              ].map((field) => (
+                <div key={field.id} className="space-y-1">
+                  <Label htmlFor={field.id} className="text-xs">{field.label}</Label>
+                  <div className="relative">
+                    <Input id={field.id} type={field.show ? "text" : "password"} value={field.value} onChange={(e) => field.setValue(e.target.value)} placeholder={`Enter ${field.label.toLowerCase()}`} className="pr-10 h-10 rounded-lg text-sm" />
+                    <button type="button" onClick={() => field.setShow(!field.show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {field.show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <p className="text-[10px] text-muted-foreground">8+ chars, 1 uppercase, 1 number, 1 symbol</p>
+              <Button onClick={handlePasswordChange} disabled={isChangingPassword} className="w-full h-10 rounded-lg text-sm">
+                {isChangingPassword ? "Changing..." : "Update Password"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {profile?.avatar_url && !avatarFile && (
+          <button
+            onClick={() => setDeleteDialogOpen(true)}
+            className="mt-3 w-full text-center text-xs text-destructive/80 hover:text-destructive py-2"
+          >
+            Remove profile photo
+          </button>
+        )}
+
+        <button
+          onClick={() => setDeleteAccountDialogOpen(true)}
+          className="mt-1 w-full text-center text-xs text-destructive/60 hover:text-destructive py-2"
+        >
+          Delete Account
+        </button>
+      </div>
 
       {imageToCrop && (
         <ImageCropper open={cropperOpen} onOpenChange={(open) => { setCropperOpen(open); if (!open) setImageToCrop(null); }} imageSrc={imageToCrop} onCropComplete={handleCropComplete} aspectRatio={1} />
