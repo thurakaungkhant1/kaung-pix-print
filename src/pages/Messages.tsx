@@ -98,8 +98,10 @@ const Messages = () => {
   const [friendsOnly, setFriendsOnly] = useState(false);
   const [blockedSheetOpen, setBlockedSheetOpen] = useState(false);
   const [discoverQuery, setDiscoverQuery] = useState("");
+  const [discoverSort, setDiscoverSort] = useState<"recent" | "newest" | "name">("newest");
   const [discoverResults, setDiscoverResults] = useState<UserRow[]>([]);
   const [discoverLoading, setDiscoverLoading] = useState(false);
+
 
   const [friends, setFriends] = useState<UserRow[]>([]);
   const [friendRowByOther, setFriendRowByOther] = useState<Record<string, string>>({});
