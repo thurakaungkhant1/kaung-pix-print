@@ -358,6 +358,20 @@ const Account = () => {
     </button>
   );
 
+  const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+    <div className="mt-5 mb-2 px-5">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{children}</p>
+    </div>
+  );
+
+  const SectionCard = ({ children }: { children: React.ReactNode }) => (
+    <div className="mx-4 rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden divide-y divide-border/40">
+      {children}
+    </div>
+  );
+
+
+
   return (
     <AnimatedPage>
     <MobileLayout className="pb-24 bg-background">
@@ -398,15 +412,12 @@ const Account = () => {
         )}
       </div>
 
-      {/* Settings section */}
-      <div className="mt-5 px-5">
-        <p className="text-[13px] font-semibold text-primary">Settings</p>
-      </div>
-
-      <div className="mt-2 divide-y divide-border/40">
+      {/* ---- Account ---- */}
+      <SectionLabel>Account</SectionLabel>
+      <SectionCard>
         <Row
           icon={User}
-          label={editingName ? "Editing name..." : (profile?.name ? `Name • ${profile.name}` : "Name")}
+          label={editingName ? "Editing name…" : (profile?.name ? `Name • ${profile.name}` : "Name")}
           iconBg="bg-emerald-500/10"
           iconColor="text-emerald-600 dark:text-emerald-400"
           onClick={() => {
@@ -425,7 +436,6 @@ const Account = () => {
             </Button>
           </div>
         )}
-
         <Row
           icon={Phone}
           label={profile?.phone_number ? `Phone • ${profile.phone_number}` : "Phone Number"}
@@ -444,7 +454,11 @@ const Account = () => {
             </Button>
           </div>
         )}
+      </SectionCard>
 
+      {/* ---- Preferences ---- */}
+      <SectionLabel>Preferences</SectionLabel>
+      <SectionCard>
         <Row
           icon={theme === "dark" ? Moon : Sun}
           label="Appearance"
@@ -453,17 +467,13 @@ const Account = () => {
           onClick={toggleTheme}
           right={<span className="text-[13px] text-primary font-medium">{theme === "dark" ? "Dark" : "Light"}</span>}
         />
-
         <Row
           icon={Sparkles}
           label="Notifications"
           iconBg="bg-violet-500/10"
           iconColor="text-violet-600 dark:text-violet-400"
-          right={
-            <Switch checked={pushNotifications} onCheckedChange={handlePushNotificationToggle} />
-          }
+          right={<Switch checked={pushNotifications} onCheckedChange={handlePushNotificationToggle} />}
         />
-
         <Row
           icon={Eye}
           label="Last seen privacy"
@@ -472,15 +482,15 @@ const Account = () => {
           right={
             <div className="flex items-center gap-2">
               <span className="text-[12px] text-muted-foreground">{lastSeenPrivacy === "friends" ? "Friends" : "Public"}</span>
-              <Switch
-                checked={lastSeenPrivacy === "friends"}
-                disabled={savingPrivacy}
-                onCheckedChange={handleTogglePrivacy}
-              />
+              <Switch checked={lastSeenPrivacy === "friends"} disabled={savingPrivacy} onCheckedChange={handleTogglePrivacy} />
             </div>
           }
         />
+      </SectionCard>
 
+      {/* ---- Activity ---- */}
+      <SectionLabel>Activity</SectionLabel>
+      <SectionCard>
         <Row
           icon={Heart}
           label="My Favourites"
@@ -491,7 +501,6 @@ const Account = () => {
             navigate(`/favourite?tab=${last}`);
           }}
         />
-
         <Row
           icon={ShoppingBag}
           label="My Orders"
@@ -499,7 +508,6 @@ const Account = () => {
           iconColor="text-indigo-600 dark:text-indigo-400"
           onClick={() => navigate("/orders")}
         />
-
         <Row
           icon={Headphones}
           label="Customer Support"
@@ -507,7 +515,6 @@ const Account = () => {
           iconColor="text-teal-600 dark:text-teal-400"
           onClick={() => navigate("/support")}
         />
-
         {isAdmin && (
           <Row
             icon={Shield}
@@ -526,7 +533,11 @@ const Account = () => {
             onClick={() => navigate("/admin/mobile-panel")}
           />
         )}
+      </SectionCard>
 
+      {/* ---- About & Legal ---- */}
+      <SectionLabel>About</SectionLabel>
+      <SectionCard>
         <Row
           icon={ShieldCheck}
           label="Privacy Policy"
@@ -534,7 +545,6 @@ const Account = () => {
           iconColor="text-blue-600 dark:text-blue-400"
           onClick={() => navigate("/privacy")}
         />
-
         <Row
           icon={FileText}
           label="Terms & Conditions"
@@ -542,7 +552,6 @@ const Account = () => {
           iconColor="text-fuchsia-600 dark:text-fuchsia-400"
           onClick={() => navigate("/terms")}
         />
-
         <Row
           icon={Info}
           label="Help Center"
@@ -550,7 +559,11 @@ const Account = () => {
           iconColor="text-emerald-600 dark:text-emerald-400"
           onClick={() => navigate("/contact")}
         />
+      </SectionCard>
 
+      {/* ---- Security ---- */}
+      <SectionLabel>Security</SectionLabel>
+      <SectionCard>
         <Row
           icon={Lock}
           label="Change Password"
@@ -561,7 +574,6 @@ const Account = () => {
             el?.scrollIntoView({ behavior: "smooth", block: "start" });
           }}
         />
-
         <Row
           icon={LogOut}
           label="Logout"
@@ -571,7 +583,8 @@ const Account = () => {
           onClick={signOut}
           right={<></>}
         />
-      </div>
+      </SectionCard>
+
 
       {/* Password change (collapsed-ish, scrolled to on demand) */}
       <div id="password-section" className="px-4 mt-6">

@@ -2369,6 +2369,16 @@ export type Database = {
         Returns: boolean
       }
       is_premium_active: { Args: { _user_id: string }; Returns: boolean }
+      search_public_profiles: {
+        Args: { limit_count?: number; q: string; sort_by?: string }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          id: string
+          last_seen_at: string
+          name: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "mobile_admin"

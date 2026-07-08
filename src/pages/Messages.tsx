@@ -98,8 +98,10 @@ const Messages = () => {
   const [friendsOnly, setFriendsOnly] = useState(false);
   const [blockedSheetOpen, setBlockedSheetOpen] = useState(false);
   const [discoverQuery, setDiscoverQuery] = useState("");
+  const [discoverSort, setDiscoverSort] = useState<"recent" | "newest" | "name">("newest");
   const [discoverResults, setDiscoverResults] = useState<UserRow[]>([]);
   const [discoverLoading, setDiscoverLoading] = useState(false);
+
 
   const [friends, setFriends] = useState<UserRow[]>([]);
   const [friendRowByOther, setFriendRowByOther] = useState<Record<string, string>>({});
@@ -283,16 +285,28 @@ const Messages = () => {
     let cancelled = false;
     const t = setTimeout(async () => {
       setDiscoverLoading(true);
-      let q = supabase
-        .from("public_profiles")
-        .select("id, name, avatar_url, last_seen_at")
-        .neq("id", user?.id ?? "")
-        .order("last_seen_at", { ascending: false, nullsFirst: false })
-        .limit(50);
-      if (discoverQuery.trim()) q = q.ilike("name", `%${discoverQuery.trim()}%`);
-      const { data } = await q;
+      const { data, error } = await supabase.rpc("search_public_profiles", {
+        q: discoverQuery.trim() || null,
+        sort_by: discoverSort,
+        limit_count: 60,
+      });
       if (!cancelled) {
-        setDiscoverResults((data || []) as UserRow[]);
+        if (error) {
+          // Fallback to view if RPC unavailable
+          let q = supabase
+            .from("public_profiles")
+            .select("id, name, avatar_url, last_seen_at")
+            .neq("id", user?.id ?? "")
+            .limit(60);
+          if (discoverQuery.trim()) q = q.ilike("name", `%${discoverQuery.trim()}%`);
+          if (discoverSort === "newest") q = q.order("created_at", { ascending: false });
+          else if (discoverSort === "name") q = q.order("name", { ascending: true });
+          else q = q.order("last_seen_at", { ascending: false, nullsFirst: false });
+          const { data: fb } = await q;
+          setDiscoverResults((fb || []) as UserRow[]);
+        } else {
+          setDiscoverResults((data || []) as UserRow[]);
+        }
         setDiscoverLoading(false);
       }
     }, 200);
@@ -300,7 +314,8 @@ const Messages = () => {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [discoverQuery, tab, user]);
+  }, [discoverQuery, discoverSort, tab, user]);
+
 
   // ---------- Actions ----------
   const handleSendRequest = async (otherId: string) => {
@@ -848,17 +863,52 @@ const Messages = () => {
 
         {/* DISCOVER TAB */}
         <TabsContent value="discover" className="flex-1 mt-0 overflow-hidden flex flex-col">
-          <div className="px-3 pt-3 pb-2">
+          <div className="px-3 pt-3 pb-2 space-y-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={discoverQuery}
                 onChange={(e) => setDiscoverQuery(e.target.value)}
-                placeholder="Search users by name…"
-                className="pl-9 h-10 rounded-full"
+                placeholder="Search by name or phone number…"
+                className="pl-9 pr-9 h-10 rounded-full"
+                inputMode="search"
               />
+              {discoverQuery && (
+                <button
+                  onClick={() => setDiscoverQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted"
+                >
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
+              <span className="text-[11px] text-muted-foreground shrink-0 flex items-center gap-1">
+                <Filter className="h-3 w-3" /> Sort
+              </span>
+              {([
+                { key: "newest", label: "Newest" },
+                { key: "recent", label: "Recently active" },
+                { key: "name", label: "Name A–Z" },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => setDiscoverSort(opt.key)}
+                  className={`px-3 h-7 rounded-full text-[11px] font-medium border whitespace-nowrap transition-all ${
+                    discoverSort === opt.key
+                      ? "bg-primary/15 border-primary/30 text-primary"
+                      : "bg-white/[0.03] border-white/5 text-muted-foreground hover:border-primary/20"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+              <span className="ml-auto text-[11px] text-muted-foreground shrink-0">
+                {discoverResults.length} {discoverResults.length === 1 ? "user" : "users"}
+              </span>
             </div>
           </div>
+
           <div className="flex-1 overflow-y-auto p-3">
             {discoverLoading ? (
               <div className="flex items-center justify-center py-16 text-muted-foreground">
