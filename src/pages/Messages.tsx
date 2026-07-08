@@ -284,11 +284,11 @@ const Messages = () => {
     const t = setTimeout(async () => {
       setDiscoverLoading(true);
       let q = supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("id, name, avatar_url, last_seen_at")
         .neq("id", user?.id ?? "")
-        .order("last_seen_at", { ascending: false })
-        .limit(30);
+        .order("last_seen_at", { ascending: false, nullsFirst: false })
+        .limit(50);
       if (discoverQuery.trim()) q = q.ilike("name", `%${discoverQuery.trim()}%`);
       const { data } = await q;
       if (!cancelled) {
