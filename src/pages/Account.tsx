@@ -358,6 +358,20 @@ const Account = () => {
     </button>
   );
 
+  const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+    <div className="mt-5 mb-2 px-5">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{children}</p>
+    </div>
+  );
+
+  const SectionCard = ({ children }: { children: React.ReactNode }) => (
+    <div className="mx-4 rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden divide-y divide-border/40">
+      {children}
+    </div>
+  );
+
+
+
   return (
     <AnimatedPage>
     <MobileLayout className="pb-24 bg-background">
