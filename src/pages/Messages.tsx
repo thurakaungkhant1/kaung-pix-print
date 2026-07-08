@@ -285,16 +285,28 @@ const Messages = () => {
     let cancelled = false;
     const t = setTimeout(async () => {
       setDiscoverLoading(true);
-      let q = supabase
-        .from("public_profiles")
-        .select("id, name, avatar_url, last_seen_at")
-        .neq("id", user?.id ?? "")
-        .order("last_seen_at", { ascending: false, nullsFirst: false })
-        .limit(50);
-      if (discoverQuery.trim()) q = q.ilike("name", `%${discoverQuery.trim()}%`);
-      const { data } = await q;
+      const { data, error } = await supabase.rpc("search_public_profiles", {
+        q: discoverQuery.trim() || null,
+        sort_by: discoverSort,
+        limit_count: 60,
+      });
       if (!cancelled) {
-        setDiscoverResults((data || []) as UserRow[]);
+        if (error) {
+          // Fallback to view if RPC unavailable
+          let q = supabase
+            .from("public_profiles")
+            .select("id, name, avatar_url, last_seen_at")
+            .neq("id", user?.id ?? "")
+            .limit(60);
+          if (discoverQuery.trim()) q = q.ilike("name", `%${discoverQuery.trim()}%`);
+          if (discoverSort === "newest") q = q.order("created_at", { ascending: false });
+          else if (discoverSort === "name") q = q.order("name", { ascending: true });
+          else q = q.order("last_seen_at", { ascending: false, nullsFirst: false });
+          const { data: fb } = await q;
+          setDiscoverResults((fb || []) as UserRow[]);
+        } else {
+          setDiscoverResults((data || []) as UserRow[]);
+        }
         setDiscoverLoading(false);
       }
     }, 200);
@@ -302,7 +314,8 @@ const Messages = () => {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [discoverQuery, tab, user]);
+  }, [discoverQuery, discoverSort, tab, user]);
+
 
   // ---------- Actions ----------
   const handleSendRequest = async (otherId: string) => {
