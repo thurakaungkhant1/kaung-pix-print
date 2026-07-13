@@ -1139,11 +1139,13 @@ export type Database = {
           game_id: string | null
           game_name: string | null
           id: string
+          order_type: string | null
           payment_method: string
           payment_proof_url: string | null
           phone_number: string
           plan_id: string | null
           plan_name: string | null
+          points_awarded: boolean
           price: number
           product_id: number
           quantity: number
@@ -1158,11 +1160,13 @@ export type Database = {
           game_id?: string | null
           game_name?: string | null
           id?: string
+          order_type?: string | null
           payment_method?: string
           payment_proof_url?: string | null
           phone_number?: string
           plan_id?: string | null
           plan_name?: string | null
+          points_awarded?: boolean
           price: number
           product_id: number
           quantity?: number
@@ -1177,11 +1181,13 @@ export type Database = {
           game_id?: string | null
           game_name?: string | null
           id?: string
+          order_type?: string | null
           payment_method?: string
           payment_proof_url?: string | null
           phone_number?: string
           plan_id?: string | null
           plan_name?: string | null
+          points_awarded?: boolean
           price?: number
           product_id?: number
           quantity?: number
