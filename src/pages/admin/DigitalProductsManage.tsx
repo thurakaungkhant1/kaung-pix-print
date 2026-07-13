@@ -115,7 +115,7 @@ const DigitalProductsManage = () => {
   const openNew = () => {
     setForm({ ...emptyForm });
     setPlans([
-      { name: "1 Month", duration_label: "1 month", price: 0, sort_order: 0, is_active: true, _new: true },
+      { name: "1 Month", duration_label: "1 month", price: 0, cost_price: 0, sort_order: 0, is_active: true, _new: true },
     ]);
     setOpen(true);
   };
