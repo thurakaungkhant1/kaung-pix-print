@@ -64,21 +64,14 @@ const getBannerColor = (colorName: string): string => {
   return colorMap[colorName] || colorMap['blue-500'];
 };
 
-// Curated web arcade games (loaded lazily from lib)
-import { WEB_ARCADE_GAMES, getGameThumb, findGame } from "@/lib/webArcadeGames";
-import { getHistory as getArcadeHistory, getFavorites as getArcadeFavorites, ARCADE_REWARD_PER_SESSION } from "@/lib/webArcadeLocal";
-
-// Featured e.tubhai games used in the Earn Points block (replaces old canvas games)
-const EARN_POINTS_GAMES = WEB_ARCADE_GAMES.slice(0, 2).map((g) => ({
-  id: g.slug,
-  name: g.name,
-  points: ARCADE_REWARD_PER_SESSION,
-  gradient: g.gradient,
-  emoji: g.emoji,
-  slug: g.slug,
-}));
-
-const HOME_WEB_GAMES = WEB_ARCADE_GAMES.slice(0, 6);
+// Featured in-app mini games used in the Earn Coins block. These award real
+// coins via useGamePoints when played in the /games portal.
+const EARN_POINTS_GAMES = [
+  { id: "snake", name: "Snake", points: 5, gradient: "from-emerald-400 to-teal-600", emoji: "🐍" },
+  { id: "2048", name: "2048", points: 5, gradient: "from-amber-400 to-orange-600", emoji: "🎯" },
+  { id: "memory", name: "Memory Match", points: 5, gradient: "from-fuchsia-400 to-purple-600", emoji: "🧠" },
+  { id: "flappy", name: "Flappy Bird", points: 5, gradient: "from-sky-400 to-blue-600", emoji: "🐦" },
+];
 
 const Home = () => {
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
@@ -98,29 +91,8 @@ const Home = () => {
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [recentArcade, setRecentArcade] = useState<typeof WEB_ARCADE_GAMES>(() =>
-    getArcadeHistory().map((h) => findGame(h.slug)).filter(Boolean) as typeof WEB_ARCADE_GAMES
-  );
-  const [favArcade, setFavArcade] = useState<typeof WEB_ARCADE_GAMES>(() =>
-    getArcadeFavorites().map((s) => findGame(s)).filter(Boolean) as typeof WEB_ARCADE_GAMES
-  );
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const refresh = () => {
-      setRecentArcade(getArcadeHistory().map((h) => findGame(h.slug)).filter(Boolean) as typeof WEB_ARCADE_GAMES);
-      setFavArcade(getArcadeFavorites().map((s) => findGame(s)).filter(Boolean) as typeof WEB_ARCADE_GAMES);
-    };
-    window.addEventListener("webArcadeHistoryUpdate", refresh);
-    window.addEventListener("webArcadeFavoritesUpdate", refresh);
-    window.addEventListener("focus", refresh);
-    return () => {
-      window.removeEventListener("webArcadeHistoryUpdate", refresh);
-      window.removeEventListener("webArcadeFavoritesUpdate", refresh);
-      window.removeEventListener("focus", refresh);
-    };
-  }, []);
 
   useEffect(() => {
     if (banners.length <= 1) return;
@@ -488,15 +460,15 @@ const Home = () => {
             </section>
           )}
 
-          {/* ── Earn Points (Featured Mini Games) ── */}
+          {/* ── Earn Coins (Featured Mini Games) ── */}
           <AnimatedSection delay={0.2}>
             <section className="px-5 mt-6">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h2 className="text-base font-display font-bold">Earn Coins</h2>
-                  <p className="text-[11px] text-muted-foreground -mt-0.5">Play & earn {ARCADE_REWARD_PER_SESSION} coins/day per game</p>
+                  <p className="text-[11px] text-muted-foreground -mt-0.5">Play mini games and earn coins instantly</p>
                 </div>
-                <button onClick={() => navigate("/web-arcade")} className="text-xs text-primary font-semibold">
+                <button onClick={() => navigate("/games")} className="text-xs text-primary font-semibold">
                   See All
                 </button>
               </div>
@@ -509,20 +481,12 @@ const Home = () => {
                     transition={{ delay: 0.1 + i * 0.05 }}
                     whileTap={{ scale: 0.97 }}
                     whileHover={{ y: -3 }}
-                    onClick={() => navigate(`/web-arcade/play/${game.slug}`)}
+                    onClick={() => navigate("/games")}
                     className="text-left rounded-2xl overflow-hidden bg-card border border-border/60 hover:shadow-2xl hover:border-primary/30 transition-all group"
                   >
                     <div className={cn("aspect-[4/3] bg-gradient-to-br relative overflow-hidden", game.gradient)}>
-                      <img
-                        src={getGameThumb(game.slug)}
-                        alt={game.name}
-                        loading="lazy"
-                        className="absolute inset-0 h-full w-full object-cover opacity-90"
-                        onError={(e) => (e.currentTarget.style.display = "none")}
-                      />
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),transparent_55%)]" />
 
-                      {/* Floating game emoji */}
                       <motion.div
                         animate={{ y: [0, -6, 0], rotate: [0, 4, 0] }}
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
@@ -531,7 +495,6 @@ const Home = () => {
                         {game.emoji}
                       </motion.div>
 
-                      {/* +pts glass badge */}
                       <div className="absolute top-2.5 right-2.5 glass-chip rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
                         <Zap className="h-3 w-3 text-yellow-200" fill="currentColor" />
                         <span className="text-[10px] font-extrabold text-white tracking-wide">
@@ -539,7 +502,6 @@ const Home = () => {
                         </span>
                       </div>
 
-                      {/* Bottom glass title bar */}
                       <div className="absolute inset-x-2 bottom-2 glass-chip rounded-xl px-3 py-2 flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg bg-white/25 flex items-center justify-center backdrop-blur">
                           <Gamepad2 className="h-3.5 w-3.5 text-white" />
@@ -557,123 +519,16 @@ const Home = () => {
                   </motion.button>
                 ))}
               </div>
-            </section>
-          </AnimatedSection>
-
-          {/* ── Recently Played (Web Arcade) ── */}
-          {recentArcade.length > 0 && (
-            <AnimatedSection delay={0.22}>
-              <section className="px-5 mt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-base font-display font-bold flex items-center gap-1.5">
-                    <Clock className="h-4 w-4 text-primary" /> Recently Played
-                  </h2>
-                  <button onClick={() => navigate("/web-arcade")} className="text-xs text-primary font-semibold">See All</button>
-                </div>
-                <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-5 px-5 pb-1">
-                  {recentArcade.slice(0, 10).map((g) => (
-                    <button
-                      key={g.slug}
-                      onClick={() => navigate(`/web-arcade/play/${g.slug}`)}
-                      className="relative flex-shrink-0 w-24 rounded-2xl overflow-hidden border border-border/60 hover:shadow-lg transition"
-                    >
-                      <div className={cn("aspect-square bg-gradient-to-br relative", g.gradient)}>
-                        <img src={getGameThumb(g.slug)} alt={g.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                        <p className="absolute inset-x-1 bottom-1 text-[9px] font-bold text-white line-clamp-1 drop-shadow">{g.name}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            </AnimatedSection>
-          )}
-
-          {/* ── Favorite Arcade Games ── */}
-          {favArcade.length > 0 && (
-            <AnimatedSection delay={0.23}>
-              <section className="px-5 mt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-base font-display font-bold flex items-center gap-1.5">
-                    <span className="text-rose-500">❤️</span> Favorite Games
-                  </h2>
-                  <button onClick={() => navigate("/web-arcade")} className="text-xs text-primary font-semibold">See All</button>
-                </div>
-                <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-5 px-5 pb-1">
-                  {favArcade.map((g) => (
-                    <button
-                      key={g.slug}
-                      onClick={() => navigate(`/web-arcade/play/${g.slug}`)}
-                      className="relative flex-shrink-0 w-24 rounded-2xl overflow-hidden border border-rose-300/50 hover:shadow-lg transition"
-                    >
-                      <div className={cn("aspect-square bg-gradient-to-br relative", g.gradient)}>
-                        <img src={getGameThumb(g.slug)} alt={g.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                        <p className="absolute inset-x-1 bottom-1 text-[9px] font-bold text-white line-clamp-1 drop-shadow">{g.name}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            </AnimatedSection>
-          )}
-
-          {/* ── Web Arcade (Online HTML5 Games) ── */}
-          <AnimatedSection delay={0.25}>
-            <section className="px-5 mt-6">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="text-base font-display font-bold flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-primary" /> Web Arcade
-                  </h2>
-                  <p className="text-[11px] text-muted-foreground -mt-0.5">
-                    Play instantly · No download needed
-                  </p>
-                </div>
-                <button onClick={() => navigate("/web-arcade")} className="text-xs text-primary font-semibold flex items-center gap-0.5">
-                  See All <ChevronRight className="h-3 w-3" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2.5">
-                {HOME_WEB_GAMES.map((g, i) => (
-                  <motion.button
-                    key={g.slug}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + i * 0.04 }}
-                    whileTap={{ scale: 0.95 }}
-                    whileHover={{ y: -3 }}
-                    onClick={() => navigate(`/web-arcade/play/${g.slug}`)}
-                    className="relative text-left rounded-2xl overflow-hidden border border-border/60 hover:shadow-xl hover:border-primary/40 transition-all group"
-                  >
-                    <div className={cn("aspect-square bg-gradient-to-br relative", g.gradient)}>
-                      <img
-                        src={getGameThumb(g.slug)}
-                        alt={g.name}
-                        loading="lazy"
-                        className="absolute inset-0 h-full w-full object-cover"
-                        onError={(e) => ((e.currentTarget.style.display = "none"))}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                      <div className="absolute top-1.5 right-1.5 text-lg drop-shadow-lg">{g.emoji}</div>
-                      <div className="absolute inset-x-1.5 bottom-1.5">
-                        <p className="text-[10px] font-bold text-white drop-shadow line-clamp-1">{g.name}</p>
-                        <p className="text-[9px] text-white/70">{g.category}</p>
-                      </div>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
 
               <button
-                onClick={() => navigate("/web-arcade")}
+                onClick={() => navigate("/games")}
                 className="mt-3 w-full py-2.5 rounded-full bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary/15 transition"
               >
-                Explore all {WEB_ARCADE_GAMES.length}+ online games →
+                Explore all mini games →
               </button>
             </section>
           </AnimatedSection>
+
 
 
 

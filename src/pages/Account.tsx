@@ -72,6 +72,9 @@ const Account = () => {
   
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
   const [favCounts, setFavCounts] = useState({ games: 0, mobile: 0, photos: 0 });
+  const [referrals, setReferrals] = useState<Array<{ id: string; name: string | null; email: string | null; avatar_url: string | null; joined_at: string }>>([]);
+  const [showReferrals, setShowReferrals] = useState(false);
+
   
   const [editingName, setEditingName] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
@@ -125,8 +128,17 @@ const Account = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); }
+    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); loadReferrals(); }
   }, [user]);
+
+  const loadReferrals = async () => {
+    if (!user) return;
+    const { data, error } = await supabase.rpc("get_my_referrals" as any);
+    if (!error && Array.isArray(data)) {
+      setReferrals(data as any);
+    }
+  };
+
 
   const loadFavCounts = async () => {
     if (!user) return;
@@ -422,6 +434,57 @@ const Account = () => {
           </button>
         </div>
       </div>
+
+      {/* ---- My Referrals ---- */}
+      <div className="mx-4 mt-4 rounded-2xl border border-border/60 bg-card overflow-hidden">
+        <button
+          onClick={() => setShowReferrals((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/40 transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Gift className="h-4.5 w-4.5 text-primary" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold">My Referrals</p>
+              <p className="text-[11px] text-muted-foreground">
+                {referrals.length} {referrals.length === 1 ? "friend" : "friends"} joined using your code
+              </p>
+            </div>
+          </div>
+          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", showReferrals && "rotate-90")} />
+        </button>
+
+        {showReferrals && (
+          <div className="border-t border-border/60 divide-y divide-border/40">
+            {referrals.length === 0 ? (
+              <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                No one has used your referral code yet. Share your link to earn 15 coins per friend.
+              </div>
+            ) : (
+              referrals.map((r) => (
+                <div key={r.id} className="flex items-center gap-3 px-4 py-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={r.avatar_url ?? undefined} />
+                    <AvatarFallback className="text-xs">
+                      {(r.name ?? r.email ?? "?").slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{r.name || "Unnamed"}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{r.email || "—"}</p>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground shrink-0">
+                    {new Date(r.joined_at).toLocaleDateString()}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+
 
 
 
