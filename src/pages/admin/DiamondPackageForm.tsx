@@ -57,6 +57,7 @@ const DiamondPackageForm = () => {
       setFormData({
         name: data.name,
         price: data.price.toString(),
+        cost_price: (data as any).cost_price ? String((data as any).cost_price) : "",
         description: data.description || "",
         image_url: data.image_url,
         points_value: data.points_value.toString(),
