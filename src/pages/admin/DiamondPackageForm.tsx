@@ -21,6 +21,7 @@ const DiamondPackageForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     price: "",
+    cost_price: "",
     description: "",
     image_url: "",
     points_value: "0",
