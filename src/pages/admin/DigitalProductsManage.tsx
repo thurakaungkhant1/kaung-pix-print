@@ -141,6 +141,7 @@ const DigitalProductsManage = () => {
         name: d.name,
         duration_label: d.duration_label || "",
         price: Number(d.price),
+        cost_price: Number(d.cost_price || 0),
         sort_order: d.sort_order,
         is_active: d.is_active,
       }))
@@ -155,6 +156,7 @@ const DigitalProductsManage = () => {
         name: "",
         duration_label: "",
         price: 0,
+        cost_price: 0,
         sort_order: prev.filter((p) => !p._deleted).length,
         is_active: true,
         _new: true,
