@@ -45,6 +45,7 @@ interface Order {
   quantity: number;
   price: number;
   status: string;
+  order_type: string | null;
   created_at: string;
   phone_number: string;
   delivery_address: string;
@@ -55,7 +56,7 @@ interface Order {
   server_id: string | null;
   game_name: string | null;
   profiles: { name: string; phone_number: string };
-  products: { name: string; image_url: string; points_value: number; category: string };
+  products: { name: string; image_url: string; points_value: number; category: string; cost_price: number | null };
 }
 
 // Game categories that require game IDs
