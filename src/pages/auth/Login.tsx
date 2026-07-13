@@ -187,6 +187,25 @@ const Login = () => {
               New here? <span className="text-primary ml-1">Create an account</span>
             </Button>
 
+            <div className="relative my-5">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-background px-3 text-muted-foreground tracking-widest">OR</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogle}
+              disabled={googleLoading}
+              className="w-full h-12 rounded-full border-2 gap-3 font-semibold"
+            >
+              {googleLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><GoogleIcon /> Continue with Google</>}
+            </Button>
+
             <p className="text-[11px] text-muted-foreground/60 text-center pt-4">
               created by Thura Kaung Khant
             </p>
