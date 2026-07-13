@@ -64,21 +64,14 @@ const getBannerColor = (colorName: string): string => {
   return colorMap[colorName] || colorMap['blue-500'];
 };
 
-// Curated web arcade games (loaded lazily from lib)
-import { WEB_ARCADE_GAMES, getGameThumb, findGame } from "@/lib/webArcadeGames";
-import { getHistory as getArcadeHistory, getFavorites as getArcadeFavorites, ARCADE_REWARD_PER_SESSION } from "@/lib/webArcadeLocal";
-
-// Featured e.tubhai games used in the Earn Points block (replaces old canvas games)
-const EARN_POINTS_GAMES = WEB_ARCADE_GAMES.slice(0, 2).map((g) => ({
-  id: g.slug,
-  name: g.name,
-  points: ARCADE_REWARD_PER_SESSION,
-  gradient: g.gradient,
-  emoji: g.emoji,
-  slug: g.slug,
-}));
-
-const HOME_WEB_GAMES = WEB_ARCADE_GAMES.slice(0, 6);
+// Featured in-app mini games used in the Earn Coins block. These award real
+// coins via useGamePoints when played in the /games portal.
+const EARN_POINTS_GAMES = [
+  { id: "snake", name: "Snake", points: 5, gradient: "from-emerald-400 to-teal-600", emoji: "🐍" },
+  { id: "2048", name: "2048", points: 5, gradient: "from-amber-400 to-orange-600", emoji: "🎯" },
+  { id: "memory", name: "Memory Match", points: 5, gradient: "from-fuchsia-400 to-purple-600", emoji: "🧠" },
+  { id: "flappy", name: "Flappy Bird", points: 5, gradient: "from-sky-400 to-blue-600", emoji: "🐦" },
+];
 
 const Home = () => {
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
