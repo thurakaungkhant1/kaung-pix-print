@@ -128,8 +128,17 @@ const Account = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); }
+    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); loadReferrals(); }
   }, [user]);
+
+  const loadReferrals = async () => {
+    if (!user) return;
+    const { data, error } = await supabase.rpc("get_my_referrals" as any);
+    if (!error && Array.isArray(data)) {
+      setReferrals(data as any);
+    }
+  };
+
 
   const loadFavCounts = async () => {
     if (!user) return;
