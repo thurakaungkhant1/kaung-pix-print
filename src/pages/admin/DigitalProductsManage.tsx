@@ -480,13 +480,29 @@ const DigitalProductsManage = () => {
                         />
                         <Input
                           type="number"
-                          placeholder="Price MMK"
+                          placeholder="Sell price MMK *"
                           value={p.price || ""}
                           onChange={(e) =>
                             updatePlan(idx, { price: Number(e.target.value) })
                           }
                           className="h-8 text-sm"
                         />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <Input
+                          type="number"
+                          placeholder="💰 Cost price (admin)"
+                          value={p.cost_price || ""}
+                          onChange={(e) =>
+                            updatePlan(idx, { cost_price: Number(e.target.value) })
+                          }
+                          className="h-8 text-sm"
+                        />
+                        {p.price > 0 && p.cost_price > 0 && (
+                          <p className="text-[11px] text-green-600 font-medium">
+                            +{(p.price - p.cost_price).toLocaleString()} profit
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">Active</span>
