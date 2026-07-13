@@ -681,54 +681,7 @@ const Home = () => {
 
 
 
-          {/* ── Photo Gallery Preview ── */}
-          <AnimatedSection delay={0.3}>
-            <section className="px-5 mt-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-display font-bold">Photo Gallery</h2>
-                <button onClick={() => navigate("/photo")} className="text-xs text-primary font-semibold">
-                  See All
-                </button>
-              </div>
-              {photosLoading ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {[0, 1, 2].map((i) => (
-                    <div key={i} className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
-                  ))}
-                </div>
-              ) : recentPhotos.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {recentPhotos.slice(0, 3).map((p) => (
-                    <motion.button
-                      key={p.id}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => navigate(`/photo/${p.id}`)}
-                      className="relative aspect-[3/4] rounded-xl overflow-hidden bg-card border border-border/60 hover:shadow-lg transition-all group"
-                    >
-                      <img
-                        src={p.preview_image || p.file_url}
-                        alt={p.client_name}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                      <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1 text-white">
-                        <Camera className="h-3 w-3 flex-shrink-0" />
-                        <p className="text-[10px] font-semibold drop-shadow-lg truncate">
-                          {p.client_name || "Wallpaper"}
-                        </p>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-8 text-center border-dashed rounded-2xl">
-                  <Camera className="h-7 w-7 mx-auto text-muted-foreground/60 mb-2" />
-                  <p className="text-sm text-muted-foreground">No photos yet</p>
-                </Card>
-              )}
-            </section>
-          </AnimatedSection>
+          {/* Photo Gallery section removed */}
           <AdBanner pageLocation="home" position="inline" className="px-5 mt-6" />
 
           <div className="text-center py-4 pb-24 mt-4">

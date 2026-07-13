@@ -72,10 +72,10 @@ const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
         {/* Wordmark */}
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-foreground">
-            Kaung <span className="text-primary">Computer</span>
+            Kaung <span className="text-primary">Digital Store</span>
           </h1>
           <p className="text-[11px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground/80 font-medium">
-            Photography · Printing · Digital
+            Digital · Gaming · Mobile
           </p>
         </div>
 
