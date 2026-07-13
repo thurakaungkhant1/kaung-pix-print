@@ -72,6 +72,9 @@ const Account = () => {
   
   const [withdrawalSettings, setWithdrawalSettings] = useState<WithdrawalSettings | null>(null);
   const [favCounts, setFavCounts] = useState({ games: 0, mobile: 0, photos: 0 });
+  const [referrals, setReferrals] = useState<Array<{ id: string; name: string | null; email: string | null; avatar_url: string | null; joined_at: string }>>([]);
+  const [showReferrals, setShowReferrals] = useState(false);
+
   
   const [editingName, setEditingName] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
