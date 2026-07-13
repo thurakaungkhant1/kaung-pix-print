@@ -139,12 +139,13 @@ const MobileServicesManage = () => {
       name: fullName,
       price: priceNum,
       original_price: newService.original_price ? Number(newService.original_price) : null,
+      cost_price: newService.cost_price ? Number(newService.cost_price) : 0,
       description: newService.description.trim() || null,
       category: newService.category,
       image_url: imageUrl,
       status: "available",
       points_value: 0,
-    });
+    } as any);
     setCreating(false);
 
     if (error) {
