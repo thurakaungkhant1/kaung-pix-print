@@ -155,7 +155,7 @@ const DiamondPackageForm = () => {
               </div>
 
               <div>
-                <Label htmlFor="price">Price (Kyat) *</Label>
+                <Label htmlFor="price">Sell Price (Kyat) *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -168,7 +168,30 @@ const DiamondPackageForm = () => {
                   required
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  Enter price in Myanmar Kyat (Ks)
+                  User မှာပြမဲ့ ရောင်းစျေး (MMK)
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="cost_price">💰 Cost Price (Admin only)</Label>
+                <Input
+                  id="cost_price"
+                  type="number"
+                  step="1"
+                  placeholder="Your wholesale cost"
+                  value={formData.cost_price}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cost_price: e.target.value })
+                  }
+                />
+                {formData.price && formData.cost_price && Number(formData.price) > 0 && Number(formData.cost_price) > 0 && (
+                  <p className="text-sm text-green-600 font-medium mt-1">
+                    Profit: {(Number(formData.price) - Number(formData.cost_price)).toLocaleString()} Ks
+                    {" "}({(((Number(formData.price) - Number(formData.cost_price)) / Number(formData.price)) * 100).toFixed(1)}%)
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Admin ကသာ မြင်ရမည်။ အမြတ်တွက်ရန်။
                 </p>
               </div>
 
