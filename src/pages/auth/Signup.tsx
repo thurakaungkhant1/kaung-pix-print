@@ -169,8 +169,6 @@ const Signup = () => {
       setGoogleLoading(false);
     }
   };
-    }
-  };
 
   const passwordStrength = getPasswordStrength();
 
