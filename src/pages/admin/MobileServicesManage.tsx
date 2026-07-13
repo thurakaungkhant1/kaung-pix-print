@@ -550,7 +550,7 @@ const MobileServicesManage = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Price (Ks)</Label>
+                  <Label>Sell Price (Ks) *</Label>
                   <Input
                     type="number"
                     value={editingProduct.price}
@@ -578,6 +578,26 @@ const MobileServicesManage = () => {
                     placeholder="Optional"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>💰 Cost Price (Admin only)</Label>
+                <Input
+                  type="number"
+                  value={editingProduct.cost_price ?? ""}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      cost_price: e.target.value ? parseInt(e.target.value) : 0,
+                    })
+                  }
+                  placeholder="Your wholesale cost"
+                />
+                {editingProduct.price > 0 && (editingProduct.cost_price ?? 0) > 0 && (
+                  <p className="text-xs text-green-600 font-medium">
+                    Profit: {(editingProduct.price - (editingProduct.cost_price ?? 0)).toLocaleString()} Ks
+                    {" "}({(((editingProduct.price - (editingProduct.cost_price ?? 0)) / editingProduct.price) * 100).toFixed(1)}%)
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
