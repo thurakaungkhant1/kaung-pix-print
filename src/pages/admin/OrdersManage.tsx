@@ -138,10 +138,11 @@ const OrdersManage = () => {
         }
       }
       
-      // Category-group filter (?type=mobile|game)
+      // Category-group filter (?type=mobile|game|digital)
       const cat = order.products?.category || "";
       if (typeFilter === "mobile" && !MOBILE_CATEGORIES.includes(cat)) return false;
       if (typeFilter === "game" && !GAME_CATEGORIES.includes(cat)) return false;
+      if (typeFilter === "digital" && !DIGITAL_CATEGORIES.includes(cat)) return false;
 
       return true;
     });
