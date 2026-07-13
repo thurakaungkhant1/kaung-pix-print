@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -153,30 +152,20 @@ const Signup = () => {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: "select_account" },
+        },
       });
-      if (result.error) {
-        toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
+      if (error) {
+        toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
         setGoogleLoading(false);
-        return;
       }
-      if (result.redirected) return;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("name, phone_number")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (!profile?.phone_number || !profile?.name) {
-        navigate("/auth/complete-profile", { replace: true });
-      } else {
-        navigate("/", { replace: true });
-      }
+      // Browser redirects to Google on success
     } catch (e: any) {
       toast({ title: "Google sign-in failed", description: e?.message, variant: "destructive" });
-    } finally {
       setGoogleLoading(false);
     }
   };

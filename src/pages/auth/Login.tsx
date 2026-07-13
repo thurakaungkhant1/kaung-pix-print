@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,20 +79,24 @@ const Login = () => {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) {
-        toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
-        setGoogleLoading(false);
-        return;
+      // Preserve intended destination for post-OAuth redirect
+      if (redirectTo) {
+        try { sessionStorage.setItem("postAuthRedirect", redirectTo); } catch {}
       }
-      if (result.redirected) return;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) await routeAfterAuth(user.id);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: "select_account" },
+        },
+      });
+      if (error) {
+        toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
+        setGoogleLoading(false);
+      }
+      // Browser will redirect to Google on success
     } catch (e: any) {
       toast({ title: "Google sign-in failed", description: e?.message, variant: "destructive" });
-    } finally {
       setGoogleLoading(false);
     }
   };
