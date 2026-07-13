@@ -65,11 +65,9 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
     // Wait for animation to complete
     setTimeout(async () => {
       const today = new Date().toISOString().split("T")[0];
-
-      // Always award 5 points per spin
       const pointsWon = 5;
 
-      // Record spin
+      // Record spin (RLS: user_id = auth.uid())
       const { error: spinError } = await supabase
         .from("spinner_spins")
         .insert({
@@ -88,29 +86,18 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
         return;
       }
 
-      // Add transaction and update points
-      await supabase.from("point_transactions").insert({
-        user_id: user.id,
-        amount: pointsWon,
-        transaction_type: "spin",
-        description: `Won ${pointsWon} points from daily spinner`,
-      });
-
-      // Update user points
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("points")
-        .eq("id", user.id)
-        .single();
-
-      if (profile) {
-        await supabase
-          .from("profiles")
-          .update({ points: profile.points + pointsWon })
-          .eq("id", user.id);
+      // Server-verified coin credit (positive inserts to point_transactions
+      // and profiles.points must go through the service-role path).
+      const { data: awardData, error: awardError } = await supabase.functions.invoke(
+        "award-points",
+        { body: { source: "spin", spin_amount: pointsWon } },
+      );
+      if (awardError) {
+        console.error("award-points spin error", awardError);
       }
+      const awarded = Number(awardData?.amount ?? 0) || pointsWon;
 
-      onPointsWon(pointsWon);
+      onPointsWon(awarded);
       setCanSpin(false);
       setSpinning(false);
       setLastSpinDate(today);
