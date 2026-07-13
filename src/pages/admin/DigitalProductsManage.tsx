@@ -194,16 +194,21 @@ const DigitalProductsManage = () => {
     setSaving(true);
     // Use the lowest plan price as the product's base/display price
     const basePrice = Math.min(...activePlans.map((p) => Number(p.price)));
+    // Use the lowest plan cost as the product's base cost (admin only)
+    const baseCost = Math.min(
+      ...activePlans.map((p) => Number(p.cost_price || 0))
+    );
 
     const payload = {
       name: form.name.trim(),
       description: form.description || null,
       price: basePrice,
+      cost_price: baseCost || 0,
       image_url: form.image_url.trim(),
       points_value: Number(form.points_value) || 0,
       is_premium: form.is_premium,
       category: CATEGORY,
-    };
+    } as any;
 
     let productId = form.id;
     if (form.id) {
@@ -241,9 +246,10 @@ const DigitalProductsManage = () => {
         name: p.name.trim(),
         duration_label: p.duration_label?.trim() || null,
         price: Number(p.price),
+        cost_price: Number(p.cost_price || 0),
         sort_order: i,
         is_active: p.is_active,
-      };
+      } as any;
       if (p.id) {
         await supabase.from("digital_product_plans").update(row).eq("id", p.id);
       } else {
