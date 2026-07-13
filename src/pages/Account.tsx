@@ -48,6 +48,7 @@ interface Profile {
   points: number;
   avatar_url: string | null;
   account_status: string;
+  referral_code: string;
 }
 
 interface WithdrawalSettings {
@@ -149,35 +150,14 @@ const Account = () => {
     if (data) setWithdrawalSettings(data);
   };
 
-  const [lastSeenPrivacy, setLastSeenPrivacy] = useState<"public" | "friends">("public");
-  const [savingPrivacy, setSavingPrivacy] = useState(false);
-
   const loadProfile = async () => {
     if (!user) return;
-    const { data } = await supabase.from("profiles").select("name, phone_number, points, avatar_url, account_status, last_seen_privacy").eq("id", user.id).single();
+    const { data } = await supabase.from("profiles").select("name, phone_number, points, avatar_url, account_status, referral_code").eq("id", user.id).single();
     if (data) {
-      setProfile(data);
+      setProfile(data as Profile);
       setEditName(data.name);
       setEditPhone(data.phone_number);
-      const anyData = data as any;
-      if (anyData.last_seen_privacy === "friends" || anyData.last_seen_privacy === "public") {
-        setLastSeenPrivacy(anyData.last_seen_privacy);
-      }
     }
-  };
-
-  const handleTogglePrivacy = async (friendsOnly: boolean) => {
-    if (!user) return;
-    const next = friendsOnly ? "friends" : "public";
-    setSavingPrivacy(true);
-    const { error } = await supabase.from("profiles").update({ last_seen_privacy: next } as any).eq("id", user.id);
-    setSavingPrivacy(false);
-    if (error) {
-      toast({ title: "Failed to update", description: error.message, variant: "destructive" });
-      return;
-    }
-    setLastSeenPrivacy(next);
-    toast({ title: "Privacy updated", description: friendsOnly ? "Only friends can see your last seen." : "Everyone can see your last seen." });
   };
 
   const checkAdmin = async () => {
@@ -194,7 +174,6 @@ const Account = () => {
 
   const handleSaveName = async () => {
     if (!user || !editName.trim()) return;
-    if (!isPremium) { toast({ title: "Premium Required", description: "Only premium members can change their name", variant: "destructive" }); return; }
     setSavingProfile(true);
     try {
       const { error } = await supabase.from("profiles").update({ name: editName.trim() }).eq("id", user.id);
