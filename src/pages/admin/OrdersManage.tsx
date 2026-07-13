@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, 
   CheckSquare, Square, Check, XCircle, Search, Filter, Calendar, Copy,
-  Gamepad2, Smartphone, Clock, CheckCircle2, Ban, Hourglass, Package
+  Gamepad2, Smartphone, Clock, CheckCircle2, Ban, Hourglass, Package, Download
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,6 +45,7 @@ interface Order {
   quantity: number;
   price: number;
   status: string;
+  order_type: string | null;
   created_at: string;
   phone_number: string;
   delivery_address: string;
@@ -55,7 +56,7 @@ interface Order {
   server_id: string | null;
   game_name: string | null;
   profiles: { name: string; phone_number: string };
-  products: { name: string; image_url: string; points_value: number; category: string };
+  products: { name: string; image_url: string; points_value: number; category: string; cost_price: number | null };
 }
 
 // Game categories that require game IDs
@@ -138,11 +139,17 @@ const OrdersManage = () => {
         }
       }
       
-      // Category-group filter (?type=mobile|game|digital)
+      // Category-group filter (?type=mobile|game|digital) — uses order_type
+      const ot = order.order_type || "";
       const cat = order.products?.category || "";
-      if (typeFilter === "mobile" && !MOBILE_CATEGORIES.includes(cat)) return false;
-      if (typeFilter === "game" && !GAME_CATEGORIES.includes(cat)) return false;
-      if (typeFilter === "digital" && !DIGITAL_CATEGORIES.includes(cat)) return false;
+      const derived =
+        ot ||
+        (MOBILE_CATEGORIES.includes(cat) ? "mobile" :
+         GAME_CATEGORIES.includes(cat) ? "game" :
+         DIGITAL_CATEGORIES.includes(cat) ? "digital" : "physical");
+      if (typeFilter === "mobile" && derived !== "mobile") return false;
+      if (typeFilter === "game" && derived !== "game") return false;
+      if (typeFilter === "digital" && derived !== "digital") return false;
 
       return true;
     });
@@ -157,7 +164,51 @@ const OrdersManage = () => {
     setDateTo(undefined);
   };
 
+  // CSV export of filtered orders
+  const exportCsv = () => {
+    if (!filteredOrders.length) {
+      toast({ title: "Nothing to export", description: "No orders match the current filters" });
+      return;
+    }
+    const rows = [
+      ["Order ID","Date","Customer","Phone","Product","Category","Type","Qty","Cost Price","Sell Price","Line Cost","Line Revenue","Line Profit","Margin %","Status","Payment","Transaction ID"],
+      ...filteredOrders.map((o) => {
+        const cost = Number(o.products?.cost_price || 0);
+        const qty = Number(o.quantity || 1);
+        const rev = Number(o.price || 0);
+        const lineCost = cost * qty;
+        const profit = rev - lineCost;
+        const margin = rev > 0 ? (profit / rev) * 100 : 0;
+        return [
+          o.id, new Date(o.created_at).toISOString(), o.profiles?.name || "",
+          o.profiles?.phone_number || o.phone_number || "",
+          o.products?.name || "", o.products?.category || "",
+          o.order_type || "", qty, cost, rev / qty, lineCost, rev, profit, margin.toFixed(1),
+          o.status, o.payment_method, o.transaction_id || "",
+        ];
+      }),
+    ];
+    const csv = rows.map((r) =>
+      r.map((v) => {
+        const s = String(v ?? "");
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      }).join(",")
+    ).join("\n");
+    const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const label = typeFilter || "all";
+    a.href = url;
+    a.download = `orders-${label}-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported", description: `${filteredOrders.length} order(s) exported` });
+  };
+
   const hasActiveFilters = searchQuery || statusFilter !== "all" || paymentFilter !== "all" || dateFrom || dateTo;
+
+
+
 
   // Load payment proof preview for an order
   const loadPaymentProofPreview = async (orderId: string, filePath: string) => {
@@ -327,7 +378,7 @@ const OrdersManage = () => {
       .select(`
         *,
         profiles:user_id(name, phone_number),
-        products:product_id(name, image_url, points_value, category)
+        products:product_id(name, image_url, points_value, category, cost_price)
       `)
       .order("created_at", { ascending: false });
 
@@ -440,6 +491,15 @@ const OrdersManage = () => {
                 </button>
               );
             })}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportCsv}
+              className="ml-auto gap-1.5 shrink-0"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export CSV
+            </Button>
           </div>
         </div>
       )}
@@ -835,7 +895,7 @@ const OrdersManage = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-4 text-sm flex-wrap">
                     <span>Qty: {order.quantity}</span>
                     <span className="font-bold text-primary">
                       {order.price.toLocaleString()} MMK
@@ -843,8 +903,35 @@ const OrdersManage = () => {
                     <span className="text-green-600">
                       {order.products.points_value * order.quantity} pts
                     </span>
+                    {order.order_type && (
+                      <Badge variant="outline" className="text-[10px] uppercase">
+                        {order.order_type}
+                      </Badge>
+                    )}
                     {getStatusBadge(order.status)}
                   </div>
+                  {/* Admin-only profit summary */}
+                  {(() => {
+                    const cost = Number(order.products?.cost_price || 0);
+                    if (!cost) return null;
+                    const lineCost = cost * (order.quantity || 1);
+                    const profit = order.price - lineCost;
+                    const margin = order.price > 0 ? (profit / order.price) * 100 : 0;
+                    return (
+                      <div className="text-xs bg-muted/40 rounded px-2 py-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                        <span className="text-muted-foreground">Cost:</span>
+                        <span className="font-medium">{lineCost.toLocaleString()} MMK</span>
+                        <span className="text-muted-foreground">Profit:</span>
+                        <span className={cn("font-semibold", profit >= 0 ? "text-green-600" : "text-red-600")}>
+                          {profit.toLocaleString()} MMK
+                        </span>
+                        <span className="text-muted-foreground">Margin:</span>
+                        <span className={cn("font-semibold", profit >= 0 ? "text-green-600" : "text-red-600")}>
+                          {margin.toFixed(1)}%
+                        </span>
+                      </div>
+                    );
+                  })()}
                   <p className="text-xs text-muted-foreground">
                     {new Date(order.created_at).toLocaleString()}
                   </p>
