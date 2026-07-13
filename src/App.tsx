@@ -58,6 +58,7 @@ const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const AuthCallback = lazy(() => import("./pages/auth/AuthCallback"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -191,6 +192,7 @@ const App = () => {
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/auth/verify-email" element={<VerifyEmail />} />
                 <Route path="/auth/complete-profile" element={<ProtectedRoute hideNav><CompleteProfile /></ProtectedRoute>} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route
                   path="/"
