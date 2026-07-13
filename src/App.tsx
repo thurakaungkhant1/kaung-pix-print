@@ -63,6 +63,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const SecurityDashboard = lazy(() => import("./pages/admin/SecurityDashboard"));
 const ProductsManage = lazy(() => import("./pages/admin/ProductsManage"));
 const ProductNew = lazy(() => import("./pages/admin/ProductNew"));
 const DiamondPackages = lazy(() => import("./pages/admin/DiamondPackages"));
