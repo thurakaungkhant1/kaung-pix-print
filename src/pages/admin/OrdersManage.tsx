@@ -139,11 +139,17 @@ const OrdersManage = () => {
         }
       }
       
-      // Category-group filter (?type=mobile|game|digital)
+      // Category-group filter (?type=mobile|game|digital) — uses order_type
+      const ot = order.order_type || "";
       const cat = order.products?.category || "";
-      if (typeFilter === "mobile" && !MOBILE_CATEGORIES.includes(cat)) return false;
-      if (typeFilter === "game" && !GAME_CATEGORIES.includes(cat)) return false;
-      if (typeFilter === "digital" && !DIGITAL_CATEGORIES.includes(cat)) return false;
+      const derived =
+        ot ||
+        (MOBILE_CATEGORIES.includes(cat) ? "mobile" :
+         GAME_CATEGORIES.includes(cat) ? "game" :
+         DIGITAL_CATEGORIES.includes(cat) ? "digital" : "physical");
+      if (typeFilter === "mobile" && derived !== "mobile") return false;
+      if (typeFilter === "game" && derived !== "game") return false;
+      if (typeFilter === "digital" && derived !== "digital") return false;
 
       return true;
     });
