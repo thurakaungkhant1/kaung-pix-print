@@ -13,7 +13,40 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // --- Authenticate caller & require admin role ---
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    if (!token) {
+      return new Response(
+        JSON.stringify({ success: false, message: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey);
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+    const userId = claimsData?.claims?.sub as string | undefined;
+    if (claimsError || !userId) {
+      return new Response(
+        JSON.stringify({ success: false, message: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdmin) {
+      return new Response(
+        JSON.stringify({ success: false, message: "Forbidden: admin only" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const { action, order_id, api_key, partner_id } = await req.json();
 
@@ -26,21 +59,16 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Simulate API test - in production, call Smile.one API endpoint
       try {
-        // Smile.one API test endpoint
         const testUrl = `https://www.smile.one/smilecoin/api/product/list`;
         const response = await fetch(testUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            uid: partner_id,
-            key: api_key,
-          }),
+          body: JSON.stringify({ uid: partner_id, key: api_key }),
         });
 
         const data = await response.json();
-        
+
         if (response.ok && data) {
           return new Response(
             JSON.stringify({ success: true, message: "API connection successful", data }),
@@ -52,7 +80,7 @@ Deno.serve(async (req) => {
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-      } catch (apiError) {
+      } catch (_apiError) {
         return new Response(
           JSON.stringify({ success: true, message: "Credentials saved. API test endpoint may vary - credentials will be used when processing orders." }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -69,7 +97,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Check if auto top-up is enabled
       const { data: settings } = await supabase
         .from("ad_settings")
         .select("setting_key, setting_value")
@@ -92,7 +119,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Get order details
       const { data: order, error: orderError } = await supabase
         .from("orders")
         .select("*, products(name, category)")
@@ -106,7 +132,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Only process game orders
       if (!order.game_id) {
         return new Response(
           JSON.stringify({ success: false, message: "Not a game order" }),
@@ -114,7 +139,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Call Smile.one API to process top-up
       try {
         const topupResponse = await fetch("https://www.smile.one/smilecoin/api/topup", {
           method: "POST",
@@ -132,10 +156,10 @@ Deno.serve(async (req) => {
         const topupData = await topupResponse.json();
 
         return new Response(
-          JSON.stringify({ 
-            success: topupResponse.ok, 
+          JSON.stringify({
+            success: topupResponse.ok,
             message: topupResponse.ok ? "Top-up processed successfully" : "Top-up failed",
-            data: topupData 
+            data: topupData,
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
