@@ -53,6 +53,7 @@ const Messages = lazy(() => import("./pages/Messages"));
 const ChatThread = lazy(() => import("./pages/ChatThread"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Signup = lazy(() => import("./pages/auth/Signup"));
+const CompleteProfile = lazy(() => import("./pages/auth/CompleteProfile"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
@@ -188,6 +189,7 @@ const App = () => {
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/auth/verify-email" element={<VerifyEmail />} />
+                <Route path="/auth/complete-profile" element={<ProtectedRoute hideNav><CompleteProfile /></ProtectedRoute>} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route
                   path="/"

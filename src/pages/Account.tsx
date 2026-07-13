@@ -48,6 +48,7 @@ interface Profile {
   points: number;
   avatar_url: string | null;
   account_status: string;
+  referral_code: string;
 }
 
 interface WithdrawalSettings {
@@ -149,35 +150,14 @@ const Account = () => {
     if (data) setWithdrawalSettings(data);
   };
 
-  const [lastSeenPrivacy, setLastSeenPrivacy] = useState<"public" | "friends">("public");
-  const [savingPrivacy, setSavingPrivacy] = useState(false);
-
   const loadProfile = async () => {
     if (!user) return;
-    const { data } = await supabase.from("profiles").select("name, phone_number, points, avatar_url, account_status, last_seen_privacy").eq("id", user.id).single();
+    const { data } = await supabase.from("profiles").select("name, phone_number, points, avatar_url, account_status, referral_code").eq("id", user.id).single();
     if (data) {
-      setProfile(data);
+      setProfile(data as Profile);
       setEditName(data.name);
       setEditPhone(data.phone_number);
-      const anyData = data as any;
-      if (anyData.last_seen_privacy === "friends" || anyData.last_seen_privacy === "public") {
-        setLastSeenPrivacy(anyData.last_seen_privacy);
-      }
     }
-  };
-
-  const handleTogglePrivacy = async (friendsOnly: boolean) => {
-    if (!user) return;
-    const next = friendsOnly ? "friends" : "public";
-    setSavingPrivacy(true);
-    const { error } = await supabase.from("profiles").update({ last_seen_privacy: next } as any).eq("id", user.id);
-    setSavingPrivacy(false);
-    if (error) {
-      toast({ title: "Failed to update", description: error.message, variant: "destructive" });
-      return;
-    }
-    setLastSeenPrivacy(next);
-    toast({ title: "Privacy updated", description: friendsOnly ? "Only friends can see your last seen." : "Everyone can see your last seen." });
   };
 
   const checkAdmin = async () => {
@@ -194,7 +174,6 @@ const Account = () => {
 
   const handleSaveName = async () => {
     if (!user || !editName.trim()) return;
-    if (!isPremium) { toast({ title: "Premium Required", description: "Only premium members can change their name", variant: "destructive" }); return; }
     setSavingProfile(true);
     try {
       const { error } = await supabase.from("profiles").update({ name: editName.trim() }).eq("id", user.id);
@@ -412,6 +391,40 @@ const Account = () => {
         )}
       </div>
 
+      {/* Coin balance + Referral code cards */}
+      <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-amber-400/15 to-orange-500/15 border border-amber-500/20">
+          <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+            <Coins className="h-4 w-4" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Coins</span>
+          </div>
+          <p className="mt-1.5 text-2xl font-extrabold">{(profile?.points ?? 0).toLocaleString()}</p>
+          <button onClick={() => navigate("/point-history")} className="mt-1 text-[11px] text-muted-foreground hover:text-primary">
+            View history →
+          </button>
+        </div>
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/20">
+          <div className="flex items-center gap-2 text-primary">
+            <Gift className="h-4 w-4" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Refer Code</span>
+          </div>
+          <p className="mt-1.5 text-lg font-extrabold font-mono tracking-wider truncate">{profile?.referral_code || "—"}</p>
+          <button
+            onClick={() => {
+              if (!profile?.referral_code) return;
+              const link = `${window.location.origin}/auth/signup?ref=${profile.referral_code}`;
+              navigator.clipboard.writeText(link);
+              toast({ title: "Copied!", description: "Referral link copied" });
+            }}
+            className="mt-1 text-[11px] text-muted-foreground hover:text-primary"
+          >
+            Copy link →
+          </button>
+        </div>
+      </div>
+
+
+
       {/* ---- Account ---- */}
       <SectionLabel>Account</SectionLabel>
       <SectionCard>
@@ -420,10 +433,7 @@ const Account = () => {
           label={editingName ? "Editing name…" : (profile?.name ? `Name • ${profile.name}` : "Name")}
           iconBg="bg-emerald-500/10"
           iconColor="text-emerald-600 dark:text-emerald-400"
-          onClick={() => {
-            if (!isPremium) { toast({ title: "Premium Required", description: "Only premium members can change their name", variant: "destructive" }); return; }
-            setEditingName(true);
-          }}
+          onClick={() => setEditingName(true)}
         />
         {editingName && (
           <div className="px-4 py-3 flex items-center gap-2 bg-muted/30">
@@ -473,18 +483,6 @@ const Account = () => {
           iconBg="bg-violet-500/10"
           iconColor="text-violet-600 dark:text-violet-400"
           right={<Switch checked={pushNotifications} onCheckedChange={handlePushNotificationToggle} />}
-        />
-        <Row
-          icon={Eye}
-          label="Last seen privacy"
-          iconBg="bg-cyan-500/10"
-          iconColor="text-cyan-600 dark:text-cyan-400"
-          right={
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] text-muted-foreground">{lastSeenPrivacy === "friends" ? "Friends" : "Public"}</span>
-              <Switch checked={lastSeenPrivacy === "friends"} disabled={savingPrivacy} onCheckedChange={handleTogglePrivacy} />
-            </div>
-          }
         />
       </SectionCard>
 
