@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft, ExternalLink, Loader2, Eye, X, ChevronDown, ChevronUp, 
   CheckSquare, Square, Check, XCircle, Search, Filter, Calendar, Copy,
-  Gamepad2, Smartphone, Clock, CheckCircle2, Ban, Hourglass, Package
+  Gamepad2, Smartphone, Clock, CheckCircle2, Ban, Hourglass, Package, Download
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
