@@ -361,13 +361,11 @@ const GamePage = () => {
       if (orderError) throw orderError;
 
       // Create wallet transaction
-      await supabase.from('wallet_transactions').insert({
-        user_id: user.id,
-        amount: -selectedProduct.price,
-        transaction_type: 'purchase',
-        reference_id: orderData.id,
-        description: `Purchase: ${selectedProduct.name}`,
-        balance_after: newBalance
+      await supabase.functions.invoke('record-wallet-purchase', {
+        body: {
+          order_id: orderData.id,
+          description: `Purchase: ${selectedProduct.name}`,
+        },
       });
 
       setWalletBalance(newBalance);

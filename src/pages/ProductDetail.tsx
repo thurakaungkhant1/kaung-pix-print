@@ -273,13 +273,11 @@ const ProductDetail = () => {
 
       if (orderError) throw orderError;
 
-      await supabase.from("wallet_transactions").insert({
-        user_id: user.id,
-        amount: -totalPrice,
-        transaction_type: "purchase",
-        reference_id: orderData.id,
-        description: `Purchase: ${product.name}${selectedPlan ? ` — ${selectedPlan.name}` : ""} x${quantity}`,
-        balance_after: newBalance,
+      await supabase.functions.invoke("record-wallet-purchase", {
+        body: {
+          order_id: orderData.id,
+          description: `Purchase: ${product.name}${selectedPlan ? ` — ${selectedPlan.name}` : ""} x${quantity}`,
+        },
       });
 
       setWalletBalance(newBalance);
