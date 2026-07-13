@@ -49,7 +49,7 @@ const DrawerNav = () => {
     { to: "/", icon: Home, label: "Home" },
     { to: "/game", icon: Gamepad2, label: "Game Shop" },
     { to: "/games", icon: Joystick, label: "Mini Games 🎮" },
-    { to: "/photo", icon: Camera, label: "Photo Gallery" },
+    
     { to: "/favourite", icon: Heart, label: "Favorites" },
     { to: "/top-up", icon: Wallet, label: "Wallet & Top Up" },
   ];

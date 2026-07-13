@@ -895,7 +895,7 @@ const AdminDashboard = () => {
         { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
         { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
         { id: "mobile-panel", label: "Mobile Panel", icon: Phone, badge: 0, route: "/admin/mobile-panel" },
-        { id: "photos", label: "Photos", icon: Image, badge: 0 },
+        
       ]
     },
       {
@@ -1425,10 +1425,6 @@ const AdminDashboard = () => {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <Button onClick={() => navigate("/admin/photos/new")} variant="outline" className="h-auto py-4 flex-col gap-2">
-                    <Image className="h-5 w-5" />
-                    Upload Photo
-                  </Button>
                   <Button onClick={() => setActiveTab("orders")} variant="outline" className="h-auto py-4 flex-col gap-2">
                     <ShoppingCart className="h-5 w-5" />
                     View Orders
@@ -2274,20 +2270,6 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Photos Tab */}
-          {activeTab === "photos" && (
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <Button onClick={() => navigate("/admin/photos/new")}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Upload Photos
-                </Button>
-                <Button variant="outline" onClick={() => navigate("/admin/photos")}>
-                  Manage Photos
-                </Button>
-              </div>
-            </div>
-          )}
 
           {/* Settings Tab */}
           {activeTab === "settings" && (
