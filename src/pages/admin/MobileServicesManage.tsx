@@ -42,6 +42,7 @@ interface Product {
   name: string;
   price: number;
   original_price: number | null;
+  cost_price?: number | null;
   image_url: string;
   description: string | null;
   category: string;
