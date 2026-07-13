@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Public can view approved gift links" ON public.ai_gift_links;
