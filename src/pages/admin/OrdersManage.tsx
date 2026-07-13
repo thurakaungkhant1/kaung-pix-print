@@ -410,6 +410,40 @@ const OrdersManage = () => {
         </div>
       </header>
 
+      {/* Category Tabs (Mobile / Game / Digital) — hidden for mobile-only admins */}
+      {!isMobileOnlyAdmin && (
+        <div className="sticky top-[56px] z-30 bg-background border-b">
+          <div className="max-w-screen-xl mx-auto px-2 py-2 flex gap-1.5 overflow-x-auto">
+            {[
+              { k: null, label: "All Orders", Icon: Filter },
+              { k: "mobile", label: "Mobile", Icon: Smartphone },
+              { k: "game", label: "Game", Icon: Gamepad2 },
+              { k: "digital", label: "Digital (DG)", Icon: Package },
+            ].map((t) => {
+              const active = (typeFilter ?? null) === t.k;
+              const Icon = (t as any).Icon;
+              return (
+                <button
+                  key={t.label}
+                  onClick={() =>
+                    navigate(t.k ? `/admin/orders?type=${t.k}` : "/admin/orders")
+                  }
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition",
+                    active
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Search and Filters */}
       <div className="sticky top-[60px] z-30 bg-background border-b shadow-sm">
         <div className="max-w-screen-xl mx-auto p-3 space-y-3">
