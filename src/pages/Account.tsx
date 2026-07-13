@@ -399,10 +399,7 @@ const Account = () => {
           label={editingName ? "Editing name…" : (profile?.name ? `Name • ${profile.name}` : "Name")}
           iconBg="bg-emerald-500/10"
           iconColor="text-emerald-600 dark:text-emerald-400"
-          onClick={() => {
-            if (!isPremium) { toast({ title: "Premium Required", description: "Only premium members can change their name", variant: "destructive" }); return; }
-            setEditingName(true);
-          }}
+          onClick={() => setEditingName(true)}
         />
         {editingName && (
           <div className="px-4 py-3 flex items-center gap-2 bg-muted/30">
@@ -452,18 +449,6 @@ const Account = () => {
           iconBg="bg-violet-500/10"
           iconColor="text-violet-600 dark:text-violet-400"
           right={<Switch checked={pushNotifications} onCheckedChange={handlePushNotificationToggle} />}
-        />
-        <Row
-          icon={Eye}
-          label="Last seen privacy"
-          iconBg="bg-cyan-500/10"
-          iconColor="text-cyan-600 dark:text-cyan-400"
-          right={
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] text-muted-foreground">{lastSeenPrivacy === "friends" ? "Friends" : "Public"}</span>
-              <Switch checked={lastSeenPrivacy === "friends"} disabled={savingPrivacy} onCheckedChange={handleTogglePrivacy} />
-            </div>
-          }
         />
       </SectionCard>
 
