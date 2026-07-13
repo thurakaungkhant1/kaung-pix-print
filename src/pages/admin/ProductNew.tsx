@@ -135,13 +135,28 @@ const ProductNew = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label>Price (MMK) *</Label>
+                      <Label>Sell Price (MMK) *</Label>
                       <Input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" className="h-12 text-lg font-semibold" />
+                      <p className="text-[10px] text-muted-foreground">Shown to users</p>
                     </div>
                     <div className="space-y-2">
                       <Label>Original Price</Label>
                       <Input type="number" step="0.01" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} placeholder="For discount" className="h-12" />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      💰 Cost Price (Admin only)
+                    </Label>
+                    <Input type="number" step="0.01" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} placeholder="Your cost / wholesale price" className="h-12" />
+                    {price && costPrice && Number(price) > 0 && Number(costPrice) > 0 && (
+                      <p className="text-xs text-green-600 font-medium">
+                        Profit: {(Number(price) - Number(costPrice)).toLocaleString()} MMK
+                        {" "}({(((Number(price) - Number(costPrice)) / Number(price)) * 100).toFixed(1)}%)
+                      </p>
+                    )}
+                    <p className="text-[10px] text-muted-foreground">Hidden from users. Used to track profit.</p>
                   </div>
 
                   <div className="space-y-2">
