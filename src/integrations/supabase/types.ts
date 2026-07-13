@@ -2361,6 +2361,16 @@ export type Database = {
         Args: { exclude_spin?: boolean; user_id_param: string }
         Returns: number
       }
+      get_my_referrals: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          email: string
+          id: string
+          joined_at: string
+          name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
