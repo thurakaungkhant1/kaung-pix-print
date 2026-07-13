@@ -491,6 +491,15 @@ const OrdersManage = () => {
                 </button>
               );
             })}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportCsv}
+              className="ml-auto gap-1.5 shrink-0"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export CSV
+            </Button>
           </div>
         </div>
       )}
