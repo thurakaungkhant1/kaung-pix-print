@@ -895,7 +895,7 @@ const OrdersManage = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-4 text-sm flex-wrap">
                     <span>Qty: {order.quantity}</span>
                     <span className="font-bold text-primary">
                       {order.price.toLocaleString()} MMK
@@ -903,8 +903,35 @@ const OrdersManage = () => {
                     <span className="text-green-600">
                       {order.products.points_value * order.quantity} pts
                     </span>
+                    {order.order_type && (
+                      <Badge variant="outline" className="text-[10px] uppercase">
+                        {order.order_type}
+                      </Badge>
+                    )}
                     {getStatusBadge(order.status)}
                   </div>
+                  {/* Admin-only profit summary */}
+                  {(() => {
+                    const cost = Number(order.products?.cost_price || 0);
+                    if (!cost) return null;
+                    const lineCost = cost * (order.quantity || 1);
+                    const profit = order.price - lineCost;
+                    const margin = order.price > 0 ? (profit / order.price) * 100 : 0;
+                    return (
+                      <div className="text-xs bg-muted/40 rounded px-2 py-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                        <span className="text-muted-foreground">Cost:</span>
+                        <span className="font-medium">{lineCost.toLocaleString()} MMK</span>
+                        <span className="text-muted-foreground">Profit:</span>
+                        <span className={cn("font-semibold", profit >= 0 ? "text-green-600" : "text-red-600")}>
+                          {profit.toLocaleString()} MMK
+                        </span>
+                        <span className="text-muted-foreground">Margin:</span>
+                        <span className={cn("font-semibold", profit >= 0 ? "text-green-600" : "text-red-600")}>
+                          {margin.toFixed(1)}%
+                        </span>
+                      </div>
+                    );
+                  })()}
                   <p className="text-xs text-muted-foreground">
                     {new Date(order.created_at).toLocaleString()}
                   </p>
