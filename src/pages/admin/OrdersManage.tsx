@@ -205,6 +205,10 @@ const OrdersManage = () => {
     toast({ title: "Exported", description: `${filteredOrders.length} order(s) exported` });
   };
 
+  const hasActiveFilters = searchQuery || statusFilter !== "all" || paymentFilter !== "all" || dateFrom || dateTo;
+
+
+
 
   // Load payment proof preview for an order
   const loadPaymentProofPreview = async (orderId: string, filePath: string) => {
