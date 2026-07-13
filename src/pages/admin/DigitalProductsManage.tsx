@@ -48,6 +48,7 @@ interface Plan {
   name: string;
   duration_label: string;
   price: number;
+  cost_price: number;
   sort_order: number;
   is_active: boolean;
   _deleted?: boolean;
