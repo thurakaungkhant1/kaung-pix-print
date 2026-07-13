@@ -61,6 +61,7 @@ const ProductNew = () => {
       description,
       price: parseFloat(price),
       original_price: originalPrice ? parseFloat(originalPrice) : null,
+      cost_price: costPrice ? parseFloat(costPrice) : 0,
       image_url: primaryImage,
       points_value: parseInt(pointsValue) || 0,
       category,
@@ -68,7 +69,7 @@ const ProductNew = () => {
       stock_quantity: parseInt(stockQuantity) || 0,
       status,
       is_premium: isPremium,
-    });
+    } as any);
 
     if (error) {
       toast({ title: "Error", description: "Failed to create product", variant: "destructive" });
