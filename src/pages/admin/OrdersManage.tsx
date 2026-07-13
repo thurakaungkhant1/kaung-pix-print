@@ -378,7 +378,7 @@ const OrdersManage = () => {
       .select(`
         *,
         profiles:user_id(name, phone_number),
-        products:product_id(name, image_url, points_value, category)
+        products:product_id(name, image_url, points_value, category, cost_price)
       `)
       .order("created_at", { ascending: false });
 
