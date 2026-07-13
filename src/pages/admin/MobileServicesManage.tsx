@@ -67,6 +67,7 @@ const emptyNewService = {
   name: "",
   price: "",
   original_price: "",
+  cost_price: "",
   description: "",
   image_url: "",
 };
