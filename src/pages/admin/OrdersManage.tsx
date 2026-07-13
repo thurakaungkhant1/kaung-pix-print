@@ -164,7 +164,47 @@ const OrdersManage = () => {
     setDateTo(undefined);
   };
 
-  const hasActiveFilters = searchQuery || statusFilter !== "all" || paymentFilter !== "all" || dateFrom || dateTo;
+  // CSV export of filtered orders
+  const exportCsv = () => {
+    if (!filteredOrders.length) {
+      toast({ title: "Nothing to export", description: "No orders match the current filters" });
+      return;
+    }
+    const rows = [
+      ["Order ID","Date","Customer","Phone","Product","Category","Type","Qty","Cost Price","Sell Price","Line Cost","Line Revenue","Line Profit","Margin %","Status","Payment","Transaction ID"],
+      ...filteredOrders.map((o) => {
+        const cost = Number(o.products?.cost_price || 0);
+        const qty = Number(o.quantity || 1);
+        const rev = Number(o.price || 0);
+        const lineCost = cost * qty;
+        const profit = rev - lineCost;
+        const margin = rev > 0 ? (profit / rev) * 100 : 0;
+        return [
+          o.id, new Date(o.created_at).toISOString(), o.profiles?.name || "",
+          o.profiles?.phone_number || o.phone_number || "",
+          o.products?.name || "", o.products?.category || "",
+          o.order_type || "", qty, cost, rev / qty, lineCost, rev, profit, margin.toFixed(1),
+          o.status, o.payment_method, o.transaction_id || "",
+        ];
+      }),
+    ];
+    const csv = rows.map((r) =>
+      r.map((v) => {
+        const s = String(v ?? "");
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      }).join(",")
+    ).join("\n");
+    const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const label = typeFilter || "all";
+    a.href = url;
+    a.download = `orders-${label}-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported", description: `${filteredOrders.length} order(s) exported` });
+  };
+
 
   // Load payment proof preview for an order
   const loadPaymentProofPreview = async (orderId: string, filePath: string) => {
