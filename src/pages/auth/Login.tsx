@@ -145,24 +145,9 @@ const Login = () => {
             Sign in to continue to your rewards & wallet
           </p>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleGoogle}
-            disabled={googleLoading}
-            className="w-full h-12 rounded-full mt-6 border-2 gap-3 font-semibold"
-          >
-            {googleLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><GoogleIcon /> Continue with Google</>}
-          </Button>
+          <div className="mt-6" />
 
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-background px-3 text-muted-foreground tracking-widest">OR EMAIL</span>
-            </div>
-          </div>
+
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
