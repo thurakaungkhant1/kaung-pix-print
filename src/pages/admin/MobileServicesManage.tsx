@@ -698,7 +698,7 @@ const MobileServicesManage = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Price (Ks) *</Label>
+                <Label>Sell Price (Ks) *</Label>
                 <Input
                   type="number"
                   value={newService.price}
@@ -715,6 +715,22 @@ const MobileServicesManage = () => {
                   placeholder="Optional"
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>💰 Cost Price (Admin only)</Label>
+              <Input
+                type="number"
+                value={newService.cost_price}
+                onChange={(e) => setNewService({ ...newService, cost_price: e.target.value })}
+                placeholder="Your wholesale cost"
+              />
+              {newService.price && newService.cost_price && Number(newService.price) > 0 && Number(newService.cost_price) > 0 && (
+                <p className="text-xs text-green-600 font-medium">
+                  Profit: {(Number(newService.price) - Number(newService.cost_price)).toLocaleString()} Ks
+                  {" "}({(((Number(newService.price) - Number(newService.cost_price)) / Number(newService.price)) * 100).toFixed(1)}%)
+                </p>
+              )}
+              <p className="text-[10px] text-muted-foreground">Hidden from users.</p>
             </div>
             <div className="space-y-2">
               <Label>Image URL</Label>
