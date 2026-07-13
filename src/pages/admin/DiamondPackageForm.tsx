@@ -21,6 +21,7 @@ const DiamondPackageForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     price: "",
+    cost_price: "",
     description: "",
     image_url: "",
     points_value: "0",
@@ -56,6 +57,7 @@ const DiamondPackageForm = () => {
       setFormData({
         name: data.name,
         price: data.price.toString(),
+        cost_price: (data as any).cost_price ? String((data as any).cost_price) : "",
         description: data.description || "",
         image_url: data.image_url,
         points_value: data.points_value.toString(),
@@ -71,12 +73,13 @@ const DiamondPackageForm = () => {
     const packageData = {
       name: formData.name,
       price: parseFloat(formData.price),
+      cost_price: formData.cost_price ? parseFloat(formData.cost_price) : 0,
       description: formData.description || null,
       image_url: formData.image_url || "/placeholder.svg",
       points_value: parseInt(formData.points_value),
       category: "MLBB Diamonds",
       diamond_tier: formData.diamond_tier === "auto" ? null : formData.diamond_tier,
-    };
+    } as any;
 
 
     let error;
@@ -152,7 +155,7 @@ const DiamondPackageForm = () => {
               </div>
 
               <div>
-                <Label htmlFor="price">Price (Kyat) *</Label>
+                <Label htmlFor="price">Sell Price (Kyat) *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -165,7 +168,30 @@ const DiamondPackageForm = () => {
                   required
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  Enter price in Myanmar Kyat (Ks)
+                  User မှာပြမဲ့ ရောင်းစျေး (MMK)
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="cost_price">💰 Cost Price (Admin only)</Label>
+                <Input
+                  id="cost_price"
+                  type="number"
+                  step="1"
+                  placeholder="Your wholesale cost"
+                  value={formData.cost_price}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cost_price: e.target.value })
+                  }
+                />
+                {formData.price && formData.cost_price && Number(formData.price) > 0 && Number(formData.cost_price) > 0 && (
+                  <p className="text-sm text-green-600 font-medium mt-1">
+                    Profit: {(Number(formData.price) - Number(formData.cost_price)).toLocaleString()} Ks
+                    {" "}({(((Number(formData.price) - Number(formData.cost_price)) / Number(formData.price)) * 100).toFixed(1)}%)
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Admin ကသာ မြင်ရမည်။ အမြတ်တွက်ရန်။
                 </p>
               </div>
 

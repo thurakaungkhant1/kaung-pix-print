@@ -42,6 +42,7 @@ interface Product {
   name: string;
   price: number;
   original_price: number | null;
+  cost_price?: number | null;
   image_url: string;
   description: string | null;
   category: string;
@@ -66,6 +67,7 @@ const emptyNewService = {
   name: "",
   price: "",
   original_price: "",
+  cost_price: "",
   description: "",
   image_url: "",
 };
@@ -137,12 +139,13 @@ const MobileServicesManage = () => {
       name: fullName,
       price: priceNum,
       original_price: newService.original_price ? Number(newService.original_price) : null,
+      cost_price: newService.cost_price ? Number(newService.cost_price) : 0,
       description: newService.description.trim() || null,
       category: newService.category,
       image_url: imageUrl,
       status: "available",
       points_value: 0,
-    });
+    } as any);
     setCreating(false);
 
     if (error) {
@@ -179,10 +182,11 @@ const MobileServicesManage = () => {
         name: editingProduct.name,
         price: editingProduct.price,
         original_price: editingProduct.original_price,
+        cost_price: editingProduct.cost_price ?? 0,
         description: editingProduct.description,
         category: editingProduct.category,
         status: editingProduct.status,
-      })
+      } as any)
       .eq("id", editingProduct.id);
 
     if (error) {
@@ -546,7 +550,7 @@ const MobileServicesManage = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Price (Ks)</Label>
+                  <Label>Sell Price (Ks) *</Label>
                   <Input
                     type="number"
                     value={editingProduct.price}
@@ -574,6 +578,26 @@ const MobileServicesManage = () => {
                     placeholder="Optional"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>💰 Cost Price (Admin only)</Label>
+                <Input
+                  type="number"
+                  value={editingProduct.cost_price ?? ""}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      cost_price: e.target.value ? parseInt(e.target.value) : 0,
+                    })
+                  }
+                  placeholder="Your wholesale cost"
+                />
+                {editingProduct.price > 0 && (editingProduct.cost_price ?? 0) > 0 && (
+                  <p className="text-xs text-green-600 font-medium">
+                    Profit: {(editingProduct.price - (editingProduct.cost_price ?? 0)).toLocaleString()} Ks
+                    {" "}({(((editingProduct.price - (editingProduct.cost_price ?? 0)) / editingProduct.price) * 100).toFixed(1)}%)
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
@@ -674,7 +698,7 @@ const MobileServicesManage = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Price (Ks) *</Label>
+                <Label>Sell Price (Ks) *</Label>
                 <Input
                   type="number"
                   value={newService.price}
@@ -691,6 +715,22 @@ const MobileServicesManage = () => {
                   placeholder="Optional"
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>💰 Cost Price (Admin only)</Label>
+              <Input
+                type="number"
+                value={newService.cost_price}
+                onChange={(e) => setNewService({ ...newService, cost_price: e.target.value })}
+                placeholder="Your wholesale cost"
+              />
+              {newService.price && newService.cost_price && Number(newService.price) > 0 && Number(newService.cost_price) > 0 && (
+                <p className="text-xs text-green-600 font-medium">
+                  Profit: {(Number(newService.price) - Number(newService.cost_price)).toLocaleString()} Ks
+                  {" "}({(((Number(newService.price) - Number(newService.cost_price)) / Number(newService.price)) * 100).toFixed(1)}%)
+                </p>
+              )}
+              <p className="text-[10px] text-muted-foreground">Hidden from users.</p>
             </div>
             <div className="space-y-2">
               <Label>Image URL</Label>

@@ -561,6 +561,7 @@ export type Database = {
       }
       digital_product_plans: {
         Row: {
+          cost_price: number
           created_at: string
           duration_label: string | null
           id: string
@@ -572,6 +573,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cost_price?: number
           created_at?: string
           duration_label?: string | null
           id?: string
@@ -583,6 +585,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cost_price?: number
           created_at?: string
           duration_label?: string | null
           id?: string
@@ -997,6 +1000,7 @@ export type Database = {
       }
       mlbb_diamond_tiers: {
         Row: {
+          cost_price: number
           created_at: string
           display_order: number
           emoji: string | null
@@ -1006,6 +1010,7 @@ export type Database = {
           slug: string
         }
         Insert: {
+          cost_price?: number
           created_at?: string
           display_order?: number
           emoji?: string | null
@@ -1015,6 +1020,7 @@ export type Database = {
           slug: string
         }
         Update: {
+          cost_price?: number
           created_at?: string
           display_order?: number
           emoji?: string | null
@@ -1706,6 +1712,7 @@ export type Database = {
       products: {
         Row: {
           category: string
+          cost_price: number
           created_at: string | null
           description: string | null
           diamond_tier: string | null
@@ -1722,6 +1729,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          cost_price?: number
           created_at?: string | null
           description?: string | null
           diamond_tier?: string | null
@@ -1738,6 +1746,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          cost_price?: number
           created_at?: string | null
           description?: string | null
           diamond_tier?: string | null

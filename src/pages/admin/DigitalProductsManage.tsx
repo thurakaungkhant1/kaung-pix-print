@@ -48,6 +48,7 @@ interface Plan {
   name: string;
   duration_label: string;
   price: number;
+  cost_price: number;
   sort_order: number;
   is_active: boolean;
   _deleted?: boolean;
@@ -114,7 +115,7 @@ const DigitalProductsManage = () => {
   const openNew = () => {
     setForm({ ...emptyForm });
     setPlans([
-      { name: "1 Month", duration_label: "1 month", price: 0, sort_order: 0, is_active: true, _new: true },
+      { name: "1 Month", duration_label: "1 month", price: 0, cost_price: 0, sort_order: 0, is_active: true, _new: true },
     ]);
     setOpen(true);
   };
@@ -140,6 +141,7 @@ const DigitalProductsManage = () => {
         name: d.name,
         duration_label: d.duration_label || "",
         price: Number(d.price),
+        cost_price: Number(d.cost_price || 0),
         sort_order: d.sort_order,
         is_active: d.is_active,
       }))
@@ -154,6 +156,7 @@ const DigitalProductsManage = () => {
         name: "",
         duration_label: "",
         price: 0,
+        cost_price: 0,
         sort_order: prev.filter((p) => !p._deleted).length,
         is_active: true,
         _new: true,
@@ -191,16 +194,21 @@ const DigitalProductsManage = () => {
     setSaving(true);
     // Use the lowest plan price as the product's base/display price
     const basePrice = Math.min(...activePlans.map((p) => Number(p.price)));
+    // Use the lowest plan cost as the product's base cost (admin only)
+    const baseCost = Math.min(
+      ...activePlans.map((p) => Number(p.cost_price || 0))
+    );
 
     const payload = {
       name: form.name.trim(),
       description: form.description || null,
       price: basePrice,
+      cost_price: baseCost || 0,
       image_url: form.image_url.trim(),
       points_value: Number(form.points_value) || 0,
       is_premium: form.is_premium,
       category: CATEGORY,
-    };
+    } as any;
 
     let productId = form.id;
     if (form.id) {
@@ -238,9 +246,10 @@ const DigitalProductsManage = () => {
         name: p.name.trim(),
         duration_label: p.duration_label?.trim() || null,
         price: Number(p.price),
+        cost_price: Number(p.cost_price || 0),
         sort_order: i,
         is_active: p.is_active,
-      };
+      } as any;
       if (p.id) {
         await supabase.from("digital_product_plans").update(row).eq("id", p.id);
       } else {
@@ -471,13 +480,29 @@ const DigitalProductsManage = () => {
                         />
                         <Input
                           type="number"
-                          placeholder="Price MMK"
+                          placeholder="Sell price MMK *"
                           value={p.price || ""}
                           onChange={(e) =>
                             updatePlan(idx, { price: Number(e.target.value) })
                           }
                           className="h-8 text-sm"
                         />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <Input
+                          type="number"
+                          placeholder="💰 Cost price (admin)"
+                          value={p.cost_price || ""}
+                          onChange={(e) =>
+                            updatePlan(idx, { cost_price: Number(e.target.value) })
+                          }
+                          className="h-8 text-sm"
+                        />
+                        {p.price > 0 && p.cost_price > 0 && (
+                          <p className="text-[11px] text-green-600 font-medium">
+                            +{(p.price - p.cost_price).toLocaleString()} profit
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">Active</span>
