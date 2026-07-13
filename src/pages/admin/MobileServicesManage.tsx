@@ -182,10 +182,11 @@ const MobileServicesManage = () => {
         name: editingProduct.name,
         price: editingProduct.price,
         original_price: editingProduct.original_price,
+        cost_price: editingProduct.cost_price ?? 0,
         description: editingProduct.description,
         category: editingProduct.category,
         status: editingProduct.status,
-      })
+      } as any)
       .eq("id", editingProduct.id);
 
     if (error) {
