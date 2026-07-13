@@ -61,6 +61,13 @@ interface Order {
 // Game categories that require game IDs
 const GAME_CATEGORIES = ["MLBB Diamonds", "PUBG UC", "Free Fire", "Genshin", "Gift Cards"];
 const MOBILE_CATEGORIES = ["Phone Top-up", "Data Plans", "Voice Plans"];
+const DIGITAL_CATEGORIES = [
+  "Digital Products",
+  "Software & License Keys",
+  "Streaming Accounts",
+  "Gift Cards & Vouchers",
+  "E-books & Courses",
+];
 
 // Track loading and preview states per order
 type LoadingState = { [orderId: string]: boolean };
