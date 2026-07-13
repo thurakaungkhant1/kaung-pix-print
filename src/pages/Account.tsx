@@ -391,6 +391,40 @@ const Account = () => {
         )}
       </div>
 
+      {/* Coin balance + Referral code cards */}
+      <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-amber-400/15 to-orange-500/15 border border-amber-500/20">
+          <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+            <Coins className="h-4 w-4" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Coins</span>
+          </div>
+          <p className="mt-1.5 text-2xl font-extrabold">{(profile?.points ?? 0).toLocaleString()}</p>
+          <button onClick={() => navigate("/point-history")} className="mt-1 text-[11px] text-muted-foreground hover:text-primary">
+            View history →
+          </button>
+        </div>
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/20">
+          <div className="flex items-center gap-2 text-primary">
+            <Gift className="h-4 w-4" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Refer Code</span>
+          </div>
+          <p className="mt-1.5 text-lg font-extrabold font-mono tracking-wider truncate">{profile?.referral_code || "—"}</p>
+          <button
+            onClick={() => {
+              if (!profile?.referral_code) return;
+              const link = `${window.location.origin}/auth/signup?ref=${profile.referral_code}`;
+              navigator.clipboard.writeText(link);
+              toast({ title: "Copied!", description: "Referral link copied" });
+            }}
+            className="mt-1 text-[11px] text-muted-foreground hover:text-primary"
+          >
+            Copy link →
+          </button>
+        </div>
+      </div>
+
+
+
       {/* ---- Account ---- */}
       <SectionLabel>Account</SectionLabel>
       <SectionCard>
