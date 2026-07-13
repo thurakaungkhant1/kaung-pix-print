@@ -73,12 +73,13 @@ const DiamondPackageForm = () => {
     const packageData = {
       name: formData.name,
       price: parseFloat(formData.price),
+      cost_price: formData.cost_price ? parseFloat(formData.cost_price) : 0,
       description: formData.description || null,
       image_url: formData.image_url || "/placeholder.svg",
       points_value: parseInt(formData.points_value),
       category: "MLBB Diamonds",
       diamond_tier: formData.diamond_tier === "auto" ? null : formData.diamond_tier,
-    };
+    } as any;
 
 
     let error;
