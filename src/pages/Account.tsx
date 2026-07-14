@@ -123,7 +123,7 @@ const Account = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { isPremium, getDaysRemaining } = usePremiumMembership();
-  const { language, setLanguage } = useLanguage();
+  
   
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
