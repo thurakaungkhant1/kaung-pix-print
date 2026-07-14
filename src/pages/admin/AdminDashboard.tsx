@@ -910,7 +910,7 @@ const AdminDashboard = () => {
         items: [
           { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
           { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
-          { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
+          
           { id: "chat-earning", label: "Chat Earning", icon: Coins, badge: 0, route: "/admin/chat-earning" },
           { id: "chat-reward-logs", label: "Chat Reward Logs", icon: History, badge: 0, route: "/admin/chat-reward-logs" },
           { id: "security", label: "Security", icon: Settings, badge: 0, route: "/admin/security" },
@@ -2275,54 +2275,7 @@ const AdminDashboard = () => {
           {/* Settings Tab */}
           {activeTab === "settings" && (
             <div className="space-y-4">
-              {/* Notification Settings */}
-              <Card className="premium-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Notification Settings
-                  </CardTitle>
-                  <CardDescription>
-                    Configure how you receive notifications for new orders
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      {soundEnabled ? (
-                        <Volume2 className="h-5 w-5 text-primary" />
-                      ) : (
-                        <VolumeX className="h-5 w-5 text-muted-foreground" />
-                      )}
-                      <div>
-                        <Label htmlFor="sound-toggle" className="font-medium">
-                          Order Notification Sound
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Play a sound when new orders arrive
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      id="sound-toggle"
-                      checked={soundEnabled}
-                      onCheckedChange={toggleSound}
-                    />
-                  </div>
-                  
-                  {soundEnabled && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={playNotificationSound}
-                      className="gap-2"
-                    >
-                      <Volume2 className="h-4 w-4" />
-                      Test Sound
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+
 
               {/* System Settings */}
               <Card className="premium-card">

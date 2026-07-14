@@ -66,7 +66,6 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
       items: [
         { id: "payment-methods", label: "Payment Methods", route: "/admin/payment-methods" },
         { id: "mobile-services", label: "Mobile Services", route: "/admin/mobile-services" },
-        { id: "ads", label: "Ads", route: "/admin/ads" },
         { id: "settings", label: "Settings" },
       ]
     },

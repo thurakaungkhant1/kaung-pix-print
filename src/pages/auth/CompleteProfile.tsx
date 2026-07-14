@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 
 const CompleteProfile = () => {
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -39,15 +40,19 @@ const CompleteProfile = () => {
     e.preventDefault();
     if (!user) return;
     const trimmedName = name.trim();
+    setNameError(null);
     if (trimmedName.length < 1) {
-      toast({ title: "Name required", variant: "destructive" });
+      setNameError("Name is required");
+      toast({ title: "Missing field", description: "Please enter your name", variant: "destructive" });
       return;
     }
     setLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ name: trimmedName })
-      .eq("id", user.id);
+      .upsert(
+        [{ id: user.id, email: user.email ?? "", name: trimmedName, phone_number: "" }],
+        { onConflict: "id" }
+      );
     setLoading(false);
     if (error) {
       toast({ title: "Failed", description: error.message, variant: "destructive" });
@@ -89,8 +94,19 @@ const CompleteProfile = () => {
               <Label htmlFor="name" className="text-sm font-semibold">Full Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="h-12 pl-10" placeholder="Your name" />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); if (nameError) setNameError(null); }}
+                  className={`h-12 pl-10 ${nameError ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                  placeholder="Your name"
+                  aria-invalid={!!nameError}
+                  aria-describedby={nameError ? "name-error" : undefined}
+                />
               </div>
+              {nameError && (
+                <p id="name-error" className="text-xs text-destructive font-medium">{nameError}</p>
+              )}
             </div>
 
 

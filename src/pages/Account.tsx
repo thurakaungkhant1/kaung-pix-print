@@ -46,6 +46,7 @@ interface Profile {
   name: string;
   phone_number: string;
   points: number;
+  game_points: number;
   avatar_url: string | null;
   account_status: string;
   referral_code: string;
@@ -164,7 +165,7 @@ const Account = () => {
 
   const loadProfile = async () => {
     if (!user) return;
-    const { data } = await supabase.from("profiles").select("name, phone_number, points, avatar_url, account_status, referral_code").eq("id", user.id).single();
+    const { data } = await supabase.from("profiles").select("name, phone_number, points, game_points, avatar_url, account_status, referral_code").eq("id", user.id).single();
     if (data) {
       setProfile(data as Profile);
       setEditName(data.name);
@@ -185,7 +186,12 @@ const Account = () => {
   };
 
   const handleSaveName = async () => {
-    if (!user || !editName.trim()) return;
+    if (!user) return;
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      toast({ title: "Name is required", description: "Please enter your name before saving.", variant: "destructive" });
+      return;
+    }
     setSavingProfile(true);
     try {
       // Upsert so the save works even if the profile row hasn't been created yet
@@ -193,7 +199,7 @@ const Account = () => {
       const { error } = await supabase
         .from("profiles")
         .upsert(
-          [{ id: user.id, email: user.email ?? "", name: editName.trim(), phone_number: "" }],
+          [{ id: user.id, email: user.email ?? "", name: trimmed, phone_number: "" }],
           { onConflict: "id" }
         );
       if (error) throw error;
@@ -203,15 +209,21 @@ const Account = () => {
   };
 
   const handleSavePhone = async () => {
-    if (!user || !editPhone.trim()) return;
+    if (!user) return;
+    const trimmed = editPhone.trim();
+    if (!trimmed) {
+      toast({ title: "Phone number is required", description: "Please enter a phone number before saving.", variant: "destructive" });
+      return;
+    }
     setSavingProfile(true);
     try {
-      const { error } = await supabase.from("profiles").update({ phone_number: editPhone.trim() }).eq("id", user.id);
+      const { error } = await supabase.from("profiles").update({ phone_number: trimmed }).eq("id", user.id);
       if (error) throw error;
       toast({ title: "Phone number updated successfully" }); setEditingPhone(false); loadProfile();
     } catch (error: any) { toast({ title: "Failed to update phone", description: error.message, variant: "destructive" }); }
     finally { setSavingProfile(false); }
   };
+
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -417,7 +429,7 @@ const Account = () => {
             <Coins className="h-4 w-4" />
             <span className="text-[11px] font-semibold uppercase tracking-wider">Coins</span>
           </div>
-          <p className="mt-1.5 text-2xl font-extrabold">{(profile?.points ?? 0).toLocaleString()}</p>
+          <p className="mt-1.5 text-2xl font-extrabold">{(profile?.game_points ?? 0).toLocaleString()}</p>
           <button onClick={() => navigate("/point-history")} className="mt-1 text-[11px] text-muted-foreground hover:text-primary">
             View history →
           </button>

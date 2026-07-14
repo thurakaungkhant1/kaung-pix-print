@@ -58,12 +58,12 @@ const Exchange = () => {
 
     const { data } = await supabase
       .from("profiles")
-      .select("points")
+      .select("game_points")
       .eq("id", user.id)
       .single();
 
     if (data) {
-      setPoints(data.points);
+      setPoints(data.game_points ?? 0);
     }
   };
 
@@ -135,7 +135,7 @@ const Exchange = () => {
     try {
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ points: points - item.points_required })
+        .update({ game_points: points - item.points_required })
         .eq("id", user.id);
 
       if (updateError) throw updateError;
