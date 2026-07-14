@@ -28,6 +28,13 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const [accessStatus, setAccessStatus] = useState<ProfilesAccessStatus>("checking");
+  const [accessError, setAccessError] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkProfilesAccess();
+    return subscribeProfilesAccess((s, err) => { setAccessStatus(s); setAccessError(err); });
+  }, []);
 
   const redirectTo = searchParams.get("redirectTo") || null;
 
