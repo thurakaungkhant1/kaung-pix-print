@@ -114,10 +114,16 @@ const Signup = () => {
 
       // Auto-confirm is on: session should be present. If not, sign in.
       if (!data.session) {
-        await supabase.auth.signInWithPassword({ email, password });
-      }
+  toast({
+    title: "Check your email",
+    description: "Please confirm your email before signing in.",
+  });
+  setLoading(false);
+  return;
+}
 
-      const uid = data.user?.id;
+      const { data: currentUser } = await supabase.auth.getUser();
+const uid = currentUser.user?.id;
 
 if (uid) {
   const { error: profileError } = await supabase
