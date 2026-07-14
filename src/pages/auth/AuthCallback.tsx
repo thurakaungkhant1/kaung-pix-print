@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { ensureProfileRow } from "@/lib/profileEnsure";
+import { toast } from "sonner";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -42,18 +44,24 @@ const AuthCallback = () => {
       }
     };
 
+    const handleUser = async (u: { id: string } & any) => {
+      const ok = await ensureProfileRow(u);
+      if (ok) toast.success("Signed in successfully");
+      await route(u.id);
+    };
+
     (async () => {
       const { data } = await supabase.auth.getSession();
       if (cancelled) return;
       if (data.session?.user) {
-        await route(data.session.user.id);
+        await handleUser(data.session.user);
         return;
       }
       // Session may hydrate slightly later after the hash exchange
       const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
         if (session?.user) {
           sub.subscription.unsubscribe();
-          route(session.user.id);
+          handleUser(session.user);
         }
       });
       // Fallback: if nothing arrives in 5s, send to login

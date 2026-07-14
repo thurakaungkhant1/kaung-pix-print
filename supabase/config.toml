@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.ml-nickname]
 verify_jwt = false
+
+[functions.log-profile-upsert]
+verify_jwt = true
