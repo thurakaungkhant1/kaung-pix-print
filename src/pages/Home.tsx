@@ -194,10 +194,9 @@ const Home = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('name, wallet_balance, points, game_points').eq('id', user.id).single()
+    supabase.from('profiles').select('wallet_balance, points, game_points').eq('id', user.id).single()
       .then(({ data }) => {
         if (data) {
-          setProfileName(data.name || "");
           setWalletBalance(Number(data.wallet_balance) || 0);
           setTotalCoins((Number(data.points) || 0) + (Number(data.game_points) || 0));
         }
