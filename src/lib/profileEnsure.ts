@@ -53,12 +53,12 @@ export async function ensureProfileRow(user: User): Promise<void> {
     const { error } = await supabase
       .from("profiles")
       .upsert(
-        {
+        [{
           id: user.id,
           email: user.email ?? null,
           name,
           avatar_url,
-        },
+        }],
         { onConflict: "id", ignoreDuplicates: true }
       );
     if (error) console.warn("[ensureProfileRow] upsert failed:", error);

@@ -193,7 +193,7 @@ const Account = () => {
       const { error } = await supabase
         .from("profiles")
         .upsert(
-          { id: user.id, email: user.email ?? null, name: editName.trim() },
+          [{ id: user.id, email: user.email ?? null, name: editName.trim() }],
           { onConflict: "id" }
         );
       if (error) throw error;
