@@ -984,7 +984,7 @@ const GamePage = () => {
                 )}
               </div>
             ) : (
-              <div key={selectedMobileService || "all"} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div key={selectedMobileService || "all"} className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {filteredProducts.map((product, index) => (
                   <Card
                     key={product.id}
