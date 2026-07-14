@@ -36,6 +36,7 @@ interface UserProfile {
   created_at: string;
   points: number;
   account_status: string;
+  ban_reason: string | null;
   avatar_url: string | null;
   wallet_balance: number;
   referred_count?: number;
