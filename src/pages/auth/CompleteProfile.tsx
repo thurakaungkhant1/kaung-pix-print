@@ -94,8 +94,19 @@ const CompleteProfile = () => {
               <Label htmlFor="name" className="text-sm font-semibold">Full Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="h-12 pl-10" placeholder="Your name" />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); if (nameError) setNameError(null); }}
+                  className={`h-12 pl-10 ${nameError ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                  placeholder="Your name"
+                  aria-invalid={!!nameError}
+                  aria-describedby={nameError ? "name-error" : undefined}
+                />
               </div>
+              {nameError && (
+                <p id="name-error" className="text-xs text-destructive font-medium">{nameError}</p>
+              )}
             </div>
 
 
