@@ -231,37 +231,41 @@ const GamesPortal = () => {
     setHasSpunToday(true);
   };
 
-  const handleRedeem = async (reward: RewardItem) => {
+  const handleRedeem = async (reward: RewardItem, qty: number = 1) => {
     if (!user || redeeming) return;
-    if (gamePoints < reward.cost_points) {
-      toast({ title: "Not enough points!", description: `You need ${reward.cost_points} game points.`, variant: "destructive" });
+    const totalCost = reward.cost_points * qty;
+    if (gamePoints < totalCost) {
+      toast({ title: "Not enough points!", description: `You need ${totalCost.toLocaleString()} game points.`, variant: "destructive" });
       return;
     }
     setRedeeming(reward.id);
     try {
-      const newPoints = gamePoints - reward.cost_points;
+      const newPoints = gamePoints - totalCost;
       await supabase.from("profiles").update({ game_points: newPoints }).eq("id", user.id);
       if (reward.reward_type === "shop_coins") {
         const { data: profile } = await supabase.from("profiles").select("points").eq("id", user.id).single();
         if (profile) {
-          await supabase.from("profiles").update({ points: profile.points + Number(reward.reward_value) }).eq("id", user.id);
+          const totalShopCoins = Number(reward.reward_value) * qty;
+          await supabase.from("profiles").update({ points: profile.points + totalShopCoins }).eq("id", user.id);
           await supabase.from("point_transactions").insert({
-            user_id: user.id, amount: Number(reward.reward_value), transaction_type: "game_reward",
-            description: `Converted ${reward.cost_points} game points to ${reward.reward_value} shop coins`,
+            user_id: user.id, amount: totalShopCoins, transaction_type: "game_reward",
+            description: `Converted ${totalCost} game points to ${totalShopCoins} shop coins`,
           });
         }
       } else if (reward.reward_type === "wallet_credit") {
         const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("id", user.id).single();
         if (profile) {
-          await supabase.from("profiles").update({ wallet_balance: Number(profile.wallet_balance || 0) + Number(reward.reward_value) }).eq("id", user.id);
+          await supabase.from("profiles").update({ wallet_balance: Number(profile.wallet_balance || 0) + Number(reward.reward_value) * qty }).eq("id", user.id);
         }
       }
-      await supabase.from("game_redemptions").insert({
+      const rows = Array.from({ length: qty }).map(() => ({
         user_id: user.id, reward_item_id: reward.id, reward_name: reward.name,
         cost_points: reward.cost_points, reward_type: reward.reward_type, reward_value: reward.reward_value,
         status: reward.reward_type === "manual" || reward.reward_type === "premium_days" ? "pending" : "delivered",
-      });
-      toast({ title: "🎉 Reward Redeemed!", description: `${reward.name} — check your account!` });
+      }));
+      await supabase.from("game_redemptions").insert(rows);
+      setSelectedReward(null);
+      setSuccessReward({ name: reward.name, qty, cost: totalCost });
       refreshData();
     } catch {
       toast({ title: "Redemption failed", variant: "destructive" });
