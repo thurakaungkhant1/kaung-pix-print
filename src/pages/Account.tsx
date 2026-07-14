@@ -428,7 +428,7 @@ const Account = () => {
             <Coins className="h-4 w-4" />
             <span className="text-[11px] font-semibold uppercase tracking-wider">Coins</span>
           </div>
-          <p className="mt-1.5 text-2xl font-extrabold">{(profile?.game_points ?? 0).toLocaleString()}</p>
+          <p className="mt-1.5 text-2xl font-extrabold">{((profile?.game_points ?? 0) + (profile?.points ?? 0)).toLocaleString()}</p>
           <button onClick={() => navigate("/point-history")} className="mt-1 text-[11px] text-muted-foreground hover:text-primary">
             View history →
           </button>
@@ -557,13 +557,6 @@ const Account = () => {
           iconColor="text-amber-600 dark:text-amber-400"
           onClick={toggleTheme}
           right={<span className="text-[13px] text-primary font-medium">{theme === "dark" ? "Dark" : "Light"}</span>}
-        />
-        <Row
-          icon={Sparkles}
-          label="Notifications"
-          iconBg="bg-violet-500/10"
-          iconColor="text-violet-600 dark:text-violet-400"
-          right={<Switch checked={pushNotifications} onCheckedChange={handlePushNotificationToggle} />}
         />
       </SectionCard>
 
