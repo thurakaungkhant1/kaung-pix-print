@@ -477,6 +477,29 @@ const Home = () => {
                   See All
                 </button>
               </div>
+
+              {/* Combined coin balance (game + purchase coins) */}
+              <button
+                onClick={() => navigate("/point-history")}
+                className="w-full mb-3 rounded-2xl p-4 text-left relative overflow-hidden shadow-lg group"
+                style={{ background: "linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%)" }}
+              >
+                <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/15 rounded-full blur-2xl" />
+                <div className="absolute -bottom-8 -left-4 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+                <div className="relative z-10 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center flex-shrink-0">
+                    <Zap className="h-6 w-6 text-yellow-100" fill="currentColor" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-white/80">Total Coins</p>
+                    <p className="text-2xl font-display font-black text-white tabular-nums leading-tight">
+                      {totalCoins.toLocaleString()}
+                    </p>
+                    <p className="text-[10px] text-white/85 mt-0.5">Game + Purchase coins combined</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-white/90 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </button>
               <div className="grid grid-cols-2 gap-3">
                 {EARN_POINTS_GAMES.map((game, i) => (
                   <motion.button
