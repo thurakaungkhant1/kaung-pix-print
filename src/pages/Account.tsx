@@ -75,6 +75,8 @@ const Account = () => {
   const [favCounts, setFavCounts] = useState({ games: 0, mobile: 0, photos: 0 });
   const [referrals, setReferrals] = useState<Array<{ id: string; name: string | null; email: string | null; avatar_url: string | null; joined_at: string }>>([]);
   const [showReferrals, setShowReferrals] = useState(false);
+  const [coinTxns, setCoinTxns] = useState<Array<{ id: string; amount: number; transaction_type: string; description: string | null; created_at: string }>>([]);
+  const [showCoinHistory, setShowCoinHistory] = useState(false);
 
   
   const [editingName, setEditingName] = useState(false);
@@ -129,8 +131,19 @@ const Account = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); loadReferrals(); }
+    if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); loadReferrals(); loadCoinTxns(); }
   }, [user]);
+
+  const loadCoinTxns = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("point_transactions")
+      .select("id, amount, transaction_type, description, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (data) setCoinTxns(data as any);
+  };
 
   const loadReferrals = async () => {
     if (!user) return;
