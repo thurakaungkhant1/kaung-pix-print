@@ -233,45 +233,54 @@ const Home = () => {
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       <AnimatedPage>
         <MobileLayout className="max-w-screen-xl mx-auto bg-background">
-          {/* ── Top Bar: sleek profile widget ── */}
-          <header className="px-5 pt-7 pb-5">
+          {/* ── Top Bar: elegant greeting widget ── */}
+          <header className="px-5 pt-7 pb-4">
             <motion.div
               initial={{ y: -10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="glass-card rounded-2xl p-2.5 pl-3 flex items-center gap-3 shadow-sm"
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card/90 via-card/70 to-background/90 border border-border/60 p-4 shadow-sm backdrop-blur-xl"
             >
-              <button
-                onClick={() => navigate('/account')}
-                className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-orange-400 flex items-center justify-center text-white font-display font-bold text-base shadow-md ring-2 ring-white/60 dark:ring-white/10 flex-shrink-0"
-                aria-label="Open account"
-              >
-                {greetingName.charAt(0).toUpperCase()}
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-background" />
-              </button>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 leading-none mb-1">
-                  Mingalarpar 🙏
-                </p>
-                <h1 className="text-sm font-display font-bold text-foreground truncate leading-tight">
-                  {greetingName}
-                </h1>
+              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-primary/10 blur-2xl" />
+              <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-fuchsia-500/10 blur-2xl" />
+              <div className="relative flex items-center gap-3.5">
+                <button
+                  onClick={() => navigate('/account')}
+                  className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-emerald-500 to-teal-400 flex items-center justify-center text-white font-display font-bold text-lg shadow-md ring-2 ring-white/70 dark:ring-white/10 flex-shrink-0"
+                  aria-label="Open account"
+                >
+                  {greetingName.charAt(0).toUpperCase()}
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-background" />
+                </button>
+                <div className="min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 mb-1.5">
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-bold text-primary leading-none">
+                      Mingalarpar
+                    </span>
+                    <span className="text-[10px] leading-none">🙏</span>
+                  </div>
+                  <h1 className="text-base font-display font-bold text-foreground truncate leading-tight">
+                    {greetingName}
+                  </h1>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate('/top-up')}
+                    className="flex items-center gap-1.5 px-3 h-9 rounded-xl bg-primary/10 border border-primary/25 hover:bg-primary/20 transition-all shadow-sm"
+                  >
+                    <Wallet className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[11px] font-bold text-primary tabular-nums">
+                      {formatMMK(walletBalance)}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => navigate('/account')}
+                    className="w-9 h-9 rounded-xl bg-muted/70 border border-border/60 flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0"
+                    aria-label="Notifications"
+                  >
+                    <Bell className="h-3.5 w-3.5 text-foreground" />
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => navigate('/top-up')}
-                className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-gradient-to-r from-primary/15 to-fuchsia-500/15 border border-primary/25 hover:from-primary/25 hover:to-fuchsia-500/25 transition-all shadow-sm"
-              >
-                <Wallet className="h-4 w-4 text-primary" />
-                <span className="text-xs font-bold text-primary tabular-nums">
-                  {formatMMK(walletBalance)}
-                </span>
-              </button>
-              <button
-                onClick={() => navigate('/account')}
-                className="w-10 h-10 rounded-xl bg-card/70 border border-border/60 flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0"
-                aria-label="Notifications"
-              >
-                <Bell className="h-4 w-4 text-foreground" />
-              </button>
             </motion.div>
           </header>
 
