@@ -185,6 +185,7 @@ const App = () => {
               <FriendRequestNotifier />
               <AdminSupportNotifier />
               <PresenceTracker />
+              <BanGate />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />
