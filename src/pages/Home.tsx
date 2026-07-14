@@ -85,7 +85,6 @@ const Home = () => {
   const [photosLoading, setPhotosLoading] = useState(true);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [totalCoins, setTotalCoins] = useState<number>(0);
-  const [profileName, setProfileName] = useState<string>("");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
