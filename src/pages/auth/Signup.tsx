@@ -118,6 +118,18 @@ const Signup = () => {
       }
 
       const uid = data.user?.id;
+      if (uid) {
+  const { error } = await supabase
+    .from("profiles")
+    .insert({
+      id: uid,
+      name: trimmedName,
+      email: email,
+      referral_code: trimmedRef || null,
+    });
+
+  if (error) throw error;
+}
       if (uid && avatarFile) {
         const url = await uploadAvatar(uid);
         if (url) await supabase.from("profiles").update({ avatar_url: url }).eq("id", uid);
