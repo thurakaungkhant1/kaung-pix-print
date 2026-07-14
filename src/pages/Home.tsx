@@ -83,6 +83,7 @@ const Home = () => {
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
   const [photosLoading, setPhotosLoading] = useState(true);
   const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [totalCoins, setTotalCoins] = useState<number>(0);
   const [profileName, setProfileName] = useState<string>("");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -182,19 +183,23 @@ const Home = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('name, wallet_balance').eq('id', user.id).single()
+    supabase.from('profiles').select('name, wallet_balance, points, game_points').eq('id', user.id).single()
       .then(({ data }) => {
         if (data) {
           setProfileName(data.name || "");
           setWalletBalance(Number(data.wallet_balance) || 0);
+          setTotalCoins((Number(data.points) || 0) + (Number(data.game_points) || 0));
         }
       });
     const channel = supabase
       .channel('home-wallet')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
         (payload) => {
-          if (payload.new && typeof payload.new.wallet_balance === 'number') {
-            setWalletBalance(payload.new.wallet_balance);
+          if (payload.new) {
+            if (typeof payload.new.wallet_balance === 'number') setWalletBalance(payload.new.wallet_balance);
+            const p = Number(payload.new.points) || 0;
+            const g = Number(payload.new.game_points) || 0;
+            setTotalCoins(p + g);
           }
         })
       .subscribe();
