@@ -1792,7 +1792,7 @@ export type Database = {
           last_seen_at: string | null
           last_seen_privacy: string
           name: string
-          phone_number: string
+          phone_number: string | null
           points: number
           premium_ai_credits: number
           referral_code: string | null
@@ -1814,7 +1814,7 @@ export type Database = {
           last_seen_at?: string | null
           last_seen_privacy?: string
           name: string
-          phone_number: string
+          phone_number?: string | null
           points?: number
           premium_ai_credits?: number
           referral_code?: string | null
@@ -1836,7 +1836,7 @@ export type Database = {
           last_seen_at?: string | null
           last_seen_privacy?: string
           name?: string
-          phone_number?: string
+          phone_number?: string | null
           points?: number
           premium_ai_credits?: number
           referral_code?: string | null
