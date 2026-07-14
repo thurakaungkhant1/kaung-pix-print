@@ -364,22 +364,63 @@ const Home = () => {
                       </span>
                     </div>
                   ) : (
-                    <div className="mt-5 grid grid-cols-4 gap-2">
-                      {digitalCats.slice(0, 4).map((c) => {
-                        const Icon = DIGITAL_ICON_MAP[(c.icon || "package").toLowerCase()] || Package;
-                        return (
-                          <div
-                            key={c.id}
-                            className="rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 hover:bg-emerald-500/10 hover:border-emerald-400/30"
-                          >
-                            <Icon className="h-4 w-4 text-emerald-300" />
-                            <span className="text-white/90 text-[10px] font-semibold tracking-wide text-center line-clamp-1">
-                              {c.name}
+                    <>
+                      {/* Sample apps preview so users know what's inside */}
+                      {digitalPreview.length > 0 && (
+                        <div className="mt-5">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80">
+                              Inside the catalog
                             </span>
+                            <span className="text-[10px] text-white/50">Tap to explore</span>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <div className="grid grid-cols-4 gap-2">
+                            {digitalPreview.map((p) => (
+                              <div
+                                key={p.id}
+                                className="relative rounded-2xl aspect-square overflow-hidden bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/30 group-hover:shadow-[0_8px_24px_-8px_rgba(16,185,129,0.5)]"
+                              >
+                                {p.image_url ? (
+                                  <img
+                                    src={p.image_url}
+                                    alt={p.name}
+                                    loading="lazy"
+                                    className="absolute inset-0 h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <Package className="h-5 w-5 text-emerald-300/70" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-1.5 pt-4 pb-1.5">
+                                  <p className="text-white text-[9px] font-semibold leading-tight text-center line-clamp-1 drop-shadow">
+                                    {p.name}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Category chips */}
+                      <div className="mt-3 grid grid-cols-4 gap-2">
+                        {digitalCats.slice(0, 4).map((c) => {
+                          const Icon = DIGITAL_ICON_MAP[(c.icon || "package").toLowerCase()] || Package;
+                          return (
+                            <div
+                              key={c.id}
+                              className="rounded-xl px-2 py-2 flex items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 hover:bg-emerald-500/10 hover:border-emerald-400/30"
+                            >
+                              <Icon className="h-3.5 w-3.5 text-emerald-300 flex-shrink-0" />
+                              <span className="text-white/90 text-[10px] font-semibold tracking-wide truncate">
+                                {c.name}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
                   )}
 
                   <div className="mt-5 flex items-center justify-between gap-3">
@@ -389,7 +430,7 @@ const Home = () => {
                       <ArrowRight className="h-3.5 w-3.5" />
                     </span>
                     <span className="text-[10px] text-emerald-300/80 font-medium tracking-wider">
-                      NEW LOOK
+                      {digitalPreview.length > 0 ? `${digitalPreview.length}+ APPS` : "NEW LOOK"}
                     </span>
                   </div>
                 </div>
