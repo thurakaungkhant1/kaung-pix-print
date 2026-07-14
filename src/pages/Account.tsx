@@ -429,7 +429,7 @@ const Account = () => {
             <Coins className="h-4 w-4" />
             <span className="text-[11px] font-semibold uppercase tracking-wider">Coins</span>
           </div>
-          <p className="mt-1.5 text-2xl font-extrabold">{(profile?.points ?? 0).toLocaleString()}</p>
+          <p className="mt-1.5 text-2xl font-extrabold">{(profile?.game_points ?? 0).toLocaleString()}</p>
           <button onClick={() => navigate("/point-history")} className="mt-1 text-[11px] text-muted-foreground hover:text-primary">
             View history →
           </button>
