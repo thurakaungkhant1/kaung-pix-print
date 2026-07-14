@@ -78,6 +78,7 @@ const Home = () => {
   const [digitalLoading, setDigitalLoading] = useState(true);
   const [digitalError, setDigitalError] = useState<string | null>(null);
   const [digitalReloadKey, setDigitalReloadKey] = useState(0);
+  const [digitalPreview, setDigitalPreview] = useState<Array<{ id: number; name: string; image_url: string | null }>>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [recentPhotos, setRecentPhotos] = useState<any[]>([]);
   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
