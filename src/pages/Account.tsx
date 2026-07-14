@@ -194,8 +194,7 @@ const Account = () => {
     }
     setSavingProfile(true);
     try {
-      // Upsert so the save works even if the profile row hasn't been created yet
-      // (e.g. brand-new Google sign-ups where the trigger hasn't populated it).
+      // Upsert so the save works even if the profile row hasn't been created yet.
       const { error } = await supabase
         .from("profiles")
         .upsert(
