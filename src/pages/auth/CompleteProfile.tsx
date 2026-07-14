@@ -93,13 +93,6 @@ const CompleteProfile = () => {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="phone" className="text-sm font-semibold">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className="h-12 pl-10" placeholder="09123456789" />
-              </div>
-            </div>
 
             <Button type="submit" disabled={loading} className="w-full h-12 rounded-full text-base font-semibold mt-2">
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Continue"}
