@@ -244,37 +244,14 @@ const Signup = () => {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phone" className="text-sm font-semibold">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="phone" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required className="h-12 pl-10" placeholder="09123456789" />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
               <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 pl-10 pr-11" placeholder="••••••••" />
+                <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} className="h-12 pl-10 pr-11" placeholder="At least 8 characters" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {password && (
-                <div className="space-y-1.5 pt-1 animate-fade-in">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((l) => (
-                      <div key={l} className={cn("h-1 flex-1 rounded-full transition-all", passwordStrength >= l ? l <= 2 ? "bg-destructive" : l === 3 ? "bg-yellow-500" : "bg-primary" : "bg-muted")} />
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 text-[11px]">
-                    <span className={cn("flex items-center gap-1", password.length >= 8 ? "text-primary" : "text-muted-foreground")}><CheckCircle className="h-3 w-3" /> 8+ chars</span>
-                    <span className={cn("flex items-center gap-1", /[A-Z]/.test(password) ? "text-primary" : "text-muted-foreground")}><CheckCircle className="h-3 w-3" /> 1 capital</span>
-                    <span className={cn("flex items-center gap-1", /[0-9]/.test(password) ? "text-primary" : "text-muted-foreground")}><CheckCircle className="h-3 w-3" /> 1 number</span>
-                    <span className={cn("flex items-center gap-1", /[!@#$%^&*(),.?":{}|<>]/.test(password) ? "text-primary" : "text-muted-foreground")}><CheckCircle className="h-3 w-3" /> 1 symbol</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="space-y-1.5">
