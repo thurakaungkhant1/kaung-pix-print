@@ -58,20 +58,16 @@ Deno.serve(async (req) => {
     if (!success) {
       const admin = createClient(url, service);
       // Best-effort persist. Table may or may not exist; ignore failures.
-      await admin
-        .from("auth_error_logs")
-        .insert({
-          user_id: user.id,
-          email: user.email,
-          provider,
-          stage,
-          error_code: error_code ? String(error_code) : null,
-          error_message: error_message ? String(error_message).slice(0, 2000) : null,
-          details: error_details ?? null,
-        })
-        .then(({ error }) => {
-          if (error) console.warn("[profiles-upsert] persist failed:", error.message);
-        });
+      const { error: logErr } = await admin.from("auth_error_logs").insert({
+        provider,
+        error_code: error_code ? String(error_code) : stage,
+        error_message: error_message
+          ? `[${stage}] user=${user.email ?? user.id} :: ${String(error_message).slice(0, 1800)}`
+          : `[${stage}] user=${user.email ?? user.id}`,
+        user_agent: req.headers.get("user-agent"),
+        url: req.headers.get("referer"),
+      });
+      if (logErr) console.warn("[profiles-upsert] persist failed:", logErr.message);
     }
 
     return new Response(JSON.stringify({ ok: true }), {
