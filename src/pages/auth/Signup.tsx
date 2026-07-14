@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Phone, Lock, Gift, Mail, Eye, EyeOff, Camera, CheckCircle } from "lucide-react";
+import { Loader2, User, Lock, Gift, Mail, Eye, EyeOff, Camera } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -24,7 +24,7 @@ const Signup = () => {
   const [searchParams] = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -84,19 +84,9 @@ const Signup = () => {
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 8) return "Password must be at least 8 characters";
-    if (!/[A-Z]/.test(pwd)) return "Password must contain 1 capital letter";
-    if (!/[0-9]/.test(pwd)) return "Password must contain 1 number";
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) return "Password must contain 1 symbol";
     return null;
   };
-  const getPasswordStrength = () => {
-    let s = 0;
-    if (password.length >= 8) s++;
-    if (/[A-Z]/.test(password)) s++;
-    if (/[0-9]/.test(password)) s++;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) s++;
-    return s;
-  };
+
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,8 +98,6 @@ const Signup = () => {
     if (password !== confirmPassword) { toast({ title: "Passwords don't match", variant: "destructive" }); setLoading(false); return; }
     const trimmedName = name.trim();
     if (trimmedName.length < 1) { toast({ title: "Enter your name", variant: "destructive" }); setLoading(false); return; }
-    const trimmedPhone = phoneNumber.trim();
-    if (!/^[+\d\s()-]{3,20}$/.test(trimmedPhone)) { toast({ title: "Invalid phone number", variant: "destructive" }); setLoading(false); return; }
     const trimmedRef = (referralCode || "").trim();
     if (trimmedRef && !/^[A-Za-z0-9]{1,16}$/.test(trimmedRef)) { toast({ title: "Invalid referral code", variant: "destructive" }); setLoading(false); return; }
 
@@ -119,7 +107,7 @@ const Signup = () => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: { name: trimmedName, phone_number: trimmedPhone, referral_code: trimmedRef || null },
+          data: { name: trimmedName, referral_code: trimmedRef || null },
         },
       });
       if (error) throw error;
@@ -170,7 +158,7 @@ const Signup = () => {
     }
   };
 
-  const passwordStrength = getPasswordStrength();
+  
 
   return (
     <MobileLayout className="min-h-screen flex flex-col bg-background">
@@ -256,37 +244,14 @@ const Signup = () => {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phone" className="text-sm font-semibold">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="phone" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required className="h-12 pl-10" placeholder="09123456789" />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
               <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 pl-10 pr-11" placeholder="••••••••" />
+                <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} className="h-12 pl-10 pr-11" placeholder="At least 8 characters" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {password && (
-                <div className="space-y-1.5 pt-1 animate-fade-in">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((l) => (
-                      <div key={l} className={cn("h-1 flex-1 rounded-full transition-all", passwordStrength >= l ? l <= 2 ? "bg-destructive" : l === 3 ? "bg-yellow-500" : "bg-primary" : "bg-muted")} />
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 text-[11px]">
-                    <span className={cn("flex items-center gap-1", password.length >= 8 ? "text-primary" : "text-muted-foreground")}><CheckCircle className="h-3 w-3" /> 8+ chars</span>
-                    <span className={cn("flex items-center gap-1", /[A-Z]/.test(password) ? "text-primary" : "text-muted-foreground")}><CheckCircle className="h-3 w-3" /> 1 capital</span>
-                    <span className={cn("flex items-center gap-1", /[0-9]/.test(password) ? "text-primary" : "text-muted-foreground")}><CheckCircle className="h-3 w-3" /> 1 number</span>
-                    <span className={cn("flex items-center gap-1", /[!@#$%^&*(),.?":{}|<>]/.test(password) ? "text-primary" : "text-muted-foreground")}><CheckCircle className="h-3 w-3" /> 1 symbol</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="space-y-1.5">
