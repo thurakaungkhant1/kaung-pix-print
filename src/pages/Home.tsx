@@ -224,8 +224,6 @@ const Home = () => {
   const formatMMK = (n: number) =>
     new Intl.NumberFormat('en-US').format(Math.round(n)) + ' MMK';
 
-  const greetingName = profileName || user?.email?.split('@')[0] || "Guest";
-
   return (
     <>
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
