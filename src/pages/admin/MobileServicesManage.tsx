@@ -145,7 +145,7 @@ const MobileServicesManage = () => {
       category: newService.category,
       image_url: imageUrl,
       status: "available",
-      points_value: 0,
+      points_value: newService.points_value ? parseInt(newService.points_value) : 0,
     } as any);
     setCreating(false);
 
