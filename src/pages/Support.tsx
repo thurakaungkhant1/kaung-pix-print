@@ -117,18 +117,24 @@ const Support = () => {
   };
 
   return (
-    <MobileLayout className="flex flex-col bg-background">
-      <header className="bg-gradient-primary text-primary-foreground px-4 py-3 sticky top-0 z-40 shadow-md">
+    <MobileLayout className="flex flex-col bg-gradient-to-b from-primary/5 via-background to-background">
+      <header className="bg-gradient-primary text-primary-foreground px-4 py-3 sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-primary-foreground/10">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-primary-foreground/10 transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div className="w-10 h-10 rounded-full bg-primary-foreground/15 flex items-center justify-center">
-            <Headphones className="h-5 w-5" />
+          <div className="relative">
+            <div className="w-11 h-11 rounded-full bg-primary-foreground/15 ring-2 ring-primary-foreground/25 flex items-center justify-center">
+              <Headphones className="h-5 w-5" />
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-display font-bold leading-tight">Customer Support</h1>
-            <p className="text-[11px] opacity-80">Admin team will reply shortly</p>
+            <p className="text-[11px] opacity-90 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Online • Admin team will reply shortly
+            </p>
           </div>
         </div>
       </header>
@@ -136,8 +142,8 @@ const Support = () => {
       <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-4">
         {messages.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-              <Headphones className="h-8 w-8 text-primary" />
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3 shadow-inner">
+              <Headphones className="h-10 w-10 text-primary" />
             </div>
             <h3 className="font-semibold mb-1">မေးခွန်းရှိရင် ပို့ပါ</h3>
             <p className="text-sm text-muted-foreground max-w-xs mx-auto">
@@ -145,24 +151,26 @@ const Support = () => {
             </p>
           </div>
         )}
-        {messages.map((m) => {
+        {messages.map((m, idx) => {
           const mine = m.sender_role === "user";
           const ord = m.order_id ? orderStatuses[m.order_id] : null;
           const completed =
             ord?.status === "approved" || ord?.status === "finished" || ord?.status === "completed";
+          const prev = messages[idx - 1];
+          const showAvatar = !mine && (!prev || prev.sender_role !== m.sender_role);
           return (
-            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-1 duration-200`}>
               <div className={`flex items-end gap-2 max-w-[85%] ${mine ? "flex-row-reverse" : ""}`}>
                 {!mine && (
-                  <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
-                    <Shield className="h-3.5 w-3.5 text-primary" />
+                  <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-sm ${showAvatar ? "" : "invisible"}`}>
+                    <Shield className="h-3.5 w-3.5 text-primary-foreground" />
                   </div>
                 )}
                 <div
-                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed break-words ${
+                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed break-words shadow-sm ${
                     mine
-                      ? "bg-primary text-primary-foreground rounded-br-md"
-                      : "bg-card border border-border text-card-foreground rounded-bl-md"
+                      ? "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground rounded-br-md"
+                      : "bg-card border border-border/60 text-card-foreground rounded-bl-md"
                   }`}
                 >
                   {m.order_id && (
@@ -208,8 +216,8 @@ const Support = () => {
         <div ref={endRef} />
       </div>
 
-      <div className="p-3 border-t bg-background/95 backdrop-blur sticky bottom-0">
-        <div className="flex gap-2">
+      <div className="p-3 border-t bg-background/95 backdrop-blur-md sticky bottom-0">
+        <div className="flex gap-2 items-center">
           <Input
             ref={inputRef}
             value={input}
@@ -221,9 +229,14 @@ const Support = () => {
               }
             }}
             placeholder="စာရိုက်ပါ…"
-            className="h-11 rounded-full px-4"
+            className="h-11 rounded-full px-4 bg-muted/60 border-border/60 focus-visible:ring-primary/40"
           />
-          <Button onClick={send} disabled={sending || !input.trim()} size="icon" className="h-11 w-11 rounded-full">
+          <Button
+            onClick={send}
+            disabled={sending || !input.trim()}
+            size="icon"
+            className="h-11 w-11 rounded-full shadow-md bg-gradient-to-br from-primary to-primary/85 hover:opacity-90 transition-transform active:scale-95"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>

@@ -16,6 +16,7 @@ import MessageNotifier from "@/components/MessageNotifier";
 import FriendRequestNotifier from "@/components/FriendRequestNotifier";
 import AdminSupportNotifier from "@/components/AdminSupportNotifier";
 import PresenceTracker from "@/components/PresenceTracker";
+import BanGate from "@/components/BanGate";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import ProtectedMobileAdminRoute from "@/components/ProtectedMobileAdminRoute";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -184,6 +185,7 @@ const App = () => {
               <FriendRequestNotifier />
               <AdminSupportNotifier />
               <PresenceTracker />
+              <BanGate />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />
