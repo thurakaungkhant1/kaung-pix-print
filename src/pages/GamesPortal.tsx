@@ -520,18 +520,25 @@ const GamesPortal = () => {
                     <p className="text-center text-sm text-muted-foreground py-8">No rewards available yet</p>
                   )}
                   {rewards.map(r => (
-                    <Card key={r.id} className="p-4 rounded-2xl border-border/60 bg-card hover:shadow-md transition-all">
+                    <Card
+                      key={r.id}
+                      onClick={() => { setSelectedReward(r); setRedeemQty(1); }}
+                      className="p-4 rounded-2xl border-border/60 bg-card hover:shadow-md transition-all cursor-pointer active:scale-[0.99]"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="text-3xl">{r.emoji}</div>
                         <div className="flex-1">
                           <h4 className="text-sm font-bold">{r.name}</h4>
-                          <p className="text-[11px] text-muted-foreground">{r.description}</p>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2">{r.description}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-bold text-primary">{r.cost_points.toLocaleString()}</p>
-                          <Button size="sm" className="h-7 text-[10px] rounded-full mt-1 px-3"
+                          <Button
+                            size="sm"
+                            className="h-7 text-[10px] rounded-full mt-1 px-3"
                             disabled={gamePoints < r.cost_points || redeeming === r.id}
-                            onClick={() => handleRedeem(r)}>
+                            onClick={(e) => { e.stopPropagation(); setSelectedReward(r); setRedeemQty(1); }}
+                          >
                             {redeeming === r.id ? "..." : gamePoints >= r.cost_points ? "Redeem" : "Need more"}
                           </Button>
                         </div>
