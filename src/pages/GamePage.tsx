@@ -1221,7 +1221,25 @@ const GamePage = () => {
         </DialogContent>
       </Dialog>
 
-      
+      {/* Order Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mb-3">
+              <Zap className="h-8 w-8 text-green-500" />
+            </div>
+            <DialogTitle className="text-center text-xl">သင်၏ ၀ယ်ယူမှု အောင်မြင်ပါသည်</DialogTitle>
+            <DialogDescription className="text-center pt-2 text-base">
+              ကျေးဇူးပြု၍ ခဏစောင့်ပေးပါခင်ဗျာ။
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setShowSuccessDialog(false)}>
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
     </AnimatedPage>
   );
