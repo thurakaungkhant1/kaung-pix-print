@@ -348,12 +348,6 @@ const GamesPortal = () => {
               <div className="relative z-10">
                 <div className="flex items-start justify-between mb-2">
                   <p className="text-xs font-medium text-white/80">Available Game Points</p>
-                  <button
-                    onClick={() => navigate("/exchange")}
-                    className="text-xs font-semibold text-white hover:underline flex items-center gap-0.5"
-                  >
-                    Exchange <ChevronRight className="h-3 w-3" />
-                  </button>
                 </div>
                 <div className="flex items-baseline gap-2 mb-5">
                   <span className="text-4xl font-display font-black tabular-nums tracking-tight">
@@ -390,34 +384,11 @@ const GamesPortal = () => {
           </section>
         </AnimatedSection>
 
-        {/* Daily Lucky Spin Card */}
-        <AnimatedSection delay={0.1}>
-          <section className="px-5 mt-4">
-            <div className="rounded-2xl bg-card border border-border/60 p-4 flex items-center gap-3 shadow-sm">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-3xl flex-shrink-0"
-                style={{ background: "conic-gradient(from 0deg, #ef4444, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ef4444)" }}
-              >
-                <span className="bg-card rounded-full w-10 h-10 flex items-center justify-center text-xl">🎡</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-foreground">Daily Lucky Spin</p>
-                <p className="text-[11px] text-muted-foreground">Win up to 50 points daily!</p>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => setActiveTab("spin")}
-                className="rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold px-4 h-9"
-                disabled={hasSpunToday}
-              >
-                {hasSpunToday ? "Spun" : "Spin Now"}
-              </Button>
-            </div>
-          </section>
-        </AnimatedSection>
+        {/* Daily Lucky Spin removed */}
 
         <div className="px-5 mt-5 pb-28">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-4 h-11 bg-card border border-border/60 rounded-2xl p-1">
+            <TabsList className="grid w-full grid-cols-3 mb-4 h-11 bg-card border border-border/60 rounded-2xl p-1">
               <TabsTrigger value="games" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                 <Gamepad2 className="h-3 w-3" /> Games
               </TabsTrigger>
@@ -426,9 +397,6 @@ const GamesPortal = () => {
               </TabsTrigger>
               <TabsTrigger value="leaderboard" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                 <Trophy className="h-3 w-3" /> Top 10
-              </TabsTrigger>
-              <TabsTrigger value="spin" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
-                <Gift className="h-3 w-3" /> Spin
               </TabsTrigger>
             </TabsList>
 
@@ -598,20 +566,6 @@ const GamesPortal = () => {
               </AnimatedSection>
             </TabsContent>
 
-            <TabsContent value="spin">
-              <AnimatedSection>
-                <Card className="p-6 rounded-2xl border-border/60 bg-card">
-                  <div className="flex flex-col items-center py-2">
-                    <div className="p-3 rounded-2xl bg-violet-500/10 mb-3"><Gift className="h-6 w-6 text-violet-600" /></div>
-                    <h2 className="text-lg font-display font-bold mb-1">Daily Lucky Spin</h2>
-                    <p className="text-sm text-muted-foreground mb-6">1 free spin per day — win bonus points!</p>
-                    <Suspense fallback={<div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />}>
-                      <LuckySpin onWin={handleSpin} disabled={hasSpunToday} />
-                    </Suspense>
-                  </div>
-                </Card>
-              </AnimatedSection>
-            </TabsContent>
           </Tabs>
         </div>
       </MobileLayout>
