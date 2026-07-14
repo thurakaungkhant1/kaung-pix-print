@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Phone, Sparkles } from "lucide-react";
+import { Loader2, User, Sparkles } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
 const CompleteProfile = () => {
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -23,17 +22,15 @@ const CompleteProfile = () => {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("name, phone_number")
+        .select("name")
         .eq("id", user.id)
         .maybeSingle();
       if (data) {
-        // Already complete — skip
-        if (data.phone_number && data.name) {
+        if (data.name) {
           navigate("/", { replace: true });
           return;
         }
         setName(data.name || "");
-        setPhone(data.phone_number || "");
       }
     })();
   }, [user, navigate]);
@@ -42,19 +39,14 @@ const CompleteProfile = () => {
     e.preventDefault();
     if (!user) return;
     const trimmedName = name.trim();
-    const trimmedPhone = phone.trim();
     if (trimmedName.length < 1) {
       toast({ title: "Name required", variant: "destructive" });
-      return;
-    }
-    if (!/^[+\d\s()-]{3,20}$/.test(trimmedPhone)) {
-      toast({ title: "Enter a valid phone number", variant: "destructive" });
       return;
     }
     setLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ name: trimmedName, phone_number: trimmedPhone })
+      .update({ name: trimmedName })
       .eq("id", user.id);
     setLoading(false);
     if (error) {
