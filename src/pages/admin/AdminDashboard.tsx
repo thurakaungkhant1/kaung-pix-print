@@ -910,7 +910,7 @@ const AdminDashboard = () => {
         items: [
           { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
           { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
-          { id: "ads", label: "Ads", icon: Megaphone, badge: 0, route: "/admin/ads" },
+          
           { id: "chat-earning", label: "Chat Earning", icon: Coins, badge: 0, route: "/admin/chat-earning" },
           { id: "chat-reward-logs", label: "Chat Reward Logs", icon: History, badge: 0, route: "/admin/chat-reward-logs" },
           { id: "security", label: "Security", icon: Settings, badge: 0, route: "/admin/security" },
