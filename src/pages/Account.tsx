@@ -742,7 +742,7 @@ const Account = () => {
               label="Language"
               iconBg="bg-blue-500/10"
               iconColor="text-blue-600 dark:text-blue-400"
-              onClick={() => setLanguage(language === "en" ? "mm" : "en")}
+              onClick={() => setLanguage(language === "en" ? "my" : "en")}
               right={<span className="text-[13px] text-primary font-medium">{language === "en" ? "English" : "Myanmar"}</span>}
             />
           </SectionCard>
