@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Home, MessageCircle, User, Settings, ShoppingBag } from "lucide-react";
+import { Home, User, Settings, ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
@@ -33,67 +33,62 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-3 left-3 right-3 z-50 rounded-2xl border border-border/40 bg-background/70 backdrop-blur-2xl shadow-xl">
-      <div className="max-w-screen-xl mx-auto">
-        <div className="flex justify-around items-center h-16 px-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === "/"}
-              className={cn(
-                "relative flex flex-col items-center justify-center flex-1 py-1.5 rounded-2xl",
-                "text-muted-foreground transition-all duration-200 group",
-              )}
-              activeClassName="text-primary"
-            >
-              {({ isActive }) => (
-                <motion.div
-                  className="relative flex flex-col items-center gap-0.5"
-                  whileTap={{ scale: 0.88 }}
-                  whileHover={{ y: -2 }}
-                >
-                  {/* Top indicator line for active */}
-                  {isActive && (
-                    <motion.span
-                      layoutId="bottomnav-indicator"
-                      className="absolute -top-3 h-1 w-8 rounded-full bg-gradient-to-r from-fuchsia-500 via-pink-500 to-orange-400 shadow-[0_0_12px_rgba(236,72,153,0.7)]"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <div className={cn(
-                    "relative p-2 rounded-xl transition-all duration-300",
-                    isActive
-                      ? "bg-gradient-to-br from-primary/20 to-fuchsia-500/20"
-                      : "group-hover:bg-muted/60",
-                  )}>
-                    <item.icon className={cn(
-                      "h-5 w-5 transition-all duration-300",
-                      isActive
-                        ? "stroke-[2.5] text-primary scale-110"
-                        : "stroke-[1.75] group-hover:scale-110 group-hover:text-foreground",
-                    )} />
-                    {isActive && (
-                      <motion.div
-                        layoutId="bottomnav-glow"
-                        className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/40 to-fuchsia-500/40 blur-xl -z-10"
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
+    <nav
+      className={cn(
+        "fixed bottom-3 left-3 right-3 z-50 mx-auto max-w-[420px]",
+        "rounded-[2.5rem] border border-border/60",
+        "bg-background/80 backdrop-blur-2xl",
+        "shadow-[0_20px_50px_rgba(0,0,0,0.35)]",
+        "px-2 py-2",
+      )}
+    >
+      <div className="flex items-center justify-between">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === "/"}
+            className="relative flex flex-1 items-center justify-center py-3 px-2 group"
+          >
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <motion.span
+                    layoutId="bottomnav-pill"
+                    className={cn(
+                      "absolute inset-x-1 inset-y-1 rounded-[2rem]",
+                      "bg-foreground shadow-lg",
                     )}
-                  </div>
-                  <span className={cn(
-                    "text-[10px] font-medium transition-all duration-200",
-                    isActive
-                      ? "font-bold text-primary"
-                      : "group-hover:text-foreground",
-                  )}>
+                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                  />
+                )}
+                <motion.div
+                  className="relative z-10 flex flex-col items-center"
+                  whileTap={{ scale: 0.92 }}
+                >
+                  <item.icon
+                    className={cn(
+                      "h-5 w-5 mb-1 transition-colors duration-300",
+                      isActive
+                        ? "text-background stroke-[2.25]"
+                        : "text-muted-foreground group-hover:text-foreground stroke-[2]",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-[10px] uppercase tracking-wider transition-colors duration-300",
+                      isActive
+                        ? "font-bold text-background"
+                        : "font-semibold text-muted-foreground group-hover:text-foreground",
+                    )}
+                  >
                     {item.label}
                   </span>
                 </motion.div>
-              )}
-            </NavLink>
-          ))}
-        </div>
+              </>
+            )}
+          </NavLink>
+        ))}
       </div>
     </nav>
   );
