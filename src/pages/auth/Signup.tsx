@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
@@ -18,6 +19,7 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [referralCode, setReferralCode] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -26,6 +28,16 @@ const Signup = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!agreedToTerms) {
+      toast({
+        title: "Terms & Conditions",
+        description: "Please accept the Terms & Conditions to continue",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
 
     if (!validateEmail(email)) {
       toast({ title: "Invalid Email", variant: "destructive" });
@@ -187,6 +199,17 @@ const Signup = () => {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input id="referral" placeholder="Enter referral code" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} className="h-12 pl-10" />
               </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 pt-1">
+              <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(v) => setAgreedToTerms(v === true)} className="mt-0.5" />
+              <Label htmlFor="terms" className="text-xs font-normal text-muted-foreground leading-relaxed cursor-pointer">
+                I agree to the{" "}
+                <Link to="/terms" className="text-primary font-semibold hover:underline">
+                  Terms & Conditions
+                </Link>{" "}
+                and Privacy Policy
+              </Label>
             </div>
 
             <Button type="submit" disabled={loading} className="w-full h-12 rounded-full text-base font-semibold mt-2">
