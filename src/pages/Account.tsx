@@ -46,6 +46,7 @@ interface Profile {
   name: string;
   phone_number: string;
   points: number;
+  game_points: number;
   avatar_url: string | null;
   account_status: string;
   referral_code: string;
