@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 
 const CompleteProfile = () => {
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
