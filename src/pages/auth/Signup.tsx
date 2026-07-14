@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Phone, Lock, Gift, Mail, Eye, EyeOff, Camera, CheckCircle } from "lucide-react";
+import { Loader2, User, Lock, Gift, Mail, Eye, EyeOff, Camera } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
