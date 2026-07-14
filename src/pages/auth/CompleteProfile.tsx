@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Phone, Sparkles } from "lucide-react";
+import { Loader2, User, Sparkles } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
 const CompleteProfile = () => {
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -23,17 +22,15 @@ const CompleteProfile = () => {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("name, phone_number")
+        .select("name")
         .eq("id", user.id)
         .maybeSingle();
       if (data) {
-        // Already complete — skip
-        if (data.phone_number && data.name) {
+        if (data.name) {
           navigate("/", { replace: true });
           return;
         }
         setName(data.name || "");
-        setPhone(data.phone_number || "");
       }
     })();
   }, [user, navigate]);
@@ -42,19 +39,14 @@ const CompleteProfile = () => {
     e.preventDefault();
     if (!user) return;
     const trimmedName = name.trim();
-    const trimmedPhone = phone.trim();
     if (trimmedName.length < 1) {
       toast({ title: "Name required", variant: "destructive" });
-      return;
-    }
-    if (!/^[+\d\s()-]{3,20}$/.test(trimmedPhone)) {
-      toast({ title: "Enter a valid phone number", variant: "destructive" });
       return;
     }
     setLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ name: trimmedName, phone_number: trimmedPhone })
+      .update({ name: trimmedName })
       .eq("id", user.id);
     setLoading(false);
     if (error) {
@@ -101,13 +93,6 @@ const CompleteProfile = () => {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="phone" className="text-sm font-semibold">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className="h-12 pl-10" placeholder="09123456789" />
-              </div>
-            </div>
 
             <Button type="submit" disabled={loading} className="w-full h-12 rounded-full text-base font-semibold mt-2">
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Continue"}
