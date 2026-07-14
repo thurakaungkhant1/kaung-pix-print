@@ -159,6 +159,21 @@ const GamesPortal = () => {
       });
   }, [isOnline]);
 
+  // Check daily spin status on load
+  useEffect(() => {
+    if (!user || !isOnline) return;
+    const today = new Date().toISOString().split("T")[0];
+    supabase
+      .from("spinner_spins")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("spin_date", today)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setHasSpunToday(true);
+      });
+  }, [user, isOnline]);
+
   const handleGameEnd = async (gameName: string, score: number, isWin: boolean) => {
     if (!isOnline) {
       const pending = JSON.parse(localStorage.getItem("pending_scores") || "[]");
@@ -178,7 +193,29 @@ const GamesPortal = () => {
   };
 
   const handleSpin = async (points: number) => {
-    if (points > 0 && user && isOnline) {
+    if (!user || !isOnline) {
+      setHasSpunToday(true);
+      return;
+    }
+    const today = new Date().toISOString().split("T")[0];
+
+    // Persist the daily spin record — DB uniqueness prevents 2nd spin/day
+    const { error: spinErr } = await supabase
+      .from("spinner_spins")
+      .insert({ user_id: user.id, spin_date: today, points_won: points });
+
+    if (spinErr) {
+      // Already spun today (unique constraint) or other error → lock UI
+      setHasSpunToday(true);
+      toast({
+        title: "Already spun today",
+        description: "Come back tomorrow for another spin!",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (points > 0) {
       await supabase.from("profiles").update({ game_points: gamePoints + points }).eq("id", user.id);
       await supabase.from("game_scores").insert({
         user_id: user.id, game_name: "lucky-spin", score: points, points_earned: points, is_win: points > 0,
