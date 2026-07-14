@@ -40,15 +40,19 @@ const CompleteProfile = () => {
     e.preventDefault();
     if (!user) return;
     const trimmedName = name.trim();
+    setNameError(null);
     if (trimmedName.length < 1) {
-      toast({ title: "Name required", variant: "destructive" });
+      setNameError("Name is required");
+      toast({ title: "Missing field", description: "Please enter your name", variant: "destructive" });
       return;
     }
     setLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ name: trimmedName })
-      .eq("id", user.id);
+      .upsert(
+        [{ id: user.id, email: user.email ?? "", name: trimmedName, phone_number: "" }],
+        { onConflict: "id" }
+      );
     setLoading(false);
     if (error) {
       toast({ title: "Failed", description: error.message, variant: "destructive" });
