@@ -185,7 +185,12 @@ const Account = () => {
   };
 
   const handleSaveName = async () => {
-    if (!user || !editName.trim()) return;
+    if (!user) return;
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      toast({ title: "Name is required", description: "Please enter your name before saving.", variant: "destructive" });
+      return;
+    }
     setSavingProfile(true);
     try {
       // Upsert so the save works even if the profile row hasn't been created yet
@@ -193,7 +198,7 @@ const Account = () => {
       const { error } = await supabase
         .from("profiles")
         .upsert(
-          [{ id: user.id, email: user.email ?? "", name: editName.trim(), phone_number: "" }],
+          [{ id: user.id, email: user.email ?? "", name: trimmed, phone_number: "" }],
           { onConflict: "id" }
         );
       if (error) throw error;
@@ -203,15 +208,21 @@ const Account = () => {
   };
 
   const handleSavePhone = async () => {
-    if (!user || !editPhone.trim()) return;
+    if (!user) return;
+    const trimmed = editPhone.trim();
+    if (!trimmed) {
+      toast({ title: "Phone number is required", description: "Please enter a phone number before saving.", variant: "destructive" });
+      return;
+    }
     setSavingProfile(true);
     try {
-      const { error } = await supabase.from("profiles").update({ phone_number: editPhone.trim() }).eq("id", user.id);
+      const { error } = await supabase.from("profiles").update({ phone_number: trimmed }).eq("id", user.id);
       if (error) throw error;
       toast({ title: "Phone number updated successfully" }); setEditingPhone(false); loadProfile();
     } catch (error: any) { toast({ title: "Failed to update phone", description: error.message, variant: "destructive" }); }
     finally { setSavingProfile(false); }
   };
+
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
