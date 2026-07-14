@@ -48,7 +48,7 @@ const BottomNav = () => {
             key={item.to}
             to={item.to}
             end={item.to === "/"}
-            className="relative flex flex-1 items-center justify-center py-3 px-2 group"
+            className="relative flex flex-1 items-center justify-center py-1.5 px-2 group"
           >
             {({ isActive }) => (
               <>
@@ -56,8 +56,8 @@ const BottomNav = () => {
                   <motion.span
                     layoutId="bottomnav-pill"
                     className={cn(
-                      "absolute inset-x-1 inset-y-1 rounded-[2rem]",
-                      "bg-foreground shadow-lg",
+                      "absolute inset-x-1 inset-y-0.5 rounded-[1.25rem]",
+                      "bg-primary shadow-md",
                     )}
                     transition={{ type: "spring", stiffness: 380, damping: 32 }}
                   />
@@ -68,9 +68,9 @@ const BottomNav = () => {
                 >
                   <item.icon
                     className={cn(
-                      "h-5 w-5 mb-1 transition-colors duration-300",
+                      "h-[18px] w-[18px] mb-0.5 transition-colors duration-300",
                       isActive
-                        ? "text-background stroke-[2.25]"
+                        ? "text-primary-foreground stroke-[2.25]"
                         : "text-muted-foreground group-hover:text-foreground stroke-[2]",
                     )}
                   />
@@ -78,7 +78,7 @@ const BottomNav = () => {
                     className={cn(
                       "text-[10px] uppercase tracking-wider transition-colors duration-300",
                       isActive
-                        ? "font-bold text-background"
+                        ? "font-bold text-primary-foreground"
                         : "font-semibold text-muted-foreground group-hover:text-foreground",
                     )}
                   >
