@@ -97,18 +97,17 @@ export async function ensureProfileRow(user: User): Promise<boolean> {
     const avatar_url = (meta.avatar_url as string) || (meta.picture as string) || null;
     const provider = (user.app_metadata as any)?.provider ?? "unknown";
 
-    const { error } = await supabase
-      .from("profiles")
-      .upsert(
-        [{
-          id: user.id,
-          email: user.email ?? "",
-          name,
-          avatar_url: avatar_url ?? undefined,
-          phone_number: "",
-        }],
-        { onConflict: "id", ignoreDuplicates: true }
-      );
+  const { error } = await supabase
+  .from("profiles")
+  .upsert(
+    [{
+      id: user.id,
+      full_name: name,
+      email: user.email ?? "",
+      avatar_url: avatar_url ?? null,
+    }],
+    { onConflict: "id" }
+  );
 
     if (error) {
       console.warn("[ensureProfileRow] upsert failed:", error);
