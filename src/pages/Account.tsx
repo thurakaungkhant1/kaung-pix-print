@@ -397,6 +397,7 @@ const Account = () => {
   return (
     <AnimatedPage>
     <MobileLayout className="pb-24 bg-background">
+      {/* Header */}
       <div className="px-5 pt-6 pb-3">
         <h1 className="text-[22px] font-bold tracking-tight">Profile & Settings</h1>
       </div>
@@ -466,330 +467,388 @@ const Account = () => {
         </div>
       </div>
 
-      {/* ---- My Referrals ---- */}
-      <div className="mx-4 mt-4 rounded-2xl border border-border/60 bg-card overflow-hidden">
-        <button
-          onClick={() => setShowReferrals((v) => !v)}
-          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/40 transition"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Gift className="h-4.5 w-4.5 text-primary" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold">My Referrals</p>
-              <p className="text-[11px] text-muted-foreground">
-                {referrals.length} {referrals.length === 1 ? "friend" : "friends"} joined using your code
-              </p>
-            </div>
-          </div>
-          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", showReferrals && "rotate-90")} />
-        </button>
+      {/* Tabbed Settings */}
+      <Tabs defaultValue="overview" className="mx-4 mt-5">
+        <TabsList className="grid w-full grid-cols-4 h-10 rounded-2xl p-1 bg-muted/50">
+          <TabsTrigger value="overview" className="text-xs rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
+          <TabsTrigger value="account" className="text-xs rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Account</TabsTrigger>
+          <TabsTrigger value="security" className="text-xs rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Security</TabsTrigger>
+          <TabsTrigger value="about" className="text-xs rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">About</TabsTrigger>
+        </TabsList>
 
-        {showReferrals && (
-          <div className="border-t border-border/60 divide-y divide-border/40">
-            {referrals.length === 0 ? (
-              <div className="px-4 py-6 text-center text-xs text-muted-foreground">
-                No one has used your referral code yet. Share your link to earn 15 coins per friend.
-              </div>
-            ) : (
-              referrals.map((r) => (
-                <div key={r.id} className="flex items-center gap-3 px-4 py-3">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={r.avatar_url ?? undefined} />
-                    <AvatarFallback className="text-xs">
-                      {(r.name ?? r.email ?? "?").slice(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{r.name || "Unnamed"}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{r.email || "—"}</p>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground shrink-0">
-                    {new Date(r.joined_at).toLocaleDateString()}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ---- Coin Transaction History ---- */}
-      <div className="mx-4 mt-4 rounded-2xl border border-border/60 bg-card overflow-hidden">
-        <button
-          onClick={() => setShowCoinHistory((v) => !v)}
-          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/40 transition"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <History className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold">Coin History</p>
-              <p className="text-[11px] text-muted-foreground">
-                {coinTxns.length === 0 ? "No transactions yet" : `Latest ${coinTxns.length} coin activities`}
-              </p>
-            </div>
-          </div>
-          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", showCoinHistory && "rotate-90")} />
-        </button>
-
-        {showCoinHistory && (
-          <div className="border-t border-border/60 divide-y divide-border/40 max-h-80 overflow-y-auto">
-            {coinTxns.length === 0 ? (
-              <div className="px-4 py-6 text-center text-xs text-muted-foreground">
-                No coin transactions yet. Play mini games or complete orders to earn coins.
-              </div>
-            ) : (
-              coinTxns.map((t) => {
-                const isPositive = t.amount >= 0;
-                return (
-                  <div key={t.id} className="flex items-center gap-3 px-4 py-3">
-                    <div className={cn(
-                      "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0",
-                      isPositive ? "bg-emerald-500/10" : "bg-rose-500/10"
-                    )}>
-                      <Coins className={cn(
-                        "h-4 w-4",
-                        isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                      )} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate capitalize">
-                        {t.transaction_type.replace(/_/g, " ")}
-                      </p>
-                      {t.description && (
-                        <p className="text-[11px] text-muted-foreground truncate">{t.description}</p>
-                      )}
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className={cn(
-                        "text-sm font-bold tabular-nums",
-                        isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                      )}>
-                        {isPositive ? "+" : ""}{t.amount.toLocaleString()}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {new Date(t.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+        <TabsContent value="overview" className="mt-4 space-y-4">
+          {/* Quick action bento grid */}
+          <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => navigate("/point-history")}
-              className="w-full py-3 text-center text-xs font-semibold text-primary hover:bg-muted/40 transition"
+              onClick={() => setShowReferrals((v) => !v)}
+              className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-primary/30 transition-all active:scale-[0.98]"
             >
-              View full history →
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* ---- Account ---- */}
-      <SectionLabel>Account</SectionLabel>
-      <SectionCard>
-        <Row
-          icon={User}
-          label={editingName ? "Editing name…" : (profile?.name ? `Name • ${profile.name}` : "Name")}
-          iconBg="bg-emerald-500/10"
-          iconColor="text-emerald-600 dark:text-emerald-400"
-          onClick={() => setEditingName(true)}
-        />
-        {editingName && (
-          <div className="px-4 py-3 flex items-center gap-2 bg-muted/30">
-            <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 rounded-lg text-sm" autoFocus />
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={handleSaveName} disabled={savingProfile}>
-              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-primary" />}
-            </Button>
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => { setEditingName(false); setEditName(profile?.name || ""); }}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-        <Row
-          icon={Phone}
-          label={profile?.phone_number ? `Phone • ${profile.phone_number}` : "Phone Number"}
-          iconBg="bg-sky-500/10"
-          iconColor="text-sky-600 dark:text-sky-400"
-          onClick={() => setEditingPhone(true)}
-        />
-        {editingPhone && (
-          <div className="px-4 py-3 flex items-center gap-2 bg-muted/30">
-            <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9 rounded-lg text-sm" autoFocus />
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={handleSavePhone} disabled={savingProfile}>
-              {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-primary" />}
-            </Button>
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => { setEditingPhone(false); setEditPhone(profile?.phone_number || ""); }}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </SectionCard>
-
-      {/* ---- Preferences ---- */}
-      <SectionLabel>Preferences</SectionLabel>
-      <SectionCard>
-        <Row
-          icon={theme === "dark" ? Moon : Sun}
-          label="Appearance"
-          iconBg="bg-amber-500/10"
-          iconColor="text-amber-600 dark:text-amber-400"
-          onClick={toggleTheme}
-          right={<span className="text-[13px] text-primary font-medium">{theme === "dark" ? "Dark" : "Light"}</span>}
-        />
-      </SectionCard>
-
-      {/* ---- Activity ---- */}
-      <SectionLabel>Activity</SectionLabel>
-      <SectionCard>
-        <Row
-          icon={Heart}
-          label="My Favourites"
-          iconBg="bg-rose-500/10"
-          iconColor="text-rose-600 dark:text-rose-400"
-          onClick={() => {
-            const last = localStorage.getItem("favLastTab") || "games";
-            navigate(`/favourite?tab=${last}`);
-          }}
-        />
-        <Row
-          icon={ShoppingBag}
-          label="My Orders"
-          iconBg="bg-indigo-500/10"
-          iconColor="text-indigo-600 dark:text-indigo-400"
-          onClick={() => navigate("/orders")}
-        />
-        <Row
-          icon={Headphones}
-          label="Customer Support"
-          iconBg="bg-teal-500/10"
-          iconColor="text-teal-600 dark:text-teal-400"
-          onClick={() => navigate("/support")}
-        />
-        {isAdmin && (
-          <Row
-            icon={Shield}
-            label="Admin Dashboard"
-            iconBg="bg-amber-500/10"
-            iconColor="text-amber-600 dark:text-amber-400"
-            onClick={() => navigate("/admin")}
-          />
-        )}
-        {!isAdmin && isMobileAdmin && (
-          <Row
-            icon={Shield}
-            label="Mobile Admin Panel"
-            iconBg="bg-emerald-500/10"
-            iconColor="text-emerald-600 dark:text-emerald-400"
-            onClick={() => navigate("/admin/mobile-panel")}
-          />
-        )}
-      </SectionCard>
-
-      {/* ---- About & Legal ---- */}
-      <SectionLabel>About</SectionLabel>
-      <SectionCard>
-        <Row
-          icon={ShieldCheck}
-          label="Privacy Policy"
-          iconBg="bg-blue-500/10"
-          iconColor="text-blue-600 dark:text-blue-400"
-          onClick={() => navigate("/privacy")}
-        />
-        <Row
-          icon={FileText}
-          label="Terms & Conditions"
-          iconBg="bg-fuchsia-500/10"
-          iconColor="text-fuchsia-600 dark:text-fuchsia-400"
-          onClick={() => navigate("/terms")}
-        />
-        <Row
-          icon={Info}
-          label="Help Center"
-          iconBg="bg-emerald-500/10"
-          iconColor="text-emerald-600 dark:text-emerald-400"
-          onClick={() => navigate("/contact")}
-        />
-      </SectionCard>
-
-      {/* ---- Security ---- */}
-      <SectionLabel>Security</SectionLabel>
-      <SectionCard>
-        <Row
-          icon={Lock}
-          label="Change Password"
-          iconBg="bg-slate-500/10"
-          iconColor="text-slate-600 dark:text-slate-400"
-          onClick={() => {
-            const el = document.getElementById("password-section");
-            el?.scrollIntoView({ behavior: "smooth", block: "start" });
-          }}
-        />
-        <Row
-          icon={LogOut}
-          label="Logout"
-          iconBg="bg-destructive/10"
-          iconColor="text-destructive"
-          danger
-          onClick={signOut}
-          right={<></>}
-        />
-      </SectionCard>
-
-
-      {/* Password change (collapsed-ish, scrolled to on demand) */}
-      <div id="password-section" className="px-4 mt-6">
-        <Card className="rounded-2xl border-border/40 shadow-sm">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-muted">
-                <Lock className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                <Gift className="h-5 w-5" />
               </div>
-              <h3 className="font-semibold text-sm">Change Password</h3>
-            </div>
-            <div className="space-y-2.5">
-              {[
-                { id: "current-password", label: "Current Password", value: currentPassword, setValue: setCurrentPassword, show: showCurrentPassword, setShow: setShowCurrentPassword },
-                { id: "new-password", label: "New Password", value: newPassword, setValue: setNewPassword, show: showNewPassword, setShow: setShowNewPassword },
-                { id: "confirm-password", label: "Confirm Password", value: confirmPassword, setValue: setConfirmPassword, show: showConfirmPassword, setShow: setShowConfirmPassword },
-              ].map((field) => (
-                <div key={field.id} className="space-y-1">
-                  <Label htmlFor={field.id} className="text-xs">{field.label}</Label>
-                  <div className="relative">
-                    <Input id={field.id} type={field.show ? "text" : "password"} value={field.value} onChange={(e) => field.setValue(e.target.value)} placeholder={`Enter ${field.label.toLowerCase()}`} className="pr-10 h-10 rounded-lg text-sm" />
-                    <button type="button" onClick={() => field.setShow(!field.show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                      {field.show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                    </button>
-                  </div>
+              <div>
+                <p className="font-semibold text-sm">My Referrals</p>
+                <p className="text-[10px] text-muted-foreground">{referrals.length} joined</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setShowCoinHistory((v) => !v)}
+              className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-amber-500/30 transition-all active:scale-[0.98]"
+            >
+              <div className="p-2 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400">
+                <History className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Coin History</p>
+                <p className="text-[10px] text-muted-foreground">{coinTxns.length} activities</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => navigate("/orders")}
+              className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-indigo-500/30 transition-all active:scale-[0.98]"
+            >
+              <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-600 dark:text-indigo-400">
+                <ShoppingBag className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">My Orders</p>
+                <p className="text-[10px] text-muted-foreground">Order history</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                const last = localStorage.getItem("favLastTab") || "games";
+                navigate(`/favourite?tab=${last}`);
+              }}
+              className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-rose-500/30 transition-all active:scale-[0.98]"
+            >
+              <div className="p-2 bg-rose-500/10 rounded-xl text-rose-600 dark:text-rose-400">
+                <Heart className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Favourites</p>
+                <p className="text-[10px] text-muted-foreground">Saved items</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => navigate("/support")}
+              className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-teal-500/30 transition-all active:scale-[0.98]"
+            >
+              <div className="p-2 bg-teal-500/10 rounded-xl text-teal-600 dark:text-teal-400">
+                <Headphones className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Support</p>
+                <p className="text-[10px] text-muted-foreground">Get help</p>
+              </div>
+            </button>
+
+            {isAdmin ? (
+              <button
+                onClick={() => navigate("/admin")}
+                className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-amber-500/30 transition-all active:scale-[0.98]"
+              >
+                <div className="p-2 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400">
+                  <Shield className="h-5 w-5" />
                 </div>
-              ))}
-              <p className="text-[10px] text-muted-foreground">8+ chars, 1 uppercase, 1 number, 1 symbol</p>
-              <Button onClick={handlePasswordChange} disabled={isChangingPassword} className="w-full h-10 rounded-lg text-sm">
-                {isChangingPassword ? "Changing..." : "Update Password"}
-              </Button>
+                <div>
+                  <p className="font-semibold text-sm">Admin</p>
+                  <p className="text-[10px] text-muted-foreground">Dashboard</p>
+                </div>
+              </button>
+            ) : isMobileAdmin ? (
+              <button
+                onClick={() => navigate("/admin/mobile-panel")}
+                className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-emerald-500/30 transition-all active:scale-[0.98]"
+              >
+                <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400">
+                  <Shield className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Mobile Admin</p>
+                  <p className="text-[10px] text-muted-foreground">Panel</p>
+                </div>
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/messages")}
+                className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-primary/30 transition-all active:scale-[0.98]"
+              >
+                <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                  <MessageCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Messages</p>
+                  <p className="text-[10px] text-muted-foreground">Chat</p>
+                </div>
+              </button>
+            )}
+          </div>
+
+          {/* Referrals expanded list */}
+          {showReferrals && (
+            <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+              <div className="px-4 py-3 border-b border-border/60 flex items-center justify-between">
+                <p className="text-sm font-semibold">My Referrals</p>
+                <button onClick={() => setShowReferrals(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="divide-y divide-border/40 max-h-64 overflow-y-auto">
+                {referrals.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                    No one has used your referral code yet. Share your link to earn 15 coins per friend.
+                  </div>
+                ) : (
+                  referrals.map((r) => (
+                    <div key={r.id} className="flex items-center gap-3 px-4 py-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={r.avatar_url ?? undefined} />
+                        <AvatarFallback className="text-xs">
+                          {(r.name ?? r.email ?? "?").slice(0, 1).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{r.name || "Unnamed"}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{r.email || "—"}</p>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground shrink-0">
+                        {new Date(r.joined_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
 
-        {profile?.avatar_url && !avatarFile && (
+          {/* Coin history expanded list */}
+          {showCoinHistory && (
+            <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+              <div className="px-4 py-3 border-b border-border/60 flex items-center justify-between">
+                <p className="text-sm font-semibold">Coin History</p>
+                <button onClick={() => setShowCoinHistory(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="divide-y divide-border/40 max-h-64 overflow-y-auto">
+                {coinTxns.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                    No coin transactions yet. Play mini games or complete orders to earn coins.
+                  </div>
+                ) : (
+                  coinTxns.map((t) => {
+                    const isPositive = t.amount >= 0;
+                    return (
+                      <div key={t.id} className="flex items-center gap-3 px-4 py-3">
+                        <div className={cn(
+                          "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0",
+                          isPositive ? "bg-emerald-500/10" : "bg-rose-500/10"
+                        )}>
+                          <Coins className={cn(
+                            "h-4 w-4",
+                            isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                          )} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate capitalize">
+                            {t.transaction_type.replace(/_/g, " ")}
+                          </p>
+                          {t.description && (
+                            <p className="text-[11px] text-muted-foreground truncate">{t.description}</p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className={cn(
+                            "text-sm font-bold tabular-nums",
+                            isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                          )}>
+                            {isPositive ? "+" : ""}{t.amount.toLocaleString()}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {new Date(t.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <button
+                onClick={() => navigate("/point-history")}
+                className="w-full py-3 text-center text-xs font-semibold text-primary hover:bg-muted/40 transition border-t border-border/60"
+              >
+                View full history →
+              </button>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="account" className="mt-4 space-y-4">
+          <SectionCard>
+            <Row
+              icon={User}
+              label={editingName ? "Editing name…" : (profile?.name ? `Name • ${profile.name}` : "Name")}
+              iconBg="bg-emerald-500/10"
+              iconColor="text-emerald-600 dark:text-emerald-400"
+              onClick={() => setEditingName(true)}
+            />
+            {editingName && (
+              <div className="px-4 py-3 flex items-center gap-2 bg-muted/30">
+                <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 rounded-lg text-sm" autoFocus />
+                <Button size="icon" variant="ghost" className="h-9 w-9" onClick={handleSaveName} disabled={savingProfile}>
+                  {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-primary" />}
+                </Button>
+                <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => { setEditingName(false); setEditName(profile?.name || ""); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            <Row
+              icon={Phone}
+              label={profile?.phone_number ? `Phone • ${profile.phone_number}` : "Phone Number"}
+              iconBg="bg-sky-500/10"
+              iconColor="text-sky-600 dark:text-sky-400"
+              onClick={() => setEditingPhone(true)}
+            />
+            {editingPhone && (
+              <div className="px-4 py-3 flex items-center gap-2 bg-muted/30">
+                <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9 rounded-lg text-sm" autoFocus />
+                <Button size="icon" variant="ghost" className="h-9 w-9" onClick={handleSavePhone} disabled={savingProfile}>
+                  {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-primary" />}
+                </Button>
+                <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => { setEditingPhone(false); setEditPhone(profile?.phone_number || ""); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard>
+            <Row
+              icon={theme === "dark" ? Moon : Sun}
+              label="Appearance"
+              iconBg="bg-amber-500/10"
+              iconColor="text-amber-600 dark:text-amber-400"
+              onClick={toggleTheme}
+              right={<span className="text-[13px] text-primary font-medium">{theme === "dark" ? "Dark" : "Light"}</span>}
+            />
+            <Row
+              icon={Settings}
+              label="Language"
+              iconBg="bg-blue-500/10"
+              iconColor="text-blue-600 dark:text-blue-400"
+              onClick={() => setLanguage(language === "en" ? "mm" : "en")}
+              right={<span className="text-[13px] text-primary font-medium">{language === "en" ? "English" : "Myanmar"}</span>}
+            />
+          </SectionCard>
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-4 space-y-4">
+          <SectionCard>
+            <Row
+              icon={Lock}
+              label="Change Password"
+              iconBg="bg-slate-500/10"
+              iconColor="text-slate-600 dark:text-slate-400"
+              onClick={() => {
+                const el = document.getElementById("password-section");
+                el?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
+            <Row
+              icon={LogOut}
+              label="Logout"
+              iconBg="bg-destructive/10"
+              iconColor="text-destructive"
+              danger
+              onClick={signOut}
+              right={<></>}
+            />
+          </SectionCard>
+
+          {/* Password change card */}
+          <div id="password-section">
+            <Card className="rounded-2xl border-border/40 shadow-sm">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-muted">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-semibold text-sm">Change Password</h3>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { id: "current-password", label: "Current Password", value: currentPassword, setValue: setCurrentPassword, show: showCurrentPassword, setShow: setShowCurrentPassword },
+                    { id: "new-password", label: "New Password", value: newPassword, setValue: setNewPassword, show: showNewPassword, setShow: setShowNewPassword },
+                    { id: "confirm-password", label: "Confirm Password", value: confirmPassword, setValue: setConfirmPassword, show: showConfirmPassword, setShow: setShowConfirmPassword },
+                  ].map((field) => (
+                    <div key={field.id} className="space-y-1">
+                      <Label htmlFor={field.id} className="text-xs">{field.label}</Label>
+                      <div className="relative">
+                        <Input id={field.id} type={field.show ? "text" : "password"} value={field.value} onChange={(e) => field.setValue(e.target.value)} placeholder={`Enter ${field.label.toLowerCase()}`} className="pr-10 h-10 rounded-lg text-sm" />
+                        <button type="button" onClick={() => field.setShow(!field.show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                          {field.show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-[10px] text-muted-foreground">8+ chars, 1 uppercase, 1 number, 1 symbol</p>
+                  <Button onClick={handlePasswordChange} disabled={isChangingPassword} className="w-full h-10 rounded-lg text-sm">
+                    {isChangingPassword ? "Changing..." : "Update Password"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {profile?.avatar_url && !avatarFile && (
+            <button
+              onClick={() => setDeleteDialogOpen(true)}
+              className="w-full text-center text-xs text-destructive/80 hover:text-destructive py-2"
+            >
+              Remove profile photo
+            </button>
+          )}
+
           <button
-            onClick={() => setDeleteDialogOpen(true)}
-            className="mt-3 w-full text-center text-xs text-destructive/80 hover:text-destructive py-2"
+            onClick={() => setDeleteAccountDialogOpen(true)}
+            className="w-full text-center text-xs text-destructive/60 hover:text-destructive py-2"
           >
-            Remove profile photo
+            Delete Account
           </button>
-        )}
+        </TabsContent>
 
-        <button
-          onClick={() => setDeleteAccountDialogOpen(true)}
-          className="mt-1 w-full text-center text-xs text-destructive/60 hover:text-destructive py-2"
-        >
-          Delete Account
-        </button>
-      </div>
+        <TabsContent value="about" className="mt-4 space-y-4">
+          <SectionCard>
+            <Row
+              icon={ShieldCheck}
+              label="Privacy Policy"
+              iconBg="bg-blue-500/10"
+              iconColor="text-blue-600 dark:text-blue-400"
+              onClick={() => navigate("/privacy")}
+            />
+            <Row
+              icon={FileText}
+              label="Terms & Conditions"
+              iconBg="bg-fuchsia-500/10"
+              iconColor="text-fuchsia-600 dark:text-fuchsia-400"
+              onClick={() => navigate("/terms")}
+            />
+            <Row
+              icon={Info}
+              label="Help Center"
+              iconBg="bg-emerald-500/10"
+              iconColor="text-emerald-600 dark:text-emerald-400"
+              onClick={() => navigate("/contact")}
+            />
+          </SectionCard>
+        </TabsContent>
+      </Tabs>
 
       {imageToCrop && (
         <ImageCropper open={cropperOpen} onOpenChange={(open) => { setCropperOpen(open); if (!open) setImageToCrop(null); }} imageSrc={imageToCrop} onCropComplete={handleCropComplete} aspectRatio={1} />
