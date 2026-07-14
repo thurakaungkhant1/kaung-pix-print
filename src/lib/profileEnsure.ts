@@ -55,9 +55,10 @@ export async function ensureProfileRow(user: User): Promise<void> {
       .upsert(
         [{
           id: user.id,
-          email: user.email ?? null,
+          email: user.email ?? "",
           name,
-          avatar_url,
+          avatar_url: avatar_url ?? undefined,
+          phone_number: "",
         }],
         { onConflict: "id", ignoreDuplicates: true }
       );
