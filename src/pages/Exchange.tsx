@@ -135,7 +135,7 @@ const Exchange = () => {
     try {
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ points: points - item.points_required })
+        .update({ game_points: points - item.points_required })
         .eq("id", user.id);
 
       if (updateError) throw updateError;
