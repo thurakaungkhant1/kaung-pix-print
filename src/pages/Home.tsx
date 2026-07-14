@@ -175,6 +175,17 @@ const Home = () => {
       setDigitalLoading(false);
     };
     loadDigital();
+    // Load a few sample digital products so users see what's inside
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('products')
+        .select('id,name,image_url')
+        .eq('category', 'Digital Products')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(4);
+      if (!cancelled && data) setDigitalPreview(data as any);
+    })();
     const channel = supabase
       .channel('home-digital-cats')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'digital_categories' }, () => loadDigital())
