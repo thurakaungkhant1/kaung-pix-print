@@ -98,8 +98,6 @@ const Signup = () => {
     if (password !== confirmPassword) { toast({ title: "Passwords don't match", variant: "destructive" }); setLoading(false); return; }
     const trimmedName = name.trim();
     if (trimmedName.length < 1) { toast({ title: "Enter your name", variant: "destructive" }); setLoading(false); return; }
-    const trimmedPhone = phoneNumber.trim();
-    if (!/^[+\d\s()-]{3,20}$/.test(trimmedPhone)) { toast({ title: "Invalid phone number", variant: "destructive" }); setLoading(false); return; }
     const trimmedRef = (referralCode || "").trim();
     if (trimmedRef && !/^[A-Za-z0-9]{1,16}$/.test(trimmedRef)) { toast({ title: "Invalid referral code", variant: "destructive" }); setLoading(false); return; }
 
@@ -109,7 +107,7 @@ const Signup = () => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: { name: trimmedName, phone_number: trimmedPhone, referral_code: trimmedRef || null },
+          data: { name: trimmedName, referral_code: trimmedRef || null },
         },
       });
       if (error) throw error;
