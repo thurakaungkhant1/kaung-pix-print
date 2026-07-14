@@ -950,7 +950,7 @@ const GamePage = () => {
             </div>
 
             {filterLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="rounded-xl border border-border/40 bg-card/40 overflow-hidden">
                     <div className="aspect-square bg-muted animate-pulse" />
