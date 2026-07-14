@@ -734,6 +734,17 @@ const MobileServicesManage = () => {
               <p className="text-[10px] text-muted-foreground">Hidden from users.</p>
             </div>
             <div className="space-y-2">
+              <Label>🪙 Coin Reward</Label>
+              <Input
+                type="number"
+                min="0"
+                value={newService.points_value}
+                onChange={(e) => setNewService({ ...newService, points_value: e.target.value })}
+                placeholder="Coins user earns on approval"
+              />
+              <p className="text-[10px] text-muted-foreground">Awarded when order is approved / finished.</p>
+            </div>
+            <div className="space-y-2">
               <Label>Image URL</Label>
               <Input
                 value={newService.image_url}
