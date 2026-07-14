@@ -12,13 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, 
   Lock, Coins, Gift, Trophy, ChevronRight, Sparkles, Camera, Loader2, 
-  Trash2, Crown, Settings, History, AlertTriangle, Info, ShieldCheck,
+  Trash2, Crown, History, AlertTriangle, Info, ShieldCheck,
   Check, X, Pencil, CreditCard, Zap, Heart, MessageCircle, ShoppingBag, Headphones
 } from "lucide-react";
 import AccountQualityBadge from "@/components/AccountQualityBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
-import { useLanguage } from "@/contexts/LanguageContext";
+
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -123,7 +123,7 @@ const Account = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { isPremium, getDaysRemaining } = usePremiumMembership();
-  const { language, setLanguage } = useLanguage();
+  
   
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -736,14 +736,6 @@ const Account = () => {
               iconColor="text-amber-600 dark:text-amber-400"
               onClick={toggleTheme}
               right={<span className="text-[13px] text-primary font-medium">{theme === "dark" ? "Dark" : "Light"}</span>}
-            />
-            <Row
-              icon={Settings}
-              label="Language"
-              iconBg="bg-blue-500/10"
-              iconColor="text-blue-600 dark:text-blue-400"
-              onClick={() => setLanguage(language === "en" ? "my" : "en")}
-              right={<span className="text-[13px] text-primary font-medium">{language === "en" ? "English" : "Myanmar"}</span>}
             />
           </SectionCard>
         </TabsContent>
