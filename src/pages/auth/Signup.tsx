@@ -118,8 +118,9 @@ const Signup = () => {
       }
 
       const uid = data.user?.id;
-      if (uid) {
-  const { error } = await supabase
+
+if (uid) {
+  const { error: profileError } = await supabase
     .from("profiles")
     .insert({
       id: uid,
@@ -128,12 +129,20 @@ const Signup = () => {
       referral_code: trimmedRef || null,
     });
 
-  if (error) throw error;
+  if (profileError) {
+    console.error("Profile insert error:", profileError);
+    throw profileError;
+  }
 }
-      if (uid && avatarFile) {
-        const url = await uploadAvatar(uid);
-        if (url) await supabase.from("profiles").update({ avatar_url: url }).eq("id", uid);
-      }
+     if (uid && avatarFile) {
+  const url = await uploadAvatar(uid);
+  if (url) {
+    await supabase
+      .from("profiles")
+      .update({ avatar_url: url })
+      .eq("id", uid);
+  }
+}
 
       toast({ title: "Welcome aboard! 🎉", description: "Your account is ready" });
       const redirectTo = searchParams.get("redirectTo");
