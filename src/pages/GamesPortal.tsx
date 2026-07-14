@@ -12,8 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Gamepad2, Trophy, Target, Flame, Gift, ArrowLeft, Star, Sparkles,
   ShoppingBag, WifiOff, History, ChevronRight, Play, TrendingUp,
+  Minus, Plus, Check as CheckIcon, Coins,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -119,6 +123,9 @@ const GamesPortal = () => {
   const [profileName, setProfileName] = useState<string>("");
   const [activeTab, setActiveTab] = useState("games");
   const [gameSettings, setGameSettings] = useState<Record<string, { is_active: boolean; points_override: number | null }>>({});
+  const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null);
+  const [redeemQty, setRedeemQty] = useState(1);
+  const [successReward, setSuccessReward] = useState<{ name: string; qty: number; cost: number } | null>(null);
 
   // Apply admin settings: hide disabled games, override points
   const visibleGames = GAMES
