@@ -6,38 +6,51 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 
 const Privacy = () => {
   const navigate = useNavigate();
-  const lastUpdated = "May 2026";
+  const lastUpdated = "July 2026";
 
   const sections = [
     {
       icon: Database,
       title: "Information We Collect",
-      content: `We collect information you provide when creating an account (name, email, phone number), making purchases (delivery address, payment details), and using our services (order history, photo favourites, game scores, wallet transactions). We may also collect device information, IP addresses, and usage analytics to improve the service.`,
+      content: `Kaung Digital Store တွင် account ဖွင့်သည့်အခါ သင်၏ name, email, phone number တို့ကို စုဆောင်းပါသည်။
+      Game top-up order (MLBB, PUBG) များအတွက် player ID, server ID၊ Digital product order များအတွက် delivery
+      information၊ Wallet deposit များအတွက် transaction ID နှင့် screenshot များ၊ mini games ဆော့ရာမှ score, coin
+      history များကို သိမ်းဆည်းပါသည်။`,
     },
     {
       icon: Eye,
       title: "How We Use Your Data",
-      content: `Your data is used to deliver orders, verify wallet deposits, provide customer support, process game top-ups, send transactional notifications, prevent fraud, and improve our services. We do not sell your personal data to third parties.`,
+      content: `သင်၏ data ကို Kaung Digital Store တွင် order များ ဆောင်ရွက်ခြင်း၊ Wallet deposit အတည်ပြုခြင်း၊
+      Game top-up auto-delivery ပြုလုပ်ခြင်း၊ Customer support ဆက်သွယ်ခြင်း၊ mini game coin, reward ပေးအပ်ခြင်း
+      နှင့် service ကို ပိုမိုကောင်းမွန်စေရန်အတွက်သာ အသုံးပြုပါသည်။ သင်၏ personal data များကို ပြင်ပ third party
+      များသို့ ရောင်းချခြင်း လုံးဝ မပြုပါ။`,
     },
     {
       icon: Lock,
       title: "Data Security",
-      content: `Account passwords are securely hashed. All data is transmitted over HTTPS and stored in secure cloud infrastructure with row-level security policies. Only authorised admins can access deposit verification screenshots and order details.`,
+      content: `Password များကို secure hashing နှင့် သိမ်းဆည်းထားပြီး၊ data အားလုံးကို HTTPS ဖြင့် encrypt လုပ်ကာ
+      Row-Level Security (RLS) policy များဖြင့် ကာကွယ်ထားပါသည်။ Wallet deposit screenshot နှင့် order detail
+      များကို ခွင့်ပြုထားသော admin များသာ ကြည့်ရှုနိုင်ပါသည်။`,
     },
     {
       icon: Shield,
       title: "Third-Party Services",
-      content: `We use Google AdSense for advertising. AdSense may use cookies to serve ads based on your prior visits. You can opt out of personalised advertising at https://www.google.com/settings/ads. We integrate with Smile.one for game top-up delivery and use Lovable Cloud for backend infrastructure.`,
+      content: `Kaung Digital Store သည် Google AdSense (advertising)၊ Smile.one (game top-up delivery)၊
+      KBZPay / WavePay (payment) တို့ကို အသုံးပြုပါသည်။ ဤ service များသည် သီးခြား privacy policy ရှိပါသည်။
+      Personalized ads အတွက် https://www.google.com/settings/ads မှ opt-out လုပ်နိုင်ပါသည်။`,
     },
     {
       icon: AlertCircle,
       title: "Cookies & Local Storage",
-      content: `We use cookies and browser local storage to keep you logged in, remember your language preference, store offline game progress, and serve relevant ads. You can clear these at any time from your browser settings.`,
+      content: `Login session ကို ထိန်းသိမ်းရန်၊ language preference ကို မှတ်ရန်၊ theme (light/dark) ကို သိမ်းရန်နှင့်
+      ads ဖော်ပြရန်အတွက် cookies နှင့် browser local storage ကို အသုံးပြုပါသည်။ Browser settings မှ အချိန်မရွေး
+      ရှင်းလင်းနိုင်ပါသည်။`,
     },
     {
       icon: Mail,
       title: "Your Rights",
-      content: `You have the right to access, correct, or delete your personal data. To exercise these rights, contact us via the Contact Us page. Account deletion requests are processed within 30 days.`,
+      content: `သင်၏ personal data ကို ကြည့်ရှုခြင်း၊ ပြင်ဆင်ခြင်း၊ ဖျက်ခြင်း တို့ကို တောင်းဆိုနိုင်ပါသည်။
+      Account ဖျက်လိုပါက Contact Us မှတဆင့် ဆက်သွယ်နိုင်ပြီး ရက် ၃၀ အတွင်း ဆောင်ရွက်ပေးပါမည်။`,
     },
   ];
 
@@ -60,8 +73,8 @@ const Privacy = () => {
           <Card>
             <CardContent className="p-5">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Kaung Computer ("we", "our") သည် သင်၏ privacy ကို လေးစားပါသည်။ ဤ Privacy Policy သည်
-                ကျွန်ုပ်တို့မှ သင်၏ data များကို မည်သို့ စုဆောင်း၊ အသုံးပြု၊ ကာကွယ်ပေးသည်ကို ရှင်းပြထားပါသည်။
+                Kaung Digital Store သည် သင်၏ privacy ကို လေးစားပါသည်။ ဤ Privacy Policy သည် ကျွန်ုပ်တို့မှ
+                သင်၏ data များကို မည်သို့ စုဆောင်း၊ အသုံးပြု၊ ကာကွယ်ပေးသည်ကို ရှင်းပြထားပါသည်။
               </p>
             </CardContent>
           </Card>
@@ -88,7 +101,7 @@ const Privacy = () => {
                 <button onClick={() => navigate("/contact")} className="text-primary font-medium underline">
                   Contact Us
                 </button>{" "}
-                page မှ ဆက်သွယ်နိုင်ပါသည်။
+                page မှ email သို့မဟုတ် Telegram ဖြင့် ဆက်သွယ်နိုင်ပါသည်။
               </p>
             </CardContent>
           </Card>
