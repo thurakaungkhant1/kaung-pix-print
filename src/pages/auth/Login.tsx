@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { checkProfilesAccess, subscribeProfilesAccess, type ProfilesAccessStatus } from "@/lib/profileEnsure";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Eye, EyeOff, Sparkles } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
@@ -18,13 +17,6 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [accessStatus, setAccessStatus] = useState<ProfilesAccessStatus>("checking");
-  const [accessError, setAccessError] = useState<string | null>(null);
-
-  useEffect(() => {
-    checkProfilesAccess();
-    return subscribeProfilesAccess((s, err) => { setAccessStatus(s); setAccessError(err); });
-  }, []);
 
   const redirectTo = searchParams.get("redirectTo") || null;
 
