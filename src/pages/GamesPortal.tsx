@@ -586,6 +586,117 @@ const GamesPortal = () => {
 
           </Tabs>
         </div>
+
+        {/* Reward detail + redeem confirmation */}
+        <Dialog open={!!selectedReward} onOpenChange={(o) => { if (!o) setSelectedReward(null); }}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            {selectedReward && (() => {
+              const maxAffordable = Math.max(1, Math.floor(gamePoints / selectedReward.cost_points));
+              const totalCost = selectedReward.cost_points * redeemQty;
+              const canAfford = gamePoints >= totalCost;
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="text-center">Redeem Item</DialogTitle>
+                    <DialogDescription className="text-center">Review the details before confirming.</DialogDescription>
+                  </DialogHeader>
+
+                  <div className="flex flex-col items-center py-2">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center text-5xl mb-3">
+                      {selectedReward.emoji}
+                    </div>
+                    <h3 className="text-lg font-bold">{selectedReward.name}</h3>
+                    {selectedReward.description && (
+                      <p className="text-xs text-muted-foreground text-center mt-1 px-2">{selectedReward.description}</p>
+                    )}
+                  </div>
+
+                  <div className="rounded-xl bg-muted/50 p-3 space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Cost per item</span>
+                      <span className="font-semibold flex items-center gap-1">
+                        <Coins className="h-3.5 w-3.5 text-amber-500" />
+                        {selectedReward.cost_points.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Quantity</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7 rounded-full"
+                          onClick={() => setRedeemQty((q) => Math.max(1, q - 1))}
+                          disabled={redeemQty <= 1}
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </Button>
+                        <span className="font-bold w-6 text-center tabular-nums">{redeemQty}</span>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7 rounded-full"
+                          onClick={() => setRedeemQty((q) => Math.min(maxAffordable, q + 1))}
+                          disabled={redeemQty >= maxAffordable}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border-t border-border/60 pt-2 flex items-center justify-between">
+                      <span className="font-semibold">Total Cost</span>
+                      <span className={cn(
+                        "font-bold text-base flex items-center gap-1",
+                        canAfford ? "text-primary" : "text-destructive"
+                      )}>
+                        <Coins className="h-4 w-4" />
+                        {totalCost.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Your balance</span>
+                      <span>{gamePoints.toLocaleString()} coins</span>
+                    </div>
+                  </div>
+
+                  <DialogFooter className="gap-2 sm:gap-2">
+                    <Button variant="outline" onClick={() => setSelectedReward(null)} className="rounded-xl">
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => handleRedeem(selectedReward, redeemQty)}
+                      disabled={!canAfford || redeeming === selectedReward.id}
+                      className="rounded-xl"
+                    >
+                      {redeeming === selectedReward.id ? "Redeeming..." : `Confirm Redeem`}
+                    </Button>
+                  </DialogFooter>
+                </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+
+        {/* Success confirmation */}
+        <Dialog open={!!successReward} onOpenChange={(o) => { if (!o) setSuccessReward(null); }}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            {successReward && (
+              <div className="flex flex-col items-center py-4 text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mb-3">
+                  <CheckIcon className="h-8 w-8 text-emerald-600" />
+                </div>
+                <h3 className="text-lg font-bold mb-1">Redemption Successful! 🎉</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  You redeemed <span className="font-semibold text-foreground">{successReward.qty}× {successReward.name}</span> for{" "}
+                  <span className="font-semibold text-primary">{successReward.cost.toLocaleString()} coins</span>.
+                </p>
+                <Button onClick={() => setSuccessReward(null)} className="w-full rounded-xl">
+                  Done
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </MobileLayout>
     </AnimatedPage>
   );
