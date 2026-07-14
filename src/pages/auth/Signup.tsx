@@ -201,6 +201,17 @@ const Signup = () => {
               </div>
             </div>
 
+            <div className="flex items-start gap-2.5 pt-1">
+              <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(v) => setAgreedToTerms(v === true)} className="mt-0.5" />
+              <Label htmlFor="terms" className="text-xs font-normal text-muted-foreground leading-relaxed cursor-pointer">
+                I agree to the{" "}
+                <Link to="/terms" className="text-primary font-semibold hover:underline">
+                  Terms & Conditions
+                </Link>{" "}
+                and Privacy Policy
+              </Label>
+            </div>
+
             <Button type="submit" disabled={loading} className="w-full h-12 rounded-full text-base font-semibold mt-2">
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign Up"}
             </Button>
