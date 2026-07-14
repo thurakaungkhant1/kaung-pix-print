@@ -68,6 +68,7 @@ const emptyNewService = {
   price: "",
   original_price: "",
   cost_price: "",
+  points_value: "",
   description: "",
   image_url: "",
 };
