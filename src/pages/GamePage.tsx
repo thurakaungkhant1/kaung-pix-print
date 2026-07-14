@@ -104,6 +104,7 @@ const GamePage = () => {
   const [loading, setLoading] = useState(true);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [showTopUpDialog, setShowTopUpDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
@@ -369,11 +370,8 @@ const GamePage = () => {
       });
 
       setWalletBalance(newBalance);
-      toast({
-        title: "Order placed!",
-        description: "Your order has been placed. We'll process it shortly.",
-      });
       setShowPurchaseDialog(false);
+      setShowSuccessDialog(true);
       loadOrders();
     } catch (error: any) {
       toast({
@@ -952,7 +950,7 @@ const GamePage = () => {
             </div>
 
             {filterLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="rounded-xl border border-border/40 bg-card/40 overflow-hidden">
                     <div className="aspect-square bg-muted animate-pulse" />
@@ -986,7 +984,7 @@ const GamePage = () => {
                 )}
               </div>
             ) : (
-              <div key={selectedMobileService || "all"} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div key={selectedMobileService || "all"} className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {filteredProducts.map((product, index) => (
                   <Card
                     key={product.id}
@@ -1223,7 +1221,25 @@ const GamePage = () => {
         </DialogContent>
       </Dialog>
 
-      
+      {/* Order Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mb-3">
+              <Zap className="h-8 w-8 text-green-500" />
+            </div>
+            <DialogTitle className="text-center text-xl">သင်၏ ၀ယ်ယူမှု အောင်မြင်ပါသည်</DialogTitle>
+            <DialogDescription className="text-center pt-2 text-base">
+              ကျေးဇူးပြု၍ ခဏစောင့်ပေးပါခင်ဗျာ။
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setShowSuccessDialog(false)}>
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
     </AnimatedPage>
   );

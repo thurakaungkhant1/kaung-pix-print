@@ -711,24 +711,34 @@ const OrdersManage = () => {
               selectedOrders.has(order.id) && "ring-2 ring-primary bg-primary/5"
             )}
           >
-            <CardContent className="p-4">
-              <div className="flex gap-4">
-                {/* Checkbox */}
-                <div className="flex items-start pt-1">
-                  <Checkbox
-                    checked={selectedOrders.has(order.id)}
-                    onCheckedChange={() => toggleOrderSelection(order.id)}
-                    className="h-5 w-5"
+            <CardContent className="p-3 md:p-4">
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+                {/* Mobile header row: checkbox + image + name */}
+                <div className="flex items-start gap-3 md:contents">
+                  <div className="flex items-start pt-1">
+                    <Checkbox
+                      checked={selectedOrders.has(order.id)}
+                      onCheckedChange={() => toggleOrderSelection(order.id)}
+                      className="h-5 w-5"
+                    />
+                  </div>
+
+                  <img
+                    src={order.products.image_url}
+                    alt={order.products.name}
+                    className="w-16 h-16 md:w-20 md:h-20 object-cover rounded shrink-0"
                   />
+                  <div className="flex-1 min-w-0 md:hidden">
+                    <h3 className="font-bold text-sm line-clamp-2 leading-tight">{order.products.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {order.profiles.name}
+                    </p>
+                    <div className="mt-1">{getStatusBadge(order.status)}</div>
+                  </div>
                 </div>
-                
-                <img
-                  src={order.products.image_url}
-                  alt={order.products.name}
-                  className="w-20 h-20 object-cover rounded"
-                />
-                <div className="flex-1 space-y-3">
-                  <div>
+
+                <div className="flex-1 space-y-3 min-w-0">
+                  <div className="hidden md:block">
                     <h3 className="font-bold">{order.products.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       Customer: {order.profiles.name}
