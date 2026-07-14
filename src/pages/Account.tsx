@@ -188,7 +188,14 @@ const Account = () => {
     if (!user || !editName.trim()) return;
     setSavingProfile(true);
     try {
-      const { error } = await supabase.from("profiles").update({ name: editName.trim() }).eq("id", user.id);
+      // Upsert so the save works even if the profile row hasn't been created yet
+      // (e.g. brand-new Google sign-ups where the trigger hasn't populated it).
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(
+          { id: user.id, email: user.email ?? null, name: editName.trim() },
+          { onConflict: "id" }
+        );
       if (error) throw error;
       toast({ title: "Name updated successfully" }); setEditingName(false); loadProfile();
     } catch (error: any) { toast({ title: "Failed to update name", description: error.message, variant: "destructive" }); }
