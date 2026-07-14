@@ -181,7 +181,7 @@ const Home = () => {
         .from('products')
         .select('id,name,image_url')
         .eq('category', 'Digital Products')
-        .eq('is_active', true)
+        .not('image_url', 'is', null)
         .order('created_at', { ascending: false })
         .limit(4);
       if (!cancelled && data) setDigitalPreview(data as any);
