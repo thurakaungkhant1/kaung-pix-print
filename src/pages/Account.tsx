@@ -165,7 +165,7 @@ const Account = () => {
 
   const loadProfile = async () => {
     if (!user) return;
-    const { data } = await supabase.from("profiles").select("name, phone_number, points, avatar_url, account_status, referral_code").eq("id", user.id).single();
+    const { data } = await supabase.from("profiles").select("name, phone_number, points, game_points, avatar_url, account_status, referral_code").eq("id", user.id).single();
     if (data) {
       setProfile(data as Profile);
       setEditName(data.name);
