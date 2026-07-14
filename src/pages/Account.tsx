@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   User, Phone, Moon, Sun, FileText, Mail, LogOut, Shield, Eye, EyeOff, 
   Lock, Coins, Gift, Trophy, ChevronRight, Sparkles, Camera, Loader2, 
-  Trash2, Crown, Settings, History, AlertTriangle, Info, ShieldCheck,
+  Trash2, Crown, History, AlertTriangle, Info, ShieldCheck,
   Check, X, Pencil, CreditCard, Zap, Heart, MessageCircle, ShoppingBag, Headphones
 } from "lucide-react";
 import AccountQualityBadge from "@/components/AccountQualityBadge";
