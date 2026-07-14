@@ -84,19 +84,9 @@ const Signup = () => {
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 8) return "Password must be at least 8 characters";
-    if (!/[A-Z]/.test(pwd)) return "Password must contain 1 capital letter";
-    if (!/[0-9]/.test(pwd)) return "Password must contain 1 number";
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) return "Password must contain 1 symbol";
     return null;
   };
-  const getPasswordStrength = () => {
-    let s = 0;
-    if (password.length >= 8) s++;
-    if (/[A-Z]/.test(password)) s++;
-    if (/[0-9]/.test(password)) s++;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) s++;
-    return s;
-  };
+
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
