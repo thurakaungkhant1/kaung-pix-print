@@ -158,7 +158,7 @@ const Signup = () => {
     }
   };
 
-  const passwordStrength = getPasswordStrength();
+  
 
   return (
     <MobileLayout className="min-h-screen flex flex-col bg-background">
