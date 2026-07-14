@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { checkProfilesAccess, ensureProfileRow } from "@/lib/profileEnsure";
 
 interface AuthContextType {
   user: User | null;
@@ -19,11 +20,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Startup check: warn if the profiles table is unreachable via the Data API.
+    checkProfilesAccess();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (session?.user && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION")) {
+          // Defer to avoid blocking the auth callback tick
+          setTimeout(() => { ensureProfileRow(session.user); }, 0);
+        }
       }
     );
 
@@ -31,6 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session?.user) setTimeout(() => { ensureProfileRow(session.user); }, 0);
     });
 
     return () => subscription.unsubscribe();
