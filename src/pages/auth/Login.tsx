@@ -85,6 +85,20 @@ const Login = () => {
   };
 
   const handleGoogle = async () => {
+    // Startup guard: don't launch OAuth if the profiles table isn't reachable —
+    // the user would sign in and immediately hit a schema-cache error.
+    const status = accessStatus === "checking" ? await checkProfilesAccess(true) : accessStatus;
+    if (status !== "ok") {
+      toast({
+        title: "Sign-in temporarily unavailable",
+        description:
+          status === "unreachable"
+            ? "Profile table is unreachable (missing GRANT or schema cache). Please contact support."
+            : `Backend check failed: ${accessError ?? "unknown error"}`,
+        variant: "destructive",
+      });
+      return;
+    }
     setGoogleLoading(true);
     try {
       // Preserve intended destination for post-OAuth redirect
