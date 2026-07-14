@@ -444,26 +444,62 @@ const UsersManage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive" />
+              {selectedUser?.account_status === "banned" ? (
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-destructive" />
+              )}
               {selectedUser?.account_status === "banned" ? "Unban User" : "Ban User"}
             </DialogTitle>
             <DialogDescription>
               {selectedUser?.account_status === "banned"
-                ? `Are you sure you want to unban ${selectedUser?.name}?`
-                : `Are you sure you want to ban ${selectedUser?.name}? They will not be able to access the app.`}
+                ? `Restore access for ${selectedUser?.name}. They will be able to use the app again.`
+                : `Ban ${selectedUser?.name} from accessing the app. Provide a reason — it will be shown to the user.`}
             </DialogDescription>
           </DialogHeader>
+
+          {selectedUser?.account_status === "banned" ? (
+            selectedUser?.ban_reason && (
+              <div className="rounded-md border border-border/60 bg-muted/50 p-3 text-sm">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Previous ban reason</p>
+                <p className="whitespace-pre-wrap">{selectedUser.ban_reason}</p>
+              </div>
+            )
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="ban-reason">Ban reason <span className="text-destructive">*</span></Label>
+              <Textarea
+                id="ban-reason"
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                placeholder="e.g. Spam / abuse / policy violation…"
+                rows={4}
+                maxLength={500}
+              />
+              <p className="text-[11px] text-muted-foreground">{banReason.length}/500</p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setBanDialogOpen(false)}>Cancel</Button>
-            <Button
-              variant={selectedUser?.account_status === "banned" ? "default" : "destructive"}
-              onClick={handleBanUser}
-            >
-              {selectedUser?.account_status === "banned" ? "Unban User" : "Ban User"}
-            </Button>
+            {selectedUser?.account_status === "banned" ? (
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleBanUser}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Unban User
+              </Button>
+            ) : (
+              <Button variant="destructive" onClick={handleBanUser}>
+                <Ban className="h-4 w-4 mr-2" />
+                Ban User
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
