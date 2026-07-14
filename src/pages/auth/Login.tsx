@@ -41,11 +41,11 @@ const Login = () => {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, phone_number")
+      .select("name")
       .eq("id", userId)
       .maybeSingle();
 
-    const needsCompletion = !profile?.phone_number || !profile?.name;
+    const needsCompletion = !profile?.name;
     if (needsCompletion) {
       navigate("/auth/complete-profile", { replace: true });
       return;

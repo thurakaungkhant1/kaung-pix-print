@@ -20,11 +20,11 @@ const AuthCallback = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("name, phone_number")
+        .select("name")
         .eq("id", userId)
         .maybeSingle();
 
-      const needsCompletion = !profile?.phone_number || !profile?.name;
+      const needsCompletion = !profile?.name;
 
       let saved: string | null = null;
       try { saved = sessionStorage.getItem("postAuthRedirect"); sessionStorage.removeItem("postAuthRedirect"); } catch {}
