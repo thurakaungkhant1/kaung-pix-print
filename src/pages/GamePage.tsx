@@ -370,11 +370,8 @@ const GamePage = () => {
       });
 
       setWalletBalance(newBalance);
-      toast({
-        title: "Order placed!",
-        description: "Your order has been placed. We'll process it shortly.",
-      });
       setShowPurchaseDialog(false);
+      setShowSuccessDialog(true);
       loadOrders();
     } catch (error: any) {
       toast({
