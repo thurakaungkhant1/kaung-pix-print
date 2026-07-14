@@ -36,10 +36,10 @@ const BottomNav = () => {
     <nav
       className={cn(
         "fixed bottom-3 left-3 right-3 z-50 mx-auto max-w-[420px]",
-        "rounded-[2.5rem] border border-border/60",
+        "rounded-[1.75rem] border border-border/60",
         "bg-background/80 backdrop-blur-2xl",
-        "shadow-[0_20px_50px_rgba(0,0,0,0.35)]",
-        "px-2 py-2",
+        "shadow-[0_12px_30px_rgba(0,0,0,0.25)]",
+        "px-2 py-1.5",
       )}
     >
       <div className="flex items-center justify-between">
