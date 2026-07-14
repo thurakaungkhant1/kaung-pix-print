@@ -1781,6 +1781,7 @@ export type Database = {
         Row: {
           account_status: string
           avatar_url: string | null
+          ban_reason: string | null
           created_at: string | null
           daily_ai_credits: number
           daily_credits_reset_date: string | null
@@ -1803,6 +1804,7 @@ export type Database = {
         Insert: {
           account_status?: string
           avatar_url?: string | null
+          ban_reason?: string | null
           created_at?: string | null
           daily_ai_credits?: number
           daily_credits_reset_date?: string | null
@@ -1825,6 +1827,7 @@ export type Database = {
         Update: {
           account_status?: string
           avatar_url?: string | null
+          ban_reason?: string | null
           created_at?: string | null
           daily_ai_credits?: number
           daily_credits_reset_date?: string | null
