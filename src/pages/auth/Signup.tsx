@@ -1,136 +1,138 @@
-const handleSignup = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
-  if (!validateEmail(email)) {
-    toast({ title: "Invalid Email", variant: "destructive" });
-    setLoading(false);
-    return;
-  }
+const Signup = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
-  const passwordError = validatePassword(password);
-  if (passwordError) {
-    toast({
-      title: "Invalid Password",
-      description: passwordError,
-      variant: "destructive",
-    });
-    setLoading(false);
-    return;
-  }
+  const validateEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-  if (password !== confirmPassword) {
-    toast({
-      title: "Passwords don't match",
-      variant: "destructive",
-    });
-    setLoading(false);
-    return;
-  }
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const trimmedName = name.trim();
+    if (!validateEmail(email)) {
+      toast({ title: "Invalid Email", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
 
-  if (!trimmedName) {
-    toast({
-      title: "Enter your name",
-      variant: "destructive",
-    });
-    setLoading(false);
-    return;
-  }
+    if (!password || password.length < 8) {
+      toast({
+        title: "Invalid Password",
+        description: "Password must be at least 8 characters",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
 
-  const trimmedRef = (referralCode || "").trim();
+    if (password !== confirmPassword) {
+      toast({ title: "Passwords don't match", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
 
-  try {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      toast({ title: "Enter your name", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
 
-    // 1. Create Auth User
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: trimmedName,
-          referral_code: trimmedRef || null,
+    const trimmedRef = referralCode.trim();
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name: trimmedName,
+            referral_code: trimmedRef || null,
+          },
         },
-      },
-    });
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    const user = data.user;
-
-    if (!user) {
-      throw new Error("User creation failed");
-    }
-
-
-    // 2. Create Profile
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert({
-        id: user.id,
-        name: trimmedName,
-        email: email,
-        referral_code: trimmedRef || null,
       });
 
+      if (error) throw error;
+      const user = data.user;
+      if (!user) throw new Error("User creation failed");
 
-    if (profileError) {
-      console.log(profileError);
-      throw profileError;
+      toast({
+        title: "Welcome aboard! 🎉",
+        description: "Your account is ready",
+      });
+
+      navigate("/", { replace: true });
+    } catch (error: any) {
+      console.log("SIGNUP ERROR:", error);
+      toast({
+        title: "Signup Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
+  };
 
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md space-y-6 bg-card rounded-2xl border border-border p-6 shadow-lg">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Create Account</h1>
+          <p className="text-sm text-muted-foreground mt-1">Sign up to get started</p>
+        </div>
 
-    // 3. Upload Avatar
-    if (avatarFile) {
+        <form onSubmit={handleSignup} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password (min 8 characters)</Label>
+            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="referral">Referral Code (optional)</Label>
+            <Input id="referral" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} />
+          </div>
 
-      const url = await uploadAvatar(user.id);
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign Up"}
+          </Button>
+        </form>
 
-      if (url) {
-
-        const { error: avatarError } = await supabase
-          .from("profiles")
-          .update({
-            avatar_url: url,
-          })
-          .eq("id", user.id);
-
-
-        if (avatarError) {
-          throw avatarError;
-        }
-      }
-    }
-
-
-    toast({
-      title: "Welcome aboard! 🎉",
-      description: "Your account is ready",
-    });
-
-
-    navigate("/", {
-      replace: true,
-    });
-
-
-  } catch (error: any) {
-
-    console.log("SIGNUP ERROR:", error);
-
-    toast({
-      title: "Signup Failed",
-      description: error.message,
-      variant: "destructive",
-    });
-
-  } finally {
-
-    setLoading(false);
-
-  }
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link to="/auth/login" className="text-primary hover:underline">
+            Log in
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 };
+
+export default Signup;
