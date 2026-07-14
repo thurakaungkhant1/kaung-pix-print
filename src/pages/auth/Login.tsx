@@ -212,40 +212,8 @@ const Login = () => {
               New here? <span className="text-primary ml-1">Create an account</span>
             </Button>
 
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-background px-3 text-muted-foreground tracking-widest">OR</span>
-              </div>
-            </div>
 
-            {accessStatus === "unreachable" && (
-              <div className="rounded-lg border border-destructive/40 bg-destructive/5 text-destructive text-xs p-3">
-                Backend not fully configured: <code className="font-mono">public.profiles</code> is unreachable.
-                Google Sign-In is disabled until GRANT/RLS is fixed.
-              </div>
-            )}
-            {accessStatus === "unknown_error" && (
-              <div className="rounded-lg border border-amber-400/40 bg-amber-500/5 text-amber-700 dark:text-amber-400 text-xs p-3">
-                Could not verify backend: {accessError ?? "unknown error"}
-              </div>
-            )}
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogle}
-              disabled={googleLoading || accessStatus === "unreachable" || accessStatus === "checking"}
-              className="w-full h-12 rounded-full border-2 gap-3 font-semibold"
-            >
-              {googleLoading
-                ? <Loader2 className="h-5 w-5 animate-spin" />
-                : accessStatus === "checking"
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Checking backend…</>
-                : <><GoogleIcon /> Continue with Google</>}
-            </Button>
 
             <p className="text-[11px] text-muted-foreground/60 text-center pt-4">
               created by Thura Kaung Khant
