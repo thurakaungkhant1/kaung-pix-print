@@ -126,11 +126,20 @@ const UsersManage = () => {
 
   const handleBanUser = async () => {
     if (!selectedUser) return;
+    const isBanned = selectedUser.account_status === "banned";
+    const newStatus = isBanned ? "good" : "banned";
 
-    const newStatus = selectedUser.account_status === "banned" ? "good" : "banned";
+    if (!isBanned && !banReason.trim()) {
+      toast({ title: "Reason required", description: "Please enter a reason before banning.", variant: "destructive" });
+      return;
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({ account_status: newStatus })
+      .update({
+        account_status: newStatus,
+        ban_reason: isBanned ? null : banReason.trim(),
+      })
       .eq("id", selectedUser.id);
 
     if (error) {
@@ -138,7 +147,7 @@ const UsersManage = () => {
     } else {
       toast({
         title: "Success",
-        description: newStatus === "banned" ? "User has been banned" : "User has been unbanned",
+        description: isBanned ? "User has been unbanned" : "User has been banned",
       });
       loadUsers();
     }
