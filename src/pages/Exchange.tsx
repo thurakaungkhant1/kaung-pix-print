@@ -58,12 +58,12 @@ const Exchange = () => {
 
     const { data } = await supabase
       .from("profiles")
-      .select("points")
+      .select("game_points")
       .eq("id", user.id)
       .single();
 
     if (data) {
-      setPoints(data.points);
+      setPoints(data.game_points ?? 0);
     }
   };
 
