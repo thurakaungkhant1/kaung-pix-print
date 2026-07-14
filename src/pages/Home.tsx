@@ -311,19 +311,19 @@ const Home = () => {
                   }}
                 />
 
-                <div className="relative z-10 p-6">
+                <div className="relative z-10 p-4">
                   <div className="flex items-start gap-3">
-                    <div className="p-3 rounded-2xl bg-emerald-500/15 ring-1 ring-emerald-400/30 backdrop-blur">
-                      <Package className="h-6 w-6 text-emerald-300" />
+                    <div className="p-2.5 rounded-2xl bg-emerald-500/15 ring-1 ring-emerald-400/30 backdrop-blur">
+                      <Package className="h-5 w-5 text-emerald-300" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <Badge className="bg-emerald-400/15 text-emerald-300 border border-emerald-400/30 text-[10px] mb-1.5 tracking-[0.18em] font-bold rounded-full px-2.5 py-0.5">
+                      <Badge className="bg-emerald-400/15 text-emerald-300 border border-emerald-400/30 text-[10px] mb-1 tracking-[0.18em] font-bold rounded-full px-2.5 py-0.5">
                         ONYX • EMERALD
                       </Badge>
-                      <h3 className="text-2xl font-display font-black text-white leading-tight tracking-tight drop-shadow">
+                      <h3 className="text-xl font-display font-black text-white leading-tight tracking-tight drop-shadow">
                         Digital Products
                       </h3>
-                      <p className="text-white/70 text-xs mt-1">
+                      <p className="text-white/70 text-[11px] mt-0.5">
                         Premium software, streaming, gift cards & courses.
                       </p>
                     </div>
@@ -331,11 +331,11 @@ const Home = () => {
                   </div>
 
                   {digitalLoading ? (
-                    <div className="mt-5 grid grid-cols-4 gap-2" aria-busy="true" aria-label="Loading categories">
+                    <div className="mt-3 grid grid-cols-4 gap-2" aria-busy="true" aria-label="Loading categories">
                       {[0, 1, 2, 3].map((i) => (
                         <div
                           key={i}
-                          className="rounded-xl px-2 py-2.5 flex flex-col items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm"
+                          className="rounded-xl px-2 py-2 flex flex-col items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm"
                         >
                           <div className="h-4 w-4 rounded bg-white/10 animate-pulse" />
                           <div className="h-2.5 w-12 rounded bg-white/10 animate-pulse" />
@@ -343,7 +343,7 @@ const Home = () => {
                       ))}
                     </div>
                   ) : digitalError ? (
-                    <div className="mt-5 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-3 flex items-center justify-between gap-3">
+                    <div className="mt-3 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2.5 flex items-center justify-between gap-3">
                       <span className="text-[11px] text-rose-200/90">
                         Couldn’t load categories. {digitalError}
                       </span>
@@ -358,7 +358,7 @@ const Home = () => {
                       </span>
                     </div>
                   ) : digitalCats.length === 0 ? (
-                    <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 flex items-center justify-between gap-3">
+                    <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 flex items-center justify-between gap-3">
                       <span className="text-[11px] text-white/70">
                         No categories yet — admin can add some.
                       </span>
@@ -376,8 +376,8 @@ const Home = () => {
                     <>
                       {/* Sample apps preview so users know what's inside */}
                       {digitalPreview.length > 0 && (
-                        <div className="mt-5">
-                          <div className="flex items-center justify-between mb-2">
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between mb-1.5">
                             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80">
                               Inside the catalog
                             </span>
@@ -387,7 +387,7 @@ const Home = () => {
                             {digitalPreview.map((p) => (
                               <div
                                 key={p.id}
-                                className="relative rounded-2xl aspect-square overflow-hidden bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/30 group-hover:shadow-[0_8px_24px_-8px_rgba(16,185,129,0.5)]"
+                                className="relative rounded-2xl aspect-[4/3] overflow-hidden bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/30 group-hover:shadow-[0_8px_24px_-8px_rgba(16,185,129,0.5)]"
                               >
                                 {p.image_url ? (
                                   <img
@@ -398,10 +398,10 @@ const Home = () => {
                                   />
                                 ) : (
                                   <div className="absolute inset-0 flex items-center justify-center">
-                                    <Package className="h-5 w-5 text-emerald-300/70" />
+                                    <Package className="h-4 w-4 text-emerald-300/70" />
                                   </div>
                                 )}
-                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-1.5 pt-4 pb-1.5">
+                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-1 pt-3 pb-1">
                                   <p className="text-white text-[9px] font-semibold leading-tight text-center line-clamp-1 drop-shadow">
                                     {p.name}
                                   </p>
@@ -413,13 +413,13 @@ const Home = () => {
                       )}
 
                       {/* Category chips */}
-                      <div className="mt-3 grid grid-cols-4 gap-2">
+                      <div className="mt-2 grid grid-cols-4 gap-2">
                         {digitalCats.slice(0, 4).map((c) => {
                           const Icon = DIGITAL_ICON_MAP[(c.icon || "package").toLowerCase()] || Package;
                           return (
                             <div
                               key={c.id}
-                              className="rounded-xl px-2 py-2 flex items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 hover:bg-emerald-500/10 hover:border-emerald-400/30"
+                              className="rounded-xl px-2 py-1.5 flex items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 hover:bg-emerald-500/10 hover:border-emerald-400/30"
                             >
                               <Icon className="h-3.5 w-3.5 text-emerald-300 flex-shrink-0" />
                               <span className="text-white/90 text-[10px] font-semibold tracking-wide truncate">
@@ -432,8 +432,8 @@ const Home = () => {
                     </>
                   )}
 
-                  <div className="mt-5 flex items-center justify-between gap-3">
-                    <span className="inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-emerald-400 text-black font-bold text-xs shadow-[0_8px_24px_-6px_rgba(16,185,129,0.6)]">
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-emerald-400 text-black font-bold text-xs shadow-[0_8px_24px_-6px_rgba(16,185,129,0.6)]">
                       <Sparkles className="h-3.5 w-3.5" />
                       Browse Catalog
                       <ArrowRight className="h-3.5 w-3.5" />
