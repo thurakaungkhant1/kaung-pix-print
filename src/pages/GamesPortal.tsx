@@ -12,8 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Gamepad2, Trophy, Target, Flame, Gift, ArrowLeft, Star, Sparkles,
   ShoppingBag, WifiOff, History, ChevronRight, Play, TrendingUp,
+  Minus, Plus, Check as CheckIcon, Coins,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -119,6 +123,9 @@ const GamesPortal = () => {
   const [profileName, setProfileName] = useState<string>("");
   const [activeTab, setActiveTab] = useState("games");
   const [gameSettings, setGameSettings] = useState<Record<string, { is_active: boolean; points_override: number | null }>>({});
+  const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null);
+  const [redeemQty, setRedeemQty] = useState(1);
+  const [successReward, setSuccessReward] = useState<{ name: string; qty: number; cost: number } | null>(null);
 
   // Apply admin settings: hide disabled games, override points
   const visibleGames = GAMES
@@ -224,37 +231,41 @@ const GamesPortal = () => {
     setHasSpunToday(true);
   };
 
-  const handleRedeem = async (reward: RewardItem) => {
+  const handleRedeem = async (reward: RewardItem, qty: number = 1) => {
     if (!user || redeeming) return;
-    if (gamePoints < reward.cost_points) {
-      toast({ title: "Not enough points!", description: `You need ${reward.cost_points} game points.`, variant: "destructive" });
+    const totalCost = reward.cost_points * qty;
+    if (gamePoints < totalCost) {
+      toast({ title: "Not enough points!", description: `You need ${totalCost.toLocaleString()} game points.`, variant: "destructive" });
       return;
     }
     setRedeeming(reward.id);
     try {
-      const newPoints = gamePoints - reward.cost_points;
+      const newPoints = gamePoints - totalCost;
       await supabase.from("profiles").update({ game_points: newPoints }).eq("id", user.id);
       if (reward.reward_type === "shop_coins") {
         const { data: profile } = await supabase.from("profiles").select("points").eq("id", user.id).single();
         if (profile) {
-          await supabase.from("profiles").update({ points: profile.points + Number(reward.reward_value) }).eq("id", user.id);
+          const totalShopCoins = Number(reward.reward_value) * qty;
+          await supabase.from("profiles").update({ points: profile.points + totalShopCoins }).eq("id", user.id);
           await supabase.from("point_transactions").insert({
-            user_id: user.id, amount: Number(reward.reward_value), transaction_type: "game_reward",
-            description: `Converted ${reward.cost_points} game points to ${reward.reward_value} shop coins`,
+            user_id: user.id, amount: totalShopCoins, transaction_type: "game_reward",
+            description: `Converted ${totalCost} game points to ${totalShopCoins} shop coins`,
           });
         }
       } else if (reward.reward_type === "wallet_credit") {
         const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("id", user.id).single();
         if (profile) {
-          await supabase.from("profiles").update({ wallet_balance: Number(profile.wallet_balance || 0) + Number(reward.reward_value) }).eq("id", user.id);
+          await supabase.from("profiles").update({ wallet_balance: Number(profile.wallet_balance || 0) + Number(reward.reward_value) * qty }).eq("id", user.id);
         }
       }
-      await supabase.from("game_redemptions").insert({
+      const rows = Array.from({ length: qty }).map(() => ({
         user_id: user.id, reward_item_id: reward.id, reward_name: reward.name,
         cost_points: reward.cost_points, reward_type: reward.reward_type, reward_value: reward.reward_value,
         status: reward.reward_type === "manual" || reward.reward_type === "premium_days" ? "pending" : "delivered",
-      });
-      toast({ title: "🎉 Reward Redeemed!", description: `${reward.name} — check your account!` });
+      }));
+      await supabase.from("game_redemptions").insert(rows);
+      setSelectedReward(null);
+      setSuccessReward({ name: reward.name, qty, cost: totalCost });
       refreshData();
     } catch {
       toast({ title: "Redemption failed", variant: "destructive" });
@@ -509,18 +520,25 @@ const GamesPortal = () => {
                     <p className="text-center text-sm text-muted-foreground py-8">No rewards available yet</p>
                   )}
                   {rewards.map(r => (
-                    <Card key={r.id} className="p-4 rounded-2xl border-border/60 bg-card hover:shadow-md transition-all">
+                    <Card
+                      key={r.id}
+                      onClick={() => { setSelectedReward(r); setRedeemQty(1); }}
+                      className="p-4 rounded-2xl border-border/60 bg-card hover:shadow-md transition-all cursor-pointer active:scale-[0.99]"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="text-3xl">{r.emoji}</div>
                         <div className="flex-1">
                           <h4 className="text-sm font-bold">{r.name}</h4>
-                          <p className="text-[11px] text-muted-foreground">{r.description}</p>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2">{r.description}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-bold text-primary">{r.cost_points.toLocaleString()}</p>
-                          <Button size="sm" className="h-7 text-[10px] rounded-full mt-1 px-3"
+                          <Button
+                            size="sm"
+                            className="h-7 text-[10px] rounded-full mt-1 px-3"
                             disabled={gamePoints < r.cost_points || redeeming === r.id}
-                            onClick={() => handleRedeem(r)}>
+                            onClick={(e) => { e.stopPropagation(); setSelectedReward(r); setRedeemQty(1); }}
+                          >
                             {redeeming === r.id ? "..." : gamePoints >= r.cost_points ? "Redeem" : "Need more"}
                           </Button>
                         </div>
@@ -568,6 +586,117 @@ const GamesPortal = () => {
 
           </Tabs>
         </div>
+
+        {/* Reward detail + redeem confirmation */}
+        <Dialog open={!!selectedReward} onOpenChange={(o) => { if (!o) setSelectedReward(null); }}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            {selectedReward && (() => {
+              const maxAffordable = Math.max(1, Math.floor(gamePoints / selectedReward.cost_points));
+              const totalCost = selectedReward.cost_points * redeemQty;
+              const canAfford = gamePoints >= totalCost;
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="text-center">Redeem Item</DialogTitle>
+                    <DialogDescription className="text-center">Review the details before confirming.</DialogDescription>
+                  </DialogHeader>
+
+                  <div className="flex flex-col items-center py-2">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center text-5xl mb-3">
+                      {selectedReward.emoji}
+                    </div>
+                    <h3 className="text-lg font-bold">{selectedReward.name}</h3>
+                    {selectedReward.description && (
+                      <p className="text-xs text-muted-foreground text-center mt-1 px-2">{selectedReward.description}</p>
+                    )}
+                  </div>
+
+                  <div className="rounded-xl bg-muted/50 p-3 space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Cost per item</span>
+                      <span className="font-semibold flex items-center gap-1">
+                        <Coins className="h-3.5 w-3.5 text-amber-500" />
+                        {selectedReward.cost_points.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Quantity</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7 rounded-full"
+                          onClick={() => setRedeemQty((q) => Math.max(1, q - 1))}
+                          disabled={redeemQty <= 1}
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </Button>
+                        <span className="font-bold w-6 text-center tabular-nums">{redeemQty}</span>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7 rounded-full"
+                          onClick={() => setRedeemQty((q) => Math.min(maxAffordable, q + 1))}
+                          disabled={redeemQty >= maxAffordable}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border-t border-border/60 pt-2 flex items-center justify-between">
+                      <span className="font-semibold">Total Cost</span>
+                      <span className={cn(
+                        "font-bold text-base flex items-center gap-1",
+                        canAfford ? "text-primary" : "text-destructive"
+                      )}>
+                        <Coins className="h-4 w-4" />
+                        {totalCost.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Your balance</span>
+                      <span>{gamePoints.toLocaleString()} coins</span>
+                    </div>
+                  </div>
+
+                  <DialogFooter className="gap-2 sm:gap-2">
+                    <Button variant="outline" onClick={() => setSelectedReward(null)} className="rounded-xl">
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => handleRedeem(selectedReward, redeemQty)}
+                      disabled={!canAfford || redeeming === selectedReward.id}
+                      className="rounded-xl"
+                    >
+                      {redeeming === selectedReward.id ? "Redeeming..." : `Confirm Redeem`}
+                    </Button>
+                  </DialogFooter>
+                </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+
+        {/* Success confirmation */}
+        <Dialog open={!!successReward} onOpenChange={(o) => { if (!o) setSuccessReward(null); }}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            {successReward && (
+              <div className="flex flex-col items-center py-4 text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mb-3">
+                  <CheckIcon className="h-8 w-8 text-emerald-600" />
+                </div>
+                <h3 className="text-lg font-bold mb-1">Redemption Successful! 🎉</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  You redeemed <span className="font-semibold text-foreground">{successReward.qty}× {successReward.name}</span> for{" "}
+                  <span className="font-semibold text-primary">{successReward.cost.toLocaleString()} coins</span>.
+                </p>
+                <Button onClick={() => setSuccessReward(null)} className="w-full rounded-xl">
+                  Done
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </MobileLayout>
     </AnimatedPage>
   );
