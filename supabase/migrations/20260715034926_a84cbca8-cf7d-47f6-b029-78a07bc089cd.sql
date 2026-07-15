@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "ai-invitations auth insert" ON storage.objects;
