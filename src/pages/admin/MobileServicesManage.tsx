@@ -47,6 +47,7 @@ interface Product {
   description: string | null;
   category: string;
   status: string | null;
+  points_value?: number | null;
 }
 
 const MOBILE_CATEGORIES = [
