@@ -623,6 +623,24 @@ const MobileServicesManage = () => {
                 </Select>
               </div>
               <div className="space-y-2">
+                <Label>🪙 Purchase Coins (award on approval)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editingProduct.points_value ?? ""}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      points_value: e.target.value ? parseInt(e.target.value) : 0,
+                    })
+                  }
+                  placeholder="e.g. 10"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Coins the buyer receives when this order is approved.
+                </p>
+              </div>
+              <div className="space-y-2">
                 <Label>Description</Label>
                 <Input
                   value={editingProduct.description || ""}
