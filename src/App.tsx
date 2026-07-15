@@ -184,6 +184,7 @@ const App = () => {
               <InterstitialAd />
               <MessageNotifier />
               <FriendRequestNotifier />
+              <OrderApprovalNotifier />
               <AdminSupportNotifier />
               <PresenceTracker />
               <BanGate />
