@@ -14,6 +14,7 @@ import { MusicProvider } from "@/contexts/MusicContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MessageNotifier from "@/components/MessageNotifier";
 import FriendRequestNotifier from "@/components/FriendRequestNotifier";
+import OrderApprovalNotifier from "@/components/OrderApprovalNotifier";
 import AdminSupportNotifier from "@/components/AdminSupportNotifier";
 import PresenceTracker from "@/components/PresenceTracker";
 import BanGate from "@/components/BanGate";
