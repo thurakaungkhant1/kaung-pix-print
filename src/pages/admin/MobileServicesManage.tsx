@@ -188,6 +188,7 @@ const MobileServicesManage = () => {
         description: editingProduct.description,
         category: editingProduct.category,
         status: editingProduct.status,
+        points_value: editingProduct.points_value ?? 0,
       } as any)
       .eq("id", editingProduct.id);
 
