@@ -1132,6 +1132,45 @@ export type Database = {
         }
         Relationships: []
       }
+      order_approval_audit: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          note: string | null
+          order_id: string
+          points_awarded: number
+          points_type: string | null
+          previous_status: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          note?: string | null
+          order_id: string
+          points_awarded?: number
+          points_type?: string | null
+          previous_status?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          note?: string | null
+          order_id?: string
+          points_awarded?: number
+          points_type?: string | null
+          previous_status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string | null
