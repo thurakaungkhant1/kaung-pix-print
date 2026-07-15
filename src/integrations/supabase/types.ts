@@ -2436,6 +2436,7 @@ export type Database = {
         Returns: boolean
       }
       is_premium_active: { Args: { _user_id: string }; Returns: boolean }
+      max_game_points_for: { Args: { _game: string }; Returns: number }
       search_public_profiles: {
         Args: { limit_count?: number; q: string; sort_by?: string }
         Returns: {
