@@ -1203,7 +1203,7 @@ const GamePage = () => {
                     {isGameProduct(selectedProduct.category) ? "Game Points Reward" : "Purchase Coins Reward"}
                   </span>
                   <span className="font-semibold text-amber-500">
-                    +{((selectedProduct.points_value ?? 0) * (quantity || 1)).toLocaleString()}{" "}
+                    +{(selectedProduct.points_value ?? 0).toLocaleString()}{" "}
                     {isGameProduct(selectedProduct.category) ? "game pts" : "coins"}
                   </span>
                 </div>
