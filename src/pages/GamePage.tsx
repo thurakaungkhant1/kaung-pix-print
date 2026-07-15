@@ -1198,12 +1198,15 @@ const GamePage = () => {
                   <span className="text-muted-foreground">Product</span>
                   <span className="font-medium">{selectedProduct.name}</span>
                 </div>
-                {selectedProduct.points_value > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Purchase Coins</span>
-                    <span className="font-semibold text-amber-500">+{selectedProduct.points_value.toLocaleString()} coins</span>
-                  </div>
-                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {isGameProduct(selectedProduct.category) ? "Game Points Reward" : "Purchase Coins Reward"}
+                  </span>
+                  <span className="font-semibold text-amber-500">
+                    +{((selectedProduct.points_value ?? 0) * (quantity || 1)).toLocaleString()}{" "}
+                    {isGameProduct(selectedProduct.category) ? "game pts" : "coins"}
+                  </span>
+                </div>
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
                   <span className="text-primary">{selectedProduct.price.toLocaleString()} Ks</span>
