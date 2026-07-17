@@ -110,10 +110,7 @@ const GamePage = () => {
   const [serverId, setServerId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [purchasing, setPurchasing] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>(() => {
-    const saved = localStorage.getItem("shopActiveTab");
-    return saved === "games" || saved === "orders" ? saved : "games";
-  });
+  const [activeCategory, setActiveCategory] = useState<string>(() => localStorage.getItem("shopActiveTab") || "games");
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(() => localStorage.getItem("shopGameCat"));
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
   const [selectedOperator, setSelectedOperator] = useState<string | null>(() => localStorage.getItem("shopMobileOperator"));
@@ -233,7 +230,6 @@ const GamePage = () => {
         )
       `)
       .eq("user_id", user.id)
-      .eq("order_type", "game")
       .order("created_at", { ascending: false })
       .limit(20);
 
@@ -521,12 +517,15 @@ const GamePage = () => {
 
       <div className="max-w-screen-md mx-auto p-4 pb-28 space-y-5">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
-          <TabsList className="grid w-full grid-cols-2 mb-2 h-11 bg-card/60 border border-border/50">
+          <TabsList className="grid w-full grid-cols-3 mb-2 h-11 bg-card/60 border border-border/50">
             <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Gamepad2 className="h-3.5 w-3.5" /> Games
             </TabsTrigger>
+            <TabsTrigger value="mobile" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Smartphone className="h-3.5 w-3.5" /> Mobile
+            </TabsTrigger>
             <TabsTrigger value="orders" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <History className="h-3.5 w-3.5" /> Game Orders
+              <History className="h-3.5 w-3.5" /> Orders
             </TabsTrigger>
           </TabsList>
 
@@ -863,6 +862,180 @@ const GamePage = () => {
 
           </TabsContent>
 
+          <TabsContent value="mobile" className="space-y-5">
+            {/* Sticky category filter bar */}
+            <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-background/85 backdrop-blur-xl border-b border-border/40">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                <button
+                  onClick={() => setSelectedMobileService(null)}
+                  className={cn(
+                    "shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border transition-all",
+                    !selectedMobileService
+                      ? "bg-primary text-primary-foreground border-primary shadow-glow"
+                      : "bg-card/60 text-muted-foreground border-border/50 hover:border-primary/40 hover:text-foreground"
+                  )}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  All
+                </button>
+                {MOBILE_CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  const active = selectedMobileService === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedMobileService(active ? null : cat.id)}
+                      className={cn(
+                        "shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border transition-all",
+                        active
+                          ? "bg-primary text-primary-foreground border-primary shadow-glow"
+                          : "bg-card/60 text-muted-foreground border-border/50 hover:border-primary/40 hover:text-foreground"
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {cat.name}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Operator filter row */}
+              <div className="flex gap-2 overflow-x-auto no-scrollbar mt-2">
+                <button
+                  onClick={() => setSelectedOperator(null)}
+                  className={cn(
+                    "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold border transition-all",
+                    !selectedOperator
+                      ? "bg-accent text-accent-foreground border-accent"
+                      : "bg-card/40 text-muted-foreground border-border/40 hover:border-accent/50 hover:text-foreground"
+                  )}
+                >
+                  All Operators
+                </button>
+                {MOBILE_OPERATORS.map((op) => {
+                  const active = selectedOperator === op;
+                  return (
+                    <button
+                      key={op}
+                      onClick={() => setSelectedOperator(active ? null : op)}
+                      className={cn(
+                        "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold border transition-all",
+                        active
+                          ? "bg-accent text-accent-foreground border-accent"
+                          : "bg-card/40 text-muted-foreground border-border/40 hover:border-accent/50 hover:text-foreground"
+                      )}
+                    >
+                      {op}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Mobile Promo */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-accent/10 to-primary/5 border border-primary/20 p-4">
+              <div className="absolute -top-8 -right-8 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
+              <div className="relative flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-primary/20 shadow-glow">
+                  <Wifi className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base font-display font-bold text-foreground">Mobile Top-up & Data</h2>
+                  <p className="text-xs text-muted-foreground truncate">Recharge instantly • Auto delivery</p>
+                </div>
+                <Badge variant="secondary" className="text-[10px] gap-1">
+                  <Zap className="h-3 w-3" /> Fast
+                </Badge>
+              </div>
+            </div>
+
+            {filterLoading ? (
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="rounded-xl border border-border/40 bg-card/40 overflow-hidden">
+                    <div className="aspect-square bg-muted animate-pulse" />
+                    <div className="p-3 space-y-2">
+                      <div className="h-3 w-3/4 bg-muted animate-pulse rounded" />
+                      <div className="h-3 w-1/2 bg-muted animate-pulse rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-16 animate-fade-in">
+                <div className="relative inline-block mb-5">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+                  <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                    <Smartphone className="h-10 w-10 text-primary/70" />
+                  </div>
+                </div>
+                <p className="font-display font-semibold text-foreground">
+                  {selectedMobileService ? `No ${selectedMobileService} packages` : "No mobile services yet"}
+                </p>
+                <p className="text-xs text-muted-foreground/80 mt-1 mb-4 max-w-xs mx-auto">
+                  {selectedMobileService
+                    ? "ဒီ category အတွက် package တွေ မရှိသေးပါ။ တခြား filter တစ်ခု ရွေးကြည့်ပါ။"
+                    : "Check back soon for new top-up packages."}
+                </p>
+                {selectedMobileService && (
+                  <Button variant="outline" size="sm" onClick={() => setSelectedMobileService(null)} className="rounded-xl">
+                    Show all packages
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div key={selectedMobileService || "all"} className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {filteredProducts.map((product, index) => (
+                  <Card
+                    key={product.id}
+                    className={cn(
+                      "group relative card-neon overflow-hidden cursor-pointer transition-all duration-300",
+                      "hover:shadow-glow hover:-translate-y-0.5 active:scale-[0.98] animate-stagger-in"
+                    )}
+                    style={{ animationDelay: `${index * 60}ms` }}
+                    onClick={() => handleBuyClick(product)}
+                  >
+                    {getDiscountPercent(product) > 0 && (
+                      <div className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded-md bg-destructive text-destructive-foreground text-[10px] font-bold shadow-lg">
+                        -{getDiscountPercent(product)}%
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-md bg-background/70 backdrop-blur text-[9px] font-semibold text-foreground border border-border/40">
+                      {product.category === "Data Plans" ? "DATA" : product.category === "Voice Plans" ? "VOICE" : "TOP-UP"}
+                    </div>
+                    <div className="aspect-square bg-gradient-to-br from-muted/60 to-muted/20 overflow-hidden">
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
+                    <CardContent className="p-3 space-y-2">
+                      <h3 className="font-semibold text-sm line-clamp-2 leading-tight min-h-[2.5rem]">{product.name}</h3>
+                      <div className="flex items-end justify-between gap-1">
+                        <div className="min-w-0">
+                          {product.original_price && product.original_price > product.price && (
+                            <p className="text-[10px] text-muted-foreground line-through leading-none">
+                              {product.original_price.toLocaleString()} Ks
+                            </p>
+                          )}
+                          <p className="text-primary font-display font-bold text-base text-neon leading-tight truncate">
+                            {product.price.toLocaleString()}
+                            <span className="text-[10px] font-medium ml-0.5 text-muted-foreground">Ks</span>
+                          </p>
+                        </div>
+                        <Button size="sm" className="btn-neon h-8 w-8 p-0 shrink-0 rounded-lg">
+                          <Zap className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="orders">
             {orders.length === 0 ? (
               <div className="text-center py-16">
@@ -875,8 +1048,11 @@ const GamePage = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {orders.filter(o => GAME_CATEGORIES.some(cat => cat.id === o.products.category)).map((order) => {
+                {orders.map((order) => {
                   const isMLBB = order.products.category === "MLBB Diamonds";
+                  const isGame = GAME_CATEGORIES.some(cat => cat.id === order.products.category);
+                  const isMobile = MOBILE_CATEGORIES.some(c => c.id === order.products.category);
+                  
                   return (
                     <Card key={order.id} className="overflow-hidden">
                       <CardContent className="p-4">
@@ -892,7 +1068,7 @@ const GamePage = () => {
                               {getStatusBadge(order.status)}
                             </div>
                             <div className="text-xs text-muted-foreground space-y-1">
-                              {order.game_id && (
+                              {isGame && order.game_id && (
                                 <div className="flex items-center gap-1.5">
                                   <Gamepad2 className="h-3 w-3 text-primary" />
                                   {isMLBB ? (
@@ -900,6 +1076,19 @@ const GamePage = () => {
                                   ) : (
                                     <span>Player ID: {order.game_id}</span>
                                   )}
+                                </div>
+                              )}
+                              {isMobile && order.phone_number && (
+                                <div className="flex items-center gap-1.5">
+                                  <Smartphone className="h-3 w-3 text-primary" />
+                                  <span>
+                                    Phone: {order.phone_number}
+                                    {order.game_name?.includes("(") && (
+                                      <span className="ml-1 text-primary font-medium">
+                                        • {order.game_name.match(/\(([^)]+)\)/)?.[1]}
+                                      </span>
+                                    )}
+                                  </span>
                                 </div>
                               )}
                               <p className="font-medium text-foreground">{order.price.toLocaleString()} Ks</p>

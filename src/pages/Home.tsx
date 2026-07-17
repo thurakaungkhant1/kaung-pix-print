@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ShoppingBag, Crown, Star, ChevronRight, Sparkles, Users, Package,
   Camera, Percent, Clock, ArrowRight, Flame, Shield, Zap, Gamepad2,
-  Smartphone, Wifi, Receipt, Bell, Wallet, Phone,
+  Smartphone, Wifi, Receipt, Bell, Wallet,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -584,61 +584,7 @@ const Home = () => {
 
 
 
-          {/* ── Mobile Services ── */}
-          <AnimatedSection delay={0.25}>
-            <section className="px-5 mt-6">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="text-base font-display font-bold">Mobile Services</h2>
-                  <p className="text-[11px] text-muted-foreground -mt-0.5">
-                    Phone top-up, data plans & voice packs — instant delivery
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: "Phone Top-up", label: "Top-up", icon: Smartphone, gradient: "from-blue-500/20 to-cyan-500/10", ring: "ring-blue-500/30", color: "text-blue-600 dark:text-blue-400" },
-                  { id: "Data Plans", label: "Data", icon: Wifi, gradient: "from-emerald-500/20 to-teal-500/10", ring: "ring-emerald-500/30", color: "text-emerald-600 dark:text-emerald-400" },
-                  { id: "Voice Plans", label: "Voice", icon: Receipt, gradient: "from-violet-500/20 to-fuchsia-500/10", ring: "ring-violet-500/30", color: "text-violet-600 dark:text-violet-400" },
-                ].map((svc) => {
-                  const Icon = svc.icon;
-                  return (
-                    <motion.button
-                      key={svc.id}
-                      whileTap={{ scale: 0.96 }}
-                      whileHover={{ y: -2 }}
-                      onClick={() => navigate(`/category/${encodeURIComponent(svc.id)}`)}
-                      className={cn(
-                        "relative rounded-2xl bg-gradient-to-br ring-1 p-4 flex flex-col items-center gap-2 border border-border/40 hover:border-primary/30 transition-all",
-                        svc.gradient,
-                        svc.ring
-                      )}
-                    >
-                      <div className="h-11 w-11 rounded-xl bg-background/70 backdrop-blur flex items-center justify-center shadow-sm">
-                        <Icon className={cn("h-5 w-5", svc.color)} />
-                      </div>
-                      <span className="text-xs font-bold">{svc.label}</span>
-                    </motion.button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
-                {["MPT", "Ooredoo", "Mytel", "Atom"].map((op) => (
-                  <button
-                    key={op}
-                    onClick={() => navigate(`/category/${encodeURIComponent("Phone Top-up")}?operator=${op}`)}
-                    className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold bg-card border border-border/60 hover:border-primary/40 transition-all"
-                  >
-                    <Phone className="h-3 w-3 text-primary" />
-                    {op}
-                  </button>
-                ))}
-              </div>
-            </section>
-          </AnimatedSection>
-
+          {/* Photo Gallery section removed */}
           <AdBanner pageLocation="home" position="inline" className="px-5 mt-6" />
 
           <div className="text-center py-4 pb-24 mt-4">

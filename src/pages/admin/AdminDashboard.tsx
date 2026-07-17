@@ -50,7 +50,6 @@ import {
   Megaphone,
   Sparkles,
   MessageCircle,
-  Trophy,
 } from "lucide-react";
 import {
   Dialog,
@@ -2221,24 +2220,6 @@ const AdminDashboard = () => {
                     </p>
                     <Button variant="outline" size="sm" onClick={() => navigate("/admin/mobile-services")}>
                       Manage Mobile Services
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Top Referrers */}
-              <Card className="premium-card">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Trophy className="h-5 w-5 text-amber-500" />
-                      <h3 className="font-semibold">Top Referrers</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Referral leaderboard — grant bonus coins to your top referrers
-                    </p>
-                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/top-referrers")}>
-                      Manage Bonus & Leaderboard
                     </Button>
                   </div>
                 </CardContent>

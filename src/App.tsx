@@ -53,8 +53,6 @@ const TopEarners = lazy(() => import("./pages/TopEarners"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const Messages = lazy(() => import("./pages/Messages"));
 const ChatThread = lazy(() => import("./pages/ChatThread"));
-const AccountChat = lazy(() => import("./pages/AccountChat"));
-const TopReferrersManage = lazy(() => import("./pages/admin/TopReferrersManage"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Signup = lazy(() => import("./pages/auth/Signup"));
 const CompleteProfile = lazy(() => import("./pages/auth/CompleteProfile"));
@@ -230,22 +228,6 @@ const App = () => {
                     <ProtectedRoute>
                       <Account />
                     </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/account/chat"
-                  element={
-                    <ProtectedRoute>
-                      <AccountChat />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/top-referrers"
-                  element={
-                    <ProtectedAdminRoute>
-                      <TopReferrersManage />
-                    </ProtectedAdminRoute>
                   }
                 />
                 <Route
