@@ -35,6 +35,7 @@ import {
   Clock,
   Filter,
   Wifi,
+  Coins,
 } from "lucide-react";
 import {
   Sheet,
@@ -61,7 +62,7 @@ interface ConvRow {
   participant1_id: string;
   participant2_id: string;
   updated_at: string;
-  other: { id: string; name: string; avatar_url: string | null; last_seen_at: string | null } | null;
+  other: { id: string; name: string; avatar_url: string | null; last_seen_at: string | null; total_coins?: number | null } | null;
   last?: { content: string; created_at: string; sender_id: string } | null;
 }
 
@@ -70,6 +71,7 @@ interface UserRow {
   name: string;
   avatar_url: string | null;
   last_seen_at: string | null;
+  total_coins?: number | null;
 }
 
 interface FRequest {
@@ -131,7 +133,7 @@ const Messages = () => {
         const [{ data: profile }, { data: lastMsg }] = await Promise.all([
           supabase
             .from("public_profiles")
-            .select("id, name, avatar_url, last_seen_at")
+            .select("id, name, avatar_url, last_seen_at, total_coins")
             .eq("id", otherId)
             .maybeSingle(),
           supabase
@@ -174,7 +176,7 @@ const Messages = () => {
     const { data: profs } = otherIds.length
       ? await supabase
           .from("public_profiles")
-          .select("id, name, avatar_url, last_seen_at")
+          .select("id, name, avatar_url, last_seen_at, total_coins")
           .in("id", otherIds)
       : { data: [] as UserRow[] };
     const profMap = new Map((profs || []).map((p: any) => [p.id, p as UserRow]));
