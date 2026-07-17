@@ -523,6 +523,15 @@ const Messages = () => {
             ) : (
               <p className="text-[11px] text-muted-foreground/70">Not friends yet</p>
             )}
+            {typeof u.total_coins === "number" && (
+              <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25">
+                <Coins className="h-3 w-3 text-amber-500" />
+                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 tabular-nums">
+                  {new Intl.NumberFormat("en-US").format(u.total_coins || 0)}
+                </span>
+                <span className="text-[9px] text-amber-700/70 dark:text-amber-300/70">coins</span>
+              </div>
+            )}
           </div>
 
           {showActions && (
