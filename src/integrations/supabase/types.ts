@@ -2385,6 +2385,8 @@ export type Database = {
           last_seen_at: string | null
           last_seen_privacy: string | null
           name: string | null
+          points: number | null
+          total_coins: number | null
         }
         Insert: {
           account_status?: string | null
@@ -2396,6 +2398,8 @@ export type Database = {
           last_seen_at?: never
           last_seen_privacy?: string | null
           name?: string | null
+          points?: number | null
+          total_coins?: never
         }
         Update: {
           account_status?: string | null
@@ -2407,11 +2411,17 @@ export type Database = {
           last_seen_at?: never
           last_seen_privacy?: string | null
           name?: string | null
+          points?: number | null
+          total_coins?: never
         }
         Relationships: []
       }
     }
     Functions: {
+      admin_grant_coin_bonus: {
+        Args: { bonus_amount: number; note?: string; target_user_id: string }
+        Returns: undefined
+      }
       generate_referral_code: { Args: never; Returns: string }
       get_daily_game_points: { Args: { p_user_id: string }; Returns: number }
       get_daily_points_earned: {
@@ -2426,6 +2436,19 @@ export type Database = {
           id: string
           joined_at: string
           name: string
+        }[]
+      }
+      get_top_referrers: {
+        Args: { limit_count?: number }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          game_points: number
+          name: string
+          points: number
+          referral_count: number
+          user_id: string
         }[]
       }
       has_role: {
