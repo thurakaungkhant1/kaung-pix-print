@@ -297,7 +297,7 @@ const Messages = () => {
           // Fallback to view if RPC unavailable
           let q = supabase
             .from("public_profiles")
-            .select("id, name, avatar_url, last_seen_at")
+            .select("id, name, avatar_url, last_seen_at, total_coins")
             .neq("id", user?.id ?? "")
             .limit(60);
           if (discoverQuery.trim()) q = q.ilike("name", `%${discoverQuery.trim()}%`);
