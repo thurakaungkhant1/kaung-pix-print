@@ -871,11 +871,8 @@ const GamePage = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {orders.map((order) => {
+                {orders.filter(o => GAME_CATEGORIES.some(cat => cat.id === o.products.category)).map((order) => {
                   const isMLBB = order.products.category === "MLBB Diamonds";
-                  const isGame = GAME_CATEGORIES.some(cat => cat.id === order.products.category);
-                  const isMobile = MOBILE_CATEGORIES.some(c => c.id === order.products.category);
-                  
                   return (
                     <Card key={order.id} className="overflow-hidden">
                       <CardContent className="p-4">
@@ -891,7 +888,7 @@ const GamePage = () => {
                               {getStatusBadge(order.status)}
                             </div>
                             <div className="text-xs text-muted-foreground space-y-1">
-                              {isGame && order.game_id && (
+                              {order.game_id && (
                                 <div className="flex items-center gap-1.5">
                                   <Gamepad2 className="h-3 w-3 text-primary" />
                                   {isMLBB ? (
@@ -899,19 +896,6 @@ const GamePage = () => {
                                   ) : (
                                     <span>Player ID: {order.game_id}</span>
                                   )}
-                                </div>
-                              )}
-                              {isMobile && order.phone_number && (
-                                <div className="flex items-center gap-1.5">
-                                  <Smartphone className="h-3 w-3 text-primary" />
-                                  <span>
-                                    Phone: {order.phone_number}
-                                    {order.game_name?.includes("(") && (
-                                      <span className="ml-1 text-primary font-medium">
-                                        • {order.game_name.match(/\(([^)]+)\)/)?.[1]}
-                                      </span>
-                                    )}
-                                  </span>
                                 </div>
                               )}
                               <p className="font-medium text-foreground">{order.price.toLocaleString()} Ks</p>
