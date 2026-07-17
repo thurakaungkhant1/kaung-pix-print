@@ -35,6 +35,7 @@ import {
   Clock,
   Filter,
   Wifi,
+  Coins,
 } from "lucide-react";
 import {
   Sheet,
@@ -61,7 +62,7 @@ interface ConvRow {
   participant1_id: string;
   participant2_id: string;
   updated_at: string;
-  other: { id: string; name: string; avatar_url: string | null; last_seen_at: string | null } | null;
+  other: { id: string; name: string; avatar_url: string | null; last_seen_at: string | null; total_coins?: number | null } | null;
   last?: { content: string; created_at: string; sender_id: string } | null;
 }
 
@@ -70,6 +71,7 @@ interface UserRow {
   name: string;
   avatar_url: string | null;
   last_seen_at: string | null;
+  total_coins?: number | null;
 }
 
 interface FRequest {
@@ -131,7 +133,7 @@ const Messages = () => {
         const [{ data: profile }, { data: lastMsg }] = await Promise.all([
           supabase
             .from("public_profiles")
-            .select("id, name, avatar_url, last_seen_at")
+            .select("id, name, avatar_url, last_seen_at, total_coins")
             .eq("id", otherId)
             .maybeSingle(),
           supabase
@@ -174,7 +176,7 @@ const Messages = () => {
     const { data: profs } = otherIds.length
       ? await supabase
           .from("public_profiles")
-          .select("id, name, avatar_url, last_seen_at")
+          .select("id, name, avatar_url, last_seen_at, total_coins")
           .in("id", otherIds)
       : { data: [] as UserRow[] };
     const profMap = new Map((profs || []).map((p: any) => [p.id, p as UserRow]));
@@ -295,7 +297,7 @@ const Messages = () => {
           // Fallback to view if RPC unavailable
           let q = supabase
             .from("public_profiles")
-            .select("id, name, avatar_url, last_seen_at")
+            .select("id, name, avatar_url, last_seen_at, total_coins")
             .neq("id", user?.id ?? "")
             .limit(60);
           if (discoverQuery.trim()) q = q.ilike("name", `%${discoverQuery.trim()}%`);
@@ -520,6 +522,15 @@ const Messages = () => {
               </p>
             ) : (
               <p className="text-[11px] text-muted-foreground/70">Not friends yet</p>
+            )}
+            {typeof u.total_coins === "number" && (
+              <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25">
+                <Coins className="h-3 w-3 text-amber-500" />
+                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 tabular-nums">
+                  {new Intl.NumberFormat("en-US").format(u.total_coins || 0)}
+                </span>
+                <span className="text-[9px] text-amber-700/70 dark:text-amber-300/70">coins</span>
+              </div>
             )}
           </div>
 
@@ -810,6 +821,14 @@ const Messages = () => {
                                     ? "Active now"
                                     : formatLastSeenExact(c.other?.last_seen_at)}
                                 </p>
+                                {typeof c.other?.total_coins === "number" && (
+                                  <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25">
+                                    <Coins className="h-2.5 w-2.5 text-amber-500" />
+                                    <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 tabular-nums">
+                                      {new Intl.NumberFormat("en-US").format(c.other.total_coins || 0)}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </button>
                             <button
