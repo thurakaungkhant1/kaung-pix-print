@@ -50,6 +50,7 @@ import {
   Megaphone,
   Sparkles,
   MessageCircle,
+  Trophy,
 } from "lucide-react";
 import {
   Dialog,
