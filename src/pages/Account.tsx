@@ -575,7 +575,7 @@ const Account = () => {
               </button>
             ) : (
               <button
-                onClick={() => navigate("/messages")}
+                onClick={() => navigate("/account/chat")}
                 className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-primary/30 transition-all active:scale-[0.98]"
               >
                 <div className="p-2 bg-primary/10 rounded-xl text-primary">
