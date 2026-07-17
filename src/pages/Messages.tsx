@@ -821,6 +821,14 @@ const Messages = () => {
                                     ? "Active now"
                                     : formatLastSeenExact(c.other?.last_seen_at)}
                                 </p>
+                                {typeof c.other?.total_coins === "number" && (
+                                  <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25">
+                                    <Coins className="h-2.5 w-2.5 text-amber-500" />
+                                    <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 tabular-nums">
+                                      {new Intl.NumberFormat("en-US").format(c.other.total_coins || 0)}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </button>
                             <button
