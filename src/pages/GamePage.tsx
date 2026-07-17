@@ -110,7 +110,10 @@ const GamePage = () => {
   const [serverId, setServerId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [purchasing, setPurchasing] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>(() => localStorage.getItem("shopActiveTab") || "games");
+  const [activeCategory, setActiveCategory] = useState<string>(() => {
+    const saved = localStorage.getItem("shopActiveTab");
+    return saved === "games" || saved === "orders" ? saved : "games";
+  });
   const [selectedGameCategory, setSelectedGameCategory] = useState<string | null>(() => localStorage.getItem("shopGameCat"));
   const [selectedMobileService, setSelectedMobileService] = useState<string | null>(() => localStorage.getItem("shopMobileCat"));
   const [selectedOperator, setSelectedOperator] = useState<string | null>(() => localStorage.getItem("shopMobileOperator"));
