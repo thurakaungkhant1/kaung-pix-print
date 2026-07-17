@@ -233,6 +233,7 @@ const GamePage = () => {
         )
       `)
       .eq("user_id", user.id)
+      .eq("order_type", "game")
       .order("created_at", { ascending: false })
       .limit(20);
 
