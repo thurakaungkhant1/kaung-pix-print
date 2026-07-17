@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ShoppingBag, Crown, Star, ChevronRight, Sparkles, Users, Package,
   Camera, Percent, Clock, ArrowRight, Flame, Shield, Zap, Gamepad2,
-  Smartphone, Wifi, Receipt, Bell, Wallet,
+  Smartphone, Wifi, Receipt, Bell, Wallet, Phone,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
