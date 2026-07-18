@@ -1,37 +1,29 @@
 project_id = "ojoenxchuzqonpixomkl"
 
-[functions.ai-chat]
-verify_jwt = true
-
-[functions.profiles-get-me]
-verify_jwt = true
-
-[functions.profiles-update-me]
-verify_jwt = true
-
-[functions.profiles-update-points]
-verify_jwt = true
-
-[functions.transcribe-audio]
-verify_jwt = true
-
-[functions.auto-topup]
-verify_jwt = true
-
-[functions.verify-mlbb-player]
-verify_jwt = true
-
-[functions.ai-gift-status]
-verify_jwt = false
-
-[functions.verify-photo-pin]
-verify_jwt = true
-
-[functions.ml-nickname]
-verify_jwt = false
-
-[functions.log-profile-upsert]
-verify_jwt = true
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.ai-chat]
+    verify_jwt = true
+  [functions.ai-gift-status]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.auto-topup]
+    verify_jwt = true
+  [functions.log-profile-upsert]
+    verify_jwt = true
+  [functions.ml-nickname]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.profiles-get-me]
+    verify_jwt = true
+  [functions.profiles-update-me]
+    verify_jwt = true
+  [functions.profiles-update-points]
+    verify_jwt = true
+  [functions.transcribe-audio]
+    verify_jwt = true
+  [functions.verify-mlbb-player]
+    verify_jwt = true
+  [functions.verify-photo-pin]
+    verify_jwt = true
