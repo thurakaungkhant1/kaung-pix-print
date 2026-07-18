@@ -13,6 +13,8 @@ project_id = "ojoenxchuzqonpixomkl"
     verify_jwt = false
   [functions.ml-nickname]
     verify_jwt = false
+  [functions.notify-order-telegram]
+    verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
   [functions.profiles-get-me]
