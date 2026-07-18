@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   if (req.method === 'GET' && url.searchParams.get('register') === '1') {
     const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
     if (!token) return new Response('no token', { status: 500 });
-    const webhookUrl = `${url.origin}${url.pathname}`;
+    const webhookUrl = `https://${Deno.env.get('SUPABASE_URL')!.replace(/^https?:\/\//,'')}/functions/v1/telegram-order-webhook`;
     const secret = Deno.env.get('TELEGRAM_WEBHOOK_SECRET') || '';
     const body: Record<string, unknown> = { url: webhookUrl, allowed_updates: ['callback_query'] };
     if (secret) body.secret_token = secret;
