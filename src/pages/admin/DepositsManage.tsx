@@ -257,7 +257,11 @@ const DepositsManage = () => {
     );
   };
 
-  const handleBulkApprove = () => runBulk("approve", null);
+  const handleBulkApprove = () => setBulkApproveConfirmOpen(true);
+  const confirmBulkApprove = async () => {
+    await runBulk("approve", null);
+    setBulkApproveConfirmOpen(false);
+  };
   const openBulkReject = () => setBulkReasonOpen(true);
   const submitBulkReject = () => {
     if (!bulkReason.trim()) {
