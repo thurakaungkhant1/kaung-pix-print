@@ -334,41 +334,20 @@ const GamePage = () => {
     setPurchasing(true);
 
     try {
-      const newBalance = walletBalance - selectedProduct.price;
-
-      // Deduct from wallet
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({ wallet_balance: newBalance })
-        .eq('id', user.id);
-
-      if (balanceError) throw balanceError;
-
-      // Create order
-      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
-        user_id: user.id,
-        product_id: selectedProduct.id,
-        quantity: 1,
-        price: selectedProduct.price,
-        game_id: isGameProduct(selectedProduct.category) ? gameId : null,
-        server_id: requiresServerId(selectedProduct.category) ? serverId : null,
-        game_name: selectedProduct.category,
-        phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : "",
-        status: "pending",
-        payment_method: "wallet",
-        delivery_address: "",
-      }).select().single();
-
-      if (orderError) throw orderError;
-
-      // Create wallet transaction
-      await supabase.functions.invoke('record-wallet-purchase', {
-        body: {
-          order_id: orderData.id,
-          description: `Purchase: ${selectedProduct.name}`,
-        },
+      const { data: rpcData, error: rpcError } = await supabase.rpc("purchase_product_wallet", {
+        p_product_id: selectedProduct.id,
+        p_quantity: 1,
+        p_game_id: isGameProduct(selectedProduct.category) ? gameId : null,
+        p_server_id: requiresServerId(selectedProduct.category) ? serverId : null,
+        p_phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : null,
+        p_plan_id: null,
+        p_plan_name: null,
+        p_delivery_address: "",
       });
 
+      if (rpcError) throw rpcError;
+
+      const newBalance = Number((rpcData as any)?.[0]?.new_balance ?? walletBalance - selectedProduct.price);
       setWalletBalance(newBalance);
       setShowPurchaseDialog(false);
       setShowSuccessDialog(true);
