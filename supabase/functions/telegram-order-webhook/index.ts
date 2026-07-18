@@ -3,6 +3,25 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const CHAT_ID = '7642545999';
 
 Deno.serve(async (req) => {
+  const url = new URL(req.url);
+
+  // One-time self-registration: GET ?register=1 sets the Telegram webhook to this function.
+  if (req.method === 'GET' && url.searchParams.get('register') === '1') {
+    const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
+    if (!token) return new Response('no token', { status: 500 });
+    const webhookUrl = `${url.origin}${url.pathname}`;
+    const secret = Deno.env.get('TELEGRAM_WEBHOOK_SECRET') || '';
+    const body: Record<string, unknown> = { url: webhookUrl, allowed_updates: ['callback_query'] };
+    if (secret) body.secret_token = secret;
+    const r = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const j = await r.text();
+    return new Response(j, { status: r.status, headers: { 'Content-Type': 'application/json' } });
+  }
+
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
   const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
