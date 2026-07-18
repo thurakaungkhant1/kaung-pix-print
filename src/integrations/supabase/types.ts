@@ -1348,6 +1348,7 @@ export type Database = {
           quantity: number
           server_id: string | null
           status: string
+          telegram_message_id: number | null
           transaction_id: string | null
           user_id: string
         }
@@ -1369,6 +1370,7 @@ export type Database = {
           quantity?: number
           server_id?: string | null
           status?: string
+          telegram_message_id?: number | null
           transaction_id?: string | null
           user_id: string
         }
@@ -1390,6 +1392,7 @@ export type Database = {
           quantity?: number
           server_id?: string | null
           status?: string
+          telegram_message_id?: number | null
           transaction_id?: string | null
           user_id?: string
         }
