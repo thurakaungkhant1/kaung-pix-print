@@ -100,7 +100,12 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDepo
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg min-w-[56px] text-muted-foreground">
-              <MoreHorizontal className="h-4.5 w-4.5" />
+              <div className="relative">
+                <MoreHorizontal className="h-4.5 w-4.5" />
+                {pendingDeposits > 0 && (
+                  <span className="absolute -top-1 -right-1.5 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
+                )}
+              </div>
               <span className="text-[9px] font-medium">More</span>
             </button>
           </DropdownMenuTrigger>
@@ -115,16 +120,21 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDepo
                 <DropdownMenuLabel className="text-[10px] text-muted-foreground uppercase tracking-wider">
                   {group.label}
                 </DropdownMenuLabel>
-                {group.items.map((item) => (
+                {group.items.map((item: any) => (
                   <DropdownMenuItem
                     key={item.id}
                     onClick={() => {
                       if (item.route) navigate(item.route);
                       else onTabChange(item.id);
                     }}
-                    className="cursor-pointer text-sm"
+                    className="cursor-pointer text-sm flex items-center justify-between"
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {item.badge && item.badge > 0 && (
+                      <span className="ml-2 h-5 min-w-5 px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground">
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    )}
                   </DropdownMenuItem>
                 ))}
               </div>
