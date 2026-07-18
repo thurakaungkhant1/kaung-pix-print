@@ -116,8 +116,10 @@ const OrdersManage = () => {
         if (!matchesSearch) return false;
       }
       
-      // Status filter
-      if (statusFilter !== "all" && order.status !== statusFilter) {
+      // Status filter — hide rejected/cancelled unless explicitly filtered
+      if (statusFilter === "all") {
+        if (order.status === "rejected" || order.status === "cancelled") return false;
+      } else if (order.status !== statusFilter) {
         return false;
       }
       
