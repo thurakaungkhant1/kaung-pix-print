@@ -10,7 +10,7 @@ project_id = "ojoenxchuzqonpixomkl"
   [functions.auto-topup]
     verify_jwt = true
   [functions.log-profile-upsert]
-    verify_jwt = true
+    verify_jwt = false
   [functions.ml-nickname]
     verify_jwt = false
   [functions.process-email-queue]
