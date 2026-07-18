@@ -195,6 +195,7 @@ const AdminDashboard = () => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [pendingPremiumRequests, setPendingPremiumRequests] = useState(0);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
+  const { prefs: notifPrefs } = useAdminNotificationPrefs();
   const { toast } = useToast();
   const navigate = useNavigate();
 
