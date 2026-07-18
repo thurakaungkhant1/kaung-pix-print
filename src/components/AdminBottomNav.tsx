@@ -20,9 +20,10 @@ interface AdminBottomNavProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   pendingOrders?: number;
+  pendingDeposits?: number;
 }
 
-const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBottomNavProps) => {
+const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDeposits = 0 }: AdminBottomNavProps) => {
   const navigate = useNavigate();
 
   const mainNavItems = [
@@ -36,7 +37,7 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0 }: AdminBott
     {
       label: "Finance",
       items: [
-        { id: "deposits", label: "Deposits", route: "/admin/deposits" },
+        { id: "deposits", label: "Deposits", route: "/admin/deposits", badge: pendingDeposits },
         { id: "point-management", label: "Points" },
         { id: "point-history", label: "Point History" },
       ]
