@@ -34,21 +34,56 @@ Deno.serve(async (req) => {
 
     const [{ data: profile }, { data: product }] = await Promise.all([
       supabase.from('profiles').select('name').eq('id', order.user_id).maybeSingle(),
-      supabase.from('products').select('name').eq('id', order.product_id).maybeSingle(),
+      supabase.from('products').select('name, category').eq('id', order.product_id).maybeSingle(),
     ]);
 
     const shortId = String(order.id).slice(0, 8).toUpperCase();
     const customerName = profile?.name ?? 'Unknown';
-    const text =
-      `🛒 NEW ORDER\n\n` +
-      `🆔 Order ID: ${shortId}\n` +
-      `👤 Customer: ${customerName}\n` +
-      `📞 Phone: ${order.phone_number ?? '-'}\n` +
-      `📦 Product: ${product?.name ?? '-'}\n` +
-      `🔢 Quantity: ${order.quantity}\n` +
-      `💰 Total: ${order.price} MMK\n` +
-      `💳 Payment: ${order.payment_method ?? '-'}\n` +
-      `📅 Time: ${new Date(order.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Yangon' })}`;
+    const category = product?.category ?? '';
+    const isMLBB = category === 'MLBB Diamonds';
+    const isPUBG = category === 'PUBG UC';
+    const timeStr = new Date(order.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Yangon' });
+
+    let text: string;
+    if (isMLBB) {
+      text =
+        `🎮 New Mobile Legends Order\n\n` +
+        `🆔 Order ID: #${shortId}\n` +
+        `📦 Product: ${product?.name ?? '-'}\n` +
+        `🎯 Game ID: ${order.game_id ?? '-'}\n` +
+        `🌐 Server ID: ${order.server_id ?? '-'}\n` +
+        `🔢 Quantity: ${order.quantity}\n` +
+        `💰 Price: ${order.price} MMK\n` +
+        `👤 Customer: ${customerName}\n` +
+        `💳 Payment: ${order.payment_method ?? '-'}\n` +
+        `📅 Time: ${timeStr}`;
+    } else if (isPUBG) {
+      text =
+        `🎮 New PUBG Mobile Order\n\n` +
+        `🆔 Order ID: #${shortId}\n` +
+        `📦 Product: ${product?.name ?? '-'}\n` +
+        `🎯 Player UID: ${order.game_id ?? '-'}\n` +
+        `🔢 Quantity: ${order.quantity}\n` +
+        `💰 Price: ${order.price} MMK\n` +
+        `👤 Customer: ${customerName}\n` +
+        `💳 Payment: ${order.payment_method ?? '-'}\n` +
+        `📅 Time: ${timeStr}`;
+    } else {
+      const gameLine = order.game_id
+        ? `🎯 Game ID: ${order.game_id}${order.server_id ? ` • Server: ${order.server_id}` : ''}\n`
+        : '';
+      text =
+        `🛒 NEW ORDER\n\n` +
+        `🆔 Order ID: #${shortId}\n` +
+        `👤 Customer: ${customerName}\n` +
+        `📞 Phone: ${order.phone_number ?? '-'}\n` +
+        `📦 Product: ${product?.name ?? '-'}\n` +
+        gameLine +
+        `🔢 Quantity: ${order.quantity}\n` +
+        `💰 Total: ${order.price} MMK\n` +
+        `💳 Payment: ${order.payment_method ?? '-'}\n` +
+        `📅 Time: ${timeStr}`;
+    }
 
     const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
     if (!token) {
