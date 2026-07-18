@@ -83,6 +83,27 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notification_settings: {
+        Row: {
+          deposit_badge_enabled: boolean
+          deposit_sound_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          deposit_badge_enabled?: boolean
+          deposit_sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          deposit_badge_enabled?: boolean
+          deposit_sound_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_gift_links: {
         Row: {
           cost_coins: number
@@ -522,6 +543,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      deposit_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          amount: number
+          created_at: string
+          deposit_id: string
+          id: string
+          new_status: string | null
+          notes: string | null
+          previous_status: string | null
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          amount?: number
+          created_at?: string
+          deposit_id: string
+          id?: string
+          new_status?: string | null
+          notes?: string | null
+          previous_status?: string | null
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          amount?: number
+          created_at?: string
+          deposit_id?: string
+          id?: string
+          new_status?: string | null
+          notes?: string | null
+          previous_status?: string | null
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_audit_log_deposit_id_fkey"
+            columns: ["deposit_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_deposits"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       digital_categories: {
         Row: {
@@ -2205,6 +2276,7 @@ export type Database = {
           created_at: string | null
           id: string
           rejected_at: string | null
+          rejected_by: string | null
           screenshot_url: string
           status: string
           transaction_id: string | null
@@ -2219,6 +2291,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           rejected_at?: string | null
+          rejected_by?: string | null
           screenshot_url: string
           status?: string
           transaction_id?: string | null
@@ -2233,6 +2306,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           rejected_at?: string | null
+          rejected_by?: string | null
           screenshot_url?: string
           status?: string
           transaction_id?: string | null
@@ -2421,6 +2495,10 @@ export type Database = {
       admin_grant_coin_bonus: {
         Args: { bonus_amount: number; note?: string; target_user_id: string }
         Returns: undefined
+      }
+      admin_process_deposit: {
+        Args: { p_action: string; p_deposit_id: string; p_notes?: string }
+        Returns: Json
       }
       generate_referral_code: { Args: never; Returns: string }
       get_daily_game_points: { Args: { p_user_id: string }; Returns: number }

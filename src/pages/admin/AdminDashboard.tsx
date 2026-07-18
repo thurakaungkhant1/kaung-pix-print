@@ -66,6 +66,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useAdminNotificationPrefs } from "@/hooks/useAdminNotificationPrefs";
 import { cn } from "@/lib/utils";
 import {
   AreaChart,
@@ -194,6 +195,7 @@ const AdminDashboard = () => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [pendingPremiumRequests, setPendingPremiumRequests] = useState(0);
   const { isAdmin, user } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
+  const { prefs: notifPrefs } = useAdminNotificationPrefs();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -2346,7 +2348,7 @@ const AdminDashboard = () => {
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         pendingOrders={stats.pendingOrders}
-        pendingDeposits={pendingDeposits}
+        pendingDeposits={notifPrefs.deposit_badge_enabled ? pendingDeposits : 0}
       />
 
       {/* Floating Action Button for Mobile */}
