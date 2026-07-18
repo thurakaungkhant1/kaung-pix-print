@@ -66,6 +66,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useAdminNotificationPrefs } from "@/hooks/useAdminNotificationPrefs";
 import { cn } from "@/lib/utils";
 import {
   AreaChart,
