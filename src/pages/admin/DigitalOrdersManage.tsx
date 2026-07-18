@@ -119,7 +119,9 @@ const DigitalOrdersManage = () => {
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
-      if (statusFilter !== "all") {
+      if (statusFilter === "all") {
+        if (["rejected", "cancelled"].includes(o.status)) return false;
+      } else {
         if (statusFilter === "approved" && !["approved", "finished", "completed"].includes(o.status)) return false;
         if (statusFilter === "rejected" && !["rejected", "cancelled"].includes(o.status)) return false;
         if (statusFilter === "pending" && o.status !== "pending") return false;
