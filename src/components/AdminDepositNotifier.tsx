@@ -4,13 +4,16 @@ import { toast } from "sonner";
 import { Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useAdminNotificationPrefs } from "@/hooks/useAdminNotificationPrefs";
 
 /**
  * Realtime listener that alerts admins when a new wallet deposit request
  * is submitted. Plays a beep and shows a toast that links to the Deposits page.
+ * Respects the admin's notification preferences (sound / badge).
  */
 const AdminDepositNotifier = () => {
   const { isAdmin } = useAdminCheck({ redirectOnFail: false });
+  const { prefs } = useAdminNotificationPrefs();
   const navigate = useNavigate();
   const audioRef = useRef<AudioContext | null>(null);
 
