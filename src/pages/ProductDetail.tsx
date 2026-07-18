@@ -246,7 +246,7 @@ const ProductDetail = () => {
         p_game_id: null,
         p_server_id: null,
         p_phone_number: null,
-        p_plan_id: isDigital && selectedPlan ? selectedPlan.id : null,
+        p_plan_id: isDigital && selectedPlan ? Number(selectedPlan.id) : null,
         p_plan_name: isDigital && selectedPlan
           ? (selectedPlan.duration_label ? `${selectedPlan.name} (${selectedPlan.duration_label})` : selectedPlan.name)
           : null,
