@@ -2672,7 +2672,7 @@ export type Database = {
           p_delivery_address?: string
           p_game_id?: string
           p_phone_number?: string
-          p_plan_id?: number
+          p_plan_id?: string
           p_plan_name?: string
           p_product_id: number
           p_quantity?: number
