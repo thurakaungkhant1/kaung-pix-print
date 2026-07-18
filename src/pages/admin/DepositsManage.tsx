@@ -316,9 +316,44 @@ const DepositsManage = () => {
       return next;
     });
   };
-  const selectedSum = filteredDeposits
-    .filter((d) => selectedIds.has(d.id))
-    .reduce((s, d) => s + Number(d.amount), 0);
+  const selectedDeposits = filteredDeposits.filter((d) => selectedIds.has(d.id));
+  const selectedSum = selectedDeposits.reduce((s, d) => s + Number(d.amount), 0);
+
+  const BulkSummary = ({ variant }: { variant: "approve" | "reject" }) => (
+    <div className="space-y-3">
+      <div className={`rounded-lg border p-3 ${
+        variant === "approve"
+          ? "border-green-500/40 bg-green-500/5"
+          : "border-red-500/40 bg-red-500/5"
+      }`}>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Count</span>
+          <span className="font-semibold">{selectedDeposits.length}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm mt-1">
+          <span className="text-muted-foreground">Total amount</span>
+          <span className={`font-bold ${variant === "approve" ? "text-green-500" : "text-red-500"}`}>
+            {formatCurrency(selectedSum)}
+          </span>
+        </div>
+      </div>
+      <div>
+        <p className="text-xs text-muted-foreground mb-1">Transaction IDs</p>
+        <div className="max-h-40 overflow-y-auto rounded-md border border-border/50 bg-background/50 p-2 space-y-1">
+          {selectedDeposits.map((d) => (
+            <div key={d.id} className="flex items-center justify-between text-xs gap-2">
+              <span className="font-mono truncate">
+                {d.transaction_id || <span className="text-muted-foreground italic">no tx id</span>}
+              </span>
+              <span className="text-muted-foreground shrink-0">
+                {d.profiles?.name} • {formatCurrency(Number(d.amount))}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <MobileLayout hideNav>
