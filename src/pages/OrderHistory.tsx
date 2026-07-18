@@ -102,6 +102,8 @@ const OrderHistory = () => {
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
+      // Hide rejected/cancelled orders from user's list
+      if (o.status === "rejected" || o.status === "cancelled") return false;
       const cat = o.products?.category || "";
       if (tab === "digital" && !DIGITAL_CATS.includes(cat)) return false;
       if (tab === "game" && !["MLBB Diamonds", "PUBG UC", "Free Fire", "Genshin"].includes(cat)) return false;
