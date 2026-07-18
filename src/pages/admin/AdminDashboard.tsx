@@ -2348,7 +2348,7 @@ const AdminDashboard = () => {
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         pendingOrders={stats.pendingOrders}
-        pendingDeposits={pendingDeposits}
+        pendingDeposits={notifPrefs.deposit_badge_enabled ? pendingDeposits : 0}
       />
 
       {/* Floating Action Button for Mobile */}
