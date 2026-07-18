@@ -1,6 +1,6 @@
-// Server-side logger for profile upsert results after OAuth sign-in.
-// Verifies the caller's JWT, then writes a structured log line + persists a row
-// to auth_error_logs (when the upsert failed) so admins can diagnose quickly.
+// Best-effort server-side logger for profile upsert results.
+// This function must never block auth/profile flows: invalid or missing auth
+// returns a successful skipped response instead of surfacing a runtime 401.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -20,13 +20,21 @@ Deno.serve(async (req) => {
     const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
     const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+    if (!token) {
+      return new Response(JSON.stringify({ ok: true, skipped: "missing_token" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const userClient = createClient(url, anon, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData.user) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), {
-        status: 401,
+      console.warn("[profiles-upsert] skipped unauthorized telemetry request");
+      return new Response(JSON.stringify({ ok: true, skipped: "unauthorized" }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
