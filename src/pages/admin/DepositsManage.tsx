@@ -74,6 +74,7 @@ const DepositsManage = () => {
   });
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkApproveConfirmOpen, setBulkApproveConfirmOpen] = useState(false);
   const [bulkReasonOpen, setBulkReasonOpen] = useState(false);
   const [bulkReason, setBulkReason] = useState("");
   const [auditByDeposit, setAuditByDeposit] = useState<Record<string, AuditEntry[]>>({});
