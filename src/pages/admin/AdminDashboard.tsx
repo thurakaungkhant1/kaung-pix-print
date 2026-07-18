@@ -166,6 +166,7 @@ const AdminDashboard = () => {
   const [diamondStatusData, setDiamondStatusData] = useState<OrderStatusData[]>([]);
   const [userGrowthData, setUserGrowthData] = useState<UserGrowthData[]>([]);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [pendingDeposits, setPendingDeposits] = useState(0);
   const [orderTypeFilter, setOrderTypeFilter] = useState<"game" | "mobile">("game");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -352,7 +353,32 @@ const AdminDashboard = () => {
       loadDiamondAnalytics();
       loadPointTransactions();
       loadPendingPremiumRequests();
+      loadPendingDeposits();
     }
+  }, [isAdmin]);
+
+  const loadPendingDeposits = async () => {
+    const { count } = await supabase
+      .from("wallet_deposits")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+    setPendingDeposits(count || 0);
+  };
+
+  // Realtime updates for pending deposit count
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel("admin-pending-deposits")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "wallet_deposits" },
+        () => loadPendingDeposits()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [isAdmin]);
 
   // Load pending premium requests count
@@ -2320,6 +2346,7 @@ const AdminDashboard = () => {
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         pendingOrders={stats.pendingOrders}
+        pendingDeposits={pendingDeposits}
       />
 
       {/* Floating Action Button for Mobile */}
