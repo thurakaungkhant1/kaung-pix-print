@@ -2393,6 +2393,7 @@ export type Database = {
           rejected_by: string | null
           screenshot_url: string
           status: string
+          telegram_message_id: number | null
           transaction_id: string | null
           updated_at: string | null
           user_id: string
@@ -2408,6 +2409,7 @@ export type Database = {
           rejected_by?: string | null
           screenshot_url: string
           status?: string
+          telegram_message_id?: number | null
           transaction_id?: string | null
           updated_at?: string | null
           user_id: string
@@ -2423,6 +2425,7 @@ export type Database = {
           rejected_by?: string | null
           screenshot_url?: string
           status?: string
+          telegram_message_id?: number | null
           transaction_id?: string | null
           updated_at?: string | null
           user_id?: string
@@ -2703,6 +2706,10 @@ export type Database = {
           last_seen_at: string
           name: string
         }[]
+      }
+      telegram_process_deposit: {
+        Args: { p_action: string; p_deposit_id: string; p_notes?: string }
+        Returns: Json
       }
     }
     Enums: {
