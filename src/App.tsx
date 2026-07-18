@@ -16,6 +16,7 @@ import MessageNotifier from "@/components/MessageNotifier";
 import FriendRequestNotifier from "@/components/FriendRequestNotifier";
 import OrderApprovalNotifier from "@/components/OrderApprovalNotifier";
 import AdminSupportNotifier from "@/components/AdminSupportNotifier";
+import AdminDepositNotifier from "@/components/AdminDepositNotifier";
 import PresenceTracker from "@/components/PresenceTracker";
 import BanGate from "@/components/BanGate";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
