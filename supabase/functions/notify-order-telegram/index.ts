@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error } = await supabase
       .from('orders')
-      .select('id, quantity, price, phone_number, payment_method, created_at, user_id, product_id')
+      .select('id, quantity, price, phone_number, payment_method, created_at, user_id, product_id, status, telegram_message_id')
       .eq('id', order_id)
       .maybeSingle();
 
@@ -38,10 +38,11 @@ Deno.serve(async (req) => {
     ]);
 
     const shortId = String(order.id).slice(0, 8).toUpperCase();
+    const customerName = profile?.name ?? 'Unknown';
     const text =
       `🛒 NEW ORDER\n\n` +
       `🆔 Order ID: ${shortId}\n` +
-      `👤 Customer: ${profile?.name ?? 'Unknown'}\n` +
+      `👤 Customer: ${customerName}\n` +
       `📞 Phone: ${order.phone_number ?? '-'}\n` +
       `📦 Product: ${product?.name ?? '-'}\n` +
       `🔢 Quantity: ${order.quantity}\n` +
@@ -57,15 +58,27 @@ Deno.serve(async (req) => {
       });
     }
 
+    const reply_markup = {
+      inline_keyboard: [[
+        { text: '✅ Confirm Order', callback_data: `confirm:${order.id}` },
+        { text: '❌ Cancel Order', callback_data: `cancel:${order.id}` },
+      ]],
+    };
+
     const tgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: CHAT_ID, text }),
+      body: JSON.stringify({ chat_id: CHAT_ID, text, reply_markup }),
     });
-    const tgBody = await tgRes.text();
+    const tgBody = await tgRes.json().catch(() => null);
     if (!tgRes.ok) console.error('Telegram send failed:', tgRes.status, tgBody);
 
-    return new Response(JSON.stringify({ ok: tgRes.ok }), {
+    const msgId = tgBody?.result?.message_id;
+    if (msgId) {
+      await supabase.from('orders').update({ telegram_message_id: msgId }).eq('id', order.id);
+    }
+
+    return new Response(JSON.stringify({ ok: tgRes.ok, message_id: msgId }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
