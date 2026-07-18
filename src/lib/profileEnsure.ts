@@ -74,8 +74,12 @@ async function reportUpsertResult(args: {
   error_details?: unknown;
 }) {
   try {
+    // Only log when we actually have a session — the edge function requires JWT.
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
     await supabase.functions.invoke("log-profile-upsert", { body: args });
   } catch (e) {
+    // Silent — logging is best-effort and must never surface as a runtime error.
     console.warn("[reportUpsertResult] invoke failed:", e);
   }
 }
