@@ -240,45 +240,24 @@ const ProductDetail = () => {
     setPurchasing(true);
 
     try {
-      const newBalance = walletBalance - totalPrice;
-
-      const { error: balanceError } = await supabase
-        .from("profiles")
-        .update({ wallet_balance: newBalance })
-        .eq("id", user.id);
-
-      if (balanceError) throw balanceError;
-
-      const orderInsert: any = {
-        user_id: user.id,
-        product_id: product.id,
-        quantity: quantity,
-        price: totalPrice,
-        phone_number: "",
-        delivery_address: "",
-        payment_method: "wallet",
-        status: "pending",
-      };
-      if (isDigital && selectedPlan) {
-        orderInsert.plan_id = selectedPlan.id;
-        orderInsert.plan_name = selectedPlan.duration_label
-          ? `${selectedPlan.name} (${selectedPlan.duration_label})`
-          : selectedPlan.name;
-      }
-      const { data: orderData, error: orderError } = await supabase
-        .from("orders")
-        .insert(orderInsert)
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      await supabase.functions.invoke("record-wallet-purchase", {
-        body: {
-          order_id: orderData.id,
-          description: `Purchase: ${product.name}${selectedPlan ? ` — ${selectedPlan.name}` : ""} x${quantity}`,
-        },
+      const { data: rpcData, error: rpcError } = await supabase.rpc("purchase_product_wallet", {
+        p_product_id: product.id,
+        p_quantity: quantity,
+        p_game_id: null,
+        p_server_id: null,
+        p_phone_number: null,
+        p_plan_id: isDigital && selectedPlan ? selectedPlan.id : null,
+        p_plan_name: isDigital && selectedPlan
+          ? (selectedPlan.duration_label ? `${selectedPlan.name} (${selectedPlan.duration_label})` : selectedPlan.name)
+          : null,
+        p_delivery_address: "",
       });
+
+      if (rpcError) throw rpcError;
+
+      const row = (rpcData as any)?.[0];
+      const orderData = { id: row?.order_id };
+      const newBalance = Number(row?.new_balance ?? walletBalance - totalPrice);
 
       setWalletBalance(newBalance);
       toast({
