@@ -79,8 +79,8 @@ async function reportUpsertResult(_args: {
 
 /**
  * Ensure a profile row exists for the given auth user.
- * Emits a toast on failure and logs the outcome to the log-profile-upsert
- * edge function so admins can diagnose schema-cache / GRANT issues.
+ * Emits a toast on failure; remote telemetry is intentionally disabled so
+ * profile creation can never be blocked by optional logging.
  */
 export async function ensureProfileRow(user: User): Promise<boolean> {
   if (!user) return false;
