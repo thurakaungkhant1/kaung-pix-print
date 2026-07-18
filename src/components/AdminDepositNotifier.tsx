@@ -60,7 +60,7 @@ const AdminDepositNotifier = () => {
           const amountStr =
             new Intl.NumberFormat("my-MM").format(Number(d.amount) || 0) + " Ks";
 
-          beep();
+          if (prefs.deposit_sound_enabled) beep();
           toast(`💰 New Deposit from ${userName}`, {
             description: `Amount: ${amountStr}${d.transaction_id ? ` • TX: ${d.transaction_id}` : ""}`,
             icon: <Wallet className="h-4 w-4" />,
@@ -77,7 +77,7 @@ const AdminDepositNotifier = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, prefs.deposit_sound_enabled]);
 
   return null;
 };
