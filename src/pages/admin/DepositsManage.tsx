@@ -658,19 +658,58 @@ const DepositsManage = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Bulk approve confirmation */}
+        <Dialog open={bulkApproveConfirmOpen} onOpenChange={setBulkApproveConfirmOpen}>
+          <DialogContent className="sm:max-w-md bg-card border-border max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                Approve {selectedIds.size} deposit{selectedIds.size !== 1 ? "s" : ""}?
+              </DialogTitle>
+              <DialogDescription>
+                Review the summary below. Wallet balances will be credited immediately.
+              </DialogDescription>
+            </DialogHeader>
+            <BulkSummary variant="approve" />
+            <DialogFooter className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setBulkApproveConfirmOpen(false)}
+                disabled={processing}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmBulkApprove}
+                disabled={processing || selectedIds.size === 0}
+                className="flex-1 btn-neon"
+              >
+                {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                Confirm Approve
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Bulk reject reason */}
         <Dialog open={bulkReasonOpen} onOpenChange={setBulkReasonOpen}>
-          <DialogContent className="sm:max-w-md bg-card border-border">
+          <DialogContent className="sm:max-w-md bg-card border-border max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Reject {selectedIds.size} deposit{selectedIds.size !== 1 ? "s" : ""}</DialogTitle>
-              <DialogDescription>Provide a reason applied to every selected deposit.</DialogDescription>
+              <DialogTitle>Reject {selectedIds.size} deposit{selectedIds.size !== 1 ? "s" : ""}?</DialogTitle>
+              <DialogDescription>
+                Review the summary and provide a reason applied to every selected deposit.
+              </DialogDescription>
             </DialogHeader>
-            <Textarea
-              placeholder="Reason for rejection..."
-              value={bulkReason}
-              onChange={(e) => setBulkReason(e.target.value)}
-              className="bg-background/50"
-            />
+            <BulkSummary variant="reject" />
+            <div className="space-y-1">
+              <Label>Rejection reason</Label>
+              <Textarea
+                placeholder="Reason for rejection..."
+                value={bulkReason}
+                onChange={(e) => setBulkReason(e.target.value)}
+                className="bg-background/50"
+              />
+            </div>
             <DialogFooter className="flex gap-2">
               <Button variant="outline" onClick={() => setBulkReasonOpen(false)} disabled={processing} className="flex-1">
                 Cancel
@@ -682,6 +721,7 @@ const DepositsManage = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
 
         {/* Screenshot Dialog */}
         <Dialog open={showScreenshot} onOpenChange={setShowScreenshot}>
