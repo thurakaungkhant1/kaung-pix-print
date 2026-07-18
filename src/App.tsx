@@ -187,6 +187,7 @@ const App = () => {
               <FriendRequestNotifier />
               <OrderApprovalNotifier />
               <AdminSupportNotifier />
+              <AdminDepositNotifier />
               <PresenceTracker />
               <BanGate />
               <Suspense fallback={<PageLoader />}>
