@@ -166,6 +166,7 @@ const AdminDashboard = () => {
   const [diamondStatusData, setDiamondStatusData] = useState<OrderStatusData[]>([]);
   const [userGrowthData, setUserGrowthData] = useState<UserGrowthData[]>([]);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [pendingDeposits, setPendingDeposits] = useState(0);
   const [orderTypeFilter, setOrderTypeFilter] = useState<"game" | "mobile">("game");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
