@@ -2321,6 +2321,7 @@ const AdminDashboard = () => {
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         pendingOrders={stats.pendingOrders}
+        pendingDeposits={pendingDeposits}
       />
 
       {/* Floating Action Button for Mobile */}
