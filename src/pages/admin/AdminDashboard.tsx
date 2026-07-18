@@ -353,7 +353,32 @@ const AdminDashboard = () => {
       loadDiamondAnalytics();
       loadPointTransactions();
       loadPendingPremiumRequests();
+      loadPendingDeposits();
     }
+  }, [isAdmin]);
+
+  const loadPendingDeposits = async () => {
+    const { count } = await supabase
+      .from("wallet_deposits")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+    setPendingDeposits(count || 0);
+  };
+
+  // Realtime updates for pending deposit count
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel("admin-pending-deposits")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "wallet_deposits" },
+        () => loadPendingDeposits()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [isAdmin]);
 
   // Load pending premium requests count
