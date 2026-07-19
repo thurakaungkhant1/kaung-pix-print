@@ -257,30 +257,40 @@ const Account = () => {
     if (!avatarFile || !user) return;
     setUploadingAvatar(true);
     try {
-      const fileExt = avatarFile.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, avatarFile, { upsert: true });
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
-      const { error: updateError } = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
-      if (updateError) throw updateError;
-      toast({ title: "Profile photo updated!", description: "Your avatar has been saved successfully" });
-      setAvatarFile(null); setAvatarPreview(null); loadProfile();
-    } catch (error: any) { toast({ title: "Upload failed", description: error.message, variant: "destructive" }); }
-    finally { setUploadingAvatar(false); }
+      // Save to localStorage only (frontend). Do NOT upload to cloud storage or update DB.
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(avatarFile);
+      });
+      localStorage.setItem(`local_avatar_${user.id}`, dataUrl);
+      setProfile((p) => (p ? { ...p, avatar_url: dataUrl } : p));
+      toast({ title: "Profile photo saved!", description: "Saved on this device." });
+      setAvatarFile(null);
+      setAvatarPreview(null);
+    } catch (error: any) {
+      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const deleteAvatar = async () => {
     if (!user) return;
     setDeletingAvatar(true);
     try {
-      const { data: files } = await supabase.storage.from('avatars').list(user.id);
-      if (files && files.length > 0) { const filePaths = files.map(file => `${user.id}/${file.name}`); await supabase.storage.from('avatars').remove(filePaths); }
-      const { error: updateError } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
-      if (updateError) throw updateError;
-      toast({ title: "Photo removed" }); setAvatarFile(null); setAvatarPreview(null); loadProfile();
-    } catch (error: any) { toast({ title: "Delete failed", description: error.message, variant: "destructive" }); }
-    finally { setDeletingAvatar(false); setDeleteDialogOpen(false); }
+      localStorage.removeItem(`local_avatar_${user.id}`);
+      setProfile((p) => (p ? { ...p, avatar_url: null } : p));
+      toast({ title: "Photo removed" });
+      setAvatarFile(null);
+      setAvatarPreview(null);
+    } catch (error: any) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } finally {
+      setDeletingAvatar(false);
+      setDeleteDialogOpen(false);
+    }
   };
 
   const handlePasswordChange = async () => {
