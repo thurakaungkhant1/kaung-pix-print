@@ -261,16 +261,36 @@ const Account = () => {
     if (!avatarFile || !user) return;
     setUploadingAvatar(true);
     try {
-      // Save to localStorage only (frontend). Do NOT upload to cloud storage or update DB.
+      // Compress the cropped image to a small avatar (≈ 400px, JPEG q0.85)
+      const compressed = await compressAvatar(avatarFile, 400, 0.85);
+
+      // Upload to shared `avatars` bucket so other users can see it
+      const path = `${user.id}/avatar.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, compressed, { upsert: true, contentType: "image/jpeg", cacheControl: "3600" });
+      if (upErr) throw upErr;
+
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = `${pub.publicUrl}?v=${Date.now()}`;
+
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+      if (updErr) throw updErr;
+
+      // Keep a local cache for instant load
       const dataUrl: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
         reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(avatarFile);
+        reader.readAsDataURL(compressed);
       });
       localStorage.setItem(`local_avatar_${user.id}`, dataUrl);
-      setProfile((p) => (p ? { ...p, avatar_url: dataUrl } : p));
-      toast({ title: "Profile photo saved!", description: "Saved on this device." });
+
+      setProfile((p) => (p ? { ...p, avatar_url: publicUrl } : p));
+      toast({ title: "Profile photo updated!", description: `Saved (${Math.round(compressed.size / 1024)} KB)` });
       setAvatarFile(null);
       setAvatarPreview(null);
     } catch (error: any) {
@@ -284,6 +304,9 @@ const Account = () => {
     if (!user) return;
     setDeletingAvatar(true);
     try {
+      // Remove file from storage (ignore if not there) and clear DB column
+      await supabase.storage.from("avatars").remove([`${user.id}/avatar.jpg`]);
+      await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
       localStorage.removeItem(`local_avatar_${user.id}`);
       setProfile((p) => (p ? { ...p, avatar_url: null } : p));
       toast({ title: "Photo removed" });
