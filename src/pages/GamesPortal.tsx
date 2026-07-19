@@ -578,7 +578,14 @@ const GamesPortal = () => {
                     </Card>
                   ) : (
                     leaderboard.map((player, i) => (
-                      <motion.div key={player.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+                      <motion.div
+                        key={player.id}
+                        layout
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ type: "spring", stiffness: 320, damping: 26, delay: i * 0.04 }}
+                        whileHover={{ scale: 1.01 }}
+                      >
                         <Card className="p-3.5 flex items-center gap-3 rounded-2xl border-border/60 bg-card">
                           <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0",
                             i === 0 ? "bg-gradient-to-br from-amber-400 to-amber-500 text-white" :
@@ -587,14 +594,24 @@ const GamesPortal = () => {
                                   "bg-muted text-muted-foreground")}>
                             {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
                           </div>
+                          <Avatar className="h-9 w-9 border border-border/50 shrink-0">
+                            <AvatarImage src={player.avatar_url || defaultAvatar} className="object-cover" />
+                            <AvatarFallback className="text-xs">{player.name?.charAt(0)?.toUpperCase() || "?"}</AvatarFallback>
+                          </Avatar>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-sm truncate">{player.name}</p>
                             <p className="text-[10px] text-muted-foreground">Player</p>
                           </div>
-                          <div className="text-right shrink-0">
+                          <motion.div
+                            key={player.game_points}
+                            initial={{ scale: 1.15 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                            className="text-right shrink-0"
+                          >
                             <p className="font-display font-bold text-primary">{player.game_points?.toLocaleString() || 0}</p>
                             <p className="text-[10px] text-muted-foreground">points</p>
-                          </div>
+                          </motion.div>
                         </Card>
                       </motion.div>
                     ))
