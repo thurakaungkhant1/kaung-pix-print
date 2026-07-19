@@ -24,6 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 
 import { cn } from "@/lib/utils";
 import { ImageCropper } from "@/components/ImageCropper";
+import { compressAvatar } from "@/lib/avatarCompression";
+import defaultAvatar from "@/assets/default-avatar.svg";
 import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import PremiumFeaturesDialog from "@/components/PremiumFeaturesDialog";
 import PremiumBadge from "@/components/PremiumBadge";
