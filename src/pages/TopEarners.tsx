@@ -33,7 +33,13 @@ const TopEarners = () => {
   }, []);
 
   const loadLeaderboard = async () => {
-    // Fetch profiles with avatar for the leaderboard
+    // Fetch admin user ids to exclude from the public leaderboard
+    const { data: adminRows } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .in("role", ["admin", "mobile_admin"] as any);
+    const adminIds = new Set((adminRows ?? []).map((r: any) => r.user_id));
+
     const { data } = await supabase
       .from("public_profiles")
       .select("id, name, game_points, avatar_url")
@@ -41,8 +47,11 @@ const TopEarners = () => {
       .limit(50);
 
     if (data && Array.isArray(data)) {
+      const filtered = (data as any[])
+        .filter((d) => !adminIds.has(d.id))
+        .slice(0, 10);
       setLeaderboard(
-        (data as any[]).map((d) => ({
+        filtered.map((d) => ({
           id: d.id,
           name: d.name,
           points: d.game_points ?? 0,
