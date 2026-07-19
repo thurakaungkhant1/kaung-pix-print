@@ -23,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import AIGameHint from "@/components/AIGameHint";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import defaultAvatar from "@/assets/default-avatar.svg";
 
 // Lazy load all games
 const TicTacToe = lazy(() => import("@/games/TicTacToe"));
@@ -145,13 +147,30 @@ const GamesPortal = () => {
   }, [user]);
 
   useEffect(() => {
-    if (isOnline) {
-      supabase.from("public_profiles").select("id, name, avatar_url, game_points")
-        .order("game_points", { ascending: false }).limit(10)
-        .then(({ data }) => { if (data) setLeaderboard(data); });
-      supabase.from("game_reward_items").select("*").eq("is_active", true).order("display_order")
-        .then(({ data }) => { if (data) setRewards(data as RewardItem[]); });
-    }
+    if (!isOnline) return;
+
+    const loadLb = async () => {
+      const { data: adminRows } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["admin", "mobile_admin"] as any);
+      const adminIds = new Set((adminRows ?? []).map((r: any) => r.user_id));
+      const { data } = await supabase
+        .from("public_profiles")
+        .select("id, name, avatar_url, game_points")
+        .order("game_points", { ascending: false })
+        .limit(30);
+      if (data) setLeaderboard((data as any[]).filter((d) => !adminIds.has(d.id)).slice(0, 10));
+    };
+    loadLb();
+    supabase.from("game_reward_items").select("*").eq("is_active", true).order("display_order")
+      .then(({ data }) => { if (data) setRewards(data as RewardItem[]); });
+
+    const channel = supabase
+      .channel("games-lb-realtime")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => loadLb())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [isOnline]);
 
   useEffect(() => {
@@ -559,7 +578,14 @@ const GamesPortal = () => {
                     </Card>
                   ) : (
                     leaderboard.map((player, i) => (
-                      <motion.div key={player.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+                      <motion.div
+                        key={player.id}
+                        layout
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ type: "spring", stiffness: 320, damping: 26, delay: i * 0.04 }}
+                        whileHover={{ scale: 1.01 }}
+                      >
                         <Card className="p-3.5 flex items-center gap-3 rounded-2xl border-border/60 bg-card">
                           <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0",
                             i === 0 ? "bg-gradient-to-br from-amber-400 to-amber-500 text-white" :
@@ -568,14 +594,24 @@ const GamesPortal = () => {
                                   "bg-muted text-muted-foreground")}>
                             {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
                           </div>
+                          <Avatar className="h-9 w-9 border border-border/50 shrink-0">
+                            <AvatarImage src={player.avatar_url || defaultAvatar} className="object-cover" />
+                            <AvatarFallback className="text-xs">{player.name?.charAt(0)?.toUpperCase() || "?"}</AvatarFallback>
+                          </Avatar>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-sm truncate">{player.name}</p>
                             <p className="text-[10px] text-muted-foreground">Player</p>
                           </div>
-                          <div className="text-right shrink-0">
+                          <motion.div
+                            key={player.game_points}
+                            initial={{ scale: 1.15 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                            className="text-right shrink-0"
+                          >
                             <p className="font-display font-bold text-primary">{player.game_points?.toLocaleString() || 0}</p>
                             <p className="text-[10px] text-muted-foreground">points</p>
-                          </div>
+                          </motion.div>
                         </Card>
                       </motion.div>
                     ))

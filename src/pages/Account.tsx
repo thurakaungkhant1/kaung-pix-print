@@ -24,6 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 
 import { cn } from "@/lib/utils";
 import { ImageCropper } from "@/components/ImageCropper";
+import { compressAvatar } from "@/lib/avatarCompression";
+import defaultAvatar from "@/assets/default-avatar.svg";
 import { usePremiumMembership } from "@/hooks/usePremiumMembership";
 import PremiumFeaturesDialog from "@/components/PremiumFeaturesDialog";
 import PremiumBadge from "@/components/PremiumBadge";
@@ -149,7 +151,17 @@ const Account = () => {
     if (!user) return;
     const { data, error } = await supabase.rpc("get_my_referrals" as any);
     if (!error && Array.isArray(data)) {
-      setReferrals(data as any);
+      const ids = (data as any[]).map((r) => r.id);
+      let adminIds = new Set<string>();
+      if (ids.length) {
+        const { data: adminRows } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .in("user_id", ids)
+          .in("role", ["admin", "mobile_admin"] as any);
+        adminIds = new Set((adminRows ?? []).map((r: any) => r.user_id));
+      }
+      setReferrals((data as any[]).filter((r) => !adminIds.has(r.id)) as any);
     }
   };
 
@@ -181,7 +193,8 @@ const Account = () => {
     const { data } = await supabase.from("profiles").select("name, phone_number, points, game_points, avatar_url, account_status, referral_code").eq("id", user.id).single();
     if (data) {
       const localAvatar = localStorage.getItem(`local_avatar_${user.id}`);
-      setProfile({ ...(data as Profile), avatar_url: localAvatar ?? data.avatar_url } as Profile);
+      // Prefer cloud avatar; fall back to local cache
+      setProfile({ ...(data as Profile), avatar_url: data.avatar_url ?? localAvatar } as Profile);
       setEditName(data.name);
       setEditPhone(data.phone_number);
     }
@@ -258,16 +271,36 @@ const Account = () => {
     if (!avatarFile || !user) return;
     setUploadingAvatar(true);
     try {
-      // Save to localStorage only (frontend). Do NOT upload to cloud storage or update DB.
+      // Compress the cropped image to a small avatar (≈ 400px, JPEG q0.85)
+      const compressed = await compressAvatar(avatarFile, 400, 0.85);
+
+      // Upload to shared `avatars` bucket so other users can see it
+      const path = `${user.id}/avatar.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, compressed, { upsert: true, contentType: "image/jpeg", cacheControl: "3600" });
+      if (upErr) throw upErr;
+
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = `${pub.publicUrl}?v=${Date.now()}`;
+
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+      if (updErr) throw updErr;
+
+      // Keep a local cache for instant load
       const dataUrl: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
         reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(avatarFile);
+        reader.readAsDataURL(compressed);
       });
       localStorage.setItem(`local_avatar_${user.id}`, dataUrl);
-      setProfile((p) => (p ? { ...p, avatar_url: dataUrl } : p));
-      toast({ title: "Profile photo saved!", description: "Saved on this device." });
+
+      setProfile((p) => (p ? { ...p, avatar_url: publicUrl } : p));
+      toast({ title: "Profile photo updated!", description: `Saved (${Math.round(compressed.size / 1024)} KB)` });
       setAvatarFile(null);
       setAvatarPreview(null);
     } catch (error: any) {
@@ -281,6 +314,9 @@ const Account = () => {
     if (!user) return;
     setDeletingAvatar(true);
     try {
+      // Remove file from storage (ignore if not there) and clear DB column
+      await supabase.storage.from("avatars").remove([`${user.id}/avatar.jpg`]);
+      await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
       localStorage.removeItem(`local_avatar_${user.id}`);
       setProfile((p) => (p ? { ...p, avatar_url: null } : p));
       toast({ title: "Photo removed" });
@@ -418,7 +454,7 @@ const Account = () => {
         <div className="relative rounded-2xl bg-foreground text-background px-4 py-4 flex items-center gap-3 shadow-sm">
           <div className="relative cursor-pointer" onClick={() => fileInputRef.current?.click()}>
             <Avatar className="h-14 w-14 border-2 border-background/20">
-              <AvatarImage src={avatarPreview || profile?.avatar_url || undefined} alt="Profile" className="object-cover" />
+              <AvatarImage src={avatarPreview || profile?.avatar_url || defaultAvatar} alt="Profile" className="object-cover" />
               <AvatarFallback className="bg-background/10 text-background text-lg font-bold">
                 {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-6 w-6" />}
               </AvatarFallback>
@@ -605,7 +641,7 @@ const Account = () => {
                   referrals.map((r) => (
                     <div key={r.id} className="flex items-center gap-3 px-4 py-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={r.avatar_url ?? undefined} />
+                        <AvatarImage src={r.avatar_url ?? defaultAvatar} />
                         <AvatarFallback className="text-xs">
                           {(r.name ?? r.email ?? "?").slice(0, 1).toUpperCase()}
                         </AvatarFallback>
