@@ -180,7 +180,8 @@ const Account = () => {
     if (!user) return;
     const { data } = await supabase.from("profiles").select("name, phone_number, points, game_points, avatar_url, account_status, referral_code").eq("id", user.id).single();
     if (data) {
-      setProfile(data as Profile);
+      const localAvatar = localStorage.getItem(`local_avatar_${user.id}`);
+      setProfile({ ...(data as Profile), avatar_url: localAvatar ?? data.avatar_url } as Profile);
       setEditName(data.name);
       setEditPhone(data.phone_number);
     }
