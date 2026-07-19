@@ -183,7 +183,8 @@ const Account = () => {
     const { data } = await supabase.from("profiles").select("name, phone_number, points, game_points, avatar_url, account_status, referral_code").eq("id", user.id).single();
     if (data) {
       const localAvatar = localStorage.getItem(`local_avatar_${user.id}`);
-      setProfile({ ...(data as Profile), avatar_url: localAvatar ?? data.avatar_url } as Profile);
+      // Prefer cloud avatar; fall back to local cache
+      setProfile({ ...(data as Profile), avatar_url: data.avatar_url ?? localAvatar } as Profile);
       setEditName(data.name);
       setEditPhone(data.phone_number);
     }
