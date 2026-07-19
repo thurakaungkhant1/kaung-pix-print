@@ -641,7 +641,7 @@ const Account = () => {
                   referrals.map((r) => (
                     <div key={r.id} className="flex items-center gap-3 px-4 py-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={r.avatar_url ?? undefined} />
+                        <AvatarImage src={r.avatar_url ?? defaultAvatar} />
                         <AvatarFallback className="text-xs">
                           {(r.name ?? r.email ?? "?").slice(0, 1).toUpperCase()}
                         </AvatarFallback>
