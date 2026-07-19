@@ -151,7 +151,17 @@ const Account = () => {
     if (!user) return;
     const { data, error } = await supabase.rpc("get_my_referrals" as any);
     if (!error && Array.isArray(data)) {
-      setReferrals(data as any);
+      const ids = (data as any[]).map((r) => r.id);
+      let adminIds = new Set<string>();
+      if (ids.length) {
+        const { data: adminRows } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .in("user_id", ids)
+          .in("role", ["admin", "mobile_admin"] as any);
+        adminIds = new Set((adminRows ?? []).map((r: any) => r.user_id));
+      }
+      setReferrals((data as any[]).filter((r) => !adminIds.has(r.id)) as any);
     }
   };
 
