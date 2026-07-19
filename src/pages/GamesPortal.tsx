@@ -23,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import AIGameHint from "@/components/AIGameHint";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import defaultAvatar from "@/assets/default-avatar.svg";
 
 // Lazy load all games
 const TicTacToe = lazy(() => import("@/games/TicTacToe"));
