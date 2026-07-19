@@ -147,13 +147,30 @@ const GamesPortal = () => {
   }, [user]);
 
   useEffect(() => {
-    if (isOnline) {
-      supabase.from("public_profiles").select("id, name, avatar_url, game_points")
-        .order("game_points", { ascending: false }).limit(10)
-        .then(({ data }) => { if (data) setLeaderboard(data); });
-      supabase.from("game_reward_items").select("*").eq("is_active", true).order("display_order")
-        .then(({ data }) => { if (data) setRewards(data as RewardItem[]); });
-    }
+    if (!isOnline) return;
+
+    const loadLb = async () => {
+      const { data: adminRows } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["admin", "mobile_admin"] as any);
+      const adminIds = new Set((adminRows ?? []).map((r: any) => r.user_id));
+      const { data } = await supabase
+        .from("public_profiles")
+        .select("id, name, avatar_url, game_points")
+        .order("game_points", { ascending: false })
+        .limit(30);
+      if (data) setLeaderboard((data as any[]).filter((d) => !adminIds.has(d.id)).slice(0, 10));
+    };
+    loadLb();
+    supabase.from("game_reward_items").select("*").eq("is_active", true).order("display_order")
+      .then(({ data }) => { if (data) setRewards(data as RewardItem[]); });
+
+    const channel = supabase
+      .channel("games-lb-realtime")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => loadLb())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [isOnline]);
 
   useEffect(() => {
