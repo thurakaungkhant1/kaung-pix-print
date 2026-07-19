@@ -444,7 +444,7 @@ const Account = () => {
         <div className="relative rounded-2xl bg-foreground text-background px-4 py-4 flex items-center gap-3 shadow-sm">
           <div className="relative cursor-pointer" onClick={() => fileInputRef.current?.click()}>
             <Avatar className="h-14 w-14 border-2 border-background/20">
-              <AvatarImage src={avatarPreview || profile?.avatar_url || undefined} alt="Profile" className="object-cover" />
+              <AvatarImage src={avatarPreview || profile?.avatar_url || defaultAvatar} alt="Profile" className="object-cover" />
               <AvatarFallback className="bg-background/10 text-background text-lg font-bold">
                 {profile?.name?.charAt(0)?.toUpperCase() || <User className="h-6 w-6" />}
               </AvatarFallback>
