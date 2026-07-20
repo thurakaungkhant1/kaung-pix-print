@@ -2069,13 +2069,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "profiles_referred_by_fkey"
-            columns: ["referred_by"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       promotional_banners: {
@@ -2579,36 +2572,26 @@ export type Database = {
           points: number | null
           total_coins: number | null
         }
-        Insert: {
-          account_status?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          game_points?: number | null
-          id?: string | null
-          is_active_visible?: boolean | null
-          last_seen_at?: never
-          last_seen_privacy?: string | null
-          name?: string | null
-          points?: number | null
-          total_coins?: never
-        }
-        Update: {
-          account_status?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          game_points?: number | null
-          id?: string | null
-          is_active_visible?: boolean | null
-          last_seen_at?: never
-          last_seen_privacy?: string | null
-          name?: string | null
-          points?: number | null
-          total_coins?: never
-        }
         Relationships: []
       }
     }
     Functions: {
+      _public_profiles_rows: {
+        Args: never
+        Returns: {
+          account_status: string
+          avatar_url: string
+          created_at: string
+          game_points: number
+          id: string
+          is_active_visible: boolean
+          last_seen_at: string
+          last_seen_privacy: string
+          name: string
+          points: number
+          total_coins: number
+        }[]
+      }
       admin_grant_coin_bonus: {
         Args: { bonus_amount: number; note?: string; target_user_id: string }
         Returns: undefined
