@@ -509,19 +509,26 @@ const AdminDashboard = () => {
     const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7).toISOString();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
 
-    const [products, photos, orders, profiles, allRevenue, pendingData, todayOrders, weekOrders, monthOrders] = await Promise.all([
+    const [products, photos, orders, profiles, allApproved, pendingData, todayOrders, weekOrders, monthOrders] = await Promise.all([
       supabase.from("products").select("id", { count: "exact", head: true }),
       supabase.from("photos").select("id", { count: "exact", head: true }),
       supabase.from("orders").select("id", { count: "exact", head: true }),
       supabase.from("profiles").select("id", { count: "exact", head: true }),
-      supabase.from("orders").select("price").eq("status", "approved"),
+      supabase.from("orders").select("price, quantity, product_id, products(cost_price)").eq("status", "approved"),
       supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfToday),
       supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfWeek),
       supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfMonth),
     ]);
 
-    const totalRevenue = allRevenue.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const approvedRows: any[] = allApproved.data || [];
+    const totalRevenue = approvedRows.reduce((sum, o) => sum + Number(o.price || 0), 0);
+    const totalCost = approvedRows.reduce((sum, o) => {
+      const cp = Number(o.products?.cost_price || 0);
+      const qty = Number(o.quantity || 1);
+      return sum + cp * qty;
+    }, 0);
+    const totalProfit = totalRevenue - totalCost;
     const todayRevenue = todayOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
     const weekRevenue = weekOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
     const monthRevenue = monthOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
@@ -532,6 +539,8 @@ const AdminDashboard = () => {
       orders: orders.count || 0,
       users: profiles.count || 0,
       revenue: totalRevenue,
+      cost: totalCost,
+      profit: totalProfit,
       pendingOrders: pendingData.count || 0,
       todayRevenue,
       weekRevenue,
