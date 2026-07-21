@@ -147,6 +147,8 @@ const AdminDashboard = () => {
     orders: 0,
     users: 0,
     revenue: 0,
+    cost: 0,
+    profit: 0,
     pendingOrders: 0,
     todayRevenue: 0,
     weekRevenue: 0,
@@ -507,19 +509,26 @@ const AdminDashboard = () => {
     const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7).toISOString();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
 
-    const [products, photos, orders, profiles, allRevenue, pendingData, todayOrders, weekOrders, monthOrders] = await Promise.all([
+    const [products, photos, orders, profiles, allApproved, pendingData, todayOrders, weekOrders, monthOrders] = await Promise.all([
       supabase.from("products").select("id", { count: "exact", head: true }),
       supabase.from("photos").select("id", { count: "exact", head: true }),
       supabase.from("orders").select("id", { count: "exact", head: true }),
       supabase.from("profiles").select("id", { count: "exact", head: true }),
-      supabase.from("orders").select("price").eq("status", "approved"),
+      supabase.from("orders").select("price, quantity, product_id, products(cost_price)").eq("status", "approved"),
       supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfToday),
       supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfWeek),
       supabase.from("orders").select("price").eq("status", "approved").gte("created_at", startOfMonth),
     ]);
 
-    const totalRevenue = allRevenue.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
+    const approvedRows: any[] = allApproved.data || [];
+    const totalRevenue = approvedRows.reduce((sum, o) => sum + Number(o.price || 0), 0);
+    const totalCost = approvedRows.reduce((sum, o) => {
+      const cp = Number(o.products?.cost_price || 0);
+      const qty = Number(o.quantity || 1);
+      return sum + cp * qty;
+    }, 0);
+    const totalProfit = totalRevenue - totalCost;
     const todayRevenue = todayOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
     const weekRevenue = weekOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
     const monthRevenue = monthOrders.data?.reduce((sum, order) => sum + Number(order.price), 0) || 0;
@@ -530,6 +539,8 @@ const AdminDashboard = () => {
       orders: orders.count || 0,
       users: profiles.count || 0,
       revenue: totalRevenue,
+      cost: totalCost,
+      profit: totalProfit,
       pendingOrders: pendingData.count || 0,
       todayRevenue,
       weekRevenue,
@@ -1061,6 +1072,66 @@ const AdminDashboard = () => {
           {/* Dashboard Tab */}
           {activeTab === "dashboard" && (
             <>
+              {/* Business Summary — Bilingual (EN + MM) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  {
+                    labelEn: "Sales Revenue",
+                    labelMm: "ရောင်းရငွေ",
+                    value: stats.revenue,
+                    icon: TrendingUp,
+                    accent: "from-emerald-500/20 to-emerald-500/5",
+                    text: "text-emerald-600 dark:text-emerald-400",
+                    border: "border-l-emerald-500",
+                  },
+                  {
+                    labelEn: "Cost",
+                    labelMm: "အရင်း",
+                    value: stats.cost,
+                    icon: Wallet,
+                    accent: "from-amber-500/20 to-amber-500/5",
+                    text: "text-amber-600 dark:text-amber-400",
+                    border: "border-l-amber-500",
+                  },
+                  {
+                    labelEn: "Profit",
+                    labelMm: "အမြတ်",
+                    value: stats.profit,
+                    icon: Coins,
+                    accent: "from-primary/20 to-primary/5",
+                    text: "text-primary",
+                    border: "border-l-primary",
+                  },
+                ].map((c) => (
+                  <Card
+                    key={c.labelEn}
+                    className={cn("premium-card border-l-4 overflow-hidden", c.border)}
+                  >
+                    <CardContent className={cn("p-4 bg-gradient-to-br", c.accent)}>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                            {c.labelEn}
+                          </p>
+                          <p className={cn("text-base font-semibold", c.text)}>
+                            {c.labelMm}
+                          </p>
+                          <p className={cn("text-2xl font-bold mt-2", c.text)}>
+                            {c.value.toLocaleString()}{" "}
+                            <span className="text-sm font-medium text-muted-foreground">
+                              MMK / ကျပ်
+                            </span>
+                          </p>
+                        </div>
+                        <div className={cn("p-3 rounded-xl bg-background/50 backdrop-blur", c.text)}>
+                          <c.icon className="h-5 w-5" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
               {/* Stats Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
