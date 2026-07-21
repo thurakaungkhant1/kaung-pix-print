@@ -147,6 +147,8 @@ const AdminDashboard = () => {
     orders: 0,
     users: 0,
     revenue: 0,
+    cost: 0,
+    profit: 0,
     pendingOrders: 0,
     todayRevenue: 0,
     weekRevenue: 0,
