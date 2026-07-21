@@ -907,6 +907,7 @@ const AdminDashboard = () => {
       items: [
         { id: "users", label: "Users", icon: Users, badge: 0 },
         { id: "orders", label: "Orders", icon: ShoppingCart, badge: stats.pendingOrders },
+        { id: "digital-orders", label: "Digital Orders", icon: Gem, badge: 0, route: "/admin/digital-orders" },
         { id: "diamond-orders", label: "Game Orders", icon: Gamepad2, badge: pendingDiamondOrders },
       ]
     },
@@ -914,6 +915,7 @@ const AdminDashboard = () => {
       label: "Finance",
       items: [
         { id: "deposits", label: "Deposits", icon: Wallet, badge: 0, route: "/admin/deposits" },
+        { id: "payment-methods", label: "Payment Methods", icon: Wallet, badge: 0, route: "/admin/payment-methods" },
       ]
     },
     {
@@ -922,8 +924,6 @@ const AdminDashboard = () => {
         { id: "shop", label: "Shop", icon: Package, badge: 0 },
         { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
         { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
-        { id: "mobile-panel", label: "Mobile Panel", icon: Phone, badge: 0, route: "/admin/mobile-panel" },
-        
       ]
     },
       {
@@ -937,14 +937,11 @@ const AdminDashboard = () => {
         label: "Settings",
         items: [
           { id: "api-settings", label: "API Settings", icon: Zap, badge: 0, route: "/admin/api-settings" },
-          { id: "background-music", label: "Music", icon: Volume2, badge: 0, route: "/admin/background-music" },
-          
-          { id: "chat-earning", label: "Chat Earning", icon: Coins, badge: 0, route: "/admin/chat-earning" },
-          { id: "chat-reward-logs", label: "Chat Reward Logs", icon: History, badge: 0, route: "/admin/chat-reward-logs" },
           { id: "security", label: "Security", icon: Settings, badge: 0, route: "/admin/security" },
           { id: "settings", label: "Settings", icon: Settings, badge: 0 },
         ]
       },
+
   ];
 
   // Flat list for compatibility
