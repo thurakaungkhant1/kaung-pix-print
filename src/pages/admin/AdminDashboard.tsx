@@ -1072,6 +1072,66 @@ const AdminDashboard = () => {
           {/* Dashboard Tab */}
           {activeTab === "dashboard" && (
             <>
+              {/* Business Summary — Bilingual (EN + MM) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  {
+                    labelEn: "Sales Revenue",
+                    labelMm: "ရောင်းရငွေ",
+                    value: stats.revenue,
+                    icon: TrendingUp,
+                    accent: "from-emerald-500/20 to-emerald-500/5",
+                    text: "text-emerald-600 dark:text-emerald-400",
+                    border: "border-l-emerald-500",
+                  },
+                  {
+                    labelEn: "Cost",
+                    labelMm: "အရင်း",
+                    value: stats.cost,
+                    icon: Wallet,
+                    accent: "from-amber-500/20 to-amber-500/5",
+                    text: "text-amber-600 dark:text-amber-400",
+                    border: "border-l-amber-500",
+                  },
+                  {
+                    labelEn: "Profit",
+                    labelMm: "အမြတ်",
+                    value: stats.profit,
+                    icon: Coins,
+                    accent: "from-primary/20 to-primary/5",
+                    text: "text-primary",
+                    border: "border-l-primary",
+                  },
+                ].map((c) => (
+                  <Card
+                    key={c.labelEn}
+                    className={cn("premium-card border-l-4 overflow-hidden", c.border)}
+                  >
+                    <CardContent className={cn("p-4 bg-gradient-to-br", c.accent)}>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                            {c.labelEn}
+                          </p>
+                          <p className={cn("text-base font-semibold", c.text)}>
+                            {c.labelMm}
+                          </p>
+                          <p className={cn("text-2xl font-bold mt-2", c.text)}>
+                            {c.value.toLocaleString()}{" "}
+                            <span className="text-sm font-medium text-muted-foreground">
+                              MMK / ကျပ်
+                            </span>
+                          </p>
+                        </div>
+                        <div className={cn("p-3 rounded-xl bg-background/50 backdrop-blur", c.text)}>
+                          <c.icon className="h-5 w-5" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
               {/* Stats Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
