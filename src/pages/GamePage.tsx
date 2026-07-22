@@ -107,6 +107,7 @@ const GamePage = () => {
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [showTopUpDialog, setShowTopUpDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
