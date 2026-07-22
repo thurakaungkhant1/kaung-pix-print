@@ -1089,7 +1089,7 @@ const GamePage = () => {
       </div>
 
       {/* Quick Buy Dialog */}
-      <Dialog open={showPurchaseDialog} onOpenChange={setShowPurchaseDialog}>
+      <Dialog open={showPurchaseDialog} onOpenChange={(o) => { setShowPurchaseDialog(o); if (!o) setDescExpanded(false); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
