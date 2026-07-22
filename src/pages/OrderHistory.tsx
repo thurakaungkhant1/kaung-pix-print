@@ -89,7 +89,7 @@ const OrderHistory = () => {
         async () => {
           const { data } = await supabase
             .from("orders")
-            .select("id, quantity, price, status, created_at, payment_method, transaction_id, products(name, image_url, category)")
+            .select("id, quantity, price, status, created_at, payment_method, transaction_id, products(name, image_url, category, description)")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false });
           setOrders((data as any) || []);
