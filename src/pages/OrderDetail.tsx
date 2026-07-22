@@ -36,7 +36,7 @@ interface OrderRow {
   delivery_address: string | null;
   game_id: string | null;
   server_id: string | null;
-  products: { name: string; image_url: string | null; category: string; price: number } | null;
+  products: { name: string; image_url: string | null; category: string; price: number; description: string | null } | null;
 }
 
 const statusMeta = (status: string) => {
@@ -75,7 +75,7 @@ const OrderDetail = () => {
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, user_id, quantity, price, status, created_at, payment_method, transaction_id, phone_number, delivery_address, game_id, server_id, products(name, image_url, category, price)"
+        "id, user_id, quantity, price, status, created_at, payment_method, transaction_id, phone_number, delivery_address, game_id, server_id, products(name, image_url, category, price, description)"
       )
       .eq("id", id)
       .eq("user_id", user.id)
@@ -202,6 +202,16 @@ const OrderDetail = () => {
                 {Number(order.products?.price || order.price).toLocaleString()} MMK
               </p>
             </div>
+            {order.products?.description && (
+              <div className="pt-3 mt-1 border-t border-border/50">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                  Description
+                </p>
+                <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">
+                  {order.products.description}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

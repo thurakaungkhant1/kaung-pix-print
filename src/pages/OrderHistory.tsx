@@ -32,6 +32,7 @@ interface OrderRow {
     name: string;
     image_url: string | null;
     category: string;
+    description: string | null;
   } | null;
 }
 
@@ -73,7 +74,7 @@ const OrderHistory = () => {
       setLoading(true);
       const { data } = await supabase
         .from("orders")
-        .select("id, quantity, price, status, created_at, payment_method, transaction_id, products(name, image_url, category)")
+        .select("id, quantity, price, status, created_at, payment_method, transaction_id, products(name, image_url, category, description)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setOrders((data as any) || []);
@@ -88,7 +89,7 @@ const OrderHistory = () => {
         async () => {
           const { data } = await supabase
             .from("orders")
-            .select("id, quantity, price, status, created_at, payment_method, transaction_id, products(name, image_url, category)")
+            .select("id, quantity, price, status, created_at, payment_method, transaction_id, products(name, image_url, category, description)")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false });
           setOrders((data as any) || []);
@@ -198,6 +199,11 @@ const OrderHistory = () => {
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{o.products?.name || "Product"}</p>
                         <p className="text-xs text-muted-foreground truncate">{o.products?.category}</p>
+                        {o.products?.description && (
+                          <p className="text-[11px] text-muted-foreground/90 line-clamp-2 mt-0.5 whitespace-pre-line">
+                            {o.products.description}
+                          </p>
+                        )}
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline" className={`${s.cls} gap-1 text-[10px]`}>
                             <SIcon className="h-3 w-3" /> {s.label}

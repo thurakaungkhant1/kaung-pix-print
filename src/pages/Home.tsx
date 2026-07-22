@@ -253,13 +253,26 @@ const Home = () => {
                     </span>
                   </button>
                 </div>
-                <button
-                  onClick={() => navigate('/account')}
-                  className="w-9 h-9 rounded-xl bg-muted/70 border border-border/60 flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0"
-                  aria-label="Notifications"
-                >
-                  <Bell className="h-3.5 w-3.5 text-foreground" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://t.me/kaungdigitalstore"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Join our Telegram group"
+                    className="w-9 h-9 rounded-xl bg-[#229ED9]/10 border border-[#229ED9]/30 flex items-center justify-center hover:bg-[#229ED9]/20 transition-colors flex-shrink-0"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#229ED9] fill-current" aria-hidden="true">
+                      <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.05-1.99 1.93c-.23.23-.42.42-.83.42z" />
+                    </svg>
+                  </a>
+                  <button
+                    onClick={() => navigate('/account')}
+                    className="w-9 h-9 rounded-xl bg-muted/70 border border-border/60 flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0"
+                    aria-label="Notifications"
+                  >
+                    <Bell className="h-3.5 w-3.5 text-foreground" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           </header>

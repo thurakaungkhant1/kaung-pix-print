@@ -20,7 +20,9 @@ import {
   Copy,
   CheckCircle2,
   AlertCircle,
-  Search
+  Search,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -105,6 +107,7 @@ const GamePage = () => {
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [showTopUpDialog, setShowTopUpDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
@@ -1086,7 +1089,7 @@ const GamePage = () => {
       </div>
 
       {/* Quick Buy Dialog */}
-      <Dialog open={showPurchaseDialog} onOpenChange={setShowPurchaseDialog}>
+      <Dialog open={showPurchaseDialog} onOpenChange={(o) => { setShowPurchaseDialog(o); if (!o) setDescExpanded(false); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1177,16 +1180,41 @@ const GamePage = () => {
                   <span className="text-muted-foreground">Product</span>
                   <span className="font-medium">{selectedProduct.name}</span>
                 </div>
-                {selectedProduct.description && (
-                  <div className="pt-2 border-t border-border/50">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                      Description
-                    </p>
-                    <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">
-                      {selectedProduct.description}
-                    </p>
-                  </div>
-                )}
+                {selectedProduct.description && (() => {
+                  const isLong = selectedProduct.description!.length > 140;
+                  return (
+                    <div className="pt-2 border-t border-border/50">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Description
+                      </p>
+                      <p
+                        className={cn(
+                          "text-xs text-foreground/80 leading-relaxed whitespace-pre-line",
+                          !descExpanded && isLong && "line-clamp-3"
+                        )}
+                      >
+                        {selectedProduct.description}
+                      </p>
+                      {isLong && (
+                        <button
+                          type="button"
+                          onClick={() => setDescExpanded((v) => !v)}
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                        >
+                          {descExpanded ? (
+                            <>
+                              <ChevronUp className="h-3 w-3" /> Show less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-3 w-3" /> Read more
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
                 <div className="flex justify-between text-sm pt-1">
                   <span className="text-muted-foreground">
                     {isGameProduct(selectedProduct.category) ? "Game Points Reward" : "Purchase Coins Reward"}
