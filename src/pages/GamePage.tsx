@@ -20,7 +20,9 @@ import {
   Copy,
   CheckCircle2,
   AlertCircle,
-  Search
+  Search,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
