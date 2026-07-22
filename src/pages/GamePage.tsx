@@ -1177,7 +1177,17 @@ const GamePage = () => {
                   <span className="text-muted-foreground">Product</span>
                   <span className="font-medium">{selectedProduct.name}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                {selectedProduct.description && (
+                  <div className="pt-2 border-t border-border/50">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                      Description
+                    </p>
+                    <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">
+                      {selectedProduct.description}
+                    </p>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm pt-1">
                   <span className="text-muted-foreground">
                     {isGameProduct(selectedProduct.category) ? "Game Points Reward" : "Purchase Coins Reward"}
                   </span>
