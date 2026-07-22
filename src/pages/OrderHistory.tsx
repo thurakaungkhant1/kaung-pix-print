@@ -32,6 +32,7 @@ interface OrderRow {
     name: string;
     image_url: string | null;
     category: string;
+    description: string | null;
   } | null;
 }
 
