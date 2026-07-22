@@ -36,7 +36,7 @@ interface OrderRow {
   delivery_address: string | null;
   game_id: string | null;
   server_id: string | null;
-  products: { name: string; image_url: string | null; category: string; price: number } | null;
+  products: { name: string; image_url: string | null; category: string; price: number; description: string | null } | null;
 }
 
 const statusMeta = (status: string) => {
