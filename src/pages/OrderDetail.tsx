@@ -75,7 +75,7 @@ const OrderDetail = () => {
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, user_id, quantity, price, status, created_at, payment_method, transaction_id, phone_number, delivery_address, game_id, server_id, products(name, image_url, category, price)"
+        "id, user_id, quantity, price, status, created_at, payment_method, transaction_id, phone_number, delivery_address, game_id, server_id, products(name, image_url, category, price, description)"
       )
       .eq("id", id)
       .eq("user_id", user.id)
