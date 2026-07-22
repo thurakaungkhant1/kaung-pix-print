@@ -202,6 +202,16 @@ const OrderDetail = () => {
                 {Number(order.products?.price || order.price).toLocaleString()} MMK
               </p>
             </div>
+            {order.products?.description && (
+              <div className="pt-3 mt-1 border-t border-border/50">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                  Description
+                </p>
+                <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">
+                  {order.products.description}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
