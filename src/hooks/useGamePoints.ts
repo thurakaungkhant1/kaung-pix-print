@@ -172,6 +172,9 @@ export const useGamePoints = () => {
       }
       setLastGameTime((prev) => ({ ...prev, [gameName]: Date.now() }));
 
+      // Show native AdMob interstitial after every game finish (Android app only).
+      showInterstitialAd();
+
       return {
         success: true,
         pointsEarned,
