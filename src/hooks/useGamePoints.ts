@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { showInterstitialAd } from "@/lib/nativeAds";
 
 interface GameSettings {
   base_play_points: number;
@@ -170,6 +171,9 @@ export const useGamePoints = () => {
         setDailyEarned((prev) => prev + pointsEarned);
       }
       setLastGameTime((prev) => ({ ...prev, [gameName]: Date.now() }));
+
+      // Show native AdMob interstitial after every game finish (Android app only).
+      showInterstitialAd();
 
       return {
         success: true,
