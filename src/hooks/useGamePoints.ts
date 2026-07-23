@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { showInterstitialAd } from "@/lib/nativeAds";
 
 interface GameSettings {
   base_play_points: number;
