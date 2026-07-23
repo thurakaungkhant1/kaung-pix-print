@@ -291,7 +291,7 @@ serve(async (req) => {
           .limit(1)
           .maybeSingle();
         const g = {
-          base: settingsRow?.base_play_points ?? 5,
+          base: 5,
           win: settingsRow?.win_bonus_points ?? 20,
           high: settingsRow?.high_score_bonus_points ?? 10,
           threshold: settingsRow?.high_score_threshold ?? 100,
