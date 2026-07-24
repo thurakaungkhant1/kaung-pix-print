@@ -25,6 +25,19 @@ import { cn } from "@/lib/utils";
 import AIGameHint from "@/components/AIGameHint";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import defaultAvatar from "@/assets/default-avatar.svg";
+import { showInterstitialAd } from "@/lib/nativeAds";
+
+// Show interstitial when user switches from one game to another
+const openGameWithAd = (
+  newId: string,
+  currentId: string | null,
+  setter: (id: string | null) => void,
+) => {
+  if (currentId && currentId !== newId) {
+    showInterstitialAd();
+  }
+  setter(newId);
+};
 
 // Lazy load all games
 const TicTacToe = lazy(() => import("@/games/TicTacToe"));
