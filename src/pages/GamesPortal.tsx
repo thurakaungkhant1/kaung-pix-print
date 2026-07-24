@@ -506,7 +506,7 @@ const GamesPortal = () => {
                         <Button
                           size="sm"
                           className="rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-4 h-9 flex-shrink-0"
-                          onClick={(e) => { e.stopPropagation(); setActiveGame(game.id); }}
+                          onClick={(e) => { e.stopPropagation(); openGameWithAd(game.id, setActiveGame); }}
                         >
                           Play
                         </Button>
