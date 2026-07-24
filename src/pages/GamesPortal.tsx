@@ -27,15 +27,17 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import defaultAvatar from "@/assets/default-avatar.svg";
 import { showInterstitialAd } from "@/lib/nativeAds";
 
+const LAST_GAME_KEY = "games:lastOpenedId";
 // Show interstitial when user switches from one game to another
 const openGameWithAd = (
   newId: string,
-  currentId: string | null,
   setter: (id: string | null) => void,
 ) => {
-  if (currentId && currentId !== newId) {
-    showInterstitialAd();
-  }
+  try {
+    const last = localStorage.getItem(LAST_GAME_KEY);
+    if (last && last !== newId) showInterstitialAd();
+    localStorage.setItem(LAST_GAME_KEY, newId);
+  } catch { /* ignore */ }
   setter(newId);
 };
 
