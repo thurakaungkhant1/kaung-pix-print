@@ -2600,6 +2600,10 @@ export type Database = {
         Args: { p_action: string; p_deposit_id: string; p_notes?: string }
         Returns: Json
       }
+      can_access_conversation_topic: {
+        Args: { _topic: string }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
