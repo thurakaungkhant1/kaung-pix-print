@@ -315,15 +315,21 @@ serve(async (req) => {
           }
         }
 
-        // Rules: Win => 8 points, Loss => 1 point. Hard daily cap of 1000 game points.
-        const DAILY_CAP = 1000;
-        let earn = isWin ? 8 : 1;
+        // Per-game reward rules: default Win 8 / Loss 1 with a 1000-point daily cap.
+        // Click Speed is capped lower because it can be spammed very quickly.
+        const gameRules: Record<string, { win: number; loss: number; dailyCap: number }> = {
+          "click-speed": { win: 5, loss: 1, dailyCap: 500 },
+        };
+        const defaultRules = { win: 8, loss: 1, dailyCap: 1000 };
+        const rules = gameRules[gameName] ?? defaultRules;
+
+        let earn = isWin ? rules.win : rules.loss;
 
         const usedGame = await todayCredited("game_play");
-        if (usedGame >= DAILY_CAP) {
-          return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: "daily 1000 point limit reached", source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
+        if (usedGame >= rules.dailyCap) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: `daily ${rules.dailyCap} point limit reached`, source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
         }
-        earn = Math.max(0, Math.min(earn, DAILY_CAP - usedGame));
+        earn = Math.max(0, Math.min(earn, rules.dailyCap - usedGame));
 
         const { data: gsIns } = await admin
           .from("game_scores")
