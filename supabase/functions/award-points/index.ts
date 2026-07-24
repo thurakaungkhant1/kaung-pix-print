@@ -315,11 +315,9 @@ serve(async (req) => {
           }
         }
 
-        let earn = g.base;
-        if (isWin) earn += g.win;
-        if (score > g.threshold) earn += g.high;
-        // Hard cap: max 15 game points per play regardless of score
-        earn = Math.min(earn, 15);
+        // New rule: user must win to earn points.
+        // Win => 10 points. Loss => 0 points.
+        let earn = isWin ? 10 : 0;
 
         const usedGame = await todayCredited("game_play");
         if (usedGame >= g.dailyLimit) {
