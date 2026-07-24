@@ -25,6 +25,21 @@ import { cn } from "@/lib/utils";
 import AIGameHint from "@/components/AIGameHint";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import defaultAvatar from "@/assets/default-avatar.svg";
+import { showInterstitialAd } from "@/lib/nativeAds";
+
+const LAST_GAME_KEY = "games:lastOpenedId";
+// Show interstitial when user switches from one game to another
+const openGameWithAd = (
+  newId: string,
+  setter: (id: string | null) => void,
+) => {
+  try {
+    const last = localStorage.getItem(LAST_GAME_KEY);
+    if (last && last !== newId) showInterstitialAd();
+    localStorage.setItem(LAST_GAME_KEY, newId);
+  } catch { /* ignore */ }
+  setter(newId);
+};
 
 // Lazy load all games
 const TicTacToe = lazy(() => import("@/games/TicTacToe"));
@@ -460,7 +475,7 @@ const GamesPortal = () => {
                     transition={{ delay: Math.min(i * 0.03, 0.3) }}
                   >
                     <Card
-                      onClick={() => setActiveGame(game.id)}
+                      onClick={() => openGameWithAd(game.id, setActiveGame)}
                       className="overflow-hidden cursor-pointer rounded-2xl border-border/60 bg-card hover:shadow-md active:scale-[0.99] transition-all"
                     >
                       <div className="flex items-center gap-3 p-3">
@@ -491,7 +506,7 @@ const GamesPortal = () => {
                         <Button
                           size="sm"
                           className="rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-4 h-9 flex-shrink-0"
-                          onClick={(e) => { e.stopPropagation(); setActiveGame(game.id); }}
+                          onClick={(e) => { e.stopPropagation(); openGameWithAd(game.id, setActiveGame); }}
                         >
                           Play
                         </Button>
