@@ -315,15 +315,15 @@ serve(async (req) => {
           }
         }
 
-        // New rule: user must win to earn points.
-        // Win => 10 points. Loss => 0 points.
-        let earn = isWin ? 10 : 0;
+        // Rules: Win => 10 points, Loss => 1 point. Hard daily cap of 1000 game points.
+        const DAILY_CAP = 1000;
+        let earn = isWin ? 10 : 1;
 
         const usedGame = await todayCredited("game_play");
-        if (usedGame >= g.dailyLimit) {
-          return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: "daily limit reached", source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
+        if (usedGame >= DAILY_CAP) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: "daily 1000 point limit reached", source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
         }
-        earn = Math.max(0, Math.min(earn, g.dailyLimit - usedGame));
+        earn = Math.max(0, Math.min(earn, DAILY_CAP - usedGame));
 
         const { data: gsIns } = await admin
           .from("game_scores")
