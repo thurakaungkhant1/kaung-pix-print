@@ -475,7 +475,7 @@ const GamesPortal = () => {
                     transition={{ delay: Math.min(i * 0.03, 0.3) }}
                   >
                     <Card
-                      onClick={() => setActiveGame(game.id)}
+                      onClick={() => openGameWithAd(game.id, setActiveGame)}
                       className="overflow-hidden cursor-pointer rounded-2xl border-border/60 bg-card hover:shadow-md active:scale-[0.99] transition-all"
                     >
                       <div className="flex items-center gap-3 p-3">
