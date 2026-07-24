@@ -317,7 +317,7 @@ serve(async (req) => {
 
         // Rules: Win => 10 points, Loss => 1 point. Hard daily cap of 1000 game points.
         const DAILY_CAP = 1000;
-        let earn = isWin ? 10 : 1;
+        let earn = isWin ? 10 : 0;
 
         const usedGame = await todayCredited("game_play");
         if (usedGame >= DAILY_CAP) {
