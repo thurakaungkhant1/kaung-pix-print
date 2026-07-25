@@ -744,10 +744,9 @@ const GamesPortal = () => {
                 <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mb-3">
                   <CheckIcon className="h-8 w-8 text-emerald-600" />
                 </div>
-                <h3 className="text-lg font-bold mb-1">Redemption Successful! 🎉</h3>
+                <h3 className="text-lg font-bold mb-1">Request Submitted! 🎉</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  You redeemed <span className="font-semibold text-foreground">{successReward.qty}× {successReward.name}</span> for{" "}
-                  <span className="font-semibold text-primary">{successReward.cost.toLocaleString()} coins</span>.
+                  Your request for <span className="font-semibold text-foreground">{successReward.qty}× {successReward.name}</span> ({successReward.cost.toLocaleString()} pts) is now <span className="font-semibold text-primary">pending admin approval</span>. Points will be deducted once approved.
                 </p>
                 <Button onClick={() => setSuccessReward(null)} className="w-full rounded-xl">
                   Done
