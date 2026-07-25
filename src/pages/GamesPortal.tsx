@@ -143,6 +143,8 @@ const GamesPortal = () => {
   const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null);
   const [redeemQty, setRedeemQty] = useState(1);
   const [successReward, setSuccessReward] = useState<{ name: string; qty: number; cost: number } | null>(null);
+  const [telegramGateOpen, setTelegramGateOpen] = useState(false);
+  const [pendingRedeem, setPendingRedeem] = useState<{ reward: RewardItem; qty: number } | null>(null);
 
   // Apply admin settings: hide disabled games, override points
   const visibleGames = GAMES
