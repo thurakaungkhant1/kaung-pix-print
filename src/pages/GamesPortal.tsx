@@ -267,6 +267,9 @@ const GamesPortal = () => {
     setHasSpunToday(true);
   };
 
+  const TELEGRAM_JOIN_KEY = "kaung:telegramJoined";
+  const TELEGRAM_URL = "https://t.me/kaungdigitalstore";
+
   const handleRedeem = async (reward: RewardItem, qty: number = 1) => {
     if (!user || redeeming) return;
     const totalCost = reward.cost_points * qty;
@@ -274,32 +277,26 @@ const GamesPortal = () => {
       toast({ title: "Not enough points!", description: `You need ${totalCost.toLocaleString()} game points.`, variant: "destructive" });
       return;
     }
+
+    // Force Telegram group join before allowing redemption
+    const joined = typeof window !== "undefined" && localStorage.getItem(TELEGRAM_JOIN_KEY) === "1";
+    if (!joined) {
+      setPendingRedeem({ reward, qty });
+      setTelegramGateOpen(true);
+      return;
+    }
+
     setRedeeming(reward.id);
     try {
-      const newPoints = gamePoints - totalCost;
-      await supabase.from("profiles").update({ game_points: newPoints }).eq("id", user.id);
-      if (reward.reward_type === "shop_coins") {
-        const { data: profile } = await supabase.from("profiles").select("points").eq("id", user.id).single();
-        if (profile) {
-          const totalShopCoins = Number(reward.reward_value) * qty;
-          await supabase.from("profiles").update({ points: profile.points + totalShopCoins }).eq("id", user.id);
-          await supabase.from("point_transactions").insert({
-            user_id: user.id, amount: totalShopCoins, transaction_type: "game_reward",
-            description: `Converted ${totalCost} game points to ${totalShopCoins} shop coins`,
-          });
-        }
-      } else if (reward.reward_type === "wallet_credit") {
-        const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("id", user.id).single();
-        if (profile) {
-          await supabase.from("profiles").update({ wallet_balance: Number(profile.wallet_balance || 0) + Number(reward.reward_value) * qty }).eq("id", user.id);
-        }
-      }
+      // Do NOT deduct game_points or credit reward here.
+      // Admin will approve in the Claims tab, and then deduction + reward crediting happens server-side.
       const rows = Array.from({ length: qty }).map(() => ({
         user_id: user.id, reward_item_id: reward.id, reward_name: reward.name,
         cost_points: reward.cost_points, reward_type: reward.reward_type, reward_value: reward.reward_value,
-        status: reward.reward_type === "manual" || reward.reward_type === "premium_days" ? "pending" : "delivered",
+        status: "pending" as const,
       }));
-      await supabase.from("game_redemptions").insert(rows);
+      const { error } = await supabase.from("game_redemptions").insert(rows);
+      if (error) throw error;
       setSelectedReward(null);
       setSuccessReward({ name: reward.name, qty, cost: totalCost });
       refreshData();
@@ -308,6 +305,15 @@ const GamesPortal = () => {
     }
     setRedeeming(null);
   };
+
+  const confirmTelegramJoined = () => {
+    try { localStorage.setItem(TELEGRAM_JOIN_KEY, "1"); } catch {}
+    setTelegramGateOpen(false);
+    const p = pendingRedeem;
+    setPendingRedeem(null);
+    if (p) handleRedeem(p.reward, p.qty);
+  };
+
 
   const filteredGames = filter === "All" ? visibleGames : visibleGames.filter(g => g.tag === filter);
   const dailyProgress = dailyLimit > 0 ? Math.min((dailyEarned / dailyLimit) * 100, 100) : 0;
