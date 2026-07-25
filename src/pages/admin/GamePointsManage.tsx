@@ -187,9 +187,58 @@ const GamePointsManage = () => {
   };
 
   const updateRedemptionStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("game_redemptions").update({ status }).eq("id", id);
-    if (error) toast({ title: "Update failed", variant: "destructive" });
-    else { toast({ title: `Marked ${status}` }); loadRedemptions(); }
+    const target = redemptions.find(r => r.id === id);
+    if (!target) return;
+
+    // Reject → just mark rejected (no point movement)
+    if (status === "rejected") {
+      const { error } = await supabase.from("game_redemptions").update({ status: "rejected" }).eq("id", id);
+      if (error) toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      else { toast({ title: "Marked rejected" }); loadRedemptions(); }
+      return;
+    }
+
+    // Approve/deliver → deduct game_points, credit reward, then mark delivered
+    try {
+      const { data: prof, error: profErr } = await supabase
+        .from("profiles")
+        .select("game_points, points, wallet_balance")
+        .eq("id", target.user_id)
+        .single();
+      if (profErr || !prof) throw profErr || new Error("Profile not found");
+
+      const cost = Number(target.cost_points || 0);
+      if ((prof.game_points || 0) < cost) {
+        toast({ title: "User has insufficient game points", description: `Needs ${cost}, has ${prof.game_points}`, variant: "destructive" });
+        return;
+      }
+
+      const updates: Record<string, number> = { game_points: (prof.game_points || 0) - cost };
+      const value = Number(target.reward_value || 0);
+      if (target.reward_type === "shop_coins") {
+        updates.points = (prof.points || 0) + value;
+      } else if (target.reward_type === "wallet_credit") {
+        updates.wallet_balance = Number(prof.wallet_balance || 0) + value;
+      }
+
+      const { error: upErr } = await supabase.from("profiles").update(updates).eq("id", target.user_id);
+      if (upErr) throw upErr;
+
+      if (target.reward_type === "shop_coins") {
+        await supabase.from("point_transactions").insert({
+          user_id: target.user_id, amount: value, transaction_type: "game_reward",
+          description: `Redeemed ${cost} game points → ${value} shop coins (${target.reward_name})`,
+        });
+      }
+
+      const { error: sErr } = await supabase.from("game_redemptions").update({ status: "delivered" }).eq("id", id);
+      if (sErr) throw sErr;
+
+      toast({ title: "Approved & delivered", description: `${cost} game points deducted from ${target.profiles?.name || "user"}` });
+      loadRedemptions();
+    } catch (e: any) {
+      toast({ title: "Approval failed", description: e?.message || "Unknown error", variant: "destructive" });
+    }
   };
 
   const filtered = users.filter(u => u.name.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()));

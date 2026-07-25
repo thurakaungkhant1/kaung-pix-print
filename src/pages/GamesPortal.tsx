@@ -143,6 +143,8 @@ const GamesPortal = () => {
   const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null);
   const [redeemQty, setRedeemQty] = useState(1);
   const [successReward, setSuccessReward] = useState<{ name: string; qty: number; cost: number } | null>(null);
+  const [telegramGateOpen, setTelegramGateOpen] = useState(false);
+  const [pendingRedeem, setPendingRedeem] = useState<{ reward: RewardItem; qty: number } | null>(null);
 
   // Apply admin settings: hide disabled games, override points
   const visibleGames = GAMES
@@ -265,6 +267,9 @@ const GamesPortal = () => {
     setHasSpunToday(true);
   };
 
+  const TELEGRAM_JOIN_KEY = "kaung:telegramJoined";
+  const TELEGRAM_URL = "https://t.me/kaungdigitalstore";
+
   const handleRedeem = async (reward: RewardItem, qty: number = 1) => {
     if (!user || redeeming) return;
     const totalCost = reward.cost_points * qty;
@@ -272,32 +277,26 @@ const GamesPortal = () => {
       toast({ title: "Not enough points!", description: `You need ${totalCost.toLocaleString()} game points.`, variant: "destructive" });
       return;
     }
+
+    // Force Telegram group join before allowing redemption
+    const joined = typeof window !== "undefined" && localStorage.getItem(TELEGRAM_JOIN_KEY) === "1";
+    if (!joined) {
+      setPendingRedeem({ reward, qty });
+      setTelegramGateOpen(true);
+      return;
+    }
+
     setRedeeming(reward.id);
     try {
-      const newPoints = gamePoints - totalCost;
-      await supabase.from("profiles").update({ game_points: newPoints }).eq("id", user.id);
-      if (reward.reward_type === "shop_coins") {
-        const { data: profile } = await supabase.from("profiles").select("points").eq("id", user.id).single();
-        if (profile) {
-          const totalShopCoins = Number(reward.reward_value) * qty;
-          await supabase.from("profiles").update({ points: profile.points + totalShopCoins }).eq("id", user.id);
-          await supabase.from("point_transactions").insert({
-            user_id: user.id, amount: totalShopCoins, transaction_type: "game_reward",
-            description: `Converted ${totalCost} game points to ${totalShopCoins} shop coins`,
-          });
-        }
-      } else if (reward.reward_type === "wallet_credit") {
-        const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("id", user.id).single();
-        if (profile) {
-          await supabase.from("profiles").update({ wallet_balance: Number(profile.wallet_balance || 0) + Number(reward.reward_value) * qty }).eq("id", user.id);
-        }
-      }
+      // Do NOT deduct game_points or credit reward here.
+      // Admin will approve in the Claims tab, and then deduction + reward crediting happens server-side.
       const rows = Array.from({ length: qty }).map(() => ({
         user_id: user.id, reward_item_id: reward.id, reward_name: reward.name,
         cost_points: reward.cost_points, reward_type: reward.reward_type, reward_value: reward.reward_value,
-        status: reward.reward_type === "manual" || reward.reward_type === "premium_days" ? "pending" : "delivered",
+        status: "pending" as const,
       }));
-      await supabase.from("game_redemptions").insert(rows);
+      const { error } = await supabase.from("game_redemptions").insert(rows);
+      if (error) throw error;
       setSelectedReward(null);
       setSuccessReward({ name: reward.name, qty, cost: totalCost });
       refreshData();
@@ -306,6 +305,15 @@ const GamesPortal = () => {
     }
     setRedeeming(null);
   };
+
+  const confirmTelegramJoined = () => {
+    try { localStorage.setItem(TELEGRAM_JOIN_KEY, "1"); } catch {}
+    setTelegramGateOpen(false);
+    const p = pendingRedeem;
+    setPendingRedeem(null);
+    if (p) handleRedeem(p.reward, p.qty);
+  };
+
 
   const filteredGames = filter === "All" ? visibleGames : visibleGames.filter(g => g.tag === filter);
   const dailyProgress = dailyLimit > 0 ? Math.min((dailyEarned / dailyLimit) * 100, 100) : 0;
@@ -736,16 +744,35 @@ const GamesPortal = () => {
                 <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mb-3">
                   <CheckIcon className="h-8 w-8 text-emerald-600" />
                 </div>
-                <h3 className="text-lg font-bold mb-1">Redemption Successful! 🎉</h3>
+                <h3 className="text-lg font-bold mb-1">Request Submitted! 🎉</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  You redeemed <span className="font-semibold text-foreground">{successReward.qty}× {successReward.name}</span> for{" "}
-                  <span className="font-semibold text-primary">{successReward.cost.toLocaleString()} coins</span>.
+                  Your request for <span className="font-semibold text-foreground">{successReward.qty}× {successReward.name}</span> ({successReward.cost.toLocaleString()} pts) is now <span className="font-semibold text-primary">pending admin approval</span>. Points will be deducted once approved.
                 </p>
                 <Button onClick={() => setSuccessReward(null)} className="w-full rounded-xl">
                   Done
                 </Button>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Telegram join gate — mandatory before any reward redemption */}
+        <Dialog open={telegramGateOpen} onOpenChange={(o) => { if (!o) { setTelegramGateOpen(false); setPendingRedeem(null); } }}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Join our Telegram group</DialogTitle>
+              <DialogDescription>
+                Reward ရယူဖို့ Kaung Digital Store ရဲ့ Telegram group ကို join ရပါမယ်။ Join ပြီးမှ “I've Joined” ကို နှိပ်ပါ။
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-2 py-2">
+              <Button asChild className="w-full rounded-xl bg-[#229ED9] hover:bg-[#1c88bb] text-white">
+                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">Open Telegram Group</a>
+              </Button>
+              <Button onClick={confirmTelegramJoined} variant="outline" className="w-full rounded-xl">
+                I've Joined — Continue
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </MobileLayout>
