@@ -320,7 +320,7 @@ serve(async (req) => {
         const gameRules: Record<string, { win: number; loss: number; dailyCap: number }> = {
           "click-speed": { win: 5, loss: 1, dailyCap: 500 },
         };
-        const defaultRules = { win: 8, loss: 1, dailyCap: 1000 };
+        const defaultRules = { win: 8, loss: 0, dailyCap: 500 };
         const rules = gameRules[gameName] ?? defaultRules;
 
         let earn = isWin ? rules.win : rules.loss;
