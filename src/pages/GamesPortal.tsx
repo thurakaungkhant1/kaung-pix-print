@@ -755,6 +755,26 @@ const GamesPortal = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Telegram join gate — mandatory before any reward redemption */}
+        <Dialog open={telegramGateOpen} onOpenChange={(o) => { if (!o) { setTelegramGateOpen(false); setPendingRedeem(null); } }}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Join our Telegram group</DialogTitle>
+              <DialogDescription>
+                Reward ရယူဖို့ Kaung Digital Store ရဲ့ Telegram group ကို join ရပါမယ်။ Join ပြီးမှ “I've Joined” ကို နှိပ်ပါ။
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-2 py-2">
+              <Button asChild className="w-full rounded-xl bg-[#229ED9] hover:bg-[#1c88bb] text-white">
+                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">Open Telegram Group</a>
+              </Button>
+              <Button onClick={confirmTelegramJoined} variant="outline" className="w-full rounded-xl">
+                I've Joined — Continue
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </MobileLayout>
     </AnimatedPage>
   );
