@@ -926,6 +926,7 @@ const AdminDashboard = () => {
       label: "Finance",
       items: [
         { id: "deposits", label: "Deposits", icon: Wallet, badge: 0, route: "/admin/deposits" },
+        { id: "wallets", label: "Wallet Management", icon: Wallet, badge: 0, route: "/admin/wallets" },
         { id: "payment-methods", label: "Payment Methods", icon: Wallet, badge: 0, route: "/admin/payment-methods" },
       ]
     },
