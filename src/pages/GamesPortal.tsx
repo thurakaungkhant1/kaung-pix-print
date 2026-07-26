@@ -132,6 +132,13 @@ const GamesPortal = () => {
   const isOnline = useNetworkStatus();
   const { gamePoints, dailyEarned, dailyLimit, streak, canPlay, getCooldownRemaining, submitScore, refreshData } = useGamePoints();
   const [activeGame, setActiveGame] = useState<string | null>(null);
+
+  // Long session ads: while the user stays inside one game, keep showing ads periodically.
+  useEffect(() => {
+    if (!activeGame) return;
+    return startLongSessionAds();
+  }, [activeGame]);
+
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [hasSpunToday, setHasSpunToday] = useState(false);
   const [filter, setFilter] = useState("All");
