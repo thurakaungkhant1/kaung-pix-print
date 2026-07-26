@@ -173,7 +173,7 @@ const GamesPortal = () => {
       setBonusOffer(null);
       if (!offer) return;
       const { data, error } = await supabase.functions.invoke("award-points", {
-        body: { source: "game", game_name: offer.gameName, score: offer.score, is_win: offer.isWin },
+        body: { source: "rewarded_ad", game_name: offer.gameName },
       });
       if (error) {
         toast({ title: "Bonus failed", description: "Please try again later.", variant: "destructive" });
@@ -181,10 +181,10 @@ const GamesPortal = () => {
       }
       const bonus = Number(data?.amount ?? 0);
       if (bonus > 0) {
-        toast({ title: `+${bonus} Bonus Points! 🎁`, description: "2x reward unlocked!" });
+        toast({ title: `+${bonus} Bonus Points! 🎁`, description: "Rewarded ad completed!" });
         refreshData();
       } else {
-        toast({ title: "Daily limit reached", description: `Max ${dailyLimit} game points per day.` });
+        toast({ title: "No bonus", description: "Please wait a moment before watching another ad." });
       }
     };
     window.addEventListener("reward-earned", onReward as EventListener);
@@ -402,15 +402,15 @@ const GamesPortal = () => {
           <Dialog open={!!bonusOffer} onOpenChange={(o) => { if (!o) { setBonusOffer(null); setBonusLoading(false); } }}>
             <DialogContent className="max-w-xs rounded-2xl text-center">
               <DialogHeader>
-                <DialogTitle className="text-center">🎁 2x Points!</DialogTitle>
+                <DialogTitle className="text-center">🎁 Bonus +50 Points</DialogTitle>
               </DialogHeader>
               <p className="text-sm text-muted-foreground">
                 You earned <span className="font-bold text-foreground">{bonusOffer?.points}</span> points.
-                Watch a short ad to double it.
+                Watch a full rewarded ad to get <span className="font-bold text-foreground">+50</span> bonus points.
               </p>
               <div className="flex flex-col gap-2 mt-2">
                 <Button onClick={handleShowRewardAd} disabled={bonusLoading} className="rounded-xl">
-                  {bonusLoading ? "Loading ad..." : "Watch Ad for 2x"}
+                  {bonusLoading ? "Loading ad..." : "Watch Ad for +50"}
                 </Button>
                 <Button variant="ghost" onClick={() => { setBonusOffer(null); setBonusLoading(false); }} className="rounded-xl">
                   No thanks

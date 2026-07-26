@@ -13,7 +13,7 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type Source = "chat" | "arcade" | "game" | "spin";
+type Source = "chat" | "arcade" | "game" | "spin" | "rewarded_ad";
 interface Body {
   source: Source;
   // chat
@@ -353,6 +353,40 @@ serve(async (req) => {
           related_entity: "game_score",
           related_entity_id: gsIns?.id ?? gameName,
           metadata: { score, is_win: isWin },
+        }));
+      }
+
+      // ================ REWARDED AD (2x) ================
+      // Flat 50 game points, credited ONLY when the native Android app confirms
+      // that a real rewarded ad was fully watched (window.onRewardEarned).
+      case "rewarded_ad": {
+        const REWARD = 50;
+        const COOLDOWN_SECONDS = 20;
+
+        const { data: lastAd } = await admin
+          .from("point_transactions")
+          .select("created_at")
+          .eq("user_id", user.id)
+          .eq("transaction_type", "rewarded_ad")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (lastAd) {
+          const elapsed = (Date.now() - new Date(lastAd.created_at).getTime()) / 1000;
+          if (elapsed < COOLDOWN_SECONDS) {
+            return json(await credit({ amount: 0, field: "game_points", transaction_type: "rewarded_ad", description: "cooldown", source: "rewarded_ad", reason: "cooldown", metadata: { cooldownRemaining: Math.ceil(COOLDOWN_SECONDS - elapsed) } }));
+          }
+        }
+
+        return json(await credit({
+          amount: REWARD,
+          field: "game_points",
+          transaction_type: "rewarded_ad",
+          description: `Earned ${REWARD} game points from a rewarded ad`,
+          source: "rewarded_ad",
+          reason: "ok",
+          related_entity: "rewarded_ad",
+          related_entity_id: (body.game_name || "").trim() || null,
         }));
       }
 
