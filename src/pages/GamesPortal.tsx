@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import AIGameHint from "@/components/AIGameHint";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import defaultAvatar from "@/assets/default-avatar.svg";
-import { showInterstitialAd, startLongSessionAds } from "@/lib/nativeAds";
+import { showInterstitialAd, startLongSessionAds, showRewardedAd, hasRewardedAds } from "@/lib/nativeAds";
 
 const LAST_GAME_KEY = "games:lastOpenedId";
 // Show interstitial when user switches from one game to another
@@ -152,6 +152,44 @@ const GamesPortal = () => {
   const [successReward, setSuccessReward] = useState<{ name: string; qty: number; cost: number } | null>(null);
   const [telegramGateOpen, setTelegramGateOpen] = useState(false);
   const [pendingRedeem, setPendingRedeem] = useState<{ reward: RewardItem; qty: number } | null>(null);
+  const [bonusOffer, setBonusOffer] = useState<{ gameName: string; score: number; isWin: boolean; points: number } | null>(null);
+  const [bonusLoading, setBonusLoading] = useState(false);
+
+  // Ask the Android app to show a rewarded ad for 2x points.
+  const handleShowRewardAd = () => {
+    if (!window.AndroidAds || !hasRewardedAds()) {
+      toast({ title: "Ad not available", description: "Rewarded ads only work in the mobile app.", variant: "destructive" });
+      return;
+    }
+    setBonusLoading(true);
+    showRewardedAd();
+  };
+
+  // Grant the 2x bonus once the native app confirms the reward.
+  useEffect(() => {
+    const onReward = async () => {
+      setBonusLoading(false);
+      const offer = bonusOffer;
+      setBonusOffer(null);
+      if (!offer) return;
+      const { data, error } = await supabase.functions.invoke("award-points", {
+        body: { source: "game", game_name: offer.gameName, score: offer.score, is_win: offer.isWin },
+      });
+      if (error) {
+        toast({ title: "Bonus failed", description: "Please try again later.", variant: "destructive" });
+        return;
+      }
+      const bonus = Number(data?.amount ?? 0);
+      if (bonus > 0) {
+        toast({ title: `+${bonus} Bonus Points! 🎁`, description: "2x reward unlocked!" });
+        refreshData();
+      } else {
+        toast({ title: "Daily limit reached", description: `Max ${dailyLimit} game points per day.` });
+      }
+    };
+    window.addEventListener("reward-earned", onReward as EventListener);
+    return () => window.removeEventListener("reward-earned", onReward as EventListener);
+  }, [bonusOffer, dailyLimit, refreshData]);
 
   // Apply admin settings: hide disabled games, override points
   const visibleGames = GAMES
@@ -239,6 +277,7 @@ const GamesPortal = () => {
       toast({ title: "Daily limit reached!", description: `Max ${dailyLimit} game points per day.` });
     } else if (result.pointsEarned > 0) {
       toast({ title: `+${result.pointsEarned} Game Points! 🎮`, description: isWin ? "You won! Great job!" : "Nice try!" });
+      setBonusOffer({ gameName, score, isWin, points: result.pointsEarned });
     }
   };
 
@@ -359,6 +398,26 @@ const GamesPortal = () => {
               </div>
             </Card>
           </div>
+
+          <Dialog open={!!bonusOffer} onOpenChange={(o) => { if (!o) { setBonusOffer(null); setBonusLoading(false); } }}>
+            <DialogContent className="max-w-xs rounded-2xl text-center">
+              <DialogHeader>
+                <DialogTitle className="text-center">🎁 2x Points!</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                You earned <span className="font-bold text-foreground">{bonusOffer?.points}</span> points.
+                Watch a short ad to double it.
+              </p>
+              <div className="flex flex-col gap-2 mt-2">
+                <Button onClick={handleShowRewardAd} disabled={bonusLoading} className="rounded-xl">
+                  {bonusLoading ? "Loading ad..." : "Watch Ad for 2x"}
+                </Button>
+                <Button variant="ghost" onClick={() => { setBonusOffer(null); setBonusLoading(false); }} className="rounded-xl">
+                  No thanks
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </MobileLayout>
       </AnimatedPage>
     );

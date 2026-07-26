@@ -4,6 +4,8 @@ import OfflineGame from "@/components/OfflineGame";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { toast as sonnerToast } from "sonner";
+import "@/lib/nativeAds";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -129,6 +131,16 @@ const PageLoader = () => (
 const App = () => {
   const [showLoading, setShowLoading] = useState(true);
   const isOnline = useNetworkStatus();
+
+  // Global callback invoked by the native Android app when a rewarded ad completes.
+  useEffect(() => {
+    window.onRewardEarned = (amount: number, type: string) => {
+      console.log("Reward Success", amount, type);
+      sonnerToast.success("You earned points!");
+      window.dispatchEvent(new CustomEvent("reward-earned", { detail: { amount, type } }));
+    };
+    return () => { delete window.onRewardEarned; };
+  }, []);
 
   // Sync offline game scores when coming back online
   useEffect(() => {
