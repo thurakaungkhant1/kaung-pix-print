@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import AIGameHint from "@/components/AIGameHint";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import defaultAvatar from "@/assets/default-avatar.svg";
-import { showInterstitialAd } from "@/lib/nativeAds";
+import { showInterstitialAd, startLongSessionAds } from "@/lib/nativeAds";
 
 const LAST_GAME_KEY = "games:lastOpenedId";
 // Show interstitial when user switches from one game to another
