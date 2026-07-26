@@ -2,9 +2,10 @@
 // The Android app exposes `AndroidAds.showInterstitial()` via a JavascriptInterface.
 // On web (no bridge) this is a no-op.
 //
-// Frequency cap: only show one interstitial after BOTH
-//   - MIN_MINUTES_BETWEEN_ADS minutes have passed since last ad, AND
-//   - MIN_GAMES_BETWEEN_ADS games have been played since last ad.
+// Ads are shown:
+//   - after every finished game
+//   - when the user switches from one game to another
+//   - periodically while staying inside the same game for a long time
 
 declare global {
   interface Window {
@@ -14,11 +15,12 @@ declare global {
   }
 }
 
-const MIN_MINUTES_BETWEEN_ADS = 3; // X minutes
-const MIN_GAMES_BETWEEN_ADS = 3;   // Y games
+// Minimum gap between two ads so a long session doesn't spam back-to-back ads.
+const MIN_SECONDS_BETWEEN_ADS = 25;
+// While the user stays in one game, show an ad every this many minutes.
+const LONG_SESSION_MINUTES = 3;
 
 const LAST_AD_TS_KEY = "ads:lastInterstitialTs";
-const GAMES_SINCE_AD_KEY = "ads:gamesSinceLastInterstitial";
 
 function readNumber(key: string): number {
   try {
@@ -37,40 +39,39 @@ function writeNumber(key: string, value: number) {
   }
 }
 
-/**
- * Call after each game finish. Increments the game counter and
- * shows an interstitial only when the frequency cap allows it.
- */
-export function maybeShowInterstitialAfterGame(): void {
+function show(): boolean {
   try {
-    const games = readNumber(GAMES_SINCE_AD_KEY) + 1;
-    writeNumber(GAMES_SINCE_AD_KEY, games);
-
-    const lastTs = readNumber(LAST_AD_TS_KEY);
-    const minutesSince = (Date.now() - lastTs) / 60000;
-
-    if (games < MIN_GAMES_BETWEEN_ADS) return;
-    if (lastTs > 0 && minutesSince < MIN_MINUTES_BETWEEN_ADS) return;
-
     if (typeof window !== "undefined" && window.AndroidAds?.showInterstitial) {
       window.AndroidAds.showInterstitial();
       writeNumber(LAST_AD_TS_KEY, Date.now());
-      writeNumber(GAMES_SINCE_AD_KEY, 0);
+      return true;
     }
   } catch (e) {
-    console.warn("maybeShowInterstitialAfterGame failed", e);
+    console.warn("showInterstitial failed", e);
   }
+  return false;
 }
 
-/** Force-show an interstitial (ignores frequency cap). Rarely needed. */
+/** Show an interstitial, respecting only a small anti-spam gap. */
 export function showInterstitialAd(): void {
-  try {
-    if (typeof window !== "undefined" && window.AndroidAds?.showInterstitial) {
-      window.AndroidAds.showInterstitial();
-      writeNumber(LAST_AD_TS_KEY, Date.now());
-      writeNumber(GAMES_SINCE_AD_KEY, 0);
-    }
-  } catch (e) {
-    console.warn("showInterstitialAd failed", e);
-  }
+  const last = readNumber(LAST_AD_TS_KEY);
+  if (last > 0 && (Date.now() - last) / 1000 < MIN_SECONDS_BETWEEN_ADS) return;
+  show();
+}
+
+/** Call after each game finish — shows an ad every game. */
+export function maybeShowInterstitialAfterGame(): void {
+  showInterstitialAd();
+}
+
+/**
+ * Start a repeating timer that shows an interstitial while the user keeps
+ * playing the same game. Returns a cleanup function.
+ */
+export function startLongSessionAds(): () => void {
+  if (typeof window === "undefined") return () => {};
+  const id = window.setInterval(() => {
+    showInterstitialAd();
+  }, LONG_SESSION_MINUTES * 60 * 1000);
+  return () => window.clearInterval(id);
 }
