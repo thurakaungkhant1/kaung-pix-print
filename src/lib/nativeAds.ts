@@ -11,7 +11,9 @@ declare global {
   interface Window {
     AndroidAds?: {
       showInterstitial?: () => void;
+      showRewarded?: () => void;
     };
+    onRewardEarned?: (amount: number, type: string) => void;
   }
 }
 
@@ -74,4 +76,27 @@ export function startLongSessionAds(): () => void {
     showInterstitialAd();
   }, LONG_SESSION_MINUTES * 60 * 1000);
   return () => window.clearInterval(id);
+}
+
+/* ---------------- Rewarded ads (2x points) ---------------- */
+
+/** True when the native Android rewarded-ad bridge is available. */
+export function hasRewardedAds(): boolean {
+  return typeof window !== "undefined" && typeof window.AndroidAds?.showRewarded === "function";
+}
+
+/**
+ * Ask the Android app to show a rewarded ad.
+ * The native side calls back into `window.onRewardEarned(amount, type)` on success.
+ */
+export function showRewardedAd(): boolean {
+  try {
+    if (hasRewardedAds()) {
+      window.AndroidAds!.showRewarded!();
+      return true;
+    }
+  } catch (e) {
+    console.warn("showRewarded failed", e);
+  }
+  return false;
 }
