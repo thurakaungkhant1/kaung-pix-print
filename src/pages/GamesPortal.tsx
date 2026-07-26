@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import AIGameHint from "@/components/AIGameHint";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import defaultAvatar from "@/assets/default-avatar.svg";
-import { showInterstitialAd } from "@/lib/nativeAds";
+import { showInterstitialAd, startLongSessionAds } from "@/lib/nativeAds";
 
 const LAST_GAME_KEY = "games:lastOpenedId";
 // Show interstitial when user switches from one game to another
@@ -132,6 +132,13 @@ const GamesPortal = () => {
   const isOnline = useNetworkStatus();
   const { gamePoints, dailyEarned, dailyLimit, streak, canPlay, getCooldownRemaining, submitScore, refreshData } = useGamePoints();
   const [activeGame, setActiveGame] = useState<string | null>(null);
+
+  // Long session ads: while the user stays inside one game, keep showing ads periodically.
+  useEffect(() => {
+    if (!activeGame) return;
+    return startLongSessionAds();
+  }, [activeGame]);
+
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [hasSpunToday, setHasSpunToday] = useState(false);
   const [filter, setFilter] = useState("All");
