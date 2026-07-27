@@ -141,8 +141,40 @@ const WalletManage = () => {
 
   const handleViewUser = (user: UserBalance) => {
     setSelectedUser(user);
+    setAdjustAmount("");
+    setAdjustNote("");
     loadUserTransactions(user.id);
   };
+
+  const handleAdjust = async (sign: 1 | -1) => {
+    if (!selectedUser) return;
+    const value = Number(adjustAmount);
+    if (!value || value <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    setAdjusting(true);
+    try {
+      const { data, error } = await supabase.rpc("admin_adjust_wallet", {
+        p_user_id: selectedUser.id,
+        p_amount: sign * value,
+        p_note: adjustNote || null,
+      });
+      if (error) throw error;
+      const newBalance = Number((data as { new_balance?: number })?.new_balance ?? 0);
+      toast.success(sign > 0 ? "Funds added" : "Funds withdrawn");
+      setSelectedUser({ ...selectedUser, wallet_balance: newBalance });
+      setAdjustAmount("");
+      setAdjustNote("");
+      await Promise.all([loadData(), loadUserTransactions(selectedUser.id)]);
+    } catch (e) {
+      console.error(e);
+      toast.error(e instanceof Error ? e.message : "Adjustment failed");
+    } finally {
+      setAdjusting(false);
+    }
+  };
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('my-MM').format(amount) + ' Ks';
