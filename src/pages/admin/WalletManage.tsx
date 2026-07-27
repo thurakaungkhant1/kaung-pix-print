@@ -47,6 +47,10 @@ const WalletManage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserBalance | null>(null);
   const [userTransactions, setUserTransactions] = useState<WalletTransaction[]>([]);
+  const [adjustAmount, setAdjustAmount] = useState("");
+  const [adjustNote, setAdjustNote] = useState("");
+  const [adjusting, setAdjusting] = useState(false);
+
   const [stats, setStats] = useState({
     totalBalance: 0,
     totalUsers: 0,
