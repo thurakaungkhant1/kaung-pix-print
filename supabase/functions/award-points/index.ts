@@ -333,24 +333,23 @@ serve(async (req) => {
           }
           return 1;
         };
-        const weightedLoss = () => 1 + Math.floor(Math.random() * 3); // 1-3
+        const weightedLoss = () => 1; // losses always pay 1
 
         const gameRules: Record<string, { maxWin: number; dailyCap: number }> = {
-          "click-speed": { maxWin: 5, dailyCap: 500 },
+          "click-speed": { maxWin: 5, dailyCap: GAME_POINTS_DAILY_CAP },
         };
-        const defaultRules = { maxWin: 8, dailyCap: 500 };
+        const defaultRules = { maxWin: 8, dailyCap: GAME_POINTS_DAILY_CAP };
         const rules = gameRules[gameName] ?? defaultRules;
 
         let earn = isWin
           ? Math.min(weightedWin(), rules.maxWin)
-          : Math.min(weightedLoss(), rules.maxWin);
+          : weightedLoss();
 
-
-        const usedGame = await todayCredited("game_play");
-        if (usedGame >= rules.dailyCap) {
-          return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: `daily ${rules.dailyCap} point limit reached`, source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
+        const usedGame = await todayCredited(GAME_POINT_TX_TYPES);
+        if (usedGame >= GAME_POINTS_DAILY_CAP) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: `daily ${GAME_POINTS_DAILY_CAP} point limit reached`, source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
         }
-        earn = Math.max(0, Math.min(earn, rules.dailyCap - usedGame));
+        earn = Math.max(0, Math.min(earn, GAME_POINTS_DAILY_CAP - usedGame));
 
         const { data: gsIns } = await admin
           .from("game_scores")
