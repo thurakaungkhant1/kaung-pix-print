@@ -376,11 +376,12 @@ serve(async (req) => {
         }));
       }
 
-      // ================ REWARDED AD (2x) ================
-      // Flat 50 game points, credited ONLY when the native Android app confirms
+      // ================ REWARDED AD ================
+      // Flat 30 game points, credited ONLY when the native Android app confirms
       // that a real rewarded ad was fully watched (window.onRewardEarned).
+      // Counts against the same 500/day game points cap.
       case "rewarded_ad": {
-        const REWARD = 50;
+        const REWARD = 30;
         const COOLDOWN_SECONDS = 20;
 
         const { data: lastAd } = await admin
@@ -398,11 +399,17 @@ serve(async (req) => {
           }
         }
 
+        const usedAd = await todayCredited(GAME_POINT_TX_TYPES);
+        if (usedAd >= GAME_POINTS_DAILY_CAP) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "rewarded_ad", description: `daily ${GAME_POINTS_DAILY_CAP} point limit reached`, source: "rewarded_ad", reason: "daily_cap" }));
+        }
+        const adAmount = Math.max(0, Math.min(REWARD, GAME_POINTS_DAILY_CAP - usedAd));
+
         return json(await credit({
-          amount: REWARD,
+          amount: adAmount,
           field: "game_points",
           transaction_type: "rewarded_ad",
-          description: `Earned ${REWARD} game points from a rewarded ad`,
+          description: `Earned ${adAmount} game points from a rewarded ad`,
           source: "rewarded_ad",
           reason: "ok",
           related_entity: "rewarded_ad",
