@@ -156,16 +156,21 @@ serve(async (req) => {
     return { amount: opts.amount, reason: opts.reason, transaction_id: tx?.id };
   }
 
-  // Sum today's credited amounts for a specific transaction_type
-  async function todayCredited(txType: string) {
+  // Sum today's credited amounts for one or more transaction_types
+  async function todayCredited(txType: string | string[]) {
+    const types = Array.isArray(txType) ? txType : [txType];
     const { data } = await admin
       .from("point_transactions")
       .select("amount")
       .eq("user_id", user.id)
-      .eq("transaction_type", txType)
+      .in("transaction_type", types)
       .gte("created_at", startOfDay());
     return (data || []).reduce((s, t: { amount: number }) => s + (t.amount || 0), 0);
   }
+
+  // Shared daily cap for ALL game_points earnings (mini-games + rewarded ads)
+  const GAME_POINTS_DAILY_CAP = 500;
+  const GAME_POINT_TX_TYPES = ["game_play", "rewarded_ad"];
 
   try {
     switch (body.source) {
@@ -328,24 +333,23 @@ serve(async (req) => {
           }
           return 1;
         };
-        const weightedLoss = () => 1 + Math.floor(Math.random() * 3); // 1-3
+        const weightedLoss = () => 1; // losses always pay 1
 
         const gameRules: Record<string, { maxWin: number; dailyCap: number }> = {
-          "click-speed": { maxWin: 5, dailyCap: 500 },
+          "click-speed": { maxWin: 5, dailyCap: GAME_POINTS_DAILY_CAP },
         };
-        const defaultRules = { maxWin: 8, dailyCap: 500 };
+        const defaultRules = { maxWin: 8, dailyCap: GAME_POINTS_DAILY_CAP };
         const rules = gameRules[gameName] ?? defaultRules;
 
         let earn = isWin
           ? Math.min(weightedWin(), rules.maxWin)
-          : Math.min(weightedLoss(), rules.maxWin);
+          : weightedLoss();
 
-
-        const usedGame = await todayCredited("game_play");
-        if (usedGame >= rules.dailyCap) {
-          return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: `daily ${rules.dailyCap} point limit reached`, source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
+        const usedGame = await todayCredited(GAME_POINT_TX_TYPES);
+        if (usedGame >= GAME_POINTS_DAILY_CAP) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: `daily ${GAME_POINTS_DAILY_CAP} point limit reached`, source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
         }
-        earn = Math.max(0, Math.min(earn, rules.dailyCap - usedGame));
+        earn = Math.max(0, Math.min(earn, GAME_POINTS_DAILY_CAP - usedGame));
 
         const { data: gsIns } = await admin
           .from("game_scores")
@@ -372,11 +376,12 @@ serve(async (req) => {
         }));
       }
 
-      // ================ REWARDED AD (2x) ================
-      // Flat 50 game points, credited ONLY when the native Android app confirms
+      // ================ REWARDED AD ================
+      // Flat 30 game points, credited ONLY when the native Android app confirms
       // that a real rewarded ad was fully watched (window.onRewardEarned).
+      // Counts against the same 500/day game points cap.
       case "rewarded_ad": {
-        const REWARD = 50;
+        const REWARD = 30;
         const COOLDOWN_SECONDS = 20;
 
         const { data: lastAd } = await admin
@@ -394,11 +399,17 @@ serve(async (req) => {
           }
         }
 
+        const usedAd = await todayCredited(GAME_POINT_TX_TYPES);
+        if (usedAd >= GAME_POINTS_DAILY_CAP) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "rewarded_ad", description: `daily ${GAME_POINTS_DAILY_CAP} point limit reached`, source: "rewarded_ad", reason: "daily_cap" }));
+        }
+        const adAmount = Math.max(0, Math.min(REWARD, GAME_POINTS_DAILY_CAP - usedAd));
+
         return json(await credit({
-          amount: REWARD,
+          amount: adAmount,
           field: "game_points",
           transaction_type: "rewarded_ad",
-          description: `Earned ${REWARD} game points from a rewarded ad`,
+          description: `Earned ${adAmount} game points from a rewarded ad`,
           source: "rewarded_ad",
           reason: "ok",
           related_entity: "rewarded_ad",
