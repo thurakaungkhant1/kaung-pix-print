@@ -402,15 +402,15 @@ const GamesPortal = () => {
           <Dialog open={!!bonusOffer} onOpenChange={(o) => { if (!o) { setBonusOffer(null); setBonusLoading(false); } }}>
             <DialogContent className="max-w-xs rounded-2xl text-center">
               <DialogHeader>
-                <DialogTitle className="text-center">🎁 Bonus +50 Points</DialogTitle>
+                <DialogTitle className="text-center">🎁 Bonus +30 Points</DialogTitle>
               </DialogHeader>
               <p className="text-sm text-muted-foreground">
                 You earned <span className="font-bold text-foreground">{bonusOffer?.points}</span> points.
-                Watch a full rewarded ad to get <span className="font-bold text-foreground">+50</span> bonus points.
+                Watch a full rewarded ad to get <span className="font-bold text-foreground">+30</span> bonus points.
               </p>
               <div className="flex flex-col gap-2 mt-2">
                 <Button onClick={handleShowRewardAd} disabled={bonusLoading} className="rounded-xl">
-                  {bonusLoading ? "Loading ad..." : "Watch Ad for +50"}
+                  {bonusLoading ? "Loading ad..." : "Watch Ad for +30"}
                 </Button>
                 <Button variant="ghost" onClick={() => { setBonusOffer(null); setBonusLoading(false); }} className="rounded-xl">
                   No thanks
