@@ -347,6 +347,42 @@ const WalletManage = () => {
                   </CardContent>
                 </Card>
 
+                {/* Admin adjust */}
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <h3 className="font-semibold text-sm">Adjust Balance</h3>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      placeholder="Amount (Ks)"
+                      value={adjustAmount}
+                      onChange={(e) => setAdjustAmount(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Note (optional)"
+                      value={adjustNote}
+                      onChange={(e) => setAdjustNote(e.target.value)}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        disabled={adjusting}
+                        onClick={() => handleAdjust(1)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <TrendingUp className="h-4 w-4 mr-1" /> Add
+                      </Button>
+                      <Button
+                        disabled={adjusting}
+                        variant="destructive"
+                        onClick={() => handleAdjust(-1)}
+                      >
+                        <TrendingDown className="h-4 w-4 mr-1" /> Withdraw
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+
                 <div className="space-y-2">
                   <h3 className="font-semibold flex items-center gap-2">
                     <History className="h-4 w-4" />
