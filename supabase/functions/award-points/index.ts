@@ -156,16 +156,21 @@ serve(async (req) => {
     return { amount: opts.amount, reason: opts.reason, transaction_id: tx?.id };
   }
 
-  // Sum today's credited amounts for a specific transaction_type
-  async function todayCredited(txType: string) {
+  // Sum today's credited amounts for one or more transaction_types
+  async function todayCredited(txType: string | string[]) {
+    const types = Array.isArray(txType) ? txType : [txType];
     const { data } = await admin
       .from("point_transactions")
       .select("amount")
       .eq("user_id", user.id)
-      .eq("transaction_type", txType)
+      .in("transaction_type", types)
       .gte("created_at", startOfDay());
     return (data || []).reduce((s, t: { amount: number }) => s + (t.amount || 0), 0);
   }
+
+  // Shared daily cap for ALL game_points earnings (mini-games + rewarded ads)
+  const GAME_POINTS_DAILY_CAP = 500;
+  const GAME_POINT_TX_TYPES = ["game_play", "rewarded_ad"];
 
   try {
     switch (body.source) {
