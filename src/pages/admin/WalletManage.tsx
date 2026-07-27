@@ -47,6 +47,10 @@ const WalletManage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserBalance | null>(null);
   const [userTransactions, setUserTransactions] = useState<WalletTransaction[]>([]);
+  const [adjustAmount, setAdjustAmount] = useState("");
+  const [adjustNote, setAdjustNote] = useState("");
+  const [adjusting, setAdjusting] = useState(false);
+
   const [stats, setStats] = useState({
     totalBalance: 0,
     totalUsers: 0,
@@ -141,8 +145,40 @@ const WalletManage = () => {
 
   const handleViewUser = (user: UserBalance) => {
     setSelectedUser(user);
+    setAdjustAmount("");
+    setAdjustNote("");
     loadUserTransactions(user.id);
   };
+
+  const handleAdjust = async (sign: 1 | -1) => {
+    if (!selectedUser) return;
+    const value = Number(adjustAmount);
+    if (!value || value <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    setAdjusting(true);
+    try {
+      const { data, error } = await supabase.rpc("admin_adjust_wallet", {
+        p_user_id: selectedUser.id,
+        p_amount: sign * value,
+        p_note: adjustNote || null,
+      });
+      if (error) throw error;
+      const newBalance = Number((data as { new_balance?: number })?.new_balance ?? 0);
+      toast.success(sign > 0 ? "Funds added" : "Funds withdrawn");
+      setSelectedUser({ ...selectedUser, wallet_balance: newBalance });
+      setAdjustAmount("");
+      setAdjustNote("");
+      await Promise.all([loadData(), loadUserTransactions(selectedUser.id)]);
+    } catch (e) {
+      console.error(e);
+      toast.error(e instanceof Error ? e.message : "Adjustment failed");
+    } finally {
+      setAdjusting(false);
+    }
+  };
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('my-MM').format(amount) + ' Ks';
@@ -346,6 +382,42 @@ const WalletManage = () => {
                     <p className="text-sm text-muted-foreground mt-2">{selectedUser.phone_number}</p>
                   </CardContent>
                 </Card>
+
+                {/* Admin adjust */}
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <h3 className="font-semibold text-sm">Adjust Balance</h3>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      placeholder="Amount (Ks)"
+                      value={adjustAmount}
+                      onChange={(e) => setAdjustAmount(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Note (optional)"
+                      value={adjustNote}
+                      onChange={(e) => setAdjustNote(e.target.value)}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        disabled={adjusting}
+                        onClick={() => handleAdjust(1)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <TrendingUp className="h-4 w-4 mr-1" /> Add
+                      </Button>
+                      <Button
+                        disabled={adjusting}
+                        variant="destructive"
+                        onClick={() => handleAdjust(-1)}
+                      >
+                        <TrendingDown className="h-4 w-4 mr-1" /> Withdraw
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
 
                 <div className="space-y-2">
                   <h3 className="font-semibold flex items-center gap-2">

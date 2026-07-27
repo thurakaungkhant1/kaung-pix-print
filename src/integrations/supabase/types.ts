@@ -2592,6 +2592,10 @@ export type Database = {
           total_coins: number
         }[]
       }
+      admin_adjust_wallet: {
+        Args: { p_amount: number; p_note?: string; p_user_id: string }
+        Returns: Json
+      }
       admin_grant_coin_bonus: {
         Args: { bonus_amount: number; note?: string; target_user_id: string }
         Returns: undefined

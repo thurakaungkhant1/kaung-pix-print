@@ -315,15 +315,31 @@ serve(async (req) => {
           }
         }
 
-        // Per-game reward rules: default Win 8 / Loss 4 with a 500-point daily cap.
-        // Click Speed is capped lower because it can be spammed very quickly.
-        const gameRules: Record<string, { win: number; loss: number; dailyCap: number }> = {
-          "click-speed": { win: 5, loss: 4, dailyCap: 500 },
+        // Randomized rewards so the 500/day cap takes longer to reach.
+        // Wins pay 1-8 (8 is rare), losses pay 1-3.
+        const weightedWin = () => {
+          // weights favour smaller amounts: 1..8
+          const weights = [22, 20, 16, 13, 11, 8, 6, 4];
+          const total = weights.reduce((a, b) => a + b, 0);
+          let r = Math.random() * total;
+          for (let i = 0; i < weights.length; i++) {
+            r -= weights[i];
+            if (r <= 0) return i + 1;
+          }
+          return 1;
         };
-        const defaultRules = { win: 8, loss: 4, dailyCap: 500 };
+        const weightedLoss = () => 1 + Math.floor(Math.random() * 3); // 1-3
+
+        const gameRules: Record<string, { maxWin: number; dailyCap: number }> = {
+          "click-speed": { maxWin: 5, dailyCap: 500 },
+        };
+        const defaultRules = { maxWin: 8, dailyCap: 500 };
         const rules = gameRules[gameName] ?? defaultRules;
 
-        let earn = isWin ? rules.win : rules.loss;
+        let earn = isWin
+          ? Math.min(weightedWin(), rules.maxWin)
+          : Math.min(weightedLoss(), rules.maxWin);
+
 
         const usedGame = await todayCredited("game_play");
         if (usedGame >= rules.dailyCap) {
