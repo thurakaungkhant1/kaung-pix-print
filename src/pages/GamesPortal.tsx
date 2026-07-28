@@ -154,6 +154,19 @@ const GamesPortal = () => {
   const [pendingRedeem, setPendingRedeem] = useState<{ reward: RewardItem; qty: number } | null>(null);
   const [bonusOffer, setBonusOffer] = useState<{ gameName: string; score: number; isWin: boolean; points: number } | null>(null);
   const [bonusLoading, setBonusLoading] = useState(false);
+  const [tasks, setTasks] = useState<DailyTask[]>([]);
+  const [pendingTask, setPendingTask] = useState<DailyTask | null>(null);
+  const [taskLoading, setTaskLoading] = useState<string | null>(null);
+
+  const loadTasks = async () => {
+    if (!user) return;
+    const { data } = await supabase.functions.invoke("award-points", {
+      body: { source: "daily_task_status" },
+    });
+    if (data?.tasks) setTasks(data.tasks as DailyTask[]);
+  };
+
+  useEffect(() => { loadTasks(); }, [user]);
 
   // Ask the Android app to show a rewarded ad for 2x points.
   const handleShowRewardAd = () => {
@@ -165,9 +178,44 @@ const GamesPortal = () => {
     showRewardedAd();
   };
 
+  // Claiming a daily task requires watching a full rewarded ad first.
+  const handleClaimTask = (task: DailyTask) => {
+    if (!task.completed || task.claimed) return;
+    if (!window.AndroidAds || !hasRewardedAds()) {
+      toast({ title: "Ad not available", description: "Rewarded ads only work in the mobile app.", variant: "destructive" });
+      return;
+    }
+    setPendingTask(task);
+    setTaskLoading(task.id);
+    showRewardedAd();
+  };
+
   // Grant the 2x bonus once the native app confirms the reward.
   useEffect(() => {
     const onReward = async () => {
+      // Daily task claim takes priority when one is pending
+      if (pendingTask) {
+        const task = pendingTask;
+        setPendingTask(null);
+        const { data, error } = await supabase.functions.invoke("award-points", {
+          body: { source: "daily_task", task_id: task.id },
+        });
+        setTaskLoading(null);
+        if (error) {
+          toast({ title: "Claim failed", description: "Please try again later.", variant: "destructive" });
+          return;
+        }
+        const amount = Number(data?.amount ?? 0);
+        if (amount > 0) {
+          toast({ title: `+${amount} Task Bonus! 🎯`, description: task.label });
+        } else {
+          toast({ title: "Not claimable", description: "Task already claimed or not completed yet." });
+        }
+        loadTasks();
+        refreshData();
+        return;
+      }
+
       setBonusLoading(false);
       const offer = bonusOffer;
       setBonusOffer(null);
@@ -186,10 +234,12 @@ const GamesPortal = () => {
       } else {
         toast({ title: "No bonus", description: "Please wait a moment before watching another ad." });
       }
+      loadTasks();
     };
     window.addEventListener("reward-earned", onReward as EventListener);
     return () => window.removeEventListener("reward-earned", onReward as EventListener);
-  }, [bonusOffer, dailyLimit, refreshData]);
+  }, [bonusOffer, pendingTask, dailyLimit, refreshData]);
+
 
   // Apply admin settings: hide disabled games, override points
   const visibleGames = GAMES
