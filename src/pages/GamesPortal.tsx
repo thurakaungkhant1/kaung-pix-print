@@ -667,6 +667,70 @@ const GamesPortal = () => {
               </div>
             </TabsContent>
 
+            <TabsContent value="tasks">
+              <AnimatedSection>
+                <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-primary/10"><Target className="h-5 w-5 text-primary" /></div>
+                    <div>
+                      <h3 className="text-sm font-bold">Daily Tasks</h3>
+                      <p className="text-[11px] text-muted-foreground">
+                        Bonus points — resets every day. Watch an ad to claim.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {tasks.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-8">Loading tasks…</p>
+                  )}
+                  {tasks.map((t) => {
+                    const pct = Math.min((t.progress / t.target) * 100, 100);
+                    return (
+                      <Card key={t.id} className="p-4 rounded-2xl border-border/60 bg-card">
+                        <div className="flex items-center gap-3 mb-2.5">
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs",
+                            t.claimed ? "bg-emerald-500/15 text-emerald-600"
+                              : t.completed ? "bg-primary/15 text-primary"
+                              : "bg-muted text-muted-foreground",
+                          )}>
+                            {t.claimed ? <CheckIcon className="h-4 w-4" /> : `+${t.reward}`}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-bold truncate">{t.label}</h4>
+                            <p className="text-[11px] text-muted-foreground tabular-nums">
+                              {t.progress} / {t.target}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            className="h-8 text-[10px] rounded-full px-3 shrink-0"
+                            disabled={!t.completed || t.claimed || taskLoading === t.id}
+                            onClick={() => handleClaimTask(t)}
+                          >
+                            {t.claimed ? "Claimed"
+                              : taskLoading === t.id ? "..."
+                              : t.completed ? "Watch Ad & Claim"
+                              : "Locked"}
+                          </Button>
+                        </div>
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className={cn("h-full rounded-full transition-all", t.claimed ? "bg-emerald-500" : "bg-primary")}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </AnimatedSection>
+            </TabsContent>
+
+
+
             <TabsContent value="rewards">
               <AnimatedSection>
                 <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/10">
