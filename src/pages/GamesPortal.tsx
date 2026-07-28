@@ -562,14 +562,18 @@ const GamesPortal = () => {
 
         <div className="px-5 mt-5 pb-28">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4 h-11 bg-card border border-border/60 rounded-2xl p-1">
+            <TabsList className="grid w-full grid-cols-4 mb-4 h-11 bg-card border border-border/60 rounded-2xl p-1">
               <TabsTrigger value="games" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                 <Gamepad2 className="h-3 w-3" /> Games
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+                <Target className="h-3 w-3" /> Tasks
               </TabsTrigger>
               <TabsTrigger value="rewards" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                 <ShoppingBag className="h-3 w-3" /> Rewards
               </TabsTrigger>
               <TabsTrigger value="leaderboard" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+
                 <Trophy className="h-3 w-3" /> Top 10
               </TabsTrigger>
             </TabsList>
