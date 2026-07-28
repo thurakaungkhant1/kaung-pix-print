@@ -120,6 +120,11 @@ const GameComponents: Record<string, React.ComponentType<{ onGameEnd: (score: nu
   tower: TowerStack,
 };
 
+interface DailyTask {
+  id: string; label: string; reward: number; type: string;
+  target: number; progress: number; completed: boolean; claimed: boolean;
+}
+
 interface RewardItem {
   id: string; name: string; description: string | null; emoji: string | null;
   cost_points: number; reward_type: string; reward_value: number;
