@@ -561,7 +561,7 @@ const GamesPortal = () => {
         {/* Daily Lucky Spin removed */}
 
         <div className="px-5 mt-5 pb-28">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); if (v === "tasks") loadTasks(); }} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-4 h-11 bg-card border border-border/60 rounded-2xl p-1">
               <TabsTrigger value="games" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                 <Gamepad2 className="h-3 w-3" /> Games
