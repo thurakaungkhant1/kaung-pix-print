@@ -13,7 +13,7 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type Source = "chat" | "arcade" | "game" | "spin" | "rewarded_ad";
+type Source = "chat" | "arcade" | "game" | "spin" | "rewarded_ad" | "daily_task" | "daily_task_status";
 interface Body {
   source: Source;
   // chat
@@ -26,7 +26,19 @@ interface Body {
   is_win?: boolean;
   // spin
   spin_amount?: number;
+  // daily task
+  task_id?: string;
 }
+
+// Daily tasks — bonus points on top of the 500/day game points cap.
+const DAILY_TASKS = [
+  { id: "play10", reward: 10, type: "games", target: 10, label: "Play 10 games today" },
+  { id: "earn100", reward: 20, type: "points", target: 100, label: "Earn 100 game points today" },
+  { id: "earn200", reward: 30, type: "points", target: 200, label: "Earn 200 game points today" },
+  { id: "earn300", reward: 40, type: "points", target: 300, label: "Earn 300 game points today" },
+  { id: "earn400", reward: 50, type: "points", target: 400, label: "Earn 400 game points today" },
+] as const;
+
 
 const json = (o: unknown, status = 200) =>
   new Response(JSON.stringify(o), {
