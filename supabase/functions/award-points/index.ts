@@ -429,6 +429,74 @@ serve(async (req) => {
         }));
       }
 
+      // ============ DAILY TASKS (status + claim) ============
+      // Bonus points, verified server-side. Not counted against the 500/day cap.
+      case "daily_task_status":
+      case "daily_task": {
+        const { count: gamesPlayed } = await admin
+          .from("game_scores")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gte("created_at", startOfDay());
+
+        const pointsToday = await todayCredited(GAME_POINT_TX_TYPES);
+
+        const { data: claimedRows } = await admin
+          .from("point_transactions")
+          .select("description")
+          .eq("user_id", user.id)
+          .eq("transaction_type", "daily_task")
+          .gte("created_at", startOfDay());
+        const claimed = new Set(
+          (claimedRows || []).map((r: { description: string | null }) =>
+            (r.description || "").split("|")[0].trim()
+          ),
+        );
+
+        const progressFor = (t: typeof DAILY_TASKS[number]) =>
+          t.type === "games" ? (gamesPlayed ?? 0) : pointsToday;
+
+        const tasks = DAILY_TASKS.map((t) => ({
+          id: t.id,
+          label: t.label,
+          reward: t.reward,
+          type: t.type,
+          target: t.target,
+          progress: Math.min(progressFor(t), t.target),
+          completed: progressFor(t) >= t.target,
+          claimed: claimed.has(t.id),
+        }));
+
+        if (body.source === "daily_task_status") {
+          return json({ tasks });
+        }
+
+        const taskId = (body.task_id || "").trim();
+        const task = DAILY_TASKS.find((t) => t.id === taskId);
+        if (!task) return json({ error: "Invalid task_id" }, 400);
+
+        if (claimed.has(task.id)) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "daily_task", description: `${task.id} | already claimed`, source: "daily_task", reason: "already_claimed", related_entity: "daily_task", related_entity_id: task.id }));
+        }
+        if (progressFor(task) < task.target) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "daily_task", description: `${task.id} | not completed`, source: "daily_task", reason: "not_completed", related_entity: "daily_task", related_entity_id: task.id, metadata: { progress: progressFor(task), target: task.target } }));
+        }
+
+        return json(await credit({
+          amount: task.reward,
+          field: "game_points",
+          transaction_type: "daily_task",
+          description: `${task.id} | ${task.label} (+${task.reward} bonus)`,
+          source: "daily_task",
+          reason: "ok",
+          related_entity: "daily_task",
+          related_entity_id: task.id,
+          metadata: { target: task.target, type: task.type },
+        }));
+      }
+
+
+
       // ==================== SPIN ====================
       case "spin": {
         const amount = Math.max(0, Math.min(100, Math.floor(Number(body.spin_amount ?? 5))));
