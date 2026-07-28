@@ -120,6 +120,11 @@ const GameComponents: Record<string, React.ComponentType<{ onGameEnd: (score: nu
   tower: TowerStack,
 };
 
+interface DailyTask {
+  id: string; label: string; reward: number; type: string;
+  target: number; progress: number; completed: boolean; claimed: boolean;
+}
+
 interface RewardItem {
   id: string; name: string; description: string | null; emoji: string | null;
   cost_points: number; reward_type: string; reward_value: number;
@@ -154,6 +159,19 @@ const GamesPortal = () => {
   const [pendingRedeem, setPendingRedeem] = useState<{ reward: RewardItem; qty: number } | null>(null);
   const [bonusOffer, setBonusOffer] = useState<{ gameName: string; score: number; isWin: boolean; points: number } | null>(null);
   const [bonusLoading, setBonusLoading] = useState(false);
+  const [tasks, setTasks] = useState<DailyTask[]>([]);
+  const [pendingTask, setPendingTask] = useState<DailyTask | null>(null);
+  const [taskLoading, setTaskLoading] = useState<string | null>(null);
+
+  const loadTasks = async () => {
+    if (!user) return;
+    const { data } = await supabase.functions.invoke("award-points", {
+      body: { source: "daily_task_status" },
+    });
+    if (data?.tasks) setTasks(data.tasks as DailyTask[]);
+  };
+
+  useEffect(() => { loadTasks(); }, [user]);
 
   // Ask the Android app to show a rewarded ad for 2x points.
   const handleShowRewardAd = () => {
@@ -165,9 +183,44 @@ const GamesPortal = () => {
     showRewardedAd();
   };
 
+  // Claiming a daily task requires watching a full rewarded ad first.
+  const handleClaimTask = (task: DailyTask) => {
+    if (!task.completed || task.claimed) return;
+    if (!window.AndroidAds || !hasRewardedAds()) {
+      toast({ title: "Ad not available", description: "Rewarded ads only work in the mobile app.", variant: "destructive" });
+      return;
+    }
+    setPendingTask(task);
+    setTaskLoading(task.id);
+    showRewardedAd();
+  };
+
   // Grant the 2x bonus once the native app confirms the reward.
   useEffect(() => {
     const onReward = async () => {
+      // Daily task claim takes priority when one is pending
+      if (pendingTask) {
+        const task = pendingTask;
+        setPendingTask(null);
+        const { data, error } = await supabase.functions.invoke("award-points", {
+          body: { source: "daily_task", task_id: task.id },
+        });
+        setTaskLoading(null);
+        if (error) {
+          toast({ title: "Claim failed", description: "Please try again later.", variant: "destructive" });
+          return;
+        }
+        const amount = Number(data?.amount ?? 0);
+        if (amount > 0) {
+          toast({ title: `+${amount} Task Bonus! 🎯`, description: task.label });
+        } else {
+          toast({ title: "Not claimable", description: "Task already claimed or not completed yet." });
+        }
+        loadTasks();
+        refreshData();
+        return;
+      }
+
       setBonusLoading(false);
       const offer = bonusOffer;
       setBonusOffer(null);
@@ -186,10 +239,12 @@ const GamesPortal = () => {
       } else {
         toast({ title: "No bonus", description: "Please wait a moment before watching another ad." });
       }
+      loadTasks();
     };
     window.addEventListener("reward-earned", onReward as EventListener);
     return () => window.removeEventListener("reward-earned", onReward as EventListener);
-  }, [bonusOffer, dailyLimit, refreshData]);
+  }, [bonusOffer, pendingTask, dailyLimit, refreshData]);
+
 
   // Apply admin settings: hide disabled games, override points
   const visibleGames = GAMES
@@ -506,15 +561,19 @@ const GamesPortal = () => {
         {/* Daily Lucky Spin removed */}
 
         <div className="px-5 mt-5 pb-28">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4 h-11 bg-card border border-border/60 rounded-2xl p-1">
+          <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); if (v === "tasks") loadTasks(); }} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-4 h-11 bg-card border border-border/60 rounded-2xl p-1">
               <TabsTrigger value="games" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                 <Gamepad2 className="h-3 w-3" /> Games
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+                <Target className="h-3 w-3" /> Tasks
               </TabsTrigger>
               <TabsTrigger value="rewards" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                 <ShoppingBag className="h-3 w-3" /> Rewards
               </TabsTrigger>
               <TabsTrigger value="leaderboard" className="gap-1 text-[11px] rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+
                 <Trophy className="h-3 w-3" /> Top 10
               </TabsTrigger>
             </TabsList>
@@ -607,6 +666,70 @@ const GamesPortal = () => {
                 </Button>
               </div>
             </TabsContent>
+
+            <TabsContent value="tasks">
+              <AnimatedSection>
+                <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-primary/10"><Target className="h-5 w-5 text-primary" /></div>
+                    <div>
+                      <h3 className="text-sm font-bold">Daily Tasks</h3>
+                      <p className="text-[11px] text-muted-foreground">
+                        Bonus points — resets every day. Watch an ad to claim.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {tasks.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-8">Loading tasks…</p>
+                  )}
+                  {tasks.map((t) => {
+                    const pct = Math.min((t.progress / t.target) * 100, 100);
+                    return (
+                      <Card key={t.id} className="p-4 rounded-2xl border-border/60 bg-card">
+                        <div className="flex items-center gap-3 mb-2.5">
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs",
+                            t.claimed ? "bg-emerald-500/15 text-emerald-600"
+                              : t.completed ? "bg-primary/15 text-primary"
+                              : "bg-muted text-muted-foreground",
+                          )}>
+                            {t.claimed ? <CheckIcon className="h-4 w-4" /> : `+${t.reward}`}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-bold truncate">{t.label}</h4>
+                            <p className="text-[11px] text-muted-foreground tabular-nums">
+                              {t.progress} / {t.target}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            className="h-8 text-[10px] rounded-full px-3 shrink-0"
+                            disabled={!t.completed || t.claimed || taskLoading === t.id}
+                            onClick={() => handleClaimTask(t)}
+                          >
+                            {t.claimed ? "Claimed"
+                              : taskLoading === t.id ? "..."
+                              : t.completed ? "Watch Ad & Claim"
+                              : "Locked"}
+                          </Button>
+                        </div>
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className={cn("h-full rounded-full transition-all", t.claimed ? "bg-emerald-500" : "bg-primary")}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </AnimatedSection>
+            </TabsContent>
+
+
 
             <TabsContent value="rewards">
               <AnimatedSection>

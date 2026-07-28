@@ -13,7 +13,7 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type Source = "chat" | "arcade" | "game" | "spin" | "rewarded_ad";
+type Source = "chat" | "arcade" | "game" | "spin" | "rewarded_ad" | "daily_task" | "daily_task_status";
 interface Body {
   source: Source;
   // chat
@@ -26,7 +26,19 @@ interface Body {
   is_win?: boolean;
   // spin
   spin_amount?: number;
+  // daily task
+  task_id?: string;
 }
+
+// Daily tasks — bonus points on top of the 500/day game points cap.
+const DAILY_TASKS = [
+  { id: "play10", reward: 10, type: "games", target: 10, label: "Play 10 games today" },
+  { id: "earn100", reward: 20, type: "points", target: 100, label: "Earn 100 game points today" },
+  { id: "earn200", reward: 30, type: "points", target: 200, label: "Earn 200 game points today" },
+  { id: "earn300", reward: 40, type: "points", target: 300, label: "Earn 300 game points today" },
+  { id: "earn400", reward: 50, type: "points", target: 400, label: "Earn 400 game points today" },
+] as const;
+
 
 const json = (o: unknown, status = 200) =>
   new Response(JSON.stringify(o), {
@@ -416,6 +428,74 @@ serve(async (req) => {
           related_entity_id: (body.game_name || "").trim() || null,
         }));
       }
+
+      // ============ DAILY TASKS (status + claim) ============
+      // Bonus points, verified server-side. Not counted against the 500/day cap.
+      case "daily_task_status":
+      case "daily_task": {
+        const { count: gamesPlayed } = await admin
+          .from("game_scores")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gte("created_at", startOfDay());
+
+        const pointsToday = await todayCredited(GAME_POINT_TX_TYPES);
+
+        const { data: claimedRows } = await admin
+          .from("point_transactions")
+          .select("description")
+          .eq("user_id", user.id)
+          .eq("transaction_type", "daily_task")
+          .gte("created_at", startOfDay());
+        const claimed = new Set(
+          (claimedRows || []).map((r: { description: string | null }) =>
+            (r.description || "").split("|")[0].trim()
+          ),
+        );
+
+        const progressFor = (t: typeof DAILY_TASKS[number]) =>
+          t.type === "games" ? (gamesPlayed ?? 0) : pointsToday;
+
+        const tasks = DAILY_TASKS.map((t) => ({
+          id: t.id,
+          label: t.label,
+          reward: t.reward,
+          type: t.type,
+          target: t.target,
+          progress: Math.min(progressFor(t), t.target),
+          completed: progressFor(t) >= t.target,
+          claimed: claimed.has(t.id),
+        }));
+
+        if (body.source === "daily_task_status") {
+          return json({ tasks });
+        }
+
+        const taskId = (body.task_id || "").trim();
+        const task = DAILY_TASKS.find((t) => t.id === taskId);
+        if (!task) return json({ error: "Invalid task_id" }, 400);
+
+        if (claimed.has(task.id)) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "daily_task", description: `${task.id} | already claimed`, source: "daily_task", reason: "already_claimed", related_entity: "daily_task", related_entity_id: task.id }));
+        }
+        if (progressFor(task) < task.target) {
+          return json(await credit({ amount: 0, field: "game_points", transaction_type: "daily_task", description: `${task.id} | not completed`, source: "daily_task", reason: "not_completed", related_entity: "daily_task", related_entity_id: task.id, metadata: { progress: progressFor(task), target: task.target } }));
+        }
+
+        return json(await credit({
+          amount: task.reward,
+          field: "game_points",
+          transaction_type: "daily_task",
+          description: `${task.id} | ${task.label} (+${task.reward} bonus)`,
+          source: "daily_task",
+          reason: "ok",
+          related_entity: "daily_task",
+          related_entity_id: task.id,
+          metadata: { target: task.target, type: task.type },
+        }));
+      }
+
+
 
       // ==================== SPIN ====================
       case "spin": {
