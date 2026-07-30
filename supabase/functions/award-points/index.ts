@@ -332,11 +332,11 @@ serve(async (req) => {
           }
         }
 
-        // Randomized rewards so the 500/day cap takes longer to reach.
-        // Wins pay 1-8 (8 is rare), losses pay 1-3.
-        const weightedWin = () => {
-          // weights favour smaller amounts: 1..8
-          const weights = [22, 20, 16, 13, 11, 8, 6, 4];
+        // Below 400 points/day: flat 5 per win (no randomization).
+        // From 400 to the 500 cap: slow down with rare small wins (1-3, max 8).
+        const SLOWDOWN_THRESHOLD = 400;
+        const slowWin = () => {
+          const weights = [55, 30, 15]; // 1, 2, 3
           const total = weights.reduce((a, b) => a + b, 0);
           let r = Math.random() * total;
           for (let i = 0; i < weights.length; i++) {
@@ -345,7 +345,6 @@ serve(async (req) => {
           }
           return 1;
         };
-        const weightedLoss = () => 1; // losses always pay 1
 
         const gameRules: Record<string, { maxWin: number; dailyCap: number }> = {
           "click-speed": { maxWin: 5, dailyCap: GAME_POINTS_DAILY_CAP },
@@ -353,15 +352,17 @@ serve(async (req) => {
         const defaultRules = { maxWin: 8, dailyCap: GAME_POINTS_DAILY_CAP };
         const rules = gameRules[gameName] ?? defaultRules;
 
-        let earn = isWin
-          ? Math.min(weightedWin(), rules.maxWin)
-          : weightedLoss();
-
         const usedGame = await todayCredited(GAME_POINT_TX_TYPES);
         if (usedGame >= GAME_POINTS_DAILY_CAP) {
           return json(await credit({ amount: 0, field: "game_points", transaction_type: "game_play", description: `daily ${GAME_POINTS_DAILY_CAP} point limit reached`, source: "game", reason: "daily_cap", related_entity: "game_score", related_entity_id: gameName }));
         }
+
+        let earn = isWin
+          ? Math.min(usedGame < SLOWDOWN_THRESHOLD ? 5 : slowWin(), rules.maxWin, 8)
+          : 1; // losses always pay 1
+
         earn = Math.max(0, Math.min(earn, GAME_POINTS_DAILY_CAP - usedGame));
+
 
         const { data: gsIns } = await admin
           .from("game_scores")
