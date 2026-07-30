@@ -14,6 +14,7 @@ import AdminBottomNav from "@/components/AdminBottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import {
   ArrowLeft,
   Plus,
@@ -75,6 +76,7 @@ const emptyNewService = {
 };
 
 const MobileServicesManage = () => {
+  const { enabled: featureEnabled, setFlag: setFeatureFlag } = useFeatureFlag("mobile_services", true);
   const [products, setProducts] = useState<Product[]>([]);
   const [operators, setOperators] = useState<Operator[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,7 +264,7 @@ const MobileServicesManage = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container max-w-screen-xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <Button
               variant="ghost"
               size="icon"
@@ -270,15 +272,36 @@ const MobileServicesManage = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
+            <div className="flex-1 min-w-[180px]">
               <h1 className="text-xl font-bold">Mobile Services</h1>
               <p className="text-sm text-muted-foreground">
                 Manage Phone Top-up, Data & Voice Plans
               </p>
             </div>
+            <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2">
+              <div className="text-right">
+                <p className="text-xs font-semibold leading-none">Shop Mobile Tab</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {featureEnabled ? "Visible to users" : "Hidden from users"}
+                </p>
+              </div>
+              <Switch
+                checked={featureEnabled}
+                onCheckedChange={async (v) => {
+                  const err = await setFeatureFlag(v, "Mobile Services (Shop tab)");
+                  toast({
+                    title: err ? "Update failed" : v ? "Mobile Services enabled" : "Mobile Services disabled",
+                    description: err ? err.message : "Shop page updated for all users.",
+                    variant: err ? "destructive" : undefined,
+                  });
+                }}
+                aria-label="Toggle Mobile Services feature"
+              />
+            </div>
           </div>
         </div>
       </header>
+
 
       <main className="container max-w-screen-xl mx-auto px-4 py-6 space-y-6">
         {/* Stats Cards */}

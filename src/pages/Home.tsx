@@ -252,6 +252,12 @@ const Home = () => {
                       {formatMMK(walletBalance)}
                     </span>
                   </button>
+                  <div className="hidden xs:flex sm:flex items-center gap-1.5 px-3 h-9 rounded-xl bg-amber-500/10 border border-amber-500/25">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                      {totalCoins.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <a
@@ -276,6 +282,36 @@ const Home = () => {
               </div>
             </motion.div>
           </header>
+
+          {/* ── Quick Actions ── */}
+          <AnimatedSection delay={0.02}>
+            <section className="px-5 pb-4">
+              <div className="grid grid-cols-4 gap-2.5">
+                {[
+                  { label: "Shop", icon: ShoppingBag, to: "/game", tint: "from-primary/20 to-primary/5", fg: "text-primary" },
+                  { label: "Top Up", icon: Wallet, to: "/top-up", tint: "from-emerald-500/20 to-emerald-500/5", fg: "text-emerald-500" },
+                  { label: "Games", icon: Gamepad2, to: "/games", tint: "from-fuchsia-500/20 to-fuchsia-500/5", fg: "text-fuchsia-500" },
+                  { label: "Orders", icon: Receipt, to: "/orders", tint: "from-amber-500/20 to-amber-500/5", fg: "text-amber-500" },
+                ].map((a, i) => (
+                  <motion.button
+                    key={a.label}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 + i * 0.04 }}
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ y: -3 }}
+                    onClick={() => navigate(a.to)}
+                    className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-xl p-2.5 flex flex-col items-center gap-1.5 hover:border-primary/40 hover:shadow-lg transition-all"
+                  >
+                    <span className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center", a.tint)}>
+                      <a.icon className={cn("h-4.5 w-4.5", a.fg)} />
+                    </span>
+                    <span className="text-[10px] font-semibold text-foreground/80">{a.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </section>
+          </AnimatedSection>
 
           {/* ── Onyx Emerald Premium Preview + Digital Products ── */}
           <AnimatedSection delay={0.05}>
@@ -524,12 +560,18 @@ const Home = () => {
           <AnimatedSection delay={0.2}>
             <section className="px-5 mt-6">
               <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="text-base font-display font-bold">Earn Coins</h2>
-                  <p className="text-[11px] text-muted-foreground -mt-0.5">Play mini games and earn coins instantly</p>
+                <div className="flex items-center gap-2.5">
+                  <span className="w-1 h-8 rounded-full bg-gradient-to-b from-primary to-fuchsia-500" />
+                  <div>
+                    <h2 className="text-base font-display font-bold tracking-tight">Earn Coins</h2>
+                    <p className="text-[11px] text-muted-foreground -mt-0.5">Play mini games and earn coins instantly</p>
+                  </div>
                 </div>
-                <button onClick={() => navigate("/games")} className="text-xs text-primary font-semibold">
-                  See All
+                <button
+                  onClick={() => navigate("/games")}
+                  className="inline-flex items-center gap-1 text-xs text-primary font-semibold px-3 h-8 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/15 transition"
+                >
+                  See All <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
 

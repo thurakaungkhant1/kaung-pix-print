@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import WalletDisplay from "@/components/WalletDisplay";
 import TopUpDialog from "@/components/TopUpDialog";
 
@@ -101,6 +102,7 @@ const matchesOperator = (productName: string, operator: string) => {
 
 
 const GamePage = () => {
+  const { enabled: mobileServicesEnabled } = useFeatureFlag("mobile_services", true);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,6 +198,11 @@ const GamePage = () => {
     const t = setTimeout(() => setFilterLoading(false), 280);
     return () => clearTimeout(t);
   }, [selectedGameCategory, selectedMobileService, selectedOperator, activeCategory]);
+
+  // If admin turns off Mobile Services, never leave the user on that tab
+  useEffect(() => {
+    if (!mobileServicesEnabled && activeCategory === "mobile") setActiveCategory("games");
+  }, [mobileServicesEnabled, activeCategory]);
 
   const loadWalletBalance = async () => {
     if (!user) return;
@@ -499,13 +506,16 @@ const GamePage = () => {
 
       <div className="max-w-screen-md mx-auto p-4 pb-28 space-y-5">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
-          <TabsList className="grid w-full grid-cols-3 mb-2 h-11 bg-card/60 border border-border/50">
+          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", mobileServicesEnabled ? "grid-cols-3" : "grid-cols-2")}>
             <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Gamepad2 className="h-3.5 w-3.5" /> Games
             </TabsTrigger>
-            <TabsTrigger value="mobile" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Smartphone className="h-3.5 w-3.5" /> Mobile
-            </TabsTrigger>
+            {mobileServicesEnabled && (
+              <TabsTrigger value="mobile" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Smartphone className="h-3.5 w-3.5" /> Mobile
+              </TabsTrigger>
+            )}
+
             <TabsTrigger value="orders" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <History className="h-3.5 w-3.5" /> Orders
             </TabsTrigger>
@@ -844,6 +854,7 @@ const GamePage = () => {
 
           </TabsContent>
 
+          {mobileServicesEnabled && (
           <TabsContent value="mobile" className="space-y-5">
             {/* Sticky category filter bar */}
             <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-background/85 backdrop-blur-xl border-b border-border/40">
@@ -1017,6 +1028,9 @@ const GamePage = () => {
               </div>
             )}
           </TabsContent>
+          )}
+
+
 
           <TabsContent value="orders">
             {orders.length === 0 ? (
