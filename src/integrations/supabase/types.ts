@@ -822,6 +822,30 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          enabled: boolean
+          key: string
+          label: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          key: string
+          label?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          key?: string
+          label?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       friend_requests: {
         Row: {
           created_at: string | null
