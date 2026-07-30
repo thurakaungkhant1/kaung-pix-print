@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import WalletDisplay from "@/components/WalletDisplay";
 import TopUpDialog from "@/components/TopUpDialog";
 
@@ -101,6 +102,7 @@ const matchesOperator = (productName: string, operator: string) => {
 
 
 const GamePage = () => {
+  const { enabled: mobileServicesEnabled } = useFeatureFlag("mobile_services", true);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -499,7 +501,9 @@ const GamePage = () => {
 
       <div className="max-w-screen-md mx-auto p-4 pb-28 space-y-5">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
-          <TabsList className="grid w-full grid-cols-3 mb-2 h-11 bg-card/60 border border-border/50">
+          <TabsList className={cn("grid w-full mb-2 h-11", mobileServicesEnabled ? "grid-cols-3" : "grid-cols-2")}
+            style={undefined}
+          >
             <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Gamepad2 className="h-3.5 w-3.5" /> Games
             </TabsTrigger>
