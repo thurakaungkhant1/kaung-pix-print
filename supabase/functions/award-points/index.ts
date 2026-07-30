@@ -389,11 +389,11 @@ serve(async (req) => {
       }
 
       // ================ REWARDED AD ================
-      // Flat 30 game points, credited ONLY when the native Android app confirms
+      // Flat 50 game points, credited ONLY when the native Android app confirms
       // that a real rewarded ad was fully watched (window.onRewardEarned).
       // Counts against the same 500/day game points cap.
       case "rewarded_ad": {
-        const REWARD = 30;
+        const REWARD = 50;
         const COOLDOWN_SECONDS = 20;
 
         const { data: lastAd } = await admin
