@@ -1028,6 +1028,9 @@ const GamePage = () => {
               </div>
             )}
           </TabsContent>
+          )}
+
+
 
           <TabsContent value="orders">
             {orders.length === 0 ? (
