@@ -14,6 +14,7 @@ import AdminBottomNav from "@/components/AdminBottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { cn } from "@/lib/utils";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import {
   ArrowLeft,
   Plus,
@@ -75,6 +76,7 @@ const emptyNewService = {
 };
 
 const MobileServicesManage = () => {
+  const { enabled: featureEnabled, setFlag: setFeatureFlag } = useFeatureFlag("mobile_services", true);
   const [products, setProducts] = useState<Product[]>([]);
   const [operators, setOperators] = useState<Operator[]>([]);
   const [loading, setLoading] = useState(true);
