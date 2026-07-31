@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
     const { data: d, error } = await supabase
       .from('wallet_deposits')
-      .select('id, user_id, amount, transaction_id, status, created_at, telegram_message_id')
+      .select('id, user_id, amount, transaction_id, status, created_at, telegram_message_id, screenshot_url')
       .eq('id', deposit_id)
       .maybeSingle();
 
@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: profile } = await supabase
-      .from('profiles').select('name').eq('id', d.user_id).maybeSingle();
+      .from('profiles').select('name, email, phone_number').eq('id', d.user_id).maybeSingle();
 
     const shortId = String(d.id).slice(0, 8).toUpperCase();
     const userName = profile?.name ?? 'Unknown';
@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
       `💰 New Deposit Request\n\n` +
       `🆔 Deposit ID: #${shortId}\n` +
       `👤 User: ${userName}\n` +
+      `📧 Email: ${profile?.email ?? '-'}\n` +
       `🔗 User ID: ${d.user_id}\n` +
       `💵 Amount: ${amountStr} MMK\n` +
       `💳 Payment Method: Manual (KPay/WavePay)\n` +
@@ -66,11 +67,42 @@ Deno.serve(async (req) => {
       ]],
     };
 
-    const tgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: CHAT_ID, text, reply_markup }),
-    });
+    // Build a signed URL so the payment screenshot can be viewed right in Telegram
+    let photoUrl: string | null = null;
+    if (d.screenshot_url) {
+      const path = String(d.screenshot_url).replace(/^.*deposit-screenshots\//, '');
+      const { data: signed } = await supabase.storage
+        .from('deposit-screenshots')
+        .createSignedUrl(path, 60 * 60 * 24 * 7);
+      photoUrl = signed?.signedUrl ?? null;
+    }
+
+    let tgRes: Response;
+    if (photoUrl) {
+      tgRes = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: CHAT_ID, photo: photoUrl, caption: text, reply_markup }),
+      });
+      if (!tgRes.ok) {
+        console.error('sendPhoto failed, falling back to text', tgRes.status, await tgRes.clone().text());
+        tgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: `${text}\n\n🖼 Screenshot: ${photoUrl}`,
+            reply_markup,
+          }),
+        });
+      }
+    } else {
+      tgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: CHAT_ID, text, reply_markup }),
+      });
+    }
     const tgBody = await tgRes.json().catch(() => null);
     if (!tgRes.ok) console.error('telegram send failed', tgRes.status, tgBody);
 
