@@ -170,6 +170,24 @@ const TopUp = () => {
     setIsSubmitting(true);
 
     try {
+      // Block re-using a Transaction ID that already has a pending/approved deposit
+      const { data: dupe } = await supabase
+        .from('wallet_deposits')
+        .select('id, status')
+        .eq('transaction_id', transactionId)
+        .neq('status', 'rejected')
+        .limit(1);
+
+      if (dupe && dupe.length > 0) {
+        toast.error(
+          language === 'my'
+            ? "ဤငွေလွှဲအမှတ် (၆ လုံး) ဖြင့် တောင်းဆိုမှု တင်ပြီးသားဖြစ်ပါသည်။ ထပ်မံမတင်ပါနှင့် — Admin စစ်ဆေးနေပါသည်။"
+            : "This Transaction ID has already been submitted. Please wait for admin review instead of resubmitting."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       const fileExt = screenshot.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
@@ -196,7 +214,15 @@ const TopUp = () => {
 
     } catch (error: any) {
       console.error('Error submitting deposit:', error);
-      toast.error(error.message || (language === 'my' ? "ငွေသွင်းတောင်းဆိုမှု မအောင်မြင်ပါ" : "Failed to submit deposit request"));
+      const isDuplicate =
+        error?.code === '23505' || String(error?.message || '').includes('wallet_deposits_unique_active_txid');
+      toast.error(
+        isDuplicate
+          ? (language === 'my'
+              ? "ဤငွေလွှဲအမှတ်ဖြင့် တောင်းဆိုမှု ရှိပြီးသားပါ။ ထပ်မံမတင်ပါနှင့်။"
+              : "A deposit with this Transaction ID already exists. Please don't submit it again.")
+          : (error.message || (language === 'my' ? "ငွေသွင်းတောင်းဆိုမှု မအောင်မြင်ပါ" : "Failed to submit deposit request"))
+      );
     } finally {
       setIsSubmitting(false);
     }
