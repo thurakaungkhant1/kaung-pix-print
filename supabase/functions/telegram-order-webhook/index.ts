@@ -164,22 +164,21 @@ Deno.serve(async (req) => {
       `Approved By: Admin\n` +
       `Approved Time: ${nowStr}`;
 
-    await tg('editMessageText', {
-      chat_id: chatId, message_id: messageId,
-      text: newText, reply_markup: { inline_keyboard: [] },
-    });
+    await editMessage(chatId, messageId, newText);
     await tg('answerCallbackQuery', { callback_query_id: cb.id, text: 'Deposit approved ✅' });
     return new Response(JSON.stringify({ ok: true }));
   }
 
-  // -------- Order actions (existing) --------
+  // -------- Order actions --------
   if (!['confirm', 'cancel'].includes(action) || !entityId) {
     await tg('answerCallbackQuery', { callback_query_id: cb.id, text: 'Invalid action' });
     return new Response(JSON.stringify({ ok: true }));
   }
 
   const { data: order } = await supabase
-    .from('orders').select('id, user_id, status').eq('id', entityId).maybeSingle();
+    .from('orders')
+    .select('id, user_id, status, quantity, price, phone_number, payment_method, transaction_id, created_at, product_id, plan_name, game_id, server_id, game_name, delivery_address, order_type')
+    .eq('id', entityId).maybeSingle();
 
   if (!order) {
     await tg('answerCallbackQuery', { callback_query_id: cb.id, text: 'Order not found', show_alert: true });
@@ -204,18 +203,49 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true }));
   }
 
-  const { data: profile } = await supabase
-    .from('profiles').select('name').eq('id', order.user_id).maybeSingle();
+  const [{ data: profile }, { data: product }] = await Promise.all([
+    supabase.from('profiles').select('name, email, phone_number').eq('id', order.user_id).maybeSingle(),
+    supabase.from('products').select('name, category').eq('id', order.product_id).maybeSingle(),
+  ]);
 
   const shortId = String(order.id).slice(0, 8).toUpperCase();
   const customerName = profile?.name ?? 'Unknown';
-  const newText = action === 'confirm'
-    ? `✅ Order Confirmed\n👤 ${customerName}\n🆔 ${shortId}`
-    : `❌ Order Cancelled\n👤 ${customerName}\n🆔 ${shortId}`;
+  const nowStr = new Date().toLocaleString('en-GB', { timeZone: 'Asia/Yangon' });
+  const orderedStr = new Date(order.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Yangon' });
+  const priceStr = new Intl.NumberFormat('en-US').format(Number(order.price) || 0);
 
-  await tg('editMessageText', {
-    chat_id: chatId, message_id: messageId, text: newText, reply_markup: { inline_keyboard: [] },
-  });
+  const line = (label: string, value: unknown) =>
+    value === null || value === undefined || value === '' ? '' : `${label}: ${value}\n`;
+
+  const newText = action === 'confirm'
+    ? `✅ ORDER CONFIRMED\n\n` +
+      `🆔 Order ID: #${shortId}\n` +
+      `📦 Product: ${product?.name ?? '-'}\n` +
+      line('🏷 Category', product?.category) +
+      line('🎫 Plan', order.plan_name) +
+      line('🎮 Game', order.game_name) +
+      line('🎯 Game ID', order.game_id) +
+      line('🌐 Server ID', order.server_id) +
+      `🔢 Quantity: ${order.quantity}\n` +
+      `💰 Total: ${priceStr} MMK\n` +
+      `👤 Customer: ${customerName}\n` +
+      line('📧 Email', profile?.email) +
+      line('📞 Phone', order.phone_number ?? profile?.phone_number) +
+      line('🏠 Delivery', order.delivery_address) +
+      line('💳 Payment', order.payment_method) +
+      line('🧾 Transaction ID', order.transaction_id) +
+      `📅 Ordered: ${orderedStr}\n` +
+      `✅ Confirmed: ${nowStr}\n` +
+      `📌 Status: Approved`
+    : `❌ ORDER CANCELLED\n\n` +
+      `🆔 Order ID: #${shortId}\n` +
+      `📦 Product: ${product?.name ?? '-'}\n` +
+      `💰 Total: ${priceStr} MMK\n` +
+      `👤 Customer: ${customerName}\n` +
+      `📅 Ordered: ${orderedStr}\n` +
+      `🚫 Cancelled: ${nowStr}`;
+
+  await editMessage(chatId, messageId, newText);
   await tg('answerCallbackQuery', {
     callback_query_id: cb.id,
     text: action === 'confirm' ? 'Order confirmed ✅' : 'Order cancelled ❌',
