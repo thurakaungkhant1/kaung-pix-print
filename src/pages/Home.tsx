@@ -229,55 +229,94 @@ const Home = () => {
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       <AnimatedPage>
         <MobileLayout className="max-w-screen-xl mx-auto bg-background">
-          {/* ── Top Bar: balance + notifications only ── */}
-          <header className="px-5 pt-7 pb-4">
+          {/* ── Hero: brand, balance card, quick actions ── */}
+          <header className="px-5 pt-6 pb-2">
             <motion.div
               initial={{ y: -10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card/90 via-card/70 to-background/90 border border-border/60 p-3.5 shadow-sm backdrop-blur-xl"
+              className="flex items-center justify-between mb-4"
             >
-              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-primary/10 blur-2xl" />
-              <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-fuchsia-500/10 blur-2xl" />
-              <div className="relative flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Your balance
-                  </span>
-                  <button
-                    onClick={() => navigate('/top-up')}
-                    className="flex items-center gap-1.5 px-3 h-9 rounded-xl bg-primary/10 border border-primary/25 hover:bg-primary/20 transition-all shadow-sm"
-                  >
-                    <Wallet className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-xs font-bold text-primary tabular-nums">
-                      {formatMMK(walletBalance)}
-                    </span>
-                  </button>
-                  <div className="hidden xs:flex sm:flex items-center gap-1.5 px-3 h-9 rounded-xl bg-amber-500/10 border border-amber-500/25">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+              <div className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-2xl bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center shadow-lg shadow-primary/20">
+                  <Sparkles className="h-4 w-4 text-primary-foreground" />
+                </span>
+                <div className="leading-tight">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
+                    Kaung Digital
+                  </p>
+                  <h1 className="text-sm font-display font-bold tracking-tight">Store</h1>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://t.me/kaungdigitalstore"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Join our Telegram group"
+                  className="w-9 h-9 rounded-xl bg-[#229ED9]/10 border border-[#229ED9]/30 flex items-center justify-center hover:bg-[#229ED9]/20 transition-colors"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#229ED9] fill-current" aria-hidden="true">
+                    <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.05-1.99 1.93c-.23.23-.42.42-.83.42z" />
+                  </svg>
+                </a>
+                <button
+                  onClick={() => navigate('/account')}
+                  className="w-9 h-9 rounded-xl bg-muted/70 border border-border/60 flex items-center justify-center hover:bg-muted transition-colors"
+                  aria-label="Notifications"
+                >
+                  <Bell className="h-3.5 w-3.5 text-foreground" />
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Balance card */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="relative overflow-hidden rounded-[26px] p-5 shadow-xl ring-1 ring-primary/20"
+              style={{
+                background:
+                  "radial-gradient(120% 90% at 0% 0%, hsl(var(--primary) / 0.35), transparent 60%), radial-gradient(120% 90% at 100% 100%, hsl(var(--accent) / 0.28), transparent 55%), linear-gradient(140deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)",
+              }}
+            >
+              <div
+                className="absolute inset-0 opacity-[0.06] pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
+                  backgroundSize: "26px 26px",
+                }}
+              />
+              <div className="relative">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold">
+                  Wallet balance
+                </p>
+                <div className="flex items-end justify-between gap-3 mt-1">
+                  <p className="text-[28px] leading-none font-display font-black tabular-nums tracking-tight">
+                    {formatMMK(walletBalance)}
+                  </p>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-amber-500/12 border border-amber-500/25">
+                    <Sparkles className="h-3 w-3 text-amber-500" />
+                    <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 tabular-nums">
                       {totalCoins.toLocaleString()}
                     </span>
-                  </div>
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href="https://t.me/kaungdigitalstore"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Join our Telegram group"
-                    className="w-9 h-9 rounded-xl bg-[#229ED9]/10 border border-[#229ED9]/30 flex items-center justify-center hover:bg-[#229ED9]/20 transition-colors flex-shrink-0"
+                <div className="flex items-center gap-2 mt-4">
+                  <Button
+                    onClick={() => navigate('/top-up')}
+                    className="flex-1 h-10 rounded-2xl font-semibold text-xs shadow-lg shadow-primary/20"
                   >
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#229ED9] fill-current" aria-hidden="true">
-                      <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.05-1.99 1.93c-.23.23-.42.42-.83.42z" />
-                    </svg>
-                  </a>
-                  <button
-                    onClick={() => navigate('/account')}
-                    className="w-9 h-9 rounded-xl bg-muted/70 border border-border/60 flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0"
-                    aria-label="Notifications"
+                    <Wallet className="h-3.5 w-3.5 mr-1.5" /> Top Up
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/wallet-history')}
+                    className="flex-1 h-10 rounded-2xl font-semibold text-xs bg-card/60 backdrop-blur"
                   >
-                    <Bell className="h-3.5 w-3.5 text-foreground" />
-                  </button>
+                    <Receipt className="h-3.5 w-3.5 mr-1.5" /> History
+                  </Button>
                 </div>
               </div>
             </motion.div>
@@ -285,7 +324,7 @@ const Home = () => {
 
           {/* ── Quick Actions ── */}
           <AnimatedSection delay={0.02}>
-            <section className="px-5 pb-4">
+            <section className="px-5 py-4">
               <div className="grid grid-cols-4 gap-2.5">
                 {[
                   { label: "Shop", icon: ShoppingBag, to: "/game", tint: "from-primary/20 to-primary/5", fg: "text-primary" },
@@ -304,7 +343,7 @@ const Home = () => {
                     className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-xl p-2.5 flex flex-col items-center gap-1.5 hover:border-primary/40 hover:shadow-lg transition-all"
                   >
                     <span className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center", a.tint)}>
-                      <a.icon className={cn("h-4.5 w-4.5", a.fg)} />
+                      <a.icon className={cn("h-4 w-4", a.fg)} />
                     </span>
                     <span className="text-[10px] font-semibold text-foreground/80">{a.label}</span>
                   </motion.button>
