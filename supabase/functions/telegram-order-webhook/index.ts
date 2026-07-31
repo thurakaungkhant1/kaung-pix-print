@@ -94,10 +94,7 @@ Deno.serve(async (req) => {
       `Rejected Time: ${nowStr}`;
 
     if (d?.telegram_message_id) {
-      await tg('editMessageText', {
-        chat_id: chatId, message_id: d.telegram_message_id,
-        text: newText, reply_markup: { inline_keyboard: [] },
-      });
+      await editMessage(chatId, d.telegram_message_id, newText);
     } else {
       await tg('sendMessage', { chat_id: chatId, text: newText });
     }
