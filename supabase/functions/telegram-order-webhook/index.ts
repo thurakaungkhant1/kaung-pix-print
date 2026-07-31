@@ -42,6 +42,17 @@ Deno.serve(async (req) => {
       body: JSON.stringify(body),
     });
 
+  // Messages sent with a photo (deposit screenshots) must be edited via caption.
+  const editMessage = async (chat_id: unknown, message_id: unknown, text: string) => {
+    if (!message_id) return;
+    const payload = { chat_id, message_id, reply_markup: { inline_keyboard: [] } };
+    const r = await tg('editMessageCaption', { ...payload, caption: text });
+    if (!r.ok) {
+      const r2 = await tg('editMessageText', { ...payload, text });
+      if (!r2.ok) console.error('edit failed', await r2.text());
+    }
+  };
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
