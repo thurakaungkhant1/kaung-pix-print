@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { toast } from "sonner";
+
 
 export type ProfilesAccessStatus = "ok" | "checking" | "unreachable" | "unknown_error";
 
@@ -82,8 +82,11 @@ async function reportUpsertResult(_args: {
  * Emits a toast on failure; remote telemetry is intentionally disabled so
  * profile creation can never be blocked by optional logging.
  */
+const ensuredUsers = new Set<string>();
+
 export async function ensureProfileRow(user: User): Promise<boolean> {
   if (!user) return false;
+  if (ensuredUsers.has(user.id)) return true;
   try {
     const meta = (user.user_metadata ?? {}) as Record<string, any>;
     const name =
@@ -108,14 +111,10 @@ export async function ensureProfileRow(user: User): Promise<boolean> {
   );
 
     if (error) {
-      console.warn("[ensureProfileRow] upsert failed:", error);
-      const msg = (error.message || "").toLowerCase();
-      const friendly = msg.includes("schema cache") || msg.includes("could not find the table")
-        ? "Profile table is unreachable. Please contact support (schema cache)."
-        : msg.includes("permission denied")
-        ? "Profile permissions error. Please contact support (missing GRANT)."
-        : "Could not save your profile. Please try again.";
-      toast.error(friendly);
+      // Never block sign-in on profile creation: the database trigger already
+      // creates the row for new users, and transient/duplicate errors here are
+      // harmless. Log only — no user-facing toast.
+      console.warn("[ensureProfileRow] upsert failed (non-blocking):", error);
       reportUpsertResult({
         success: false,
         provider,
@@ -127,13 +126,11 @@ export async function ensureProfileRow(user: User): Promise<boolean> {
       return false;
     }
 
-    // Silent success for background refreshes; a toast here would be noisy
-    // on every token refresh. AuthCallback still surfaces sign-in success.
+    ensuredUsers.add(user.id);
     reportUpsertResult({ success: true, provider, stage: "profiles_upsert" });
     return true;
   } catch (e: any) {
-    console.warn("[ensureProfileRow] threw:", e);
-    toast.error("Could not save your profile. Please try again.");
+    console.warn("[ensureProfileRow] threw (non-blocking):", e);
     reportUpsertResult({
       success: false,
       stage: "profiles_upsert",
