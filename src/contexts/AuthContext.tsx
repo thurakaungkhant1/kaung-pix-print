@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        if (session?.user && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION")) {
+        if (session?.user && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
           // Defer to avoid blocking the auth callback tick
           setTimeout(() => { ensureProfileRow(session.user); }, 0);
         }
