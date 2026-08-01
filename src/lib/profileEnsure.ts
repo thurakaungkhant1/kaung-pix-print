@@ -82,8 +82,11 @@ async function reportUpsertResult(_args: {
  * Emits a toast on failure; remote telemetry is intentionally disabled so
  * profile creation can never be blocked by optional logging.
  */
+const ensuredUsers = new Set<string>();
+
 export async function ensureProfileRow(user: User): Promise<boolean> {
   if (!user) return false;
+  if (ensuredUsers.has(user.id)) return true;
   try {
     const meta = (user.user_metadata ?? {}) as Record<string, any>;
     const name =
