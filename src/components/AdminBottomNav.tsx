@@ -8,6 +8,7 @@ import {
   Gamepad2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useGameCatalog } from "@/hooks/useGameCatalog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,14 @@ interface AdminBottomNavProps {
 
 const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDeposits = 0 }: AdminBottomNavProps) => {
   const navigate = useNavigate();
+  const { games: catalogGames } = useGameCatalog(true);
+
+  const gameRoute = (categoryKey: string) => {
+    const key = categoryKey.toLowerCase();
+    if (key.includes("mlbb") || key.includes("mobile legend")) return "/admin/diamond-packages";
+    if (key.includes("pubg")) return "/admin/pubg-uc-packages";
+    return `/admin/game-packages/${encodeURIComponent(categoryKey)}`;
+  };
 
   const mainNavItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -48,10 +57,12 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDepo
       label: "Content",
       items: [
         { id: "games-catalog", label: "Games (Add Game)", route: "/admin/game-catalog" },
-        { id: "mlbb-packages", label: "Mobile Legends", route: "/admin/diamond-packages" },
-        { id: "mcgg-packages", label: "Magic Chess GoGo", route: "/admin/game-catalog?g=mcgg" },
+        ...catalogGames.map((g) => ({
+          id: `game-${g.id}`,
+          label: `${g.short_name || g.name} Packages`,
+          route: gameRoute(g.category_key),
+        })),
         { id: "mlbb-tiers", label: "MLBB Categories", route: "/admin/diamond-tiers" },
-        { id: "pubg-packages", label: "PUBG", route: "/admin/pubg-uc-packages" },
         { id: "mobile-services-shop", label: "Mobile", route: "/admin/mobile-services" },
         { id: "digital-products", label: "Digital Products", route: "/admin/digital-products" },
         { id: "categories", label: "Shop Categories", route: "/admin/categories" },
