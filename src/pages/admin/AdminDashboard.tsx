@@ -2248,6 +2248,18 @@ const AdminDashboard = () => {
                     <Gamepad2 className="h-5 w-5" />
                     PUBG UC Packages
                   </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/game-catalog?g=mcgg")} className="h-auto py-4 flex-col gap-2">
+                    <Gem className="h-5 w-5" />
+                    Magic Chess Packages
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/game-catalog")} className="h-auto py-4 flex-col gap-2">
+                    <Gamepad2 className="h-5 w-5" />
+                    Games (Add Game)
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/digital-products")} className="h-auto py-4 flex-col gap-2">
+                    <Package className="h-5 w-5" />
+                    Digital Products
+                  </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/smile-packages")} className="h-auto py-4 flex-col gap-2">
                     <Zap className="h-5 w-5" />
                     Smile.One Packages
