@@ -141,7 +141,15 @@ interface UserGrowthData {
   users: number;
 }
 
+const gamePackagesPath = (categoryKey: string) => {
+  const key = categoryKey.toLowerCase();
+  if (key.includes("mlbb") || key.includes("mobile legend")) return "/admin/diamond-packages";
+  if (key.includes("pubg")) return "/admin/pubg-uc-packages";
+  return `/admin/game-catalog?g=${encodeURIComponent(categoryKey)}`;
+};
+
 const AdminDashboard = () => {
+  const { games: catalogGames } = useGameCatalog(true);
   const [stats, setStats] = useState({
     products: 0,
     photos: 0,
