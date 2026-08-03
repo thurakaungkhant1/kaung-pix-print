@@ -873,7 +873,7 @@ const AdminDashboard = () => {
       u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const GAME_ORDER_CATS = ["MLBB Diamonds", "PUBG UC"];
+  const GAME_ORDER_CATS = ["MLBB Diamonds", "PUBG UC", "Magic Chess Diamonds"];
   const MOBILE_ORDER_CATS = ["Phone Top-up", "Data Plans"];
   const filteredOrders = orders.filter((o) => {
     const query = searchQuery.toLowerCase();

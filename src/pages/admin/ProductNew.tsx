@@ -17,6 +17,7 @@ import { motion } from "framer-motion";
 const GAME_CATEGORIES = [
   { id: "MLBB Diamonds", name: "Mobile Legends Diamonds" },
   { id: "PUBG UC", name: "PUBG Mobile UC" },
+  { id: "Magic Chess Diamonds", name: "Magic Chess GoGo Diamonds" },
 ];
 
 const ProductNew = () => {

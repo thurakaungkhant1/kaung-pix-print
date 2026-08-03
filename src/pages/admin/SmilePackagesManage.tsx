@@ -9,7 +9,7 @@ import { ArrowLeft, Save, Search, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
 
-const GAME_CATEGORIES = ["MLBB Diamonds", "PUBG UC", "Free Fire", "Genshin", "Gift Cards"];
+const GAME_CATEGORIES = ["MLBB Diamonds", "PUBG UC", "Magic Chess Diamonds", "Free Fire", "Genshin", "Gift Cards"];
 
 interface GameProduct {
   id: number;

@@ -352,168 +352,59 @@ const Home = () => {
             </section>
           </AnimatedSection>
 
-          {/* ── Onyx Emerald Premium Preview + Digital Products ── */}
+          {/* ── Game Shop ── */}
           <AnimatedSection delay={0.05}>
             <section className="px-5 pb-4">
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                whileHover={{ y: -3 }}
-                onClick={() => navigate("/category/Digital%20Products")}
-                aria-label="Browse Digital Products"
-                className="w-full text-left relative overflow-hidden rounded-3xl group shadow-2xl ring-1 ring-emerald-400/20"
-                style={{
-                  background:
-                    "radial-gradient(120% 80% at 0% 0%, rgba(16,185,129,0.25), transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(20,184,166,0.18), transparent 55%), linear-gradient(135deg, #050505 0%, #0a0f0d 55%, #06140f 100%)",
-                }}
-              >
-                <div className="absolute inset-0 opacity-40 mix-blend-screen pointer-events-none">
-                  <div className="absolute -top-10 -left-10 w-72 h-72 rounded-full bg-emerald-500/25 blur-3xl" />
-                  <div className="absolute -bottom-16 -right-10 w-72 h-72 rounded-full bg-teal-400/15 blur-3xl" />
-                </div>
-                <div
-                  className="absolute inset-0 opacity-[0.08] pointer-events-none"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-                    backgroundSize: "28px 28px",
-                  }}
-                />
-
-                <div className="relative z-10 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-2xl bg-emerald-500/15 ring-1 ring-emerald-400/30 backdrop-blur">
-                      <Package className="h-5 w-5 text-emerald-300" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <Badge className="bg-emerald-400/15 text-emerald-300 border border-emerald-400/30 text-[10px] mb-1 tracking-[0.18em] font-bold rounded-full px-2.5 py-0.5">
-                        ONYX • EMERALD
-                      </Badge>
-                      <h3 className="text-xl font-display font-black text-white leading-tight tracking-tight drop-shadow">
-                        Digital Products
-                      </h3>
-                      <p className="text-white/70 text-[11px] mt-0.5">
-                        Premium software, streaming, gift cards & courses.
-                      </p>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-emerald-300 mt-2 group-hover:translate-x-1 transition-transform" />
-                  </div>
-
-                  {digitalLoading ? (
-                    <div className="mt-3 grid grid-cols-4 gap-2" aria-busy="true" aria-label="Loading categories">
-                      {[0, 1, 2, 3].map((i) => (
-                        <div
-                          key={i}
-                          className="rounded-xl px-2 py-2 flex flex-col items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm"
-                        >
-                          <div className="h-4 w-4 rounded bg-white/10 animate-pulse" />
-                          <div className="h-2.5 w-12 rounded bg-white/10 animate-pulse" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : digitalError ? (
-                    <div className="mt-3 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2.5 flex items-center justify-between gap-3">
-                      <span className="text-[11px] text-rose-200/90">
-                        Couldn’t load categories. {digitalError}
-                      </span>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDigitalReloadKey((k) => k + 1); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setDigitalReloadKey((k) => k + 1); } }}
-                        className="text-[11px] font-bold text-emerald-300 underline-offset-2 hover:underline cursor-pointer"
-                      >
-                        Retry
-                      </span>
-                    </div>
-                  ) : digitalCats.length === 0 ? (
-                    <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 flex items-center justify-between gap-3">
-                      <span className="text-[11px] text-white/70">
-                        No categories yet — admin can add some.
-                      </span>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDigitalReloadKey((k) => k + 1); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setDigitalReloadKey((k) => k + 1); } }}
-                        className="text-[11px] font-bold text-emerald-300 underline-offset-2 hover:underline cursor-pointer"
-                      >
-                        Refresh
-                      </span>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Sample apps preview so users know what's inside */}
-                      {digitalPreview.length > 0 && (
-                        <div className="mt-3">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80">
-                              Inside the catalog
-                            </span>
-                            <span className="text-[10px] text-white/50">Tap to explore</span>
-                          </div>
-                          <div className="grid grid-cols-4 gap-2">
-                            {digitalPreview.map((p) => (
-                              <div
-                                key={p.id}
-                                className="relative rounded-2xl aspect-[4/3] overflow-hidden bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-emerald-400/30 group-hover:shadow-[0_8px_24px_-8px_rgba(16,185,129,0.5)]"
-                              >
-                                {p.image_url ? (
-                                  <img
-                                    src={p.image_url}
-                                    alt={p.name}
-                                    loading="lazy"
-                                    className="absolute inset-0 h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <Package className="h-4 w-4 text-emerald-300/70" />
-                                  </div>
-                                )}
-                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-1 pt-3 pb-1">
-                                  <p className="text-white text-[9px] font-semibold leading-tight text-center line-clamp-1 drop-shadow">
-                                    {p.name}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Category chips */}
-                      <div className="mt-2 grid grid-cols-4 gap-2">
-                        {digitalCats.slice(0, 4).map((c) => {
-                          const Icon = DIGITAL_ICON_MAP[(c.icon || "package").toLowerCase()] || Package;
-                          return (
-                            <div
-                              key={c.id}
-                              className="rounded-xl px-2 py-1.5 flex items-center gap-1.5 bg-white/[0.04] border border-white/10 backdrop-blur-sm transition-all duration-300 hover:bg-emerald-500/10 hover:border-emerald-400/30"
-                            >
-                              <Icon className="h-3.5 w-3.5 text-emerald-300 flex-shrink-0" />
-                              <span className="text-white/90 text-[10px] font-semibold tracking-wide truncate">
-                                {c.name}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <span className="inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-emerald-400 text-black font-bold text-xs shadow-[0_8px_24px_-6px_rgba(16,185,129,0.6)]">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Browse Catalog
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                    <span className="text-[10px] text-emerald-300/80 font-medium tracking-wider">
-                      {digitalPreview.length > 0 ? `${digitalPreview.length}+ APPS` : "NEW LOOK"}
-                    </span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-1 h-8 rounded-full bg-gradient-to-b from-primary to-fuchsia-500" />
+                  <div>
+                    <h2 className="text-base font-display font-bold tracking-tight">Game Shop</h2>
+                    <p className="text-[11px] text-muted-foreground -mt-0.5">Instant top-up at official rates</p>
                   </div>
                 </div>
-              </motion.button>
+                <button
+                  onClick={() => navigate("/game?g=")}
+                  className="inline-flex items-center gap-1 text-xs text-primary font-semibold px-3 h-8 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/15 transition"
+                >
+                  View All <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { id: "MLBB Diamonds", name: "Mobile Legends", short: "MLBB", image: "/images/games/mobile-legends.png" },
+                  { id: "PUBG UC", name: "PUBG Mobile", short: "PUBG UC", image: "/images/games/pubg-mobile.png" },
+                  { id: "Magic Chess Diamonds", name: "Magic Chess GoGo", short: "Magic Chess", image: "/images/games/magic-chess.png" },
+                ].map((g, i) => (
+                  <motion.button
+                    key={g.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 + i * 0.05 }}
+                    whileTap={{ scale: 0.96 }}
+                    whileHover={{ y: -3 }}
+                    onClick={() => navigate(`/game?g=${encodeURIComponent(g.id)}`)}
+                    className="rounded-2xl overflow-hidden bg-card border border-border/60 hover:border-primary/40 hover:shadow-xl transition-all text-left"
+                  >
+                    <div className="aspect-square bg-muted overflow-hidden">
+                      <img
+                        src={g.image}
+                        alt={g.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-2">
+                      <p className="text-[11px] font-bold leading-tight truncate">{g.short}</p>
+                      <p className="text-[9px] text-muted-foreground truncate">Instant</p>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
             </section>
           </AnimatedSection>
+
 
 
           {/* ── Hero Banner ── */}

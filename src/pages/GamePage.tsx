@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -84,6 +85,7 @@ interface Order {
 const GAME_CATEGORIES = [
   { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500", image: "/images/games/mobile-legends.png" },
   { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
+  { id: "Magic Chess Diamonds", name: "Magic Chess GoGo", icon: Diamond, color: "text-fuchsia-500", image: "/images/games/magic-chess.png" },
 ];
 
 const MOBILE_CATEGORIES = [
@@ -102,6 +104,9 @@ const matchesOperator = (productName: string, operator: string) => {
 
 
 const GamePage = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [digitalCats, setDigitalCats] = useState<{ id: string; name: string; icon: string | null }[]>([]);
   const { enabled: mobileServicesEnabled } = useFeatureFlag("mobile_services", true);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -175,6 +180,24 @@ const GamePage = () => {
 
   // Reset diamond tier when switching games (must be before any early return)
   useEffect(() => { setSelectedDiamondTier(null); }, [selectedGameCategory]);
+
+  // Digital product categories for the Digital tab
+  useEffect(() => {
+    (supabase as any)
+      .from("digital_categories")
+      .select("id,name,icon,display_order")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
+      .then(({ data }: any) => { if (data) setDigitalCats(data); });
+  }, []);
+
+  // Deep link: /game?g=<category> selects a game, /game?g= shows the game list
+  useEffect(() => {
+    if (!searchParams.has("g")) return;
+    const g = searchParams.get("g") || "";
+    setActiveCategory("games");
+    setSelectedGameCategory(GAME_CATEGORIES.some((c) => c.id === g) ? g : null);
+  }, [searchParams]);
 
 
   // Persist filter selections
@@ -256,9 +279,9 @@ const GamePage = () => {
     return MOBILE_CATEGORIES.some(cat => cat.id === category);
   };
 
-  // Only MLBB requires Server ID
+  // MLBB and Magic Chess require Server / Zone ID
   const requiresServerId = (category: string) => {
-    return category === "MLBB Diamonds";
+    return category === "MLBB Diamonds" || category === "Magic Chess Diamonds";
   };
 
   const getFilteredProducts = () => {
@@ -506,9 +529,12 @@ const GamePage = () => {
 
       <div className="max-w-screen-md mx-auto p-4 pb-28 space-y-5">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
-          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", mobileServicesEnabled ? "grid-cols-3" : "grid-cols-2")}>
+          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", mobileServicesEnabled ? "grid-cols-4" : "grid-cols-3")}>
             <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Gamepad2 className="h-3.5 w-3.5" /> Games
+            </TabsTrigger>
+            <TabsTrigger value="digital" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <ShoppingBag className="h-3.5 w-3.5" /> Digital
             </TabsTrigger>
             {mobileServicesEnabled && (
               <TabsTrigger value="mobile" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -516,16 +542,49 @@ const GamePage = () => {
               </TabsTrigger>
             )}
 
+
             <TabsTrigger value="orders" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <History className="h-3.5 w-3.5" /> Orders
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="games" className="space-y-5 mt-3">
+            {!selectedGameCategory ? (
+              <section className="space-y-3">
+                <div className="text-center">
+                  <h2 className="text-base font-display font-bold tracking-tight">Choose a Game</h2>
+                  <p className="text-[11px] text-muted-foreground">Instant top-up, official rates</p>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  {GAME_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedGameCategory(cat.id)}
+                      className="flex items-center gap-3 rounded-2xl bg-card border border-border/60 p-3 text-left hover:border-primary/40 hover:shadow-lg transition-all"
+                    >
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
+                        <img src={cat.image} alt={cat.name} loading="lazy" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold truncate">{cat.name}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {products.filter(p => p.category === cat.id).length} packages available
+                        </p>
+                      </div>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
+                        <Zap className="h-2.5 w-2.5" /> Instant
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <>
             {/* Select Game */}
             <section>
               <h2 className="text-center text-sm font-semibold text-muted-foreground mb-3">Select Game</h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+
                 {GAME_CATEGORIES.map((cat) => {
                   const active = selectedGame.id === cat.id;
                   return (
@@ -851,7 +910,40 @@ const GamePage = () => {
                 </div>
               )}
             </section>
+              </>
+            )}
+          </TabsContent>
 
+          <TabsContent value="digital" className="space-y-4 mt-3">
+            <section className="space-y-3">
+              <div className="text-center">
+                <h2 className="text-base font-display font-bold tracking-tight">Digital Products</h2>
+                <p className="text-[11px] text-muted-foreground">Subscriptions, gift cards & app top-ups</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {digitalCats.length === 0 ? (
+                  <button
+                    onClick={() => navigate("/category/Digital%20Products")}
+                    className="col-span-2 rounded-2xl bg-card border border-border/60 p-4 text-left hover:border-primary/40 transition-all"
+                  >
+                    <p className="text-sm font-bold">Browse Catalog</p>
+                    <p className="text-[11px] text-muted-foreground">See all digital products</p>
+                  </button>
+                ) : (
+                  digitalCats.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => navigate(`/category/${encodeURIComponent(c.name)}`)}
+                      className="rounded-2xl bg-card border border-border/60 p-4 text-left hover:border-primary/40 hover:shadow-lg transition-all"
+                    >
+                      <span className="text-xl">{c.icon || "🛍️"}</span>
+                      <p className="text-sm font-bold mt-1 truncate">{c.name}</p>
+                      <p className="text-[11px] text-muted-foreground">Tap to browse</p>
+                    </button>
+                  ))
+                )}
+              </div>
+            </section>
           </TabsContent>
 
           {mobileServicesEnabled && (
