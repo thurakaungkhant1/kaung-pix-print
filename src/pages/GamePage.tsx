@@ -902,6 +902,38 @@ const GamePage = () => {
             )}
           </TabsContent>
 
+          <TabsContent value="digital" className="space-y-4 mt-3">
+            <section className="space-y-3">
+              <div className="text-center">
+                <h2 className="text-base font-display font-bold tracking-tight">Digital Products</h2>
+                <p className="text-[11px] text-muted-foreground">Subscriptions, gift cards & app top-ups</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {digitalCats.length === 0 ? (
+                  <button
+                    onClick={() => navigate("/category/Digital%20Products")}
+                    className="col-span-2 rounded-2xl bg-card border border-border/60 p-4 text-left hover:border-primary/40 transition-all"
+                  >
+                    <p className="text-sm font-bold">Browse Catalog</p>
+                    <p className="text-[11px] text-muted-foreground">See all digital products</p>
+                  </button>
+                ) : (
+                  digitalCats.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => navigate(`/category/${encodeURIComponent(c.name)}`)}
+                      className="rounded-2xl bg-card border border-border/60 p-4 text-left hover:border-primary/40 hover:shadow-lg transition-all"
+                    >
+                      <span className="text-xl">{c.icon || "🛍️"}</span>
+                      <p className="text-sm font-bold mt-1 truncate">{c.name}</p>
+                      <p className="text-[11px] text-muted-foreground">Tap to browse</p>
+                    </button>
+                  ))
+                )}
+              </div>
+            </section>
+          </TabsContent>
+
           {mobileServicesEnabled && (
           <TabsContent value="mobile" className="space-y-5">
             {/* Sticky category filter bar */}
