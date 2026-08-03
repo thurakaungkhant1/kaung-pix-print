@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import WalletDisplay from "@/components/WalletDisplay";
 import TopUpDialog from "@/components/TopUpDialog";
+import { useGameCatalog } from "@/hooks/useGameCatalog";
 
 
 import {
@@ -81,12 +82,8 @@ interface Order {
   };
 }
 
-// Game categories with icons and images
-const GAME_CATEGORIES = [
-  { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500", image: "/images/games/mobile-legends.png" },
-  { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
-  { id: "Magic Chess Diamonds", name: "Magic Chess GoGo", icon: Diamond, color: "text-fuchsia-500", image: "/images/games/magic-chess.png" },
-];
+// Game categories are managed by admins in the Game Shop admin page.
+const FALLBACK_GAME_IMAGE = "/images/games/mobile-legends.png";
 
 const MOBILE_CATEGORIES = [
   { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone },
@@ -108,6 +105,20 @@ const GamePage = () => {
   const navigate = useNavigate();
   const [digitalCats, setDigitalCats] = useState<{ id: string; name: string; icon: string | null }[]>([]);
   const { enabled: mobileServicesEnabled } = useFeatureFlag("mobile_services", true);
+  const { games: catalogGames } = useGameCatalog();
+  const GAME_CATEGORIES = useMemo(
+    () =>
+      catalogGames.map((g) => ({
+        id: g.category_key,
+        name: g.name,
+        icon: Diamond,
+        color: "text-primary",
+        image: g.image_url || FALLBACK_GAME_IMAGE,
+        requiresServerId: g.requires_server_id,
+        nicknameKey: g.nickname_key,
+      })),
+    [catalogGames]
+  );
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,19 +140,15 @@ const GamePage = () => {
   const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
   const [nameCheckError, setNameCheckError] = useState<{ id?: string; server?: string }>({});
 
-  const nicknameGameKey = (cat: string | null): string | null => {
-    if (cat === "MLBB Diamonds") return "ml";
-    if (cat === "Magic Chess Diamonds") return "mcgg";
-    if (cat === "PUBG UC") return "pubgm";
-    return null;
-  };
+  const nicknameGameKey = (cat: string | null): string | null =>
+    GAME_CATEGORIES.find((g) => g.id === cat)?.nicknameKey || null;
 
   // Auto check the in-game name whenever the player enters valid credentials
   useEffect(() => {
     const key = nicknameGameKey(selectedGameCategory);
     const id = gameId.trim();
     const zone = serverId.trim();
-    const zoneNeeded = key === "ml" || key === "mcgg";
+    const zoneNeeded = !!GAME_CATEGORIES.find((g) => g.id === selectedGameCategory)?.requiresServerId;
 
     setNameCheckError({});
     if (!key || !/^\d{4,15}$/.test(id) || (zoneNeeded && !/^\d{1,5}$/.test(zone))) {
@@ -173,7 +180,7 @@ const GamePage = () => {
     }, 600);
 
     return () => { cancelled = true; clearTimeout(t); };
-  }, [gameId, serverId, selectedGameCategory]);
+  }, [gameId, serverId, selectedGameCategory, GAME_CATEGORIES]);
 
 
   const handleCopyName = async () => {
@@ -228,7 +235,7 @@ const GamePage = () => {
     if (!searchParams.has("g")) return;
     const g = searchParams.get("g") || "";
     setActiveCategory("games");
-    setSelectedGameCategory(GAME_CATEGORIES.some((c) => c.id === g) ? g : null);
+    setSelectedGameCategory(g || null);
   }, [searchParams]);
 
 
@@ -311,10 +318,9 @@ const GamePage = () => {
     return MOBILE_CATEGORIES.some(cat => cat.id === category);
   };
 
-  // MLBB and Magic Chess require Server / Zone ID
-  const requiresServerId = (category: string) => {
-    return category === "MLBB Diamonds" || category === "Magic Chess Diamonds";
-  };
+  // Admin decides per game whether a Server / Zone ID is needed
+  const requiresServerId = (category: string) =>
+    !!GAME_CATEGORIES.find((g) => g.id === category)?.requiresServerId;
 
   const getFilteredProducts = () => {
     if (activeCategory === "games") {
@@ -471,7 +477,9 @@ const GamePage = () => {
   const filteredProducts = getFilteredProducts();
 
   // For new layout: track inline player credentials
-  const selectedGame = GAME_CATEGORIES.find(g => g.id === selectedGameCategory) || GAME_CATEGORIES[0];
+  const selectedGame =
+    GAME_CATEGORIES.find(g => g.id === selectedGameCategory) ||
+    GAME_CATEGORIES[0] || { id: "", name: "", icon: Diamond, color: "text-primary", image: FALLBACK_GAME_IMAGE, requiresServerId: false, nicknameKey: null };
   const gameProducts = products
     .filter(p => p.category === selectedGame.id)
     .sort((a, b) => a.price - b.price);
