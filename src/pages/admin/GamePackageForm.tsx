@@ -72,18 +72,50 @@ const GamePackageForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const name = formData.name.trim();
+    const price = parseFloat(formData.price);
+    const cost = formData.cost_price ? parseFloat(formData.cost_price) : 0;
+    const smileId = formData.smile_package_id.trim();
+
+    if (!name) {
+      toast({ title: "Package name လိုအပ်ပါသည်", variant: "destructive" });
+      return;
+    }
+    if (!formData.price || isNaN(price) || price <= 0) {
+      toast({ title: "Sell price မှန်ကန်စွာ ထည့်ပါ", variant: "destructive" });
+      return;
+    }
+    if (formData.cost_price && (isNaN(cost) || cost < 0)) {
+      toast({ title: "Cost price မှားနေပါသည်", variant: "destructive" });
+      return;
+    }
+    if (requiresServerId === false && /server/i.test(name)) {
+      toast({
+        title: "ID mode မကိုက်ညီပါ",
+        description: `${gameName} သည် Player ID only ဖြစ်ပါသည်။ Package name ထဲတွင် Server ID မထည့်ပါနှင့်။`,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (smileId && !/^[A-Za-z0-9_-]+$/.test(smileId)) {
+      toast({ title: "Smile.One Package ID မှားနေပါသည်", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     const packageData: Record<string, unknown> = {
-      name: formData.name,
-      price: parseFloat(formData.price) || 0,
-      cost_price: parseFloat(formData.cost_price) || 0,
+      name,
+      price,
+      cost_price: cost,
       description: formData.description || null,
       image_url: formData.image_url || gameImage || "/placeholder.svg",
       points_value: parseInt(formData.points_value) || 0,
-      smile_package_id: formData.smile_package_id.trim() || null,
+      smile_package_id: smileId || null,
       category,
     };
+
 
     let error;
     if (id) {
