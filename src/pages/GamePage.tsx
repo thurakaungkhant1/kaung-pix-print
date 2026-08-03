@@ -969,6 +969,7 @@ const GamePage = () => {
             )}
           </TabsContent>
 
+          {digitalProductsEnabled && (
           <TabsContent value="digital" className="space-y-4 mt-3">
             <section className="space-y-3">
               <div className="text-center">
