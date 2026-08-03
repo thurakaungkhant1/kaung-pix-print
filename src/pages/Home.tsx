@@ -338,7 +338,7 @@ const Home = () => {
             <section className="px-5 py-4">
               <div className="grid grid-cols-4 gap-2.5">
                 {[
-                  { label: "Shop", icon: ShoppingBag, to: "/game", tint: "from-primary/20 to-primary/5", fg: "text-primary" },
+                  { label: "Shop", icon: ShoppingBag, to: "/game?view=shop", tint: "from-primary/20 to-primary/5", fg: "text-primary" },
                   { label: "Top Up", icon: Wallet, to: "/top-up", tint: "from-emerald-500/20 to-emerald-500/5", fg: "text-emerald-500" },
                   { label: "Games", icon: Gamepad2, to: "/games", tint: "from-fuchsia-500/20 to-fuchsia-500/5", fg: "text-fuchsia-500" },
                   { label: "Orders", icon: Receipt, to: "/orders", tint: "from-amber-500/20 to-amber-500/5", fg: "text-amber-500" },
