@@ -177,6 +177,14 @@ const GamePage = () => {
   // Reset diamond tier when switching games (must be before any early return)
   useEffect(() => { setSelectedDiamondTier(null); }, [selectedGameCategory]);
 
+  // Deep link: /game?g=<category> selects a game, /game?g= shows the game list
+  useEffect(() => {
+    if (!searchParams.has("g")) return;
+    const g = searchParams.get("g") || "";
+    setActiveCategory("games");
+    setSelectedGameCategory(GAME_CATEGORIES.some((c) => c.id === g) ? g : null);
+  }, [searchParams]);
+
 
   // Persist filter selections
   useEffect(() => { localStorage.setItem("shopActiveTab", activeCategory); }, [activeCategory]);
