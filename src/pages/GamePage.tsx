@@ -517,15 +517,19 @@ const GamePage = () => {
 
       <div className="max-w-screen-md mx-auto p-4 pb-28 space-y-5">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
-          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", mobileServicesEnabled ? "grid-cols-3" : "grid-cols-2")}>
+          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", mobileServicesEnabled ? "grid-cols-4" : "grid-cols-3")}>
             <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Gamepad2 className="h-3.5 w-3.5" /> Games
+            </TabsTrigger>
+            <TabsTrigger value="digital" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <ShoppingBag className="h-3.5 w-3.5" /> Digital
             </TabsTrigger>
             {mobileServicesEnabled && (
               <TabsTrigger value="mobile" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Smartphone className="h-3.5 w-3.5" /> Mobile
               </TabsTrigger>
             )}
+
 
             <TabsTrigger value="orders" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <History className="h-3.5 w-3.5" /> Orders
