@@ -28,7 +28,7 @@ interface Product {
 
 
 // Category type definitions
-const GAME_CATEGORIES = ['MLBB Diamonds', 'PUBG UC', 'Free Fire', 'Genshin', 'Gift Cards'];
+const GAME_CATEGORIES = ['MLBB Diamonds', 'PUBG UC', 'Magic Chess Diamonds', 'Free Fire', 'Genshin', 'Gift Cards'];
 const MOBILE_CATEGORIES = ['Phone Top-up', 'Data Plans'];
 const DIGITAL_CATEGORIES = [...GAME_CATEGORIES, ...MOBILE_CATEGORIES];
 const PHYSICAL_CATEGORIES = ['Electronics', 'Accessories', 'General'];
