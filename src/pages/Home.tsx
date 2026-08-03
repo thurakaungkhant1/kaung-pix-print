@@ -384,7 +384,9 @@ const Home = () => {
                       <p className="text-[9px] text-muted-foreground truncate">Instant</p>
                     </div>
                   </motion.button>
-                ))}
+                  );
+                })}
+
               </div>
             </section>
           </AnimatedSection>
