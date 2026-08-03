@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error } = await supabase
       .from('orders')
-      .select('id, quantity, price, phone_number, payment_method, created_at, user_id, product_id, status, telegram_message_id, game_id, server_id')
+      .select('id, quantity, price, phone_number, payment_method, created_at, user_id, product_id, status, telegram_message_id, game_id, server_id, game_name')
       .eq('id', order_id)
       .maybeSingle();
 
@@ -44,6 +44,12 @@ Deno.serve(async (req) => {
     const category = product?.category ?? '';
     const isMLBB = category === 'MLBB Diamonds';
     const isPUBG = category === 'PUBG UC';
+    const playerName = (() => {
+      const m = String(order.game_name ?? '').match(/\(([^)]+)\)/);
+      return m ? m[1] : null;
+    })();
+    const gameLabel = String(order.game_name ?? '').replace(/\s*\([^)]*\)\s*$/, '') || category;
+    const playerLine = playerName ? `🧑‍💻 Game Name: ${playerName}\n` : '';
     const timeStr = new Date(order.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Yangon' });
 
     let text: string;
@@ -54,6 +60,7 @@ Deno.serve(async (req) => {
         `📦 Product: ${product?.name ?? '-'}\n` +
         `🎯 Game ID: ${order.game_id ?? '-'}\n` +
         `🌐 Server ID: ${order.server_id ?? '-'}\n` +
+        playerLine +
         `🔢 Quantity: ${order.quantity}\n` +
         `💰 Price: ${order.price} MMK\n` +
         `👤 Customer: ${customerName}\n` +
@@ -66,6 +73,7 @@ Deno.serve(async (req) => {
         `🆔 Order ID: #${shortId}\n` +
         `📦 Product: ${product?.name ?? '-'}\n` +
         `🎯 Player UID: ${order.game_id ?? '-'}\n` +
+        playerLine +
         `🔢 Quantity: ${order.quantity}\n` +
         `💰 Price: ${order.price} MMK\n` +
         `👤 Customer: ${customerName}\n` +
@@ -83,6 +91,8 @@ Deno.serve(async (req) => {
         `📞 Phone: ${order.phone_number ?? '-'}\n` +
         `📦 Product: ${product?.name ?? '-'}\n` +
         gameLine +
+        (gameLabel ? `🎮 Game: ${gameLabel}\n` : '') +
+        playerLine +
         `🔢 Quantity: ${order.quantity}\n` +
         `💰 Total: ${order.price} MMK\n` +
         `💳 Payment: ${order.payment_method ?? '-'}\n` +
