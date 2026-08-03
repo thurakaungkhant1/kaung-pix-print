@@ -57,6 +57,7 @@ interface PackageRow {
   category: string;
   diamond_tier: string | null;
   smile_package_id: string | null;
+  description: string | null;
 }
 
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
@@ -79,6 +80,7 @@ const emptyPkg = {
   image_url: "",
   diamond_tier: "popular",
   smile_package_id: "",
+  description: "",
 };
 
 const GameCatalogManage = () => {
@@ -116,7 +118,7 @@ const GameCatalogManage = () => {
     if (list.length) {
       const { data: prods } = await (supabase as any)
         .from("products")
-        .select("id,name,price,cost_price,image_url,category,diamond_tier,smile_package_id")
+        .select("id,name,price,cost_price,image_url,category,diamond_tier,smile_package_id,description")
         .in("category", list.map((g) => g.category_key))
         .order("price", { ascending: true });
       const map: Record<string, PackageRow[]> = {};
@@ -218,6 +220,7 @@ const GameCatalogManage = () => {
       image_url: p.image_url,
       diamond_tier: p.diamond_tier || "popular",
       smile_package_id: p.smile_package_id || "",
+      description: p.description || "",
     });
     setPkgDialog(true);
   };
@@ -236,6 +239,7 @@ const GameCatalogManage = () => {
       category: pkgCategory,
       diamond_tier: pkgForm.diamond_tier,
       smile_package_id: pkgForm.smile_package_id.trim() || null,
+      description: pkgForm.description.trim() || null,
       points_value: 0,
     };
     const { error } = pkgForm.id
@@ -518,11 +522,23 @@ const GameCatalogManage = () => {
               </Select>
             </div>
             <div className="space-y-1.5">
+              <Label className="text-xs">Description (optional)</Label>
+              <Input
+                value={pkgForm.description}
+                onChange={(e) => setPkgForm({ ...pkgForm, description: e.target.value })}
+                placeholder="Instant delivery"
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs">Smile.One package ID (optional)</Label>
               <Input
                 value={pkgForm.smile_package_id}
                 onChange={(e) => setPkgForm({ ...pkgForm, smile_package_id: e.target.value })}
+                placeholder="Leave empty for manual fulfilment"
               />
+              <p className="text-[10px] text-muted-foreground">
+                Not required. Packages work manually without a Smile.One ID.
+              </p>
             </div>
           </div>
           <DialogFooter>
