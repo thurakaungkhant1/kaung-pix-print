@@ -2162,10 +2162,6 @@ const AdminDashboard = () => {
                   <CardTitle>Product Management</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" onClick={() => navigate("/admin/game-catalog")}>
-                    <Gamepad2 className="mr-2 h-4 w-4" />
-                    Game Shop & Packages (Add Game)
-                  </Button>
                   <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/admin/notifications")}>
                     <Bell className="mr-2 h-4 w-4" />
                     Send In-App Notification
@@ -2260,10 +2256,6 @@ const AdminDashboard = () => {
                       {g.short_name || g.name} Packages
                     </Button>
                   ))}
-                  <Button variant="outline" onClick={() => navigate("/admin/game-catalog")} className="h-auto py-4 flex-col gap-2">
-                    <Gamepad2 className="h-5 w-5" />
-                    Games (Add Game)
-                  </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/digital-products")} className="h-auto py-4 flex-col gap-2">
                     <Package className="h-5 w-5" />
                     Digital Products
@@ -2316,12 +2308,6 @@ const AdminDashboard = () => {
                           <span className="text-sm truncate">{g.name}</span>
                         </button>
                       ))}
-                      <button onClick={() => navigate("/admin/game-catalog")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
-                        <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
-                          <Gamepad2 className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="text-sm">All Games / Add Game</span>
-                      </button>
                     </div>
                   </div>
 
