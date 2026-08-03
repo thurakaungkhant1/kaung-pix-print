@@ -129,31 +129,52 @@ const GamePage = () => {
   const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
   const [nameCheckError, setNameCheckError] = useState<{ id?: string; server?: string }>({});
 
-  const handleCheckGameName = async () => {
-    const errs: { id?: string; server?: string } = {};
-    if (!gameId.trim()) errs.id = "User ID required";
-    if (!serverId.trim()) errs.server = "Zone ID required";
-    setNameCheckError(errs);
-    if (Object.keys(errs).length) return;
-    setNameCheckLoading(true);
-    setNameCheckResult(null);
-    try {
-      const projectRef = "ojoenxchuzqonpixomkl";
-      const res = await fetch(
-        `https://${projectRef}.supabase.co/functions/v1/ml-nickname?id=${encodeURIComponent(gameId.trim())}&zone=${encodeURIComponent(serverId.trim())}`,
-      );
-      const data = await res.json();
-      if (data?.success && data?.name) {
-        setNameCheckResult({ ok: true, name: data.name });
-      } else {
-        setNameCheckResult({ ok: false, message: data?.message || "Player not found" });
-      }
-    } catch {
-      setNameCheckResult({ ok: false, message: "Cannot retrieve game name" });
-    } finally {
-      setNameCheckLoading(false);
-    }
+  const nicknameGameKey = (cat: string | null): string | null => {
+    if (cat === "MLBB Diamonds") return "ml";
+    if (cat === "Magic Chess Diamonds") return "mcgg";
+    if (cat === "PUBG UC") return "pubgm";
+    return null;
   };
+
+  // Auto check the in-game name whenever the player enters valid credentials
+  useEffect(() => {
+    const key = nicknameGameKey(selectedGameCategory);
+    const id = gameId.trim();
+    const zone = serverId.trim();
+    const zoneNeeded = key === "ml" || key === "mcgg";
+
+    setNameCheckError({});
+    if (!key || !/^\d{4,15}$/.test(id) || (zoneNeeded && !/^\d{1,5}$/.test(zone))) {
+      setNameCheckResult(null);
+      setNameCheckLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setNameCheckLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const projectRef = "ojoenxchuzqonpixomkl";
+        const res = await fetch(
+          `https://${projectRef}.supabase.co/functions/v1/ml-nickname?game=${key}&id=${encodeURIComponent(id)}&zone=${encodeURIComponent(zone)}`,
+        );
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.success && data?.name) {
+          setNameCheckResult({ ok: true, name: data.name });
+        } else {
+          setNameCheckResult({ ok: false, message: data?.message || "Player not found" });
+        }
+      } catch {
+        if (!cancelled) setNameCheckResult({ ok: false, message: "Cannot retrieve game name" });
+      } finally {
+        if (!cancelled) setNameCheckLoading(false);
+      }
+    }, 600);
+
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [gameId, serverId, selectedGameCategory]);
+
 
   const handleCopyName = async () => {
     if (!nameCheckResult?.name) return;
