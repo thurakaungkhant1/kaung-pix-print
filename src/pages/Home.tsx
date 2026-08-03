@@ -18,6 +18,9 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 import AnimatedSection from "@/components/animations/AnimatedSection";
 import { motion } from "framer-motion";
 import appLogo from "@/assets/app-logo.png";
+import NotificationBell from "@/components/NotificationBell";
+import { useGameCatalog } from "@/hooks/useGameCatalog";
+
 
 interface PromotionalBanner {
   id: string;
