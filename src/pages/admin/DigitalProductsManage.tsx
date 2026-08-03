@@ -289,6 +289,30 @@ const DigitalProductsManage = () => {
         </div>
       </header>
 
+      <div className="max-w-screen-md lg:max-w-6xl mx-auto px-4 pt-4">
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2">
+          <div className="flex-1">
+            <p className="text-xs font-semibold leading-none">Shop Digital Tab</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {featureEnabled ? "Visible to users" : "Hidden from users"}
+            </p>
+          </div>
+          <Switch
+            checked={featureEnabled}
+            onCheckedChange={async (v) => {
+              const err = await setFeatureFlag(v, "Digital Products (Shop tab)");
+              toast({
+                title: err ? "Update failed" : v ? "Digital Products enabled" : "Digital Products disabled",
+                description: err ? err.message : "Shop page updated for all users.",
+                variant: err ? "destructive" : undefined,
+              });
+            }}
+            aria-label="Toggle Digital Products feature"
+          />
+        </div>
+      </div>
+
+
       <div className="max-w-screen-md mx-auto p-4 space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
