@@ -1001,6 +1001,7 @@ const GamePage = () => {
               </div>
             </section>
           </TabsContent>
+          )}
 
           {mobileServicesEnabled && (
           <TabsContent value="mobile" className="space-y-5">
