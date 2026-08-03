@@ -105,6 +105,7 @@ const GamePage = () => {
   const navigate = useNavigate();
   const [digitalCats, setDigitalCats] = useState<{ id: string; name: string; icon: string | null }[]>([]);
   const { enabled: mobileServicesEnabled } = useFeatureFlag("mobile_services", true);
+  const { enabled: digitalProductsEnabled } = useFeatureFlag("digital_products", true);
   const { games: catalogGames } = useGameCatalog();
   const [operators, setOperators] = useState<{ name: string; logo_url: string | null }[]>(
     DEFAULT_OPERATORS.map((name) => ({ name, logo_url: null }))
