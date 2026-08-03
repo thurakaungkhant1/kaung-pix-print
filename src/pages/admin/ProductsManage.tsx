@@ -118,12 +118,14 @@ const ProductsManage = () => {
       points_value: product.points_value,
       category: product.category,
       is_premium: product.is_premium || false,
+      smile_package_id: product.smile_package_id || "",
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
+    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false, smile_package_id: "" });
+
   };
 
   const saveEdit = async () => {
