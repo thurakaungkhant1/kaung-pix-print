@@ -48,7 +48,7 @@ const BottomNav = () => {
   return (
     <nav
       className={cn(
-        "fixed bottom-3 left-3 right-3 z-50 mx-auto max-w-[420px] lg:hidden",
+        "fixed bottom-3 left-3 right-3 z-50 mx-auto max-w-[420px] lg:max-w-[560px]",
         "rounded-[1.75rem] border border-border/60",
         "bg-background/80 backdrop-blur-2xl",
         "shadow-[0_12px_30px_rgba(0,0,0,0.25)]",
