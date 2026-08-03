@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Home, User, Settings, ShoppingBag } from "lucide-react";
+import { Home, User, Settings, ShoppingBag, Gamepad2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { NavLink } from "@/components/NavLink";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 const BottomNav = () => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     if (user) {
@@ -24,6 +25,7 @@ const BottomNav = () => {
 
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
+    { to: "/game", icon: Gamepad2, label: "Game" },
     { to: "/game?view=shop", icon: ShoppingBag, label: "Shop" },
     {
       to: isAdmin ? "/admin" : "/account",
@@ -31,6 +33,14 @@ const BottomNav = () => {
       label: isAdmin ? "Admin" : "Account",
     },
   ];
+
+  const isShopView = new URLSearchParams(location.search).get("view") === "shop";
+  const isItemActive = (to: string) => {
+    if (to === "/") return location.pathname === "/";
+    if (to === "/game") return location.pathname === "/game" && !isShopView;
+    if (to === "/game?view=shop") return location.pathname === "/game" && isShopView;
+    return location.pathname.startsWith(to);
+  };
 
   return (
     <nav
@@ -43,52 +53,50 @@ const BottomNav = () => {
       )}
     >
       <div className="flex items-center justify-between">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className="relative flex flex-1 items-center justify-center py-1.5 px-2 group"
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && (
-                  <motion.span
-                    layoutId="bottomnav-pill"
-                    className={cn(
-                      "absolute inset-x-1 inset-y-0.5 rounded-[1.25rem]",
-                      "bg-primary shadow-md",
-                    )}
-                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                  />
-                )}
-                <motion.div
-                  className="relative z-10 flex flex-col items-center"
-                  whileTap={{ scale: 0.92 }}
+        {navItems.map((item) => {
+          const isActive = isItemActive(item.to);
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="relative flex flex-1 items-center justify-center py-1.5 px-2 group"
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="bottomnav-pill"
+                  className={cn(
+                    "absolute inset-x-1 inset-y-0.5 rounded-[1.25rem]",
+                    "bg-primary shadow-md",
+                  )}
+                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                />
+              )}
+              <motion.div
+                className="relative z-10 flex flex-col items-center"
+                whileTap={{ scale: 0.92 }}
+              >
+                <item.icon
+                  className={cn(
+                    "h-[18px] w-[18px] mb-0.5 transition-colors duration-300",
+                    isActive
+                      ? "text-primary-foreground stroke-[2.25]"
+                      : "text-muted-foreground group-hover:text-foreground stroke-[2]",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-[10px] uppercase tracking-wider transition-colors duration-300",
+                    isActive
+                      ? "font-bold text-primary-foreground"
+                      : "font-semibold text-muted-foreground group-hover:text-foreground",
+                  )}
                 >
-                  <item.icon
-                    className={cn(
-                      "h-[18px] w-[18px] mb-0.5 transition-colors duration-300",
-                      isActive
-                        ? "text-primary-foreground stroke-[2.25]"
-                        : "text-muted-foreground group-hover:text-foreground stroke-[2]",
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "text-[10px] uppercase tracking-wider transition-colors duration-300",
-                      isActive
-                        ? "font-bold text-primary-foreground"
-                        : "font-semibold text-muted-foreground group-hover:text-foreground",
-                    )}
-                  >
-                    {item.label}
-                  </span>
-                </motion.div>
-              </>
-            )}
-          </NavLink>
-        ))}
+                  {item.label}
+                </span>
+              </motion.div>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

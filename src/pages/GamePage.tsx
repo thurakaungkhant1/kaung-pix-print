@@ -129,31 +129,52 @@ const GamePage = () => {
   const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
   const [nameCheckError, setNameCheckError] = useState<{ id?: string; server?: string }>({});
 
-  const handleCheckGameName = async () => {
-    const errs: { id?: string; server?: string } = {};
-    if (!gameId.trim()) errs.id = "User ID required";
-    if (!serverId.trim()) errs.server = "Zone ID required";
-    setNameCheckError(errs);
-    if (Object.keys(errs).length) return;
-    setNameCheckLoading(true);
-    setNameCheckResult(null);
-    try {
-      const projectRef = "ojoenxchuzqonpixomkl";
-      const res = await fetch(
-        `https://${projectRef}.supabase.co/functions/v1/ml-nickname?id=${encodeURIComponent(gameId.trim())}&zone=${encodeURIComponent(serverId.trim())}`,
-      );
-      const data = await res.json();
-      if (data?.success && data?.name) {
-        setNameCheckResult({ ok: true, name: data.name });
-      } else {
-        setNameCheckResult({ ok: false, message: data?.message || "Player not found" });
-      }
-    } catch {
-      setNameCheckResult({ ok: false, message: "Cannot retrieve game name" });
-    } finally {
-      setNameCheckLoading(false);
-    }
+  const nicknameGameKey = (cat: string | null): string | null => {
+    if (cat === "MLBB Diamonds") return "ml";
+    if (cat === "Magic Chess Diamonds") return "mcgg";
+    if (cat === "PUBG UC") return "pubgm";
+    return null;
   };
+
+  // Auto check the in-game name whenever the player enters valid credentials
+  useEffect(() => {
+    const key = nicknameGameKey(selectedGameCategory);
+    const id = gameId.trim();
+    const zone = serverId.trim();
+    const zoneNeeded = key === "ml" || key === "mcgg";
+
+    setNameCheckError({});
+    if (!key || !/^\d{4,15}$/.test(id) || (zoneNeeded && !/^\d{1,5}$/.test(zone))) {
+      setNameCheckResult(null);
+      setNameCheckLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setNameCheckLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const projectRef = "ojoenxchuzqonpixomkl";
+        const res = await fetch(
+          `https://${projectRef}.supabase.co/functions/v1/ml-nickname?game=${key}&id=${encodeURIComponent(id)}&zone=${encodeURIComponent(zone)}`,
+        );
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.success && data?.name) {
+          setNameCheckResult({ ok: true, name: data.name });
+        } else {
+          setNameCheckResult({ ok: false, message: data?.message || "Player not found" });
+        }
+      } catch {
+        if (!cancelled) setNameCheckResult({ ok: false, message: "Cannot retrieve game name" });
+      } finally {
+        if (!cancelled) setNameCheckLoading(false);
+      }
+    }, 600);
+
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [gameId, serverId, selectedGameCategory]);
+
 
   const handleCopyName = async () => {
     if (!nameCheckResult?.name) return;
@@ -386,6 +407,7 @@ const GamePage = () => {
         p_phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : null,
         p_plan_id: null,
         p_plan_name: null,
+        p_player_name: nameCheckResult?.ok ? nameCheckResult.name ?? null : null,
         p_delivery_address: "",
       });
 
@@ -595,41 +617,34 @@ const GamePage = () => {
               </section>
             ) : (
               <>
-            {/* Select Game */}
+            {/* Selected game header */}
             <section>
-              <h2 className="text-center text-sm font-semibold text-muted-foreground mb-3">Select Game</h2>
-              <div className="grid grid-cols-3 gap-3">
-
-                {GAME_CATEGORIES.map((cat) => {
-                  const active = selectedGame.id === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => setSelectedGameCategory(cat.id)}
-                      className={cn(
-                        "relative rounded-2xl bg-card border-2 p-4 flex flex-col items-center gap-2 transition-all",
-                        active
-                          ? "border-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.12)]"
-                          : "border-border/60 hover:border-primary/40"
-                      )}
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted">
-                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                      </div>
-                      <span className={cn("text-sm font-semibold", active ? "text-primary" : "text-foreground")}>
-                        {cat.name.split(" ")[0]}
-                      </span>
-                      <span className={cn(
-                        "inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-[10px] font-bold",
-                        active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                      )}>
-                        <Zap className="h-2.5 w-2.5" /> Instant
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-3 rounded-2xl bg-card border-2 border-primary/50 p-3 shadow-[0_0_0_4px_hsl(var(--primary)/0.08)]">
+                <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0">
+                  <img src={selectedGame.image} alt={selectedGame.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold truncate">{selectedGame.name}</p>
+                  <span className="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                    <Zap className="h-2.5 w-2.5" /> Instant
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedGameCategory(null);
+                    setNameCheckResult(null);
+                    setNameCheckError({});
+                  }}
+                  className="shrink-0 h-8 rounded-full text-xs"
+                >
+                  Change
+                </Button>
               </div>
             </section>
+
 
             {/* Player Credentials */}
             <section className="relative overflow-hidden rounded-2xl bg-card/80 backdrop-blur-md border border-border/50 p-4 space-y-4 shadow-lg shadow-primary/5">
@@ -686,7 +701,7 @@ const GamePage = () => {
               )}
               </div>
 
-              {needsServer && (
+              {(
                 <div className="space-y-3 mt-3">
                   {/* Inline validation errors */}
                   {(nameCheckError.id || nameCheckError.server) && (
@@ -700,20 +715,13 @@ const GamePage = () => {
                     </div>
                   )}
 
-                  {/* Game Name Checker */}
-                  <Button
-                    type="button"
-                    onClick={handleCheckGameName}
-                    disabled={nameCheckLoading}
-                    variant="outline"
-                    className="w-full h-11 rounded-xl border-primary/30 hover:border-primary/60 hover:bg-primary/5 font-semibold"
-                  >
-                    {nameCheckLoading ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Checking...</>
-                    ) : (
-                      <><Search className="h-4 w-4" /> Game Name Checker</>
-                    )}
-                  </Button>
+                  {/* Auto game name checker status */}
+                  {nameCheckLoading && (
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking player name...
+                    </p>
+                  )}
+
 
                   {/* Result Card */}
                   {nameCheckResult && (
