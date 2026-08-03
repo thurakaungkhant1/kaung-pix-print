@@ -595,41 +595,34 @@ const GamePage = () => {
               </section>
             ) : (
               <>
-            {/* Select Game */}
+            {/* Selected game header */}
             <section>
-              <h2 className="text-center text-sm font-semibold text-muted-foreground mb-3">Select Game</h2>
-              <div className="grid grid-cols-3 gap-3">
-
-                {GAME_CATEGORIES.map((cat) => {
-                  const active = selectedGame.id === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => setSelectedGameCategory(cat.id)}
-                      className={cn(
-                        "relative rounded-2xl bg-card border-2 p-4 flex flex-col items-center gap-2 transition-all",
-                        active
-                          ? "border-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.12)]"
-                          : "border-border/60 hover:border-primary/40"
-                      )}
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted">
-                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                      </div>
-                      <span className={cn("text-sm font-semibold", active ? "text-primary" : "text-foreground")}>
-                        {cat.name.split(" ")[0]}
-                      </span>
-                      <span className={cn(
-                        "inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-[10px] font-bold",
-                        active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                      )}>
-                        <Zap className="h-2.5 w-2.5" /> Instant
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-3 rounded-2xl bg-card border-2 border-primary/50 p-3 shadow-[0_0_0_4px_hsl(var(--primary)/0.08)]">
+                <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0">
+                  <img src={selectedGame.image} alt={selectedGame.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold truncate">{selectedGame.name}</p>
+                  <span className="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                    <Zap className="h-2.5 w-2.5" /> Instant
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedGameCategory(null);
+                    setNameCheckResult(null);
+                    setNameCheckError({});
+                  }}
+                  className="shrink-0 h-8 rounded-full text-xs"
+                >
+                  Change
+                </Button>
               </div>
             </section>
+
 
             {/* Player Credentials */}
             <section className="relative overflow-hidden rounded-2xl bg-card/80 backdrop-blur-md border border-border/50 p-4 space-y-4 shadow-lg shadow-primary/5">
