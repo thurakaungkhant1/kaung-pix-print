@@ -2153,6 +2153,14 @@ const AdminDashboard = () => {
                   <CardTitle>Product Management</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  <Button className="w-full justify-start" onClick={() => navigate("/admin/game-catalog")}>
+                    <Gamepad2 className="mr-2 h-4 w-4" />
+                    Game Shop & Packages (Add Game)
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/admin/notifications")}>
+                    <Bell className="mr-2 h-4 w-4" />
+                    Send In-App Notification
+                  </Button>
                   <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/admin/diamond-packages")}>
                     <Gem className="mr-2 h-4 w-4" />
                     MLBB Diamond Packages
@@ -2162,6 +2170,7 @@ const AdminDashboard = () => {
                     PUBG UC Packages
                   </Button>
                 </CardContent>
+
               </Card>
             </div>
           )}
