@@ -34,6 +34,7 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { motion } from "framer-motion";
 import {
+import { useSupportUnread } from "@/hooks/useSupportUnread";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -62,6 +63,7 @@ interface WithdrawalSettings {
 }
 
 const Account = () => {
+  const { unread: supportUnread } = useSupportUnread();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMobileAdmin, setIsMobileAdmin] = useState(false);
