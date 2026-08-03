@@ -105,6 +105,7 @@ const GamePage = () => {
   const navigate = useNavigate();
   const [digitalCats, setDigitalCats] = useState<{ id: string; name: string; icon: string | null }[]>([]);
   const { enabled: mobileServicesEnabled } = useFeatureFlag("mobile_services", true);
+  const { enabled: digitalProductsEnabled } = useFeatureFlag("digital_products", true);
   const { games: catalogGames } = useGameCatalog();
   const [operators, setOperators] = useState<{ name: string; logo_url: string | null }[]>(
     DEFAULT_OPERATORS.map((name) => ({ name, logo_url: null }))
@@ -239,11 +240,14 @@ const GamePage = () => {
 
   useEffect(() => {
     if (shopMode) {
-      if (activeCategory !== "digital" && activeCategory !== "mobile") setActiveCategory("digital");
+      if (activeCategory !== "digital" && activeCategory !== "mobile") {
+        setActiveCategory(digitalProductsEnabled ? "digital" : "mobile");
+      }
     } else if (activeCategory === "digital" || activeCategory === "mobile") {
       setActiveCategory("games");
     }
-  }, [shopMode]);
+  }, [shopMode, digitalProductsEnabled]);
+
 
   // Deep link: /game?g=<category> selects a game, /game?g= shows the game list
   useEffect(() => {
@@ -276,10 +280,15 @@ const GamePage = () => {
     return () => clearTimeout(t);
   }, [selectedGameCategory, selectedMobileService, selectedOperator, activeCategory]);
 
-  // If admin turns off Mobile Services, never leave the user on that tab
+  // If admin turns a shop section off, never leave the user on that tab
   useEffect(() => {
-    if (!mobileServicesEnabled && activeCategory === "mobile") setActiveCategory("games");
-  }, [mobileServicesEnabled, activeCategory]);
+    if (!mobileServicesEnabled && activeCategory === "mobile") {
+      setActiveCategory(shopMode && digitalProductsEnabled ? "digital" : "games");
+    }
+    if (!digitalProductsEnabled && activeCategory === "digital") {
+      setActiveCategory(shopMode && mobileServicesEnabled ? "mobile" : "games");
+    }
+  }, [mobileServicesEnabled, digitalProductsEnabled, activeCategory, shopMode]);
 
   const loadWalletBalance = async () => {
     if (!user) return;
@@ -583,15 +592,15 @@ const GamePage = () => {
         </div>
       </header>
 
-      <div className="max-w-screen-md mx-auto p-4 pb-28 space-y-5">
+      <div className="max-w-screen-md lg:max-w-6xl mx-auto p-4 pb-28 space-y-5">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
-          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", shopMode ? (mobileServicesEnabled ? "grid-cols-2" : "grid-cols-1") : "grid-cols-2")}>
+          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", shopMode ? ((mobileServicesEnabled ? 1 : 0) + (digitalProductsEnabled ? 1 : 0) >= 2 ? "grid-cols-2" : "grid-cols-1") : "grid-cols-2")}>
             {!shopMode && (
               <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Gamepad2 className="h-3.5 w-3.5" /> Games
               </TabsTrigger>
             )}
-            {shopMode && (
+            {shopMode && digitalProductsEnabled && (
               <TabsTrigger value="digital" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <ShoppingBag className="h-3.5 w-3.5" /> Digital
               </TabsTrigger>
@@ -960,6 +969,7 @@ const GamePage = () => {
             )}
           </TabsContent>
 
+          {digitalProductsEnabled && (
           <TabsContent value="digital" className="space-y-4 mt-3">
             <section className="space-y-3">
               <div className="text-center">
@@ -991,6 +1001,7 @@ const GamePage = () => {
               </div>
             </section>
           </TabsContent>
+          )}
 
           {mobileServicesEnabled && (
           <TabsContent value="mobile" className="space-y-5">

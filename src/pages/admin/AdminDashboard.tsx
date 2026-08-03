@@ -2248,6 +2248,18 @@ const AdminDashboard = () => {
                     <Gamepad2 className="h-5 w-5" />
                     PUBG UC Packages
                   </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/game-catalog?g=mcgg")} className="h-auto py-4 flex-col gap-2">
+                    <Gem className="h-5 w-5" />
+                    Magic Chess Packages
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/game-catalog")} className="h-auto py-4 flex-col gap-2">
+                    <Gamepad2 className="h-5 w-5" />
+                    Games (Add Game)
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/admin/digital-products")} className="h-auto py-4 flex-col gap-2">
+                    <Package className="h-5 w-5" />
+                    Digital Products
+                  </Button>
                   <Button variant="outline" onClick={() => navigate("/admin/smile-packages")} className="h-auto py-4 flex-col gap-2">
                     <Zap className="h-5 w-5" />
                     Smile.One Packages
@@ -2291,6 +2303,18 @@ const AdminDashboard = () => {
                           <Gamepad2 className="h-4 w-4 text-yellow-500" />
                         </div>
                         <span className="text-sm">PUBG</span>
+                      </button>
+                      <button onClick={() => navigate("/admin/game-catalog?g=mcgg")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
+                        <div className="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center">
+                          <Gem className="h-4 w-4 text-purple-500" />
+                        </div>
+                        <span className="text-sm">Magic Chess GoGo</span>
+                      </button>
+                      <button onClick={() => navigate("/admin/game-catalog")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
+                        <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
+                          <Gamepad2 className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="text-sm">All Games / Add Game</span>
                       </button>
                     </div>
                   </div>

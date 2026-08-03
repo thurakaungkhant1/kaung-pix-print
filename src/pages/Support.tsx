@@ -8,6 +8,7 @@ import { ArrowLeft, Send, Headphones, Shield, Package, CheckCircle2, Clock } fro
 import MobileLayout from "@/components/MobileLayout";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useSupportUnread } from "@/hooks/useSupportUnread";
 
 interface Msg {
   id: string;
@@ -23,6 +24,7 @@ const Support = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { markRead } = useSupportUnread();
   const [messages, setMessages] = useState<Msg[]>([]);
   const prefill = (location.state as any)?.prefill as string | undefined;
   const [input, setInput] = useState(prefill || "");
@@ -92,7 +94,8 @@ const Support = () => {
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messages.length) markRead();
+  }, [messages, markRead]);
 
   useEffect(() => {
     inputRef.current?.focus();

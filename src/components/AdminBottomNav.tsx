@@ -4,7 +4,8 @@ import {
   Users, 
   ShoppingCart, 
   Package, 
-  MoreHorizontal
+  MoreHorizontal,
+  Gamepad2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -31,6 +32,7 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDepo
     { id: "users", label: "Users", icon: Users },
     { id: "orders", label: "Orders", icon: ShoppingCart, badge: pendingOrders },
     { id: "shop", label: "Shop", icon: Package },
+    { id: "games", label: "Games", icon: Gamepad2, route: "/admin/game-catalog" },
   ];
 
   const moreGroups = [
@@ -45,10 +47,13 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDepo
     {
       label: "Content",
       items: [
+        { id: "games-catalog", label: "Games (Add Game)", route: "/admin/game-catalog" },
         { id: "mlbb-packages", label: "Mobile Legends", route: "/admin/diamond-packages" },
+        { id: "mcgg-packages", label: "Magic Chess GoGo", route: "/admin/game-catalog?g=mcgg" },
         { id: "mlbb-tiers", label: "MLBB Categories", route: "/admin/diamond-tiers" },
         { id: "pubg-packages", label: "PUBG", route: "/admin/pubg-uc-packages" },
         { id: "mobile-services-shop", label: "Mobile", route: "/admin/mobile-services" },
+        { id: "digital-products", label: "Digital Products", route: "/admin/digital-products" },
         { id: "categories", label: "Shop Categories", route: "/admin/categories" },
         { id: "photos", label: "Photos" },
         { id: "banners", label: "Promo Banners", route: "/admin/banners" },
@@ -78,7 +83,7 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDepo
         {mainNavItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onTabChange(item.id)}
+            onClick={() => ((item as any).route ? navigate((item as any).route) : onTabChange(item.id))}
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg min-w-[56px]",
               "transition-all duration-200",

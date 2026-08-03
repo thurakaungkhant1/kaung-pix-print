@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 interface Product {
   id: number;
@@ -70,6 +71,7 @@ const emptyForm = {
 const DigitalProductsManage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { enabled: featureEnabled, setFlag: setFeatureFlag } = useFeatureFlag("digital_products", true);
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -288,6 +290,30 @@ const DigitalProductsManage = () => {
           </Button>
         </div>
       </header>
+
+      <div className="max-w-screen-md lg:max-w-6xl mx-auto px-4 pt-4">
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2">
+          <div className="flex-1">
+            <p className="text-xs font-semibold leading-none">Shop Digital Tab</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {featureEnabled ? "Visible to users" : "Hidden from users"}
+            </p>
+          </div>
+          <Switch
+            checked={featureEnabled}
+            onCheckedChange={async (v) => {
+              const err = await setFeatureFlag(v, "Digital Products (Shop tab)");
+              toast({
+                title: err ? "Update failed" : v ? "Digital Products enabled" : "Digital Products disabled",
+                description: err ? err.message : "Shop page updated for all users.",
+                variant: err ? "destructive" : undefined,
+              });
+            }}
+            aria-label="Toggle Digital Products feature"
+          />
+        </div>
+      </div>
+
 
       <div className="max-w-screen-md mx-auto p-4 space-y-3">
         <div className="relative">

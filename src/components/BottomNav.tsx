@@ -5,11 +5,13 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useSupportUnread } from "@/hooks/useSupportUnread";
 
 const BottomNav = () => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
+  const { unread: supportUnread } = useSupportUnread();
 
   useEffect(() => {
     if (user) {
@@ -23,7 +25,7 @@ const BottomNav = () => {
     }
   }, [user]);
 
-  const navItems = [
+  const navItems: { to: string; icon: any; label: string; badge?: number }[] = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/game", icon: Gamepad2, label: "Game" },
     { to: "/game?view=shop", icon: ShoppingBag, label: "Shop" },
@@ -31,6 +33,7 @@ const BottomNav = () => {
       to: isAdmin ? "/admin" : "/account",
       icon: isAdmin ? Settings : User,
       label: isAdmin ? "Admin" : "Account",
+      badge: isAdmin ? 0 : supportUnread,
     },
   ];
 
@@ -45,7 +48,7 @@ const BottomNav = () => {
   return (
     <nav
       className={cn(
-        "fixed bottom-3 left-3 right-3 z-50 mx-auto max-w-[420px]",
+        "fixed bottom-3 left-3 right-3 z-50 mx-auto max-w-[420px] lg:max-w-[560px]",
         "rounded-[1.75rem] border border-border/60",
         "bg-background/80 backdrop-blur-2xl",
         "shadow-[0_12px_30px_rgba(0,0,0,0.25)]",
@@ -75,6 +78,11 @@ const BottomNav = () => {
                 className="relative z-10 flex flex-col items-center"
                 whileTap={{ scale: 0.92 }}
               >
+                {!!item.badge && item.badge > 0 && (
+                  <span className="absolute -top-1 right-1 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold ring-2 ring-background">
+                    {item.badge > 99 ? "99+" : item.badge}
+                  </span>
+                )}
                 <item.icon
                   className={cn(
                     "h-[18px] w-[18px] mb-0.5 transition-colors duration-300",

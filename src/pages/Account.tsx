@@ -33,6 +33,7 @@ import MobileLayout from "@/components/MobileLayout";
 import AnimatedPage from "@/components/animations/AnimatedPage";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { motion } from "framer-motion";
+import { useSupportUnread } from "@/hooks/useSupportUnread";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,6 +63,7 @@ interface WithdrawalSettings {
 }
 
 const Account = () => {
+  const { unread: supportUnread } = useSupportUnread();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMobileAdmin, setIsMobileAdmin] = useState(false);
@@ -583,16 +585,27 @@ const Account = () => {
 
             <button
               onClick={() => navigate("/support")}
-              className="flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-teal-500/30 transition-all active:scale-[0.98]"
+              className="relative flex flex-col items-start gap-3 bg-card p-4 rounded-2xl border border-border/40 text-left hover:border-teal-500/30 transition-all active:scale-[0.98]"
             >
-              <div className="p-2 bg-teal-500/10 rounded-xl text-teal-600 dark:text-teal-400">
+              {supportUnread > 0 && (
+                <span className="absolute top-3 right-3 h-5 min-w-5 px-1.5 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold shadow-md animate-pulse">
+                  {supportUnread > 99 ? "99+" : supportUnread}
+                </span>
+              )}
+              <div className="relative p-2 bg-teal-500/10 rounded-xl text-teal-600 dark:text-teal-400">
                 <Headphones className="h-5 w-5" />
+                {supportUnread > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-card" />
+                )}
               </div>
               <div>
                 <p className="font-semibold text-sm">Support</p>
-                <p className="text-[10px] text-muted-foreground">Get help</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {supportUnread > 0 ? `${supportUnread} new repl${supportUnread > 1 ? "ies" : "y"}` : "Get help"}
+                </p>
               </div>
             </button>
+
 
             {isAdmin ? (
               <button
