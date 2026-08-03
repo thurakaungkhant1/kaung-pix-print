@@ -191,6 +191,17 @@ const GamePage = () => {
       .then(({ data }: any) => { if (data) setDigitalCats(data); });
   }, []);
 
+  // View mode: "shop" (Digital + Mobile) via /game?view=shop, otherwise game shop
+  const shopMode = searchParams.get("view") === "shop";
+
+  useEffect(() => {
+    if (shopMode) {
+      if (activeCategory !== "digital" && activeCategory !== "mobile") setActiveCategory("digital");
+    } else if (activeCategory === "digital" || activeCategory === "mobile") {
+      setActiveCategory("games");
+    }
+  }, [shopMode]);
+
   // Deep link: /game?g=<category> selects a game, /game?g= shows the game list
   useEffect(() => {
     if (!searchParams.has("g")) return;
@@ -518,7 +529,7 @@ const GamePage = () => {
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
-          <h1 className="text-lg font-display font-bold tracking-tight">Game Shop</h1>
+          <h1 className="text-lg font-display font-bold tracking-tight">{shopMode ? "Shop" : "Game Shop"}</h1>
           <div className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-card border border-border shadow-sm">
             <CreditCard className="h-4 w-4 text-primary" />
             <span className="text-sm font-bold tabular-nums">{walletBalance.toLocaleString()}</span>
@@ -529,23 +540,27 @@ const GamePage = () => {
 
       <div className="max-w-screen-md mx-auto p-4 pb-28 space-y-5">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
-          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", mobileServicesEnabled ? "grid-cols-4" : "grid-cols-3")}>
-            <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Gamepad2 className="h-3.5 w-3.5" /> Games
-            </TabsTrigger>
-            <TabsTrigger value="digital" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <ShoppingBag className="h-3.5 w-3.5" /> Digital
-            </TabsTrigger>
-            {mobileServicesEnabled && (
+          <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", shopMode ? (mobileServicesEnabled ? "grid-cols-2" : "grid-cols-1") : "grid-cols-2")}>
+            {!shopMode && (
+              <TabsTrigger value="games" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Gamepad2 className="h-3.5 w-3.5" /> Games
+              </TabsTrigger>
+            )}
+            {shopMode && (
+              <TabsTrigger value="digital" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <ShoppingBag className="h-3.5 w-3.5" /> Digital
+              </TabsTrigger>
+            )}
+            {shopMode && mobileServicesEnabled && (
               <TabsTrigger value="mobile" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Smartphone className="h-3.5 w-3.5" /> Mobile
               </TabsTrigger>
             )}
-
-
-            <TabsTrigger value="orders" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <History className="h-3.5 w-3.5" /> Orders
-            </TabsTrigger>
+            {!shopMode && (
+              <TabsTrigger value="orders" className="gap-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <History className="h-3.5 w-3.5" /> Orders
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="games" className="space-y-5 mt-3">
