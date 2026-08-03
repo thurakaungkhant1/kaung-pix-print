@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MobileLayout from "@/components/MobileLayout";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 interface Product {
   id: number;
