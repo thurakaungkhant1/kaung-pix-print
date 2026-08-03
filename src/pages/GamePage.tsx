@@ -884,7 +884,8 @@ const GamePage = () => {
                 </div>
               )}
             </section>
-
+              </>
+            )}
           </TabsContent>
 
           {mobileServicesEnabled && (
