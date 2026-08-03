@@ -363,6 +363,12 @@ const ProductsManage = () => {
                     <p className="text-primary font-bold mt-2">{product.price.toLocaleString()} MMK</p>
                     <p className="text-xs text-muted-foreground mt-1">Points: {product.points_value}</p>
                     <p className="text-xs text-muted-foreground">Category: {product.category}</p>
+                    {GAME_CATEGORIES.includes(product.category) && (
+                      <p className="text-xs text-muted-foreground">
+                        Smile.One ID: {product.smile_package_id || "—"}
+                      </p>
+                    )}
+
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button
