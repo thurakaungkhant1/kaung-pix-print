@@ -1355,6 +1355,8 @@ export type Database = {
       }
       orders: {
         Row: {
+          auto_fill_completed_at: string | null
+          auto_fill_message: string | null
           auto_fill_started_at: string | null
           auto_fill_status: string | null
           created_at: string | null
@@ -1380,6 +1382,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_fill_completed_at?: string | null
+          auto_fill_message?: string | null
           auto_fill_started_at?: string | null
           auto_fill_status?: string | null
           created_at?: string | null
@@ -1405,6 +1409,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_fill_completed_at?: string | null
+          auto_fill_message?: string | null
           auto_fill_started_at?: string | null
           auto_fill_status?: string | null
           created_at?: string | null
