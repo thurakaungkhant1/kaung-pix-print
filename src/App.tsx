@@ -75,6 +75,8 @@ const ProductNew = lazy(() => import("./pages/admin/ProductNew"));
 const SmilePackagesManage = lazy(() => import("./pages/admin/SmilePackagesManage"));
 
 const DiamondPackages = lazy(() => import("./pages/admin/DiamondPackages"));
+const GamePackages = lazy(() => import("./pages/admin/GamePackages"));
+const GamePackageForm = lazy(() => import("./pages/admin/GamePackageForm"));
 const DiamondPackageForm = lazy(() => import("./pages/admin/DiamondPackageForm"));
 const PhotosManage = lazy(() => import("./pages/admin/PhotosManage"));
 const PhotoNew = lazy(() => import("./pages/admin/PhotoNew"));
@@ -321,6 +323,30 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <SecurityDashboard />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/game-packages/:categoryKey"
+                  element={
+                    <ProtectedAdminRoute>
+                      <GamePackages />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/game-packages/:categoryKey/new"
+                  element={
+                    <ProtectedAdminRoute>
+                      <GamePackageForm />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/game-packages/:categoryKey/edit/:id"
+                  element={
+                    <ProtectedAdminRoute>
+                      <GamePackageForm />
                     </ProtectedAdminRoute>
                   }
                 />
