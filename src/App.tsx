@@ -72,6 +72,8 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const SecurityDashboard = lazy(() => import("./pages/admin/SecurityDashboard"));
 const ProductsManage = lazy(() => import("./pages/admin/ProductsManage"));
 const ProductNew = lazy(() => import("./pages/admin/ProductNew"));
+const SmilePackagesManage = lazy(() => import("./pages/admin/SmilePackagesManage"));
+
 const DiamondPackages = lazy(() => import("./pages/admin/DiamondPackages"));
 const DiamondPackageForm = lazy(() => import("./pages/admin/DiamondPackageForm"));
 const PhotosManage = lazy(() => import("./pages/admin/PhotosManage"));
