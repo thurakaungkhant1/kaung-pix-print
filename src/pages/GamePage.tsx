@@ -181,6 +181,16 @@ const GamePage = () => {
   // Reset diamond tier when switching games (must be before any early return)
   useEffect(() => { setSelectedDiamondTier(null); }, [selectedGameCategory]);
 
+  // Digital product categories for the Digital tab
+  useEffect(() => {
+    (supabase as any)
+      .from("digital_categories")
+      .select("id,name,icon,display_order")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
+      .then(({ data }: any) => { if (data) setDigitalCats(data); });
+  }, []);
+
   // Deep link: /game?g=<category> selects a game, /game?g= shows the game list
   useEffect(() => {
     if (!searchParams.has("g")) return;
