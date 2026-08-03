@@ -36,7 +36,7 @@ const PHYSICAL_CATEGORIES = ['Electronics', 'Accessories', 'General'];
 const ProductsManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
+  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false, smile_package_id: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "mobile">("all");
