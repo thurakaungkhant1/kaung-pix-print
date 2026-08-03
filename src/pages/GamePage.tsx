@@ -240,11 +240,14 @@ const GamePage = () => {
 
   useEffect(() => {
     if (shopMode) {
-      if (activeCategory !== "digital" && activeCategory !== "mobile") setActiveCategory("digital");
+      if (activeCategory !== "digital" && activeCategory !== "mobile") {
+        setActiveCategory(digitalProductsEnabled ? "digital" : "mobile");
+      }
     } else if (activeCategory === "digital" || activeCategory === "mobile") {
       setActiveCategory("games");
     }
-  }, [shopMode]);
+  }, [shopMode, digitalProductsEnabled]);
+
 
   // Deep link: /game?g=<category> selects a game, /game?g= shows the game list
   useEffect(() => {
