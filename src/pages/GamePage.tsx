@@ -280,10 +280,15 @@ const GamePage = () => {
     return () => clearTimeout(t);
   }, [selectedGameCategory, selectedMobileService, selectedOperator, activeCategory]);
 
-  // If admin turns off Mobile Services, never leave the user on that tab
+  // If admin turns a shop section off, never leave the user on that tab
   useEffect(() => {
-    if (!mobileServicesEnabled && activeCategory === "mobile") setActiveCategory("games");
-  }, [mobileServicesEnabled, activeCategory]);
+    if (!mobileServicesEnabled && activeCategory === "mobile") {
+      setActiveCategory(shopMode && digitalProductsEnabled ? "digital" : "games");
+    }
+    if (!digitalProductsEnabled && activeCategory === "digital") {
+      setActiveCategory(shopMode && mobileServicesEnabled ? "mobile" : "games");
+    }
+  }, [mobileServicesEnabled, digitalProductsEnabled, activeCategory, shopMode]);
 
   const loadWalletBalance = async () => {
     if (!user) return;
