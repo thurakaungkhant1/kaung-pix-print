@@ -1355,6 +1355,8 @@ export type Database = {
       }
       orders: {
         Row: {
+          auto_fill_started_at: string | null
+          auto_fill_status: string | null
           created_at: string | null
           delivery_address: string
           game_id: string | null
@@ -1378,6 +1380,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_fill_started_at?: string | null
+          auto_fill_status?: string | null
           created_at?: string | null
           delivery_address?: string
           game_id?: string | null
@@ -1401,6 +1405,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_fill_started_at?: string | null
+          auto_fill_status?: string | null
           created_at?: string | null
           delivery_address?: string
           game_id?: string | null

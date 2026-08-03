@@ -223,27 +223,71 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }));
     }
 
-    // Payload is prepared only — the request is intentionally NOT sent yet.
     const payload = {
       order_id: String(o.id),
       game_id: String(o.game_id),
-      zone_id: String(o.server_id),
-      package_id: String(packageId),
+      server_id: String(o.server_id),
+      smile_package_id: String(packageId),
     };
-    // Endpoint stays configurable for later activation.
-    const endpoint = Deno.env.get('SMILE_ONE_AUTOFILL_ENDPOINT') || '(not configured)';
-    console.log('Smile.One auto-fill prepared', { endpoint, payload });
+
+    // Atomically move approved -> processing so a second click can't re-send.
+    const startedAt = new Date().toISOString();
+    const { data: claimed, error: claimErr } = await supabase
+      .from('orders')
+      .update({ status: 'processing', auto_fill_started_at: startedAt, auto_fill_status: 'processing' })
+      .eq('id', entityId)
+      .eq('status', 'approved')
+      .select('id')
+      .maybeSingle();
+
+    if (claimErr) {
+      console.error('autofill claim failed', claimErr);
+      await tg('sendMessage', { chat_id: chatId, text: `⚠️ Auto Fill failed to start: ${claimErr.message}` });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+    if (!claimed) {
+      await tg('sendMessage', {
+        chat_id: chatId,
+        text: '⚠️ Validation Failed\nThis order is already being processed or is no longer approved.',
+      });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+
+    const endpoint = Deno.env.get('SMILE_ONE_AUTOFILL_ENDPOINT');
+    let autoFillStatus = 'ready';
+    let resultLine = `🔗 Endpoint: (not configured) — payload prepared only`;
+
+    if (endpoint) {
+      try {
+        const r = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const bodyText = await r.text();
+        autoFillStatus = r.ok ? 'sent' : 'failed';
+        resultLine = `🔗 Endpoint: ${endpoint}\n📡 Result: ${r.status} ${bodyText.slice(0, 300)}`;
+      } catch (e) {
+        autoFillStatus = 'failed';
+        resultLine = `🔗 Endpoint: ${endpoint}\n📡 Result: request error — ${(e as Error).message}`;
+      }
+    }
+
+    await supabase.from('orders').update({ auto_fill_status: autoFillStatus }).eq('id', entityId);
+    console.log('Smile.One auto-fill', { endpoint, payload, autoFillStatus });
 
     await tg('sendMessage', {
       chat_id: chatId,
       text:
-        `✅ Ready to Send\n\n` +
+        `${autoFillStatus === 'failed' ? '❌ Auto Fill Failed' : '✅ Ready to Send'}\n\n` +
         `📦 Product: ${productName}\n` +
         `🎯 Game ID: ${payload.game_id}\n` +
-        `🌐 Zone ID: ${payload.zone_id}\n` +
-        `🧩 Package ID: ${payload.package_id}\n` +
-        `🆔 Order: ${payload.order_id}\n\n` +
-        `🔗 Endpoint: ${endpoint}\n` +
+        `🌐 Server ID: ${payload.server_id}\n` +
+        `🧩 Package ID: ${payload.smile_package_id}\n` +
+        `🆔 Order: ${payload.order_id}\n` +
+        `📌 Status: processing\n` +
+        `🕒 Started: ${new Date(startedAt).toLocaleString('en-GB', { timeZone: 'Asia/Yangon' })}\n\n` +
+        `${resultLine}\n` +
         `<pre>${JSON.stringify(payload, null, 2)}</pre>`,
       parse_mode: 'HTML',
     });
