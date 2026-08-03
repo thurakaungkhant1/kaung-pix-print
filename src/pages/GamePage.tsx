@@ -84,6 +84,7 @@ interface Order {
 const GAME_CATEGORIES = [
   { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500", image: "/images/games/mobile-legends.png" },
   { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
+  { id: "Magic Chess Diamonds", name: "Magic Chess GoGo", icon: Diamond, color: "text-fuchsia-500", image: "/images/games/magic-chess.png" },
 ];
 
 const MOBILE_CATEGORIES = [
