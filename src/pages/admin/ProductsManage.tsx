@@ -131,8 +131,12 @@ const ProductsManage = () => {
   const saveEdit = async () => {
     const { error } = await supabase
       .from("products")
-      .update(editForm)
+      .update({
+        ...editForm,
+        smile_package_id: editForm.smile_package_id.trim() === "" ? null : editForm.smile_package_id.trim(),
+      })
       .eq("id", editingId);
+
 
     if (error) {
       toast({
