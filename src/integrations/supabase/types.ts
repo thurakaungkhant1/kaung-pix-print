@@ -876,6 +876,48 @@ export type Database = {
         }
         Relationships: []
       }
+      game_catalog: {
+        Row: {
+          category_key: string
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          nickname_key: string | null
+          requires_server_id: boolean
+          short_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_key: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          nickname_key?: string | null
+          requires_server_id?: boolean
+          short_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_key?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          nickname_key?: string | null
+          requires_server_id?: boolean
+          short_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       game_redemptions: {
         Row: {
           cost_points: number

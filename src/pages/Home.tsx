@@ -18,6 +18,9 @@ import AnimatedPage from "@/components/animations/AnimatedPage";
 import AnimatedSection from "@/components/animations/AnimatedSection";
 import { motion } from "framer-motion";
 import appLogo from "@/assets/app-logo.png";
+import NotificationBell from "@/components/NotificationBell";
+import { useGameCatalog } from "@/hooks/useGameCatalog";
+
 
 interface PromotionalBanner {
   id: string;
@@ -75,6 +78,7 @@ const EARN_POINTS_GAMES = [
 ];
 
 const Home = () => {
+  const { games: catalogGames } = useGameCatalog();
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [digitalLoading, setDigitalLoading] = useState(true);
   const [digitalError, setDigitalError] = useState<string | null>(null);
@@ -254,20 +258,15 @@ const Home = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Join our Telegram group"
-                  className="w-9 h-9 rounded-xl bg-[#229ED9]/10 border border-[#229ED9]/30 flex items-center justify-center hover:bg-[#229ED9]/20 transition-colors"
+                  className="w-11 h-11 rounded-2xl bg-[#229ED9]/10 border border-[#229ED9]/30 flex items-center justify-center hover:bg-[#229ED9]/20 transition-colors"
                 >
-                  <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#229ED9] fill-current" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" className="h-6 w-6 text-[#229ED9] fill-current" aria-hidden="true">
                     <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.05-1.99 1.93c-.23.23-.42.42-.83.42z" />
                   </svg>
                 </a>
-                <button
-                  onClick={() => navigate('/account')}
-                  className="w-9 h-9 rounded-xl bg-muted/70 border border-border/60 flex items-center justify-center hover:bg-muted transition-colors"
-                  aria-label="Notifications"
-                >
-                  <Bell className="h-3.5 w-3.5 text-foreground" />
-                </button>
+                <NotificationBell className="w-11 h-11 rounded-2xl" />
               </div>
+
             </motion.div>
 
             {/* Balance card */}
@@ -333,35 +332,6 @@ const Home = () => {
             </motion.div>
           </header>
 
-          {/* ── Quick Actions ── */}
-          <AnimatedSection delay={0.02}>
-            <section className="px-5 py-4">
-              <div className="grid grid-cols-4 gap-2.5">
-                {[
-                  { label: "Shop", icon: ShoppingBag, to: "/game?view=shop", tint: "from-primary/20 to-primary/5", fg: "text-primary" },
-                  { label: "Top Up", icon: Wallet, to: "/top-up", tint: "from-emerald-500/20 to-emerald-500/5", fg: "text-emerald-500" },
-                  { label: "Games", icon: Gamepad2, to: "/games", tint: "from-fuchsia-500/20 to-fuchsia-500/5", fg: "text-fuchsia-500" },
-                  { label: "Orders", icon: Receipt, to: "/orders", tint: "from-amber-500/20 to-amber-500/5", fg: "text-amber-500" },
-                ].map((a, i) => (
-                  <motion.button
-                    key={a.label}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 + i * 0.04 }}
-                    whileTap={{ scale: 0.95 }}
-                    whileHover={{ y: -3 }}
-                    onClick={() => navigate(a.to)}
-                    className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-xl p-2.5 flex flex-col items-center gap-1.5 hover:border-primary/40 hover:shadow-lg transition-all"
-                  >
-                    <span className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center", a.tint)}>
-                      <a.icon className={cn("h-4 w-4", a.fg)} />
-                    </span>
-                    <span className="text-[10px] font-semibold text-foreground/80">{a.label}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </section>
-          </AnimatedSection>
 
           {/* ── Game Shop ── */}
           <AnimatedSection delay={0.05}>
@@ -383,11 +353,14 @@ const Home = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: "MLBB Diamonds", name: "Mobile Legends", short: "MLBB", image: "/images/games/mobile-legends.png" },
-                  { id: "PUBG UC", name: "PUBG Mobile", short: "PUBG UC", image: "/images/games/pubg-mobile.png" },
-                  { id: "Magic Chess Diamonds", name: "Magic Chess GoGo", short: "Magic Chess", image: "/images/games/magic-chess.png" },
-                ].map((g, i) => (
+                {catalogGames.map((cg, i) => {
+                  const g = {
+                    id: cg.category_key,
+                    name: cg.name,
+                    short: cg.short_name || cg.name,
+                    image: cg.image_url || "/images/games/mobile-legends.png",
+                  };
+                  return (
                   <motion.button
                     key={g.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -411,7 +384,9 @@ const Home = () => {
                       <p className="text-[9px] text-muted-foreground truncate">Instant</p>
                     </div>
                   </motion.button>
-                ))}
+                  );
+                })}
+
               </div>
             </section>
           </AnimatedSection>

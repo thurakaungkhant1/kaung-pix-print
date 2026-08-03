@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import WalletDisplay from "@/components/WalletDisplay";
 import TopUpDialog from "@/components/TopUpDialog";
+import { useGameCatalog } from "@/hooks/useGameCatalog";
 
 
 import {
@@ -81,12 +82,8 @@ interface Order {
   };
 }
 
-// Game categories with icons and images
-const GAME_CATEGORIES = [
-  { id: "MLBB Diamonds", name: "Mobile Legends", icon: Diamond, color: "text-blue-500", image: "/images/games/mobile-legends.png" },
-  { id: "PUBG UC", name: "PUBG Mobile", icon: Gamepad2, color: "text-yellow-500", image: "/images/games/pubg-mobile.png" },
-  { id: "Magic Chess Diamonds", name: "Magic Chess GoGo", icon: Diamond, color: "text-fuchsia-500", image: "/images/games/magic-chess.png" },
-];
+// Game categories are managed by admins in the Game Shop admin page.
+const FALLBACK_GAME_IMAGE = "/images/games/mobile-legends.png";
 
 const MOBILE_CATEGORIES = [
   { id: "Phone Top-up", name: "Phone Top-up", icon: Smartphone },
@@ -94,7 +91,7 @@ const MOBILE_CATEGORIES = [
   { id: "Voice Plans", name: "Voice Plans", icon: Phone },
 ];
 
-const MOBILE_OPERATORS = ["MPT", "Ooredoo", "Mytel", "Atom"] as const;
+const DEFAULT_OPERATORS = ["MPT", "Ooredoo", "Mytel", "Atom"];
 
 const matchesOperator = (productName: string, operator: string) => {
   const n = productName.toLowerCase().trim();
@@ -108,6 +105,23 @@ const GamePage = () => {
   const navigate = useNavigate();
   const [digitalCats, setDigitalCats] = useState<{ id: string; name: string; icon: string | null }[]>([]);
   const { enabled: mobileServicesEnabled } = useFeatureFlag("mobile_services", true);
+  const { games: catalogGames } = useGameCatalog();
+  const [operators, setOperators] = useState<{ name: string; logo_url: string | null }[]>(
+    DEFAULT_OPERATORS.map((name) => ({ name, logo_url: null }))
+  );
+  const GAME_CATEGORIES = useMemo(
+    () =>
+      catalogGames.map((g) => ({
+        id: g.category_key,
+        name: g.name,
+        icon: Diamond,
+        color: "text-primary",
+        image: g.image_url || FALLBACK_GAME_IMAGE,
+        requiresServerId: g.requires_server_id,
+        nicknameKey: g.nickname_key,
+      })),
+    [catalogGames]
+  );
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,19 +143,15 @@ const GamePage = () => {
   const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
   const [nameCheckError, setNameCheckError] = useState<{ id?: string; server?: string }>({});
 
-  const nicknameGameKey = (cat: string | null): string | null => {
-    if (cat === "MLBB Diamonds") return "ml";
-    if (cat === "Magic Chess Diamonds") return "mcgg";
-    if (cat === "PUBG UC") return "pubgm";
-    return null;
-  };
+  const nicknameGameKey = (cat: string | null): string | null =>
+    GAME_CATEGORIES.find((g) => g.id === cat)?.nicknameKey || null;
 
   // Auto check the in-game name whenever the player enters valid credentials
   useEffect(() => {
     const key = nicknameGameKey(selectedGameCategory);
     const id = gameId.trim();
     const zone = serverId.trim();
-    const zoneNeeded = key === "ml" || key === "mcgg";
+    const zoneNeeded = !!GAME_CATEGORIES.find((g) => g.id === selectedGameCategory)?.requiresServerId;
 
     setNameCheckError({});
     if (!key || !/^\d{4,15}$/.test(id) || (zoneNeeded && !/^\d{1,5}$/.test(zone))) {
@@ -173,7 +183,7 @@ const GamePage = () => {
     }, 600);
 
     return () => { cancelled = true; clearTimeout(t); };
-  }, [gameId, serverId, selectedGameCategory]);
+  }, [gameId, serverId, selectedGameCategory, GAME_CATEGORIES]);
 
 
   const handleCopyName = async () => {
@@ -202,6 +212,18 @@ const GamePage = () => {
   // Reset diamond tier when switching games (must be before any early return)
   useEffect(() => { setSelectedDiamondTier(null); }, [selectedGameCategory]);
 
+  // Mobile operators (admin-managed)
+  useEffect(() => {
+    (supabase as any)
+      .from("mobile_operators")
+      .select("name,logo_url,display_order")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
+      .then(({ data }: any) => {
+        if (data && data.length) setOperators(data);
+      });
+  }, []);
+
   // Digital product categories for the Digital tab
   useEffect(() => {
     (supabase as any)
@@ -228,7 +250,7 @@ const GamePage = () => {
     if (!searchParams.has("g")) return;
     const g = searchParams.get("g") || "";
     setActiveCategory("games");
-    setSelectedGameCategory(GAME_CATEGORIES.some((c) => c.id === g) ? g : null);
+    setSelectedGameCategory(g || null);
   }, [searchParams]);
 
 
@@ -311,10 +333,9 @@ const GamePage = () => {
     return MOBILE_CATEGORIES.some(cat => cat.id === category);
   };
 
-  // MLBB and Magic Chess require Server / Zone ID
-  const requiresServerId = (category: string) => {
-    return category === "MLBB Diamonds" || category === "Magic Chess Diamonds";
-  };
+  // Admin decides per game whether a Server / Zone ID is needed
+  const requiresServerId = (category: string) =>
+    !!GAME_CATEGORIES.find((g) => g.id === category)?.requiresServerId;
 
   const getFilteredProducts = () => {
     if (activeCategory === "games") {
@@ -471,7 +492,9 @@ const GamePage = () => {
   const filteredProducts = getFilteredProducts();
 
   // For new layout: track inline player credentials
-  const selectedGame = GAME_CATEGORIES.find(g => g.id === selectedGameCategory) || GAME_CATEGORIES[0];
+  const selectedGame =
+    GAME_CATEGORIES.find(g => g.id === selectedGameCategory) ||
+    GAME_CATEGORIES[0] || { id: "", name: "", icon: Diamond, color: "text-primary", image: FALLBACK_GAME_IMAGE, requiresServerId: false, nicknameKey: null };
   const gameProducts = products
     .filter(p => p.category === selectedGame.id)
     .sort((a, b) => a.price - b.price);
@@ -1007,36 +1030,51 @@ const GamePage = () => {
                 })}
               </div>
 
-              {/* Operator filter row */}
-              <div className="flex gap-2 overflow-x-auto no-scrollbar mt-2">
-                <button
-                  onClick={() => setSelectedOperator(null)}
-                  className={cn(
-                    "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold border transition-all",
-                    !selectedOperator
-                      ? "bg-accent text-accent-foreground border-accent"
-                      : "bg-card/40 text-muted-foreground border-border/40 hover:border-accent/50 hover:text-foreground"
-                  )}
-                >
-                  All Operators
-                </button>
-                {MOBILE_OPERATORS.map((op) => {
-                  const active = selectedOperator === op;
-                  return (
+              {/* Operator picker — game-shop style cards */}
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-display font-bold tracking-tight">Choose your operator</h3>
+                  {selectedOperator && (
                     <button
-                      key={op}
-                      onClick={() => setSelectedOperator(active ? null : op)}
-                      className={cn(
-                        "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold border transition-all",
-                        active
-                          ? "bg-accent text-accent-foreground border-accent"
-                          : "bg-card/40 text-muted-foreground border-border/40 hover:border-accent/50 hover:text-foreground"
-                      )}
+                      onClick={() => setSelectedOperator(null)}
+                      className="text-[11px] font-semibold text-primary"
                     >
-                      {op}
+                      Show all
                     </button>
-                  );
-                })}
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {operators.map((op) => {
+                    const active = selectedOperator === op.name;
+                    const count = products.filter(
+                      (p) => isMobileProduct(p.category) && matchesOperator(p.name, op.name)
+                    ).length;
+                    return (
+                      <button
+                        key={op.name}
+                        onClick={() => setSelectedOperator(active ? null : op.name)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-2xl border p-3 text-left transition-all",
+                          active
+                            ? "bg-primary/10 border-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.08)]"
+                            : "bg-card border-border/60 hover:border-primary/40 hover:shadow-lg"
+                        )}
+                      >
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                          {op.logo_url ? (
+                            <img src={op.logo_url} alt={op.name} loading="lazy" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-sm font-black text-primary">{op.name.slice(0, 2).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate">{op.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{count} packages</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
