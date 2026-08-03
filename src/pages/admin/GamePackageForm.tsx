@@ -17,10 +17,11 @@ const GamePackageForm = () => {
   const [loading, setLoading] = useState(false);
   const [gameName, setGameName] = useState(category);
   const [gameImage, setGameImage] = useState("");
+  const [requiresServerId, setRequiresServerId] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
-    cost_price: "0",
+    cost_price: "",
     description: "",
     image_url: "",
     points_value: "0",
@@ -38,12 +39,14 @@ const GamePackageForm = () => {
   const loadGame = async () => {
     const { data } = await (supabase as any)
       .from("game_catalog")
-      .select("name,image_url")
+      .select("name,image_url,requires_server_id")
       .eq("category_key", category)
       .maybeSingle();
     if (data?.name) setGameName(data.name);
     if (data?.image_url) setGameImage(data.image_url);
+    if (data) setRequiresServerId(!!data.requires_server_id);
   };
+
 
   const loadPackage = async () => {
     const { data, error } = await supabase
