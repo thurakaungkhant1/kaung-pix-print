@@ -61,6 +61,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_public: boolean
           setting_key: string
           setting_value: string
           updated_at: string
@@ -69,6 +70,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_public?: boolean
           setting_key: string
           setting_value: string
           updated_at?: string
@@ -77,6 +79,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_public?: boolean
           setting_key?: string
           setting_value?: string
           updated_at?: string
