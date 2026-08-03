@@ -23,7 +23,9 @@ interface Product {
   points_value: number;
   category: string;
   is_premium: boolean;
+  smile_package_id: string | null;
 }
+
 
 // Category type definitions
 const GAME_CATEGORIES = ['MLBB Diamonds', 'PUBG UC', 'Free Fire', 'Genshin', 'Gift Cards'];
@@ -34,7 +36,7 @@ const PHYSICAL_CATEGORIES = ['Electronics', 'Accessories', 'General'];
 const ProductsManage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
+  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false, smile_package_id: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "digital" | "mobile">("all");
@@ -116,19 +118,25 @@ const ProductsManage = () => {
       points_value: product.points_value,
       category: product.category,
       is_premium: product.is_premium || false,
+      smile_package_id: product.smile_package_id || "",
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false });
+    setEditForm({ name: "", description: "", price: 0, image_url: "", points_value: 0, category: "General", is_premium: false, smile_package_id: "" });
+
   };
 
   const saveEdit = async () => {
     const { error } = await supabase
       .from("products")
-      .update(editForm)
+      .update({
+        ...editForm,
+        smile_package_id: editForm.smile_package_id.trim() === "" ? null : editForm.smile_package_id.trim(),
+      })
       .eq("id", editingId);
+
 
     if (error) {
       toast({
@@ -297,6 +305,20 @@ const ProductsManage = () => {
                     onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
                   />
                 </div>
+                {GAME_CATEGORIES.includes(editForm.category) && (
+                  <div>
+                    <Label>Smile.One Package ID</Label>
+                    <Input
+                      value={editForm.smile_package_id}
+                      onChange={(e) => setEditForm({ ...editForm, smile_package_id: e.target.value })}
+                      placeholder="e.g. 212"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Used for Smile.One auto top-up on game recharge products.
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                   <Switch
                     id="is_premium"
@@ -341,6 +363,12 @@ const ProductsManage = () => {
                     <p className="text-primary font-bold mt-2">{product.price.toLocaleString()} MMK</p>
                     <p className="text-xs text-muted-foreground mt-1">Points: {product.points_value}</p>
                     <p className="text-xs text-muted-foreground">Category: {product.category}</p>
+                    {GAME_CATEGORIES.includes(product.category) && (
+                      <p className="text-xs text-muted-foreground">
+                        Smile.One ID: {product.smile_package_id || "—"}
+                      </p>
+                    )}
+
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button

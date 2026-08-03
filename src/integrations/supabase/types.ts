@@ -1954,6 +1954,7 @@ export type Database = {
           physical_category_id: string | null
           points_value: number
           price: number
+          smile_package_id: string | null
           status: string | null
           stock_quantity: number | null
         }
@@ -1971,6 +1972,7 @@ export type Database = {
           physical_category_id?: string | null
           points_value?: number
           price: number
+          smile_package_id?: string | null
           status?: string | null
           stock_quantity?: number | null
         }
@@ -1988,6 +1990,7 @@ export type Database = {
           physical_category_id?: string | null
           points_value?: number
           price?: number
+          smile_package_id?: string | null
           status?: string | null
           stock_quantity?: number | null
         }
