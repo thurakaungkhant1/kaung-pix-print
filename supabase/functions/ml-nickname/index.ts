@@ -3,6 +3,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Supported games and whether a zone/server id is required
+const GAMES: Record<string, { path: string; zone: boolean }> = {
+  ml: { path: "ml", zone: true },
+  mcgg: { path: "mcgg", zone: true },
+  pubgm: { path: "pubgm", zone: false },
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -10,15 +17,27 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const id = (url.searchParams.get("id") || "").trim();
     const zone = (url.searchParams.get("zone") || "").trim();
+    const gameKey = (url.searchParams.get("game") || "ml").trim().toLowerCase();
+    const game = GAMES[gameKey];
 
-    if (!/^\d{3,15}$/.test(id) || !/^\d{1,5}$/.test(zone)) {
+    if (!game) {
+      return new Response(
+        JSON.stringify({ success: false, message: "Unsupported game" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!/^\d{3,15}$/.test(id) || (game.zone && !/^\d{1,5}$/.test(zone))) {
       return new Response(
         JSON.stringify({ success: false, message: "Invalid ID or Zone" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const upstream = `https://api.isan.eu.org/nickname/ml?id=${encodeURIComponent(id)}&zone=${encodeURIComponent(zone)}`;
+    const upstream = game.zone
+      ? `https://api.isan.eu.org/nickname/${game.path}?id=${encodeURIComponent(id)}&zone=${encodeURIComponent(zone)}`
+      : `https://api.isan.eu.org/nickname/${game.path}?id=${encodeURIComponent(id)}`;
+
     const r = await fetch(upstream, { headers: { Accept: "application/json" } });
     const text = await r.text();
     let json: any = {};
@@ -43,7 +62,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ success: false, message: json?.message || "Player not found" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (e) {
+  } catch (_e) {
     return new Response(
       JSON.stringify({ success: false, message: "Cannot retrieve game name" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },

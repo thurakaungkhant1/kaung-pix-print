@@ -407,6 +407,7 @@ const GamePage = () => {
         p_phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : null,
         p_plan_id: null,
         p_plan_name: null,
+        p_player_name: nameCheckResult?.ok ? nameCheckResult.name ?? null : null,
         p_delivery_address: "",
       });
 
