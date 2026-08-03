@@ -170,6 +170,86 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true }));
   }
 
+  // -------- Smile.One Auto Fill (admin-only, optional) --------
+  if (action === 'autofill') {
+    if (!entityId) {
+      await tg('answerCallbackQuery', { callback_query_id: cb.id, text: 'Invalid action' });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+
+    await tg('answerCallbackQuery', { callback_query_id: cb.id, text: '⏳ Preparing Auto Fill...' });
+    await tg('sendMessage', { chat_id: chatId, text: '⏳ Preparing Auto Fill...' });
+
+    const { data: o } = await supabase
+      .from('orders')
+      .select('id, status, order_type, game_id, server_id, product_id, smile_package_id, plan_name')
+      .eq('id', entityId).maybeSingle();
+
+    if (!o) {
+      await tg('sendMessage', { chat_id: chatId, text: '⚠️ Validation Failed\nOrder not found.' });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+
+    const { data: product } = await supabase
+      .from('products').select('name, smile_package_id').eq('id', o.product_id).maybeSingle();
+
+    const packageId = o.smile_package_id ?? product?.smile_package_id ?? null;
+    const productName = product?.name ?? o.plan_name ?? '-';
+
+    if (o.order_type !== 'game' || o.status !== 'approved') {
+      await tg('sendMessage', {
+        chat_id: chatId,
+        text: '⚠️ Validation Failed\nAuto Fill is only available for approved game orders.',
+      });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+
+    if (!packageId) {
+      await tg('sendMessage', {
+        chat_id: chatId,
+        text: '⚠️ Validation Failed\nSmile.One Package ID is not configured for this product.',
+      });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+
+    const missing: string[] = [];
+    if (!o.game_id) missing.push('game_id');
+    if (!o.server_id) missing.push('server_id');
+    if (missing.length) {
+      await tg('sendMessage', {
+        chat_id: chatId,
+        text: `⚠️ Validation Failed\nMissing field(s): ${missing.join(', ')}`,
+      });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+
+    // Payload is prepared only — the request is intentionally NOT sent yet.
+    const payload = {
+      order_id: String(o.id),
+      game_id: String(o.game_id),
+      zone_id: String(o.server_id),
+      package_id: String(packageId),
+    };
+    // Endpoint stays configurable for later activation.
+    const endpoint = Deno.env.get('SMILE_ONE_AUTOFILL_ENDPOINT') || '(not configured)';
+    console.log('Smile.One auto-fill prepared', { endpoint, payload });
+
+    await tg('sendMessage', {
+      chat_id: chatId,
+      text:
+        `✅ Ready to Send\n\n` +
+        `📦 Product: ${productName}\n` +
+        `🎯 Game ID: ${payload.game_id}\n` +
+        `🌐 Zone ID: ${payload.zone_id}\n` +
+        `🧩 Package ID: ${payload.package_id}\n` +
+        `🆔 Order: ${payload.order_id}\n\n` +
+        `🔗 Endpoint: ${endpoint}\n` +
+        `<pre>${JSON.stringify(payload, null, 2)}</pre>`,
+      parse_mode: 'HTML',
+    });
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
   // -------- Order actions --------
   if (!['confirm', 'cancel'].includes(action) || !entityId) {
     await tg('answerCallbackQuery', { callback_query_id: cb.id, text: 'Invalid action' });
@@ -178,7 +258,8 @@ Deno.serve(async (req) => {
 
   const { data: order } = await supabase
     .from('orders')
-    .select('id, user_id, status, quantity, price, phone_number, payment_method, transaction_id, created_at, product_id, plan_name, game_id, server_id, game_name, delivery_address, order_type')
+    .select('id, user_id, status, quantity, price, phone_number, payment_method, transaction_id, created_at, product_id, plan_name, game_id, server_id, game_name, delivery_address, order_type, smile_package_id')
+
     .eq('id', entityId).maybeSingle();
 
   if (!order) {
