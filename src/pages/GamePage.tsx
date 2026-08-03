@@ -103,6 +103,7 @@ const matchesOperator = (productName: string, operator: string) => {
 
 
 const GamePage = () => {
+  const [searchParams] = useSearchParams();
   const { enabled: mobileServicesEnabled } = useFeatureFlag("mobile_services", true);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
