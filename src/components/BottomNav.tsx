@@ -24,7 +24,7 @@ const BottomNav = () => {
 
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
-    { to: "/game", icon: ShoppingBag, label: "Shop" },
+    { to: "/game?view=shop", icon: ShoppingBag, label: "Shop" },
     {
       to: isAdmin ? "/admin" : "/account",
       icon: isAdmin ? Settings : User,

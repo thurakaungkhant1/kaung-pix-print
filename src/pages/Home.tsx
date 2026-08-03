@@ -17,6 +17,7 @@ import AdBanner from "@/components/AdBanner";
 import AnimatedPage from "@/components/animations/AnimatedPage";
 import AnimatedSection from "@/components/animations/AnimatedSection";
 import { motion } from "framer-motion";
+import appLogo from "@/assets/app-logo.png";
 
 interface PromotionalBanner {
   id: string;
@@ -237,8 +238,8 @@ const Home = () => {
               className="flex items-center justify-between mb-4"
             >
               <div className="flex items-center gap-2.5">
-                <span className="w-9 h-9 rounded-2xl bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center shadow-lg shadow-primary/20">
-                  <Sparkles className="h-4 w-4 text-primary-foreground" />
+                <span className="w-9 h-9 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-lg shadow-primary/10 overflow-hidden">
+                  <img src={appLogo} alt="Kaung Digital Store logo" width={36} height={36} className="w-full h-full object-contain" />
                 </span>
                 <div className="leading-tight">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
@@ -274,49 +275,59 @@ const Home = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="relative overflow-hidden rounded-[26px] p-5 shadow-xl ring-1 ring-primary/20"
+              className="relative overflow-hidden rounded-3xl border border-primary/20 shadow-2xl shadow-primary/10"
               style={{
                 background:
-                  "radial-gradient(120% 90% at 0% 0%, hsl(var(--primary) / 0.35), transparent 60%), radial-gradient(120% 90% at 100% 100%, hsl(var(--accent) / 0.28), transparent 55%), linear-gradient(140deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)",
+                  "linear-gradient(135deg, hsl(var(--primary) / 0.92) 0%, hsl(var(--primary) / 0.65) 42%, hsl(var(--accent) / 0.75) 100%)",
               }}
             >
-              <div
-                className="absolute inset-0 opacity-[0.06] pointer-events-none"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
-                  backgroundSize: "26px 26px",
-                }}
-              />
-              <div className="relative">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold">
-                  Wallet balance
-                </p>
-                <div className="flex items-end justify-between gap-3 mt-1">
-                  <p className="text-[28px] leading-none font-display font-black tabular-nums tracking-tight">
-                    {formatMMK(walletBalance)}
-                  </p>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-amber-500/12 border border-amber-500/25">
-                    <Sparkles className="h-3 w-3 text-amber-500" />
-                    <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+              {/* soft light orbs */}
+              <div className="absolute -top-16 -right-10 w-44 h-44 rounded-full bg-white/20 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-20 -left-12 w-48 h-48 rounded-full bg-black/20 blur-3xl pointer-events-none" />
+
+              <div className="relative p-5">
+                <div className="flex items-start justify-between">
+                  <div className="inline-flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-primary-foreground/15 border border-primary-foreground/20 flex items-center justify-center backdrop-blur-sm">
+                      <Wallet className="h-4 w-4 text-primary-foreground" />
+                    </span>
+                    <div className="leading-tight">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-primary-foreground/70 font-semibold">
+                        Wallet balance
+                      </p>
+                      <p className="text-[11px] text-primary-foreground/60 font-medium -mt-0.5">Kaung Digital Store</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/games')}
+                    className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-full bg-primary-foreground/15 border border-primary-foreground/20 backdrop-blur-sm"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                    <span className="text-[11px] font-bold text-primary-foreground tabular-nums">
                       {totalCoins.toLocaleString()}
                     </span>
-                  </span>
+                  </button>
                 </div>
-                <div className="flex items-center gap-2 mt-4">
-                  <Button
+
+                <div className="mt-5 flex items-end gap-2">
+                  <p className="text-[34px] leading-none font-display font-black tabular-nums tracking-tight text-primary-foreground">
+                    {formatMMK(walletBalance)}
+                  </p>
+                </div>
+
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <button
                     onClick={() => navigate('/top-up')}
-                    className="flex-1 h-10 rounded-2xl font-semibold text-xs shadow-lg shadow-primary/20"
+                    className="h-11 rounded-2xl bg-primary-foreground text-primary font-bold text-xs inline-flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.98] transition"
                   >
-                    <Wallet className="h-3.5 w-3.5 mr-1.5" /> Top Up
-                  </Button>
-                  <Button
-                    variant="outline"
+                    <Wallet className="h-4 w-4" /> Top Up
+                  </button>
+                  <button
                     onClick={() => navigate('/wallet-history')}
-                    className="flex-1 h-10 rounded-2xl font-semibold text-xs bg-card/60 backdrop-blur"
+                    className="h-11 rounded-2xl bg-primary-foreground/15 border border-primary-foreground/25 text-primary-foreground font-bold text-xs inline-flex items-center justify-center gap-1.5 backdrop-blur-sm active:scale-[0.98] transition"
                   >
-                    <Receipt className="h-3.5 w-3.5 mr-1.5" /> History
-                  </Button>
+                    <Receipt className="h-4 w-4" /> History
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -327,7 +338,7 @@ const Home = () => {
             <section className="px-5 py-4">
               <div className="grid grid-cols-4 gap-2.5">
                 {[
-                  { label: "Shop", icon: ShoppingBag, to: "/game", tint: "from-primary/20 to-primary/5", fg: "text-primary" },
+                  { label: "Shop", icon: ShoppingBag, to: "/game?view=shop", tint: "from-primary/20 to-primary/5", fg: "text-primary" },
                   { label: "Top Up", icon: Wallet, to: "/top-up", tint: "from-emerald-500/20 to-emerald-500/5", fg: "text-emerald-500" },
                   { label: "Games", icon: Gamepad2, to: "/games", tint: "from-fuchsia-500/20 to-fuchsia-500/5", fg: "text-fuchsia-500" },
                   { label: "Orders", icon: Receipt, to: "/orders", tint: "from-amber-500/20 to-amber-500/5", fg: "text-amber-500" },
