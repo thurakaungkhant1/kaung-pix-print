@@ -166,18 +166,45 @@ const GamePackageForm = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {requiresServerId !== null && (
+                <div className="rounded-lg border bg-muted/40 p-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    {requiresServerId ? <Server className="h-4 w-4" /> : <IdCard className="h-4 w-4" />}
+                    ID Mode: {requiresServerId ? "Player ID + Server ID" : "Player ID only"}
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <div className="rounded-md bg-background p-2 text-xs">
+                      <p className="font-medium">Player ID</p>
+                      <p className="text-muted-foreground">User ထည့်ရမည် (required)</p>
+                    </div>
+                    <div className={`rounded-md p-2 text-xs ${requiresServerId ? "bg-background" : "bg-background/40 opacity-60"}`}>
+                      <p className="font-medium">Server ID</p>
+                      <p className="text-muted-foreground">
+                        {requiresServerId ? "User ထည့်ရမည် (required)" : "မလိုအပ်ပါ (hidden)"}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Game catalog မှာ ပြောင်းလဲနိုင်ပါသည်။ ဤ package အတွက် checkout form က အလိုအလျောက် ဒီအတိုင်း ပြပါမည်။
+                  </p>
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="name">Package Name *</Label>
                 <Input
                   id="name"
-                  placeholder="e.g., 86 Diamonds, 325 UC"
+                  placeholder={requiresServerId ? "e.g., 86 Diamonds" : "e.g., 325 UC"}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Package ထဲပါတဲ့ အရေအတွက်ကို နာမည်ထဲ ထည့်ပါ
+                </p>
               </div>
               <div>
-                <Label htmlFor="price">Price (Kyat) *</Label>
+                <Label htmlFor="price">Sell Price (Kyat) *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -187,18 +214,25 @@ const GamePackageForm = () => {
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   required
                 />
+                <p className="text-sm text-muted-foreground mt-1">User မှာပြမဲ့ ရောင်းစျေး (MMK)</p>
               </div>
               <div>
-                <Label htmlFor="cost_price">Cost Price (Kyat)</Label>
+                <Label htmlFor="cost_price">💰 Cost Price (Admin only)</Label>
                 <Input
                   id="cost_price"
                   type="number"
                   step="1"
-                  placeholder="0"
+                  placeholder="Your wholesale cost"
                   value={formData.cost_price}
                   onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
                 />
-                <p className="text-sm text-muted-foreground mt-1">Used for profit reporting</p>
+                {formData.price && formData.cost_price && Number(formData.price) > 0 && Number(formData.cost_price) > 0 && (
+                  <p className="text-sm text-green-600 font-medium mt-1">
+                    Profit: {(Number(formData.price) - Number(formData.cost_price)).toLocaleString()} Ks
+                    {" "}({(((Number(formData.price) - Number(formData.cost_price)) / Number(formData.price)) * 100).toFixed(1)}%)
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Admin ကသာ မြင်ရမည်။ အမြတ်တွက်ရန်။</p>
               </div>
               <div>
                 <Label htmlFor="points_value">Bonus Coins</Label>
@@ -209,7 +243,11 @@ const GamePackageForm = () => {
                   value={formData.points_value}
                   onChange={(e) => setFormData({ ...formData, points_value: e.target.value })}
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Optional loyalty points users earn when purchasing
+                </p>
               </div>
+
               <div>
                 <Label htmlFor="image_url">Image URL</Label>
                 <Input
