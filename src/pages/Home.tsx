@@ -78,6 +78,7 @@ const EARN_POINTS_GAMES = [
 ];
 
 const Home = () => {
+  const { games: catalogGames } = useGameCatalog();
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [digitalLoading, setDigitalLoading] = useState(true);
   const [digitalError, setDigitalError] = useState<string | null>(null);
@@ -352,11 +353,14 @@ const Home = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: "MLBB Diamonds", name: "Mobile Legends", short: "MLBB", image: "/images/games/mobile-legends.png" },
-                  { id: "PUBG UC", name: "PUBG Mobile", short: "PUBG UC", image: "/images/games/pubg-mobile.png" },
-                  { id: "Magic Chess Diamonds", name: "Magic Chess GoGo", short: "Magic Chess", image: "/images/games/magic-chess.png" },
-                ].map((g, i) => (
+                {catalogGames.map((cg, i) => {
+                  const g = {
+                    id: cg.category_key,
+                    name: cg.name,
+                    short: cg.short_name || cg.name,
+                    image: cg.image_url || "/images/games/mobile-legends.png",
+                  };
+                  return (
                   <motion.button
                     key={g.id}
                     initial={{ opacity: 0, y: 10 }}
