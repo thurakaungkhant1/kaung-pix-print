@@ -58,8 +58,7 @@ Deno.serve(async (req) => {
         `💰 Price: ${order.price} MMK\n` +
         `👤 Customer: ${customerName}\n` +
         `💳 Payment: ${order.payment_method ?? '-'}\n` +
-        `👛 Wallet Balance: ${balanceStr}\n`
- +
+        `👛 Wallet Balance: ${balanceStr}\n` +
         `📅 Time: ${timeStr}`;
     } else if (isPUBG) {
       text =
@@ -71,8 +70,7 @@ Deno.serve(async (req) => {
         `💰 Price: ${order.price} MMK\n` +
         `👤 Customer: ${customerName}\n` +
         `💳 Payment: ${order.payment_method ?? '-'}\n` +
-        `👛 Wallet Balance: ${balanceStr}\n`
- +
+        `👛 Wallet Balance: ${balanceStr}\n` +
         `📅 Time: ${timeStr}`;
     } else {
       const gameLine = order.game_id
@@ -88,8 +86,7 @@ Deno.serve(async (req) => {
         `🔢 Quantity: ${order.quantity}\n` +
         `💰 Total: ${order.price} MMK\n` +
         `💳 Payment: ${order.payment_method ?? '-'}\n` +
-        `👛 Wallet Balance: ${balanceStr}\n`
- +
+        `👛 Wallet Balance: ${balanceStr}\n` +
         `📅 Time: ${timeStr}`;
     }
 
