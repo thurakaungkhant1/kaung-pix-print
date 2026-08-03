@@ -1371,6 +1371,7 @@ export type Database = {
           product_id: number
           quantity: number
           server_id: string | null
+          smile_package_id: string | null
           status: string
           telegram_message_id: number | null
           transaction_id: string | null
@@ -1393,6 +1394,7 @@ export type Database = {
           product_id: number
           quantity?: number
           server_id?: string | null
+          smile_package_id?: string | null
           status?: string
           telegram_message_id?: number | null
           transaction_id?: string | null
@@ -1415,6 +1417,7 @@ export type Database = {
           product_id?: number
           quantity?: number
           server_id?: string | null
+          smile_package_id?: string | null
           status?: string
           telegram_message_id?: number | null
           transaction_id?: string | null
