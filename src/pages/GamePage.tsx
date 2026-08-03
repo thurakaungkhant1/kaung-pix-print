@@ -679,7 +679,7 @@ const GamePage = () => {
               )}
               </div>
 
-              {needsServer && (
+              {(
                 <div className="space-y-3 mt-3">
                   {/* Inline validation errors */}
                   {(nameCheckError.id || nameCheckError.server) && (
@@ -693,20 +693,13 @@ const GamePage = () => {
                     </div>
                   )}
 
-                  {/* Game Name Checker */}
-                  <Button
-                    type="button"
-                    onClick={handleCheckGameName}
-                    disabled={nameCheckLoading}
-                    variant="outline"
-                    className="w-full h-11 rounded-xl border-primary/30 hover:border-primary/60 hover:bg-primary/5 font-semibold"
-                  >
-                    {nameCheckLoading ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Checking...</>
-                    ) : (
-                      <><Search className="h-4 w-4" /> Game Name Checker</>
-                    )}
-                  </Button>
+                  {/* Auto game name checker status */}
+                  {nameCheckLoading && (
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking player name...
+                    </p>
+                  )}
+
 
                   {/* Result Card */}
                   {nameCheckResult && (
