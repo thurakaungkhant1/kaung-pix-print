@@ -23,7 +23,9 @@ interface Product {
   points_value: number;
   category: string;
   is_premium: boolean;
+  smile_package_id: string | null;
 }
+
 
 // Category type definitions
 const GAME_CATEGORIES = ['MLBB Diamonds', 'PUBG UC', 'Free Fire', 'Genshin', 'Gift Cards'];
