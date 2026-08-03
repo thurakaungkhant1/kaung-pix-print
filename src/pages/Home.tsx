@@ -497,81 +497,51 @@ const Home = () => {
             </section>
           )}
 
-          {/* ── Earn Coins (Featured Mini Games) ── */}
+          {/* ── Earn Coins (compact) ── */}
           <AnimatedSection delay={0.2}>
             <section className="px-5 mt-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-1 h-8 rounded-full bg-gradient-to-b from-primary to-fuchsia-500" />
-                  <div>
-                    <h2 className="text-base font-display font-bold tracking-tight">Earn Coins</h2>
-                    <p className="text-[11px] text-muted-foreground -mt-0.5">Play mini games and earn coins instantly</p>
+              <motion.button
+                whileTap={{ scale: 0.985 }}
+                onClick={() => navigate("/games")}
+                className="w-full text-left rounded-3xl overflow-hidden relative border border-primary/25 bg-gradient-to-br from-primary/15 via-fuchsia-500/10 to-transparent p-4"
+              >
+                <div className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-primary/20 blur-2xl" />
+                <div className="relative flex items-center gap-3">
+                  <div className="h-11 w-11 shrink-0 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center">
+                    <Gamepad2 className="h-5 w-5 text-primary" />
                   </div>
-                </div>
-                <button
-                  onClick={() => navigate("/games")}
-                  className="inline-flex items-center gap-1 text-xs text-primary font-semibold px-3 h-8 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/15 transition"
-                >
-                  See All <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {EARN_POINTS_GAMES.map((game, i) => (
-                  <motion.button
-                    key={game.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + i * 0.05 }}
-                    whileTap={{ scale: 0.97 }}
-                    whileHover={{ y: -3 }}
-                    onClick={() => navigate("/games")}
-                    className="text-left rounded-2xl overflow-hidden bg-card border border-border/60 hover:shadow-2xl hover:border-primary/30 transition-all group"
-                  >
-                    <div className={cn("aspect-[4/3] bg-gradient-to-br relative overflow-hidden", game.gradient)}>
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),transparent_55%)]" />
-
-                      <motion.div
-                        animate={{ y: [0, -6, 0], rotate: [0, 4, 0] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
-                        className="absolute right-3 bottom-3 text-4xl drop-shadow-lg"
-                      >
-                        {game.emoji}
-                      </motion.div>
-
-                      <div className="absolute top-2.5 right-2.5 glass-chip rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
-                        <Zap className="h-3 w-3 text-yellow-200" fill="currentColor" />
-                        <span className="text-[10px] font-extrabold text-white tracking-wide">
-                          +{game.points}
-                        </span>
-                      </div>
-
-                      <div className="absolute inset-x-2 bottom-2 glass-chip rounded-xl px-3 py-2 flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-white/25 flex items-center justify-center backdrop-blur">
-                          <Gamepad2 className="h-3.5 w-3.5 text-white" />
-                        </div>
-                        <p className="text-xs font-bold text-white truncate drop-shadow">{game.name}</p>
-                      </div>
-                    </div>
-                    <div className="p-3 flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-muted-foreground">Tap to play</span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                        +{game.points} pts
-                        <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <h2 className="text-sm font-display font-bold tracking-tight">Earn Coins</h2>
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-yellow-400/15 border border-yellow-400/30 px-1.5 py-[1px] text-[9px] font-extrabold text-yellow-600 dark:text-yellow-300">
+                        <Zap className="h-2.5 w-2.5" fill="currentColor" /> FREE
                       </span>
                     </div>
-                  </motion.button>
-                ))}
-              </div>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      Play mini games and earn coins instantly
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-primary shrink-0" />
+                </div>
 
-              <button
-                onClick={() => navigate("/games")}
-                className="mt-3 w-full py-2.5 rounded-full bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary/15 transition"
-              >
-                Explore all mini games →
-              </button>
+                <div className="relative mt-3 flex gap-2 overflow-x-auto no-scrollbar">
+                  {EARN_POINTS_GAMES.map((game) => (
+                    <span
+                      key={game.id}
+                      className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-background/70 border border-border/60 px-2.5 py-1"
+                    >
+                      <span className="text-sm leading-none">{game.emoji}</span>
+                      <span className="text-[11px] font-semibold">{game.name}</span>
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                        +{game.points}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </motion.button>
             </section>
           </AnimatedSection>
+
 
 
 
