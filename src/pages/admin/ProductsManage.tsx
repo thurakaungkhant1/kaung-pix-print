@@ -297,6 +297,20 @@ const ProductsManage = () => {
                     onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
                   />
                 </div>
+                {GAME_CATEGORIES.includes(editForm.category) && (
+                  <div>
+                    <Label>Smile.One Package ID</Label>
+                    <Input
+                      value={editForm.smile_package_id}
+                      onChange={(e) => setEditForm({ ...editForm, smile_package_id: e.target.value })}
+                      placeholder="e.g. 212"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Used for Smile.One auto top-up on game recharge products.
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                   <Switch
                     id="is_premium"
