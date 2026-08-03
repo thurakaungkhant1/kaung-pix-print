@@ -257,9 +257,9 @@ const GamePage = () => {
     return MOBILE_CATEGORIES.some(cat => cat.id === category);
   };
 
-  // Only MLBB requires Server ID
+  // MLBB and Magic Chess require Server / Zone ID
   const requiresServerId = (category: string) => {
-    return category === "MLBB Diamonds";
+    return category === "MLBB Diamonds" || category === "Magic Chess Diamonds";
   };
 
   const getFilteredProducts = () => {
