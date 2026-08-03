@@ -33,9 +33,11 @@ Deno.serve(async (req) => {
     }
 
     const [{ data: profile }, { data: product }] = await Promise.all([
-      supabase.from('profiles').select('name').eq('id', order.user_id).maybeSingle(),
+      supabase.from('profiles').select('name, wallet_balance').eq('id', order.user_id).maybeSingle(),
       supabase.from('products').select('name, category').eq('id', order.product_id).maybeSingle(),
     ]);
+
+    const balanceStr = `${new Intl.NumberFormat('en-US').format(Number(profile?.wallet_balance) || 0)} MMK`;
 
     const shortId = String(order.id).slice(0, 8).toUpperCase();
     const customerName = profile?.name ?? 'Unknown';
