@@ -70,6 +70,7 @@ const emptyForm = {
 const DigitalProductsManage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { enabled: featureEnabled, setFlag: setFeatureFlag } = useFeatureFlag("digital_products", true);
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
