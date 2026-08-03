@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Gem } from "lucide-react";
+import { ArrowLeft, Gem, IdCard, Server } from "lucide-react";
 
 const GamePackageForm = () => {
   const { id, categoryKey = "" } = useParams();
@@ -17,10 +17,11 @@ const GamePackageForm = () => {
   const [loading, setLoading] = useState(false);
   const [gameName, setGameName] = useState(category);
   const [gameImage, setGameImage] = useState("");
+  const [requiresServerId, setRequiresServerId] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
-    cost_price: "0",
+    cost_price: "",
     description: "",
     image_url: "",
     points_value: "0",
@@ -38,12 +39,14 @@ const GamePackageForm = () => {
   const loadGame = async () => {
     const { data } = await (supabase as any)
       .from("game_catalog")
-      .select("name,image_url")
+      .select("name,image_url,requires_server_id")
       .eq("category_key", category)
       .maybeSingle();
     if (data?.name) setGameName(data.name);
     if (data?.image_url) setGameImage(data.image_url);
+    if (data) setRequiresServerId(!!data.requires_server_id);
   };
+
 
   const loadPackage = async () => {
     const { data, error } = await supabase
@@ -58,7 +61,7 @@ const GamePackageForm = () => {
       setFormData({
         name: data.name,
         price: data.price.toString(),
-        cost_price: (data.cost_price ?? 0).toString(),
+        cost_price: (data as any).cost_price ? String((data as any).cost_price) : "",
         description: data.description || "",
         image_url: data.image_url,
         points_value: data.points_value.toString(),
@@ -69,18 +72,50 @@ const GamePackageForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const name = formData.name.trim();
+    const price = parseFloat(formData.price);
+    const cost = formData.cost_price ? parseFloat(formData.cost_price) : 0;
+    const smileId = formData.smile_package_id.trim();
+
+    if (!name) {
+      toast({ title: "Package name လိုအပ်ပါသည်", variant: "destructive" });
+      return;
+    }
+    if (!formData.price || isNaN(price) || price <= 0) {
+      toast({ title: "Sell price မှန်ကန်စွာ ထည့်ပါ", variant: "destructive" });
+      return;
+    }
+    if (formData.cost_price && (isNaN(cost) || cost < 0)) {
+      toast({ title: "Cost price မှားနေပါသည်", variant: "destructive" });
+      return;
+    }
+    if (requiresServerId === false && /server/i.test(name)) {
+      toast({
+        title: "ID mode မကိုက်ညီပါ",
+        description: `${gameName} သည် Player ID only ဖြစ်ပါသည်။ Package name ထဲတွင် Server ID မထည့်ပါနှင့်။`,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (smileId && !/^[A-Za-z0-9_-]+$/.test(smileId)) {
+      toast({ title: "Smile.One Package ID မှားနေပါသည်", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     const packageData: Record<string, unknown> = {
-      name: formData.name,
-      price: parseFloat(formData.price) || 0,
-      cost_price: parseFloat(formData.cost_price) || 0,
+      name,
+      price,
+      cost_price: cost,
       description: formData.description || null,
       image_url: formData.image_url || gameImage || "/placeholder.svg",
       points_value: parseInt(formData.points_value) || 0,
-      smile_package_id: formData.smile_package_id.trim() || null,
+      smile_package_id: smileId || null,
       category,
     };
+
 
     let error;
     if (id) {
@@ -131,18 +166,45 @@ const GamePackageForm = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {requiresServerId !== null && (
+                <div className="rounded-lg border bg-muted/40 p-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    {requiresServerId ? <Server className="h-4 w-4" /> : <IdCard className="h-4 w-4" />}
+                    ID Mode: {requiresServerId ? "Player ID + Server ID" : "Player ID only"}
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <div className="rounded-md bg-background p-2 text-xs">
+                      <p className="font-medium">Player ID</p>
+                      <p className="text-muted-foreground">User ထည့်ရမည် (required)</p>
+                    </div>
+                    <div className={`rounded-md p-2 text-xs ${requiresServerId ? "bg-background" : "bg-background/40 opacity-60"}`}>
+                      <p className="font-medium">Server ID</p>
+                      <p className="text-muted-foreground">
+                        {requiresServerId ? "User ထည့်ရမည် (required)" : "မလိုအပ်ပါ (hidden)"}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Game catalog မှာ ပြောင်းလဲနိုင်ပါသည်။ ဤ package အတွက် checkout form က အလိုအလျောက် ဒီအတိုင်း ပြပါမည်။
+                  </p>
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="name">Package Name *</Label>
                 <Input
                   id="name"
-                  placeholder="e.g., 86 Diamonds, 325 UC"
+                  placeholder={requiresServerId ? "e.g., 86 Diamonds" : "e.g., 325 UC"}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Package ထဲပါတဲ့ အရေအတွက်ကို နာမည်ထဲ ထည့်ပါ
+                </p>
               </div>
               <div>
-                <Label htmlFor="price">Price (Kyat) *</Label>
+                <Label htmlFor="price">Sell Price (Kyat) *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -152,18 +214,25 @@ const GamePackageForm = () => {
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   required
                 />
+                <p className="text-sm text-muted-foreground mt-1">User မှာပြမဲ့ ရောင်းစျေး (MMK)</p>
               </div>
               <div>
-                <Label htmlFor="cost_price">Cost Price (Kyat)</Label>
+                <Label htmlFor="cost_price">💰 Cost Price (Admin only)</Label>
                 <Input
                   id="cost_price"
                   type="number"
                   step="1"
-                  placeholder="0"
+                  placeholder="Your wholesale cost"
                   value={formData.cost_price}
                   onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
                 />
-                <p className="text-sm text-muted-foreground mt-1">Used for profit reporting</p>
+                {formData.price && formData.cost_price && Number(formData.price) > 0 && Number(formData.cost_price) > 0 && (
+                  <p className="text-sm text-green-600 font-medium mt-1">
+                    Profit: {(Number(formData.price) - Number(formData.cost_price)).toLocaleString()} Ks
+                    {" "}({(((Number(formData.price) - Number(formData.cost_price)) / Number(formData.price)) * 100).toFixed(1)}%)
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Admin ကသာ မြင်ရမည်။ အမြတ်တွက်ရန်။</p>
               </div>
               <div>
                 <Label htmlFor="points_value">Bonus Coins</Label>
@@ -174,7 +243,11 @@ const GamePackageForm = () => {
                   value={formData.points_value}
                   onChange={(e) => setFormData({ ...formData, points_value: e.target.value })}
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Optional loyalty points users earn when purchasing
+                </p>
               </div>
+
               <div>
                 <Label htmlFor="image_url">Image URL</Label>
                 <Input
