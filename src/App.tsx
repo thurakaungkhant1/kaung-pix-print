@@ -337,6 +337,15 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/admin/smile-packages"
+                  element={
+                    <ProtectedAdminRoute>
+                      <SmilePackagesManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+
+                <Route
                   path="/admin/categories"
                   element={
                     <ProtectedAdminRoute>
