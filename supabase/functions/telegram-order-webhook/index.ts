@@ -327,7 +327,14 @@ Deno.serve(async (req) => {
       `📅 Ordered: ${orderedStr}\n` +
       `🚫 Cancelled: ${nowStr}`;
 
-  await editMessage(chatId, messageId, newText);
+  const isGameOrder = order.order_type === 'game';
+  const autoFillKeyboard =
+    action === 'confirm' && newStatus === 'approved' && isGameOrder
+      ? [[{ text: '🚀 Auto Fill Smile.One', callback_data: `autofill:${order.id}` }]]
+      : undefined;
+
+  await editMessage(chatId, messageId, newText, autoFillKeyboard);
+
   await tg('answerCallbackQuery', {
     callback_query_id: cb.id,
     text: action === 'confirm' ? 'Order confirmed ✅' : 'Order cancelled ❌',
