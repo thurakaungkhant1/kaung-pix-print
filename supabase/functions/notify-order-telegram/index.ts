@@ -33,9 +33,11 @@ Deno.serve(async (req) => {
     }
 
     const [{ data: profile }, { data: product }] = await Promise.all([
-      supabase.from('profiles').select('name').eq('id', order.user_id).maybeSingle(),
+      supabase.from('profiles').select('name, wallet_balance').eq('id', order.user_id).maybeSingle(),
       supabase.from('products').select('name, category').eq('id', order.product_id).maybeSingle(),
     ]);
+
+    const balanceStr = `${new Intl.NumberFormat('en-US').format(Number(profile?.wallet_balance) || 0)} MMK`;
 
     const shortId = String(order.id).slice(0, 8).toUpperCase();
     const customerName = profile?.name ?? 'Unknown';
@@ -56,6 +58,7 @@ Deno.serve(async (req) => {
         `💰 Price: ${order.price} MMK\n` +
         `👤 Customer: ${customerName}\n` +
         `💳 Payment: ${order.payment_method ?? '-'}\n` +
+        `👛 Wallet Balance: ${balanceStr}\n` +
         `📅 Time: ${timeStr}`;
     } else if (isPUBG) {
       text =
@@ -67,6 +70,7 @@ Deno.serve(async (req) => {
         `💰 Price: ${order.price} MMK\n` +
         `👤 Customer: ${customerName}\n` +
         `💳 Payment: ${order.payment_method ?? '-'}\n` +
+        `👛 Wallet Balance: ${balanceStr}\n` +
         `📅 Time: ${timeStr}`;
     } else {
       const gameLine = order.game_id
@@ -82,6 +86,7 @@ Deno.serve(async (req) => {
         `🔢 Quantity: ${order.quantity}\n` +
         `💰 Total: ${order.price} MMK\n` +
         `💳 Payment: ${order.payment_method ?? '-'}\n` +
+        `👛 Wallet Balance: ${balanceStr}\n` +
         `📅 Time: ${timeStr}`;
     }
 
