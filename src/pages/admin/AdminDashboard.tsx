@@ -2304,6 +2304,18 @@ const AdminDashboard = () => {
                         </div>
                         <span className="text-sm">PUBG</span>
                       </button>
+                      <button onClick={() => navigate("/admin/game-catalog?g=mcgg")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
+                        <div className="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center">
+                          <Gem className="h-4 w-4 text-purple-500" />
+                        </div>
+                        <span className="text-sm">Magic Chess GoGo</span>
+                      </button>
+                      <button onClick={() => navigate("/admin/game-catalog")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
+                        <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
+                          <Gamepad2 className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="text-sm">All Games / Add Game</span>
+                      </button>
                     </div>
                   </div>
 
