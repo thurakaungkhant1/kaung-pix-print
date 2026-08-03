@@ -238,8 +238,8 @@ const Home = () => {
               className="flex items-center justify-between mb-4"
             >
               <div className="flex items-center gap-2.5">
-                <span className="w-9 h-9 rounded-2xl bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center shadow-lg shadow-primary/20">
-                  <Sparkles className="h-4 w-4 text-primary-foreground" />
+                <span className="w-9 h-9 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-lg shadow-primary/10 overflow-hidden">
+                  <img src={appLogo} alt="Kaung Digital Store logo" width={36} height={36} className="w-full h-full object-contain" />
                 </span>
                 <div className="leading-tight">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
