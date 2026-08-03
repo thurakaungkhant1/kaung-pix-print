@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import AdminBottomNav from "@/components/AdminBottomNav";
+import { useGameCatalog } from "@/hooks/useGameCatalog";
 import AdminFAB from "@/components/AdminFAB";
 import { Label } from "@/components/ui/label";
 import {
@@ -140,7 +141,15 @@ interface UserGrowthData {
   users: number;
 }
 
+const gamePackagesPath = (categoryKey: string) => {
+  const key = categoryKey.toLowerCase();
+  if (key.includes("mlbb") || key.includes("mobile legend")) return "/admin/diamond-packages";
+  if (key.includes("pubg")) return "/admin/pubg-uc-packages";
+  return `/admin/game-catalog?g=${encodeURIComponent(categoryKey)}`;
+};
+
 const AdminDashboard = () => {
+  const { games: catalogGames } = useGameCatalog(true);
   const [stats, setStats] = useState({
     products: 0,
     photos: 0,
@@ -2240,18 +2249,17 @@ const AdminDashboard = () => {
                     <Package className="h-5 w-5" />
                     Manage Products
                   </Button>
-                  <Button variant="outline" onClick={() => navigate("/admin/diamond-packages")} className="h-auto py-4 flex-col gap-2">
-                    <Gem className="h-5 w-5" />
-                    Diamond Packages
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate("/admin/pubg-uc-packages")} className="h-auto py-4 flex-col gap-2">
-                    <Gamepad2 className="h-5 w-5" />
-                    PUBG UC Packages
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate("/admin/game-catalog?g=mcgg")} className="h-auto py-4 flex-col gap-2">
-                    <Gem className="h-5 w-5" />
-                    Magic Chess Packages
-                  </Button>
+                  {catalogGames.map((g) => (
+                    <Button
+                      key={g.id}
+                      variant="outline"
+                      onClick={() => navigate(gamePackagesPath(g.category_key))}
+                      className="h-auto py-4 flex-col gap-2"
+                    >
+                      <Gem className="h-5 w-5" />
+                      {g.short_name || g.name} Packages
+                    </Button>
+                  ))}
                   <Button variant="outline" onClick={() => navigate("/admin/game-catalog")} className="h-auto py-4 flex-col gap-2">
                     <Gamepad2 className="h-5 w-5" />
                     Games (Add Game)
@@ -2292,24 +2300,22 @@ const AdminDashboard = () => {
                       In-game currencies, skins, gift cards - instant delivery with Player ID
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      <button onClick={() => navigate("/admin/diamond-packages")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
-                        <div className="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center">
-                          <Gem className="h-4 w-4 text-blue-500" />
-                        </div>
-                        <span className="text-sm">Mobile Legends</span>
-                      </button>
-                      <button onClick={() => navigate("/admin/pubg-uc-packages")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
-                        <div className="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
-                          <Gamepad2 className="h-4 w-4 text-yellow-500" />
-                        </div>
-                        <span className="text-sm">PUBG</span>
-                      </button>
-                      <button onClick={() => navigate("/admin/game-catalog?g=mcgg")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
-                        <div className="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center">
-                          <Gem className="h-4 w-4 text-purple-500" />
-                        </div>
-                        <span className="text-sm">Magic Chess GoGo</span>
-                      </button>
+                      {catalogGames.map((g) => (
+                        <button
+                          key={g.id}
+                          onClick={() => navigate(gamePackagesPath(g.category_key))}
+                          className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left"
+                        >
+                          <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center overflow-hidden">
+                            {g.image_url ? (
+                              <img src={g.image_url} alt={g.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Gem className="h-4 w-4 text-primary" />
+                            )}
+                          </div>
+                          <span className="text-sm truncate">{g.name}</span>
+                        </button>
+                      ))}
                       <button onClick={() => navigate("/admin/game-catalog")} className="flex items-center gap-2 p-2 bg-card rounded-lg hover:bg-accent transition-colors text-left">
                         <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
                           <Gamepad2 className="h-4 w-4 text-primary" />
