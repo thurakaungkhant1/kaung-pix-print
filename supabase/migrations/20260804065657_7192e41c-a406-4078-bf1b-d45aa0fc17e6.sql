@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.purchase_product_wallet(bigint, integer, text, text, text, uuid, text, text);
