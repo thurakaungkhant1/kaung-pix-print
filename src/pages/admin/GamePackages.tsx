@@ -44,6 +44,8 @@ const GamePackages = () => {
   const [packages, setPackages] = useState<GamePackage[]>([]);
   const [gameName, setGameName] = useState(category);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
