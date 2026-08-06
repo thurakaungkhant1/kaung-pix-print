@@ -243,12 +243,36 @@ const GamePackages = () => {
       <div className="max-w-screen-xl mx-auto p-4">
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center gap-3">
+            <div className="flex flex-wrap justify-between items-center gap-3">
               <CardTitle className="text-base">Manage {gameName} packages</CardTitle>
-              <Button onClick={() => navigate(newPath)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Package
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleImport(f);
+                  }}
+                />
+                <Button variant="outline" onClick={handleExport}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={importing}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {importing ? "Importing..." : "Import CSV"}
+                </Button>
+                <Button onClick={() => navigate(newPath)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Package
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
