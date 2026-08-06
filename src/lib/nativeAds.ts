@@ -20,7 +20,7 @@ declare global {
 // Minimum gap between two ads so a long session doesn't spam back-to-back ads.
 const MIN_SECONDS_BETWEEN_ADS = 25;
 // While the user stays in one game, show an ad every this many minutes.
-const LONG_SESSION_MINUTES = 3;
+const LONG_SESSION_MINUTES = 5;
 
 const LAST_AD_TS_KEY = "ads:lastInterstitialTs";
 

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Pencil, Trash2, Gem } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Gem, Download, Upload } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -44,6 +44,8 @@ const GamePackages = () => {
   const [packages, setPackages] = useState<GamePackage[]>([]);
   const [gameName, setGameName] = useState(category);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -88,6 +90,135 @@ const GamePackages = () => {
     }
   };
 
+  const CSV_HEADERS = [
+    "name",
+    "description",
+    "price",
+    "cost_price",
+    "points_value",
+    "image_url",
+    "smile_package_id",
+  ];
+
+  const esc = (v: unknown) => {
+    const s = v === null || v === undefined ? "" : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  const handleExport = () => {
+    if (packages.length === 0) {
+      toast({ title: "Nothing to export", description: "No packages found", variant: "destructive" });
+      return;
+    }
+    const rows = packages.map((p: any) =>
+      [
+        p.name,
+        p.description ?? "",
+        p.price,
+        p.cost_price ?? 0,
+        p.points_value ?? 0,
+        p.image_url,
+        p.smile_package_id ?? "",
+      ]
+        .map(esc)
+        .join(",")
+    );
+    const csv = [CSV_HEADERS.join(","), ...rows].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${category}-packages.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported", description: `${packages.length} packages exported` });
+  };
+
+  const parseCsv = (text: string): string[][] => {
+    const rows: string[][] = [];
+    let row: string[] = [];
+    let field = "";
+    let quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (quoted) {
+        if (c === '"') {
+          if (text[i + 1] === '"') {
+            field += '"';
+            i++;
+          } else quoted = false;
+        } else field += c;
+      } else if (c === '"') quoted = true;
+      else if (c === ",") {
+        row.push(field);
+        field = "";
+      } else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        row.push(field);
+        field = "";
+        if (row.some((f) => f.trim() !== "")) rows.push(row);
+        row = [];
+      } else field += c;
+    }
+    row.push(field);
+    if (row.some((f) => f.trim() !== "")) rows.push(row);
+    return rows;
+  };
+
+  const handleImport = async (file: File) => {
+    setImporting(true);
+    try {
+      const rows = parseCsv(await file.text());
+      if (rows.length < 2) throw new Error("CSV is empty");
+      const headers = rows[0].map((h) => h.trim().toLowerCase());
+      const idx = (k: string) => headers.indexOf(k);
+      if (idx("name") === -1 || idx("price") === -1)
+        throw new Error("CSV must include at least 'name' and 'price' columns");
+
+      const existingByName = new Map(packages.map((p) => [p.name.trim().toLowerCase(), p.id]));
+      let created = 0;
+      let updated = 0;
+      const errors: string[] = [];
+
+      for (const r of rows.slice(1)) {
+        const get = (k: string) => (idx(k) === -1 ? "" : (r[idx(k)] ?? "").trim());
+        const name = get("name");
+        const price = Number(get("price"));
+        if (!name || !isFinite(price) || price <= 0) {
+          errors.push(name || "(unnamed)");
+          continue;
+        }
+        const payload: Record<string, any> = {
+          name,
+          description: get("description") || null,
+          price,
+          cost_price: Number(get("cost_price")) || 0,
+          points_value: Number(get("points_value")) || 0,
+          image_url: get("image_url") || "/placeholder.svg",
+          smile_package_id: get("smile_package_id") || null,
+          category,
+        };
+        const existingId = existingByName.get(name.toLowerCase());
+        const { error } = existingId
+          ? await supabase.from("products").update(payload).eq("id", existingId)
+          : await supabase.from("products").insert(payload as any);
+        if (error) errors.push(`${name}: ${error.message}`);
+        else existingId ? updated++ : created++;
+      }
+
+      toast({
+        title: "Import finished",
+        description: `${created} added, ${updated} updated${errors.length ? `, ${errors.length} failed` : ""}`,
+        variant: errors.length ? "destructive" : undefined,
+      });
+      loadPackages();
+    } catch (e: any) {
+      toast({ title: "Import failed", description: e.message, variant: "destructive" });
+    } finally {
+      setImporting(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   const newPath = `/admin/game-packages/${encodeURIComponent(category)}/new`;
 
   return (
@@ -112,12 +243,36 @@ const GamePackages = () => {
       <div className="max-w-screen-xl mx-auto p-4">
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center gap-3">
+            <div className="flex flex-wrap justify-between items-center gap-3">
               <CardTitle className="text-base">Manage {gameName} packages</CardTitle>
-              <Button onClick={() => navigate(newPath)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Package
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleImport(f);
+                  }}
+                />
+                <Button variant="outline" onClick={handleExport}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={importing}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {importing ? "Importing..." : "Import CSV"}
+                </Button>
+                <Button onClick={() => navigate(newPath)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Package
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
