@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.wallet_deposits_unique_active_txid;
