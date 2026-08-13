@@ -2018,6 +2018,8 @@ export type Database = {
           created_at: string | null
           description: string | null
           diamond_tier: string | null
+          event_ends_at: string | null
+          event_label: string | null
           id: number
           image_url: string
           is_premium: boolean
@@ -2036,6 +2038,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           diamond_tier?: string | null
+          event_ends_at?: string | null
+          event_label?: string | null
           id?: number
           image_url: string
           is_premium?: boolean
@@ -2054,6 +2058,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           diamond_tier?: string | null
+          event_ends_at?: string | null
+          event_label?: string | null
           id?: number
           image_url?: string
           is_premium?: boolean
