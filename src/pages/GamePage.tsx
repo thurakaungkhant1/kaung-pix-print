@@ -1506,9 +1506,6 @@ const GamePage = () => {
                       ))}
                     </div>
                   )}
-                  <div className="hidden">
-
-                  </div>
                   <div className="relative group/input">
                     <Input
                       id="gameId"
