@@ -397,7 +397,8 @@ const GamePage = () => {
       if (!gameId) {
         toast({
           title: "Error",
-          description: "Please enter your Player ID",
+          description: `Please enter your ${idLabel(selectedProduct.category)}`,
+
           variant: "destructive",
         });
         return;
@@ -590,7 +591,7 @@ const GamePage = () => {
       return;
     }
     if (!gameId) {
-      toast({ title: "Player ID required", description: "Please enter your Player ID", variant: "destructive" });
+      toast({ title: `${idLabel(selectedGame?.id)} required`, description: `Please enter your ${idLabel(selectedGame?.id)}`, variant: "destructive" });
       return;
     }
     if (needsServer && !serverId) {
@@ -1482,6 +1483,31 @@ const GamePage = () => {
                       <svg viewBox="0 0 24 24" className="h-3 w-3 text-primary" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6"/></svg>
                     </div>
                     <Label htmlFor="gameId" className="text-xs font-semibold">{idLabel(selectedProduct?.category)} *</Label>
+                  </div>
+                  {isCoc(selectedProduct?.category) && (
+                    <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted/50 border border-border/50">
+                      {([
+                        { key: "tag", label: "Player Tag" },
+                        { key: "supercell", label: "Supercell ID" },
+                      ] as const).map((opt) => (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => { setCocIdType(opt.key); setGameId(""); }}
+                          className={cn(
+                            "h-9 rounded-lg text-xs font-semibold transition-all",
+                            cocIdType === opt.key
+                              ? "bg-primary text-primary-foreground shadow"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="hidden">
+
                   </div>
                   <div className="relative group/input">
                     <Input
