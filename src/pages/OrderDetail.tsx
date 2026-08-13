@@ -187,10 +187,10 @@ const OrderDetail = () => {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Items</p>
             <div className="flex items-start gap-3">
               {order.products?.image_url ? (
-                <img src={order.products.image_url} alt="" className="w-16 h-16 rounded-xl object-cover" />
+                <img src={order.products.image_url} alt="" className="w-20 h-20 rounded-2xl object-cover" />
               ) : (
-                <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center">
-                  <Package className="h-7 w-7 text-muted-foreground" />
+                <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center">
+                  <Package className="h-8 w-8 text-muted-foreground" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
