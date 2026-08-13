@@ -1685,15 +1685,21 @@ const GamePage = () => {
             </div>
             <DialogTitle className="text-center text-xl">သင်၏ ၀ယ်ယူမှု အောင်မြင်ပါသည်</DialogTitle>
             <DialogDescription className="text-center pt-2 text-base">
-              ကျေးဇူးပြု၍ ခဏစောင့်ပေးပါခင်ဗျာ။
+              ကျေးဇူးပြု၍ ခဏစောင့်ပေးပါခင်ဗျာ။ Order အခြေအနေကို အမြန်သိရှိရန် ကျွန်ုပ်တို့၏ Telegram Group သို့ ဝင်ရောက်ပါ။
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button className="w-full" onClick={() => setShowSuccessDialog(false)}>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button className="w-full" asChild>
+              <a href="https://t.me/kaungdigitalstore" target="_blank" rel="noopener noreferrer">
+                Telegram Group သို့ ဝင်ရန်
+              </a>
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => setShowSuccessDialog(false)}>
               OK
             </Button>
           </DialogFooter>
         </DialogContent>
+
       </Dialog>
     </MobileLayout>
     </AnimatedPage>

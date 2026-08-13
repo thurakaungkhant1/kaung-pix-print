@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
     const category = product?.category ?? '';
     const isMLBB = category === 'MLBB Diamonds';
     const isPUBG = category === 'PUBG UC';
+    const isCOC = category === 'Clash of Clans';
     const playerName = (() => {
       const m = String(order.game_name ?? '').match(/\(([^)]+)\)/);
       return m ? m[1] : null;
@@ -53,7 +54,23 @@ Deno.serve(async (req) => {
     const timeStr = new Date(order.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Yangon' });
 
     let text: string;
-    if (isMLBB) {
+    if (isCOC) {
+      const idLabel = order.server_id === 'supercell' ? 'Supercell ID' : 'Player Tag';
+      text =
+        `⚔️ New Clash of Clans Order\n\n` +
+        `🆔 Order ID: #${shortId}\n` +
+        `📦 Product: ${product?.name ?? '-'}\n` +
+        `🏷️ ${idLabel}: ${order.game_id ?? '-'}\n` +
+        playerLine +
+        `🔢 Quantity: ${order.quantity}\n` +
+        `💰 Price: ${order.price} MMK\n` +
+        `👤 Customer: ${customerName}\n` +
+        `📞 Phone: ${order.phone_number || '-'}\n` +
+        `💳 Payment: ${order.payment_method ?? '-'}\n` +
+        `👛 Wallet Balance: ${balanceStr}\n` +
+        `📅 Time: ${timeStr}`;
+    } else if (isMLBB) {
+
       text =
         `🎮 New Mobile Legends Order\n\n` +
         `🆔 Order ID: #${shortId}\n` +
