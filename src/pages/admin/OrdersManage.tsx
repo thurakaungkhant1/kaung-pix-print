@@ -446,6 +446,7 @@ const OrdersManage = () => {
   const isGameOrder = (category: string) => GAME_CATEGORIES.includes(category);
   const isMobileOrder = (category: string) => MOBILE_CATEGORIES.includes(category);
   const isMLBB = (category: string) => category === "MLBB Diamonds";
+  const isCocOrder = (category: string) => category === "Clash of Clans";
 
   const pendingCount = filteredOrders.filter(o => o.status === "pending").length;
 
