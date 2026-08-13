@@ -120,6 +120,9 @@ const GamePackageForm = () => {
         image_url: data.image_url,
         points_value: data.points_value.toString(),
         smile_package_id: (data as any).smile_package_id || "",
+        diamond_tier: (data as any).diamond_tier || "popular",
+        event_label: (data as any).event_label || "",
+        event_ends_at: toLocalInput((data as any).event_ends_at),
       });
     }
   };
