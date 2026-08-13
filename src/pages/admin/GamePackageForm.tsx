@@ -263,6 +263,61 @@ const GamePackageForm = () => {
                   Package ထဲပါတဲ့ အရေအတွက်ကို နာမည်ထဲ ထည့်ပါ
                 </p>
               </div>
+
+              <div>
+                <Label htmlFor="diamond_tier">Category / Tab *</Label>
+                <Select
+                  value={formData.diamond_tier}
+                  onValueChange={(v) => setFormData({ ...formData, diamond_tier: v })}
+                >
+                  <SelectTrigger id="diamond_tier">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIERS.map((t) => (
+                      <SelectItem key={t} value={t}>{tierLabel(t)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Game shop ထဲမှာ ဘယ် tab အောက်မှာ ပြမလဲ သတ်မှတ်ပါ
+                </p>
+              </div>
+
+              <div className="rounded-lg border bg-muted/40 p-3 space-y-3">
+                <p className="text-sm font-semibold">⏳ Limited-time event (optional)</p>
+                <div>
+                  <Label htmlFor="event_ends_at">Event ends at</Label>
+                  <Input
+                    id="event_ends_at"
+                    type="datetime-local"
+                    value={formData.event_ends_at}
+                    onChange={(e) => setFormData({ ...formData, event_ends_at: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    သတ်မှတ်လိုက်ရင် user ဘက်မှာ item ပေါ်တွင် real-time countdown ပြပါမည်။ (ဥပမာ Gold Pass event)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="event_label">Event label</Label>
+                  <Input
+                    id="event_label"
+                    placeholder="EVENT"
+                    value={formData.event_label}
+                    onChange={(e) => setFormData({ ...formData, event_label: e.target.value })}
+                  />
+                </div>
+                {formData.event_ends_at && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, event_ends_at: "", event_label: "" })}
+                  >
+                    Clear event
+                  </Button>
+                )}
+              </div>
               <div>
                 <Label htmlFor="price">Sell Price (Kyat) *</Label>
                 <Input
