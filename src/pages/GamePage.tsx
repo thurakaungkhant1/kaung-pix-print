@@ -1028,7 +1028,7 @@ const GamePage = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-lg leading-none" aria-hidden>{group.emoji}</span>
                           <div>
-                            <div className={cn("text-[13px] font-bold tracking-tight font-coc", group.text)}>{group.name}</div>
+                            <div className={cn("text-[13px] font-bold tracking-tight", isCoc(selectedGame.id) && "font-coc", group.text)}>{group.name}</div>
                             <div className="text-[10px] text-muted-foreground">
                               {group.items.length} {group.items.length === 1 ? "pack" : "packs"} available
                             </div>
