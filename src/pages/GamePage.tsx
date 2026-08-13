@@ -522,10 +522,13 @@ const GamePage = () => {
 
 
 
-  // Clash of Clans uses a player tag instead of a numeric player ID
+  // Clash of Clans uses a player tag or a Supercell ID (email)
   const isCoc = (cat: string | null | undefined) => cat === "Clash of Clans";
-  const idLabel = (cat: string | null | undefined) => (isCoc(cat) ? "Player Tag" : "Player ID");
-  const idPlaceholder = (cat: string | null | undefined) => (isCoc(cat) ? "#XXXXXXXX" : "12345678");
+  const idLabel = (cat: string | null | undefined) =>
+    isCoc(cat) ? (cocIdType === "supercell" ? "Supercell ID (Email)" : "Player Tag") : "Player ID";
+  const idPlaceholder = (cat: string | null | undefined) =>
+    isCoc(cat) ? (cocIdType === "supercell" ? "you@example.com" : "#XXXXXXXX") : "12345678";
+
 
   // Tier classification for diamond/UC packages
   const COC_TIER_NAMES: Record<string, string> = {
