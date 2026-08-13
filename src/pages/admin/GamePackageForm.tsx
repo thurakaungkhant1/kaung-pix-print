@@ -13,12 +13,12 @@ import { zonedInputToISO, isoToZonedInput, timezoneOptions, localTimeZone, forma
 
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
 const COC_TIER_LABELS: Record<string, string> = {
-  special: "Special Offers",
-  starter: "Pass",
-  popular: "Gems",
-  pro: "Magic Items",
-  mega: "Bundles",
+  special: "Skins",
+  starter: "Sceneries",
+  popular: "Gold Pass",
+  pro: "Event Pass",
 };
+const COC_TIERS = ["special", "starter", "popular", "pro"];
 const DEFAULT_TIER_LABELS: Record<string, string> = {
   special: "Special Offers",
   starter: "Starter Packs",
@@ -37,8 +37,10 @@ const GamePackageForm = () => {
   const [gameName, setGameName] = useState(category);
   const [gameImage, setGameImage] = useState("");
   const [requiresServerId, setRequiresServerId] = useState<boolean | null>(null);
+  const isCoc = category === "Clash of Clans";
+  const tierOptions = isCoc ? COC_TIERS : TIERS;
   const tierLabel = (tier: string) =>
-    (category === "Clash of Clans" ? COC_TIER_LABELS : DEFAULT_TIER_LABELS)[tier] || tier;
+    (isCoc ? COC_TIER_LABELS : DEFAULT_TIER_LABELS)[tier] || tier;
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -270,7 +272,7 @@ const GamePackageForm = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {TIERS.map((t) => (
+                    {tierOptions.map((t) => (
                       <SelectItem key={t} value={t}>{tierLabel(t)}</SelectItem>
                     ))}
                   </SelectContent>
