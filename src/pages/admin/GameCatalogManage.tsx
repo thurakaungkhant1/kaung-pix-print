@@ -392,7 +392,7 @@ const GameCatalogManage = () => {
                             <p className="text-xs font-semibold truncate">{p.name}</p>
                             <p className="text-[10px] text-muted-foreground">
                               {p.price.toLocaleString()} MMK
-                              {p.diamond_tier ? ` · ${p.diamond_tier}` : ""}
+                              {p.diamond_tier ? ` · ${tierLabel(p.diamond_tier, p.category)}` : ""}
                               {p.smile_package_id ? ` · #${p.smile_package_id}` : ""}
                             </p>
                           </div>
