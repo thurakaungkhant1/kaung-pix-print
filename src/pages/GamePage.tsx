@@ -721,7 +721,30 @@ const GamePage = () => {
                   <p className="text-[10px] text-muted-foreground">Enter your game account details</p>
                 </div>
               </div>
+              {isCoc(selectedGame.id) && (
+                <div className="mb-3 grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted/50 border border-border/50">
+                  {([
+                    { key: "tag", label: "Player Tag" },
+                    { key: "supercell", label: "Supercell ID" },
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => { setCocIdType(opt.key); setGameId(""); }}
+                      className={cn(
+                        "h-9 rounded-lg text-xs font-semibold transition-all",
+                        cocIdType === opt.key
+                          ? "bg-primary text-primary-foreground shadow"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className={cn("grid gap-3", needsServer ? "grid-cols-2" : "grid-cols-1")}>
+
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
