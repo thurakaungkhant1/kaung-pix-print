@@ -11,7 +11,14 @@ export interface GameCatalogItem {
   nickname_key: string | null;
   display_order: number;
   is_active: boolean;
+  /** Card layout used in the Game Shop: "default" (compact) or "image" (Supercell-style) */
+  card_style?: string | null;
+  /** Hex accent colour used for image cards */
+  card_accent?: string | null;
+  show_discount_badge?: boolean | null;
+  price_suffix?: string | null;
 }
+
 
 /** Loads the admin-managed list of games available in the Game Shop. */
 export const useGameCatalog = (includeInactive = false) => {
