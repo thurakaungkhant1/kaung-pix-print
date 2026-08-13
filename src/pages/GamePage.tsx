@@ -1075,7 +1075,7 @@ const GamePage = () => {
                                     {discountPct > 0 ? `-${discountPct}%` : "SALE"}
                                   </span>
                                 )}
-                                <div className="relative aspect-square w-full overflow-hidden">
+                                <div className="relative aspect-[4/3] w-full overflow-hidden">
                                   <div
                                     className="absolute inset-0"
                                     style={{
