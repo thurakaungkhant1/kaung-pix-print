@@ -10,8 +10,8 @@ interface EventCountdownProps {
   className?: string;
   /** Use the Clash of Clans display font */
   coc?: boolean;
-  /** Visual layout: compact badge (default) or prominent top-of-card banner */
-  variant?: "badge" | "banner";
+  /** Visual layout: compact badge (default), prominent top-of-card banner, or floating COC corner clock */
+  variant?: "badge" | "banner" | "corner";
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -24,6 +24,16 @@ const format = (ms: number) => {
   const secs = total % 60;
   if (days > 0) return `${days}d ${pad(hours)}:${pad(mins)}:${pad(secs)}`;
   return `${pad(hours)}:${pad(mins)}:${pad(secs)}`;
+};
+
+const formatShort = (ms: number) => {
+  const total = Math.floor(ms / 1000);
+  const days = Math.floor(total / 86400);
+  const hours = Math.floor((total % 86400) / 3600);
+  const mins = Math.floor((total % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}H`;
+  if (hours > 0) return `${hours}H ${pad(mins)}M`;
+  return `${mins}M ${pad(secs)}S`;
 };
 
 /** Live countdown badge for limited-time product events. Hides itself once expired. */
@@ -46,6 +56,29 @@ export const EventCountdown = ({
   if (!target || Number.isNaN(target) || remaining <= 0) return null;
 
   const urgent = remaining < 60 * 60 * 1000;
+
+  if (variant === "corner") {
+    return (
+      <div
+        className={cn(
+          "pointer-events-none absolute left-2 top-2 z-20 flex items-center gap-1 rounded-full px-2 py-1 shadow-lg ring-1 ring-white/10 backdrop-blur-sm",
+          urgent ? "bg-rose-600/90 text-white" : "bg-black/70 text-amber-300",
+          className
+        )}
+        title={label || "Limited-time event"}
+      >
+        <Clock className="h-3 w-3 shrink-0" />
+        <span
+          className={cn(
+            "text-[10px] font-black tabular-nums tracking-wide leading-none",
+            coc && "font-coc"
+          )}
+        >
+          {formatShort(remaining)}
+        </span>
+      </div>
+    );
+  }
 
   if (variant === "banner") {
     return (
@@ -95,4 +128,5 @@ export const EventCountdown = ({
 };
 
 export default EventCountdown;
+
 
