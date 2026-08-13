@@ -508,11 +508,16 @@ const GamePage = () => {
   // For new layout: track inline player credentials
   const selectedGame =
     GAME_CATEGORIES.find(g => g.id === selectedGameCategory) ||
-    GAME_CATEGORIES[0] || { id: "", name: "", icon: Diamond, color: "text-primary", image: FALLBACK_GAME_IMAGE, requiresServerId: false, nicknameKey: null };
+    GAME_CATEGORIES[0] || { id: "", name: "", icon: Diamond, color: "text-primary", image: FALLBACK_GAME_IMAGE, requiresServerId: false, nicknameKey: null, cardStyle: "default", cardAccent: "#F5B301", showDiscountBadge: true, priceSuffix: "MMK" };
+  const cardStyle = (selectedGame as any).cardStyle || "default";
+  const cardAccent = (selectedGame as any).cardAccent || "#F5B301";
+  const showDiscountBadge = (selectedGame as any).showDiscountBadge !== false;
+  const priceSuffix = (selectedGame as any).priceSuffix || "MMK";
   const gameProducts = products
     .filter(p => p.category === selectedGame.id)
     .sort((a, b) => a.price - b.price);
   const needsServer = requiresServerId(selectedGame.id);
+
 
 
 
