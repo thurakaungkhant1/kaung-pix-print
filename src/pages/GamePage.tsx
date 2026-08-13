@@ -1071,7 +1071,7 @@ const GamePage = () => {
                                 }}
                               >
                                 {hasDiscount && showDiscountBadge && (
-                                  <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold shadow">
+                                  <span className="font-coc absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] shadow">
                                     {discountPct > 0 ? `-${discountPct}%` : "SALE"}
                                   </span>
                                 )}
@@ -1090,11 +1090,11 @@ const GamePage = () => {
                                   />
                                 </div>
                                 <div className="px-3 pb-3 pt-1">
-                                  <p className="font-bold text-[12.5px] leading-tight text-white/95 line-clamp-2 min-h-[30px]">
+                                  <p className="font-coc text-coc-outline text-[13px] leading-tight text-white/95 line-clamp-2 min-h-[32px]">
                                     {product.name}
                                   </p>
                                   {product.points_value > 0 && (
-                                    <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">
+                                    <p className="font-coc text-[11px] text-emerald-400 mt-0.5">
                                       +{product.points_value} pts
                                     </p>
                                   )}
@@ -1103,19 +1103,19 @@ const GamePage = () => {
                                       className="inline-flex items-baseline gap-1 rounded-lg px-2 py-1 ring-1"
                                       style={{ backgroundColor: `${cardAccent}26`, borderColor: cardAccent, boxShadow: `inset 0 0 0 1px ${cardAccent}66` }}
                                     >
-                                      <span className="text-[13px] font-extrabold tabular-nums" style={{ color: cardAccent }}>
+                                      <span className="font-coc text-[14px] tabular-nums" style={{ color: cardAccent }}>
                                         {product.price.toLocaleString()}
                                       </span>
-                                      <span className="text-[9px] font-semibold text-white/70">{priceSuffix}</span>
+                                      <span className="font-coc text-[10px] text-white/70">{priceSuffix}</span>
                                     </span>
                                     {hasDiscount && (
-                                      <span className="text-[10px] line-through tabular-nums text-white/40">
+                                      <span className="font-coc text-[11px] line-through tabular-nums text-white/40">
                                         {product.original_price!.toLocaleString()}
                                       </span>
                                     )}
                                   </div>
                                   <span
-                                    className="mt-2 flex h-8 items-center justify-center rounded-xl text-[11px] font-bold tracking-wide transition-opacity"
+                                    className="font-coc mt-2 flex h-8 items-center justify-center rounded-xl text-[12px] tracking-wide transition-opacity"
                                     style={{ backgroundColor: cardAccent, color: "#3b2a00", opacity: active ? 1 : 0.92 }}
                                   >
                                     Buy Now
