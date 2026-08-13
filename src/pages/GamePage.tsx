@@ -1087,7 +1087,7 @@ const GamePage = () => {
                                   <EventCountdown
                                     endsAt={product.event_ends_at}
                                     label={product.event_label || "EVENT"}
-                                    variant="banner"
+                                    variant={isCoc(selectedGame.id) ? "corner" : "banner"}
                                     coc={isCoc(selectedGame.id)}
                                   />
                                 )}
