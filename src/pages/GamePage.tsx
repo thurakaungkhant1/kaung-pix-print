@@ -1172,6 +1172,13 @@ const GamePage = () => {
                                   +{product.points_value} pts
                                 </p>
                               )}
+                              {product.event_ends_at && (
+                                <EventCountdown
+                                  endsAt={product.event_ends_at}
+                                  label={product.event_label || "EVENT"}
+                                  className="mt-1 self-start"
+                                />
+                              )}
                               <div className="mt-2 pt-2 border-t border-current/10 flex items-baseline gap-1.5">
                                 <p className={cn(
                                   "text-sm font-bold tabular-nums",
