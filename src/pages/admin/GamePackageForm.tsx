@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Gem, IdCard, Server } from "lucide-react";
+import { ArrowLeft, Gem, IdCard, Server, Upload, Loader2 } from "lucide-react";
 
 const GamePackageForm = () => {
   const { id, categoryKey = "" } = useParams();
