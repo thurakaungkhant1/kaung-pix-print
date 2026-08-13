@@ -68,14 +68,6 @@ interface PackageRow {
   event_label?: string | null;
 }
 
-/** Converts an ISO timestamp to a value usable by <input type="datetime-local"> (local time). */
-const toLocalInput = (iso?: string | null) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
-
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
 
 const COC_TIER_LABELS: Record<string, string> = {
