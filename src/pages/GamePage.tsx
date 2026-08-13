@@ -461,8 +461,19 @@ const GamePage = () => {
       const { data: rpcData, error: rpcError } = await supabase.rpc("purchase_product_wallet", {
         p_product_id: selectedProduct.id,
         p_quantity: 1,
-        p_game_id: isGameProduct(selectedProduct.category) ? gameId : null,
-        p_server_id: requiresServerId(selectedProduct.category) ? serverId : null,
+        p_game_id: isGameProduct(selectedProduct.category)
+          ? isCoc(selectedProduct.category)
+            ? cocIdType === "supercell"
+              ? gameId.trim().toLowerCase()
+              : `#${gameId.trim().replace(/^#/, "").toUpperCase()}`
+            : gameId
+          : null,
+        // For Clash of Clans we store which ID type the buyer chose
+        p_server_id: isCoc(selectedProduct.category)
+          ? cocIdType
+          : requiresServerId(selectedProduct.category)
+            ? serverId
+            : null,
         p_phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : null,
         p_plan_id: null,
         p_plan_name: null,
