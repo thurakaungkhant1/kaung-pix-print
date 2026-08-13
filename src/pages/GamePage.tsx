@@ -138,6 +138,8 @@ const GamePage = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
+  const [cocIdType, setCocIdType] = useState<"tag" | "supercell">("tag");
+
   const [phoneNumber, setPhoneNumber] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>(() => localStorage.getItem("shopActiveTab") || "games");
