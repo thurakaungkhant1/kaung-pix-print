@@ -187,8 +187,13 @@ const GameCatalogManage = () => {
       requires_server_id: gameForm.idMode === "dual",
       nickname_key: gameForm.nickname_key === "none" ? null : gameForm.nickname_key,
       is_active: gameForm.is_active,
+      card_style: gameForm.card_style,
+      card_accent: gameForm.card_accent,
+      show_discount_badge: gameForm.show_discount_badge,
+      price_suffix: gameForm.price_suffix.trim() || "MMK",
       display_order: editingGame?.display_order ?? games.length + 1,
     };
+
 
     const { error } = editingGame
       ? await (supabase as any).from("game_catalog").update(payload).eq("id", editingGame.id)
