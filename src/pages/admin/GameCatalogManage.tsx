@@ -63,7 +63,17 @@ interface PackageRow {
   diamond_tier: string | null;
   smile_package_id: string | null;
   description: string | null;
+  event_ends_at?: string | null;
+  event_label?: string | null;
 }
+
+/** Converts an ISO timestamp to a value usable by <input type="datetime-local"> (local time). */
+const toLocalInput = (iso?: string | null) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
 
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
 
@@ -108,6 +118,8 @@ const emptyPkg = {
   diamond_tier: "popular",
   smile_package_id: "",
   description: "",
+  event_ends_at: "",
+  event_label: "",
 };
 
 const GameCatalogManage = () => {
@@ -145,7 +157,7 @@ const GameCatalogManage = () => {
     if (list.length) {
       const { data: prods } = await (supabase as any)
         .from("products")
-        .select("id,name,price,cost_price,image_url,category,diamond_tier,smile_package_id,description")
+        .select("id,name,price,cost_price,image_url,category,diamond_tier,smile_package_id,description,event_ends_at,event_label")
         .in("category", list.map((g) => g.category_key))
         .order("price", { ascending: true });
       const map: Record<string, PackageRow[]> = {};
@@ -258,6 +270,8 @@ const GameCatalogManage = () => {
       diamond_tier: p.diamond_tier || "popular",
       smile_package_id: p.smile_package_id || "",
       description: p.description || "",
+      event_ends_at: toLocalInput(p.event_ends_at),
+      event_label: p.event_label || "",
     });
     setPkgDialog(true);
   };
@@ -277,6 +291,8 @@ const GameCatalogManage = () => {
       diamond_tier: pkgForm.diamond_tier,
       smile_package_id: pkgForm.smile_package_id.trim() || null,
       description: pkgForm.description.trim() || null,
+      event_ends_at: pkgForm.event_ends_at ? new Date(pkgForm.event_ends_at).toISOString() : null,
+      event_label: pkgForm.event_label.trim() || null,
       points_value: 0,
     };
     const { error } = pkgForm.id
@@ -609,6 +625,28 @@ const GameCatalogManage = () => {
               </Select>
               <p className="text-[10px] text-muted-foreground">
                 Controls which tab this package appears under in the game shop.
+              </p>
+            </div>
+            <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
+              <p className="text-xs font-semibold">⏳ Limited-time event (optional)</p>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Event ends at</Label>
+                <Input
+                  type="datetime-local"
+                  value={pkgForm.event_ends_at}
+                  onChange={(e) => setPkgForm({ ...pkgForm, event_ends_at: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Event label</Label>
+                <Input
+                  placeholder="EVENT"
+                  value={pkgForm.event_label}
+                  onChange={(e) => setPkgForm({ ...pkgForm, event_label: e.target.value })}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                User ဘက်မှာ item ပေါ်တွင် real-time countdown ပြပါမည်။
               </p>
             </div>
             <div className="space-y-1.5">

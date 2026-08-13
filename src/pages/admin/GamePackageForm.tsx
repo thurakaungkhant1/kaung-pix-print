@@ -6,8 +6,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Gem, IdCard, Server, Upload, Loader2 } from "lucide-react";
+
+const TIERS = ["special", "starter", "popular", "pro", "mega"];
+const COC_TIER_LABELS: Record<string, string> = {
+  special: "Special Offers",
+  starter: "Pass",
+  popular: "Gems",
+  pro: "Magic Items",
+  mega: "Bundles",
+};
+const DEFAULT_TIER_LABELS: Record<string, string> = {
+  special: "Special Offers",
+  starter: "Starter Packs",
+  popular: "Popular Packs",
+  pro: "Pro Packs",
+  mega: "Mega Packs",
+};
+
+/** Converts an ISO timestamp to a value usable by <input type="datetime-local"> (local time). */
+const toLocalInput = (iso?: string | null) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
+};
 
 const GamePackageForm = () => {
   const { id, categoryKey = "" } = useParams();
@@ -18,6 +44,8 @@ const GamePackageForm = () => {
   const [gameName, setGameName] = useState(category);
   const [gameImage, setGameImage] = useState("");
   const [requiresServerId, setRequiresServerId] = useState<boolean | null>(null);
+  const tierLabel = (tier: string) =>
+    (category === "Clash of Clans" ? COC_TIER_LABELS : DEFAULT_TIER_LABELS)[tier] || tier;
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -26,6 +54,9 @@ const GamePackageForm = () => {
     image_url: "",
     points_value: "0",
     smile_package_id: "",
+    diamond_tier: "popular",
+    event_label: "",
+    event_ends_at: "",
   });
 
   const [uploading, setUploading] = useState(false);
@@ -89,6 +120,9 @@ const GamePackageForm = () => {
         image_url: data.image_url,
         points_value: data.points_value.toString(),
         smile_package_id: (data as any).smile_package_id || "",
+        diamond_tier: (data as any).diamond_tier || "popular",
+        event_label: (data as any).event_label || "",
+        event_ends_at: toLocalInput((data as any).event_ends_at),
       });
     }
   };
@@ -136,6 +170,9 @@ const GamePackageForm = () => {
       image_url: formData.image_url || gameImage || "/placeholder.svg",
       points_value: parseInt(formData.points_value) || 0,
       smile_package_id: smileId || null,
+      diamond_tier: formData.diamond_tier,
+      event_label: formData.event_label.trim() || null,
+      event_ends_at: formData.event_ends_at ? new Date(formData.event_ends_at).toISOString() : null,
       category,
     };
 
@@ -225,6 +262,61 @@ const GamePackageForm = () => {
                 <p className="text-sm text-muted-foreground mt-1">
                   Package ထဲပါတဲ့ အရေအတွက်ကို နာမည်ထဲ ထည့်ပါ
                 </p>
+              </div>
+
+              <div>
+                <Label htmlFor="diamond_tier">Category / Tab *</Label>
+                <Select
+                  value={formData.diamond_tier}
+                  onValueChange={(v) => setFormData({ ...formData, diamond_tier: v })}
+                >
+                  <SelectTrigger id="diamond_tier">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIERS.map((t) => (
+                      <SelectItem key={t} value={t}>{tierLabel(t)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Game shop ထဲမှာ ဘယ် tab အောက်မှာ ပြမလဲ သတ်မှတ်ပါ
+                </p>
+              </div>
+
+              <div className="rounded-lg border bg-muted/40 p-3 space-y-3">
+                <p className="text-sm font-semibold">⏳ Limited-time event (optional)</p>
+                <div>
+                  <Label htmlFor="event_ends_at">Event ends at</Label>
+                  <Input
+                    id="event_ends_at"
+                    type="datetime-local"
+                    value={formData.event_ends_at}
+                    onChange={(e) => setFormData({ ...formData, event_ends_at: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    သတ်မှတ်လိုက်ရင် user ဘက်မှာ item ပေါ်တွင် real-time countdown ပြပါမည်။ (ဥပမာ Gold Pass event)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="event_label">Event label</Label>
+                  <Input
+                    id="event_label"
+                    placeholder="EVENT"
+                    value={formData.event_label}
+                    onChange={(e) => setFormData({ ...formData, event_label: e.target.value })}
+                  />
+                </div>
+                {formData.event_ends_at && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, event_ends_at: "", event_label: "" })}
+                  >
+                    Clear event
+                  </Button>
+                )}
               </div>
               <div>
                 <Label htmlFor="price">Sell Price (Kyat) *</Label>

@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import EventCountdown from "@/components/EventCountdown";
 
 interface Product {
   id: number;
@@ -61,7 +62,10 @@ interface Product {
   category: string;
   points_value: number;
   diamond_tier?: string | null;
+  event_ends_at?: string | null;
+  event_label?: string | null;
 }
+
 
 
 interface Order {
@@ -1093,6 +1097,14 @@ const GamePage = () => {
                                   <p className="font-coc text-coc-outline text-[12px] leading-tight text-white/95 line-clamp-2 min-h-[34px]">
                                     {product.name}
                                   </p>
+                                  {product.event_ends_at && (
+                                    <EventCountdown
+                                      endsAt={product.event_ends_at}
+                                      label={product.event_label || "EVENT"}
+                                      coc
+                                      className="mt-1"
+                                    />
+                                  )}
                                   {product.points_value > 0 && (
                                     <p className="font-coc text-[10px] text-emerald-400 mt-0.5">
                                       +{product.points_value} pts
@@ -1159,6 +1171,13 @@ const GamePage = () => {
                                 )}>
                                   +{product.points_value} pts
                                 </p>
+                              )}
+                              {product.event_ends_at && (
+                                <EventCountdown
+                                  endsAt={product.event_ends_at}
+                                  label={product.event_label || "EVENT"}
+                                  className="mt-1 self-start"
+                                />
                               )}
                               <div className="mt-2 pt-2 border-t border-current/10 flex items-baseline gap-1.5">
                                 <p className={cn(
