@@ -61,7 +61,10 @@ interface Product {
   category: string;
   points_value: number;
   diamond_tier?: string | null;
+  event_ends_at?: string | null;
+  event_label?: string | null;
 }
+
 
 
 interface Order {
