@@ -156,7 +156,12 @@ const GameCatalogManage = () => {
       idMode: g.requires_server_id ? "dual" : "single",
       nickname_key: g.nickname_key || "none",
       is_active: g.is_active,
+      card_style: g.card_style || "default",
+      card_accent: g.card_accent || "#F5B301",
+      show_discount_badge: g.show_discount_badge !== false,
+      price_suffix: g.price_suffix || "MMK",
     });
+
     setGameDialog(true);
   };
 
