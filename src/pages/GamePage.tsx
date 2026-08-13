@@ -720,7 +720,7 @@ const GamePage = () => {
                   <img src={selectedGame.image} alt={selectedGame.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate">{selectedGame.name}</p>
+                  <p className={cn("text-sm font-bold truncate", isCoc(selectedGame.id) && "font-coc text-coc-outline")}>{selectedGame.name}</p>
                   <span className="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
                     <Zap className="h-2.5 w-2.5" /> Instant
                   </span>
@@ -1028,7 +1028,7 @@ const GamePage = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-lg leading-none" aria-hidden>{group.emoji}</span>
                           <div>
-                            <div className={cn("text-[13px] font-bold tracking-tight", group.text)}>{group.name}</div>
+                            <div className={cn("text-[13px] font-bold tracking-tight font-coc", group.text)}>{group.name}</div>
                             <div className="text-[10px] text-muted-foreground">
                               {group.items.length} {group.items.length === 1 ? "pack" : "packs"} available
                             </div>
