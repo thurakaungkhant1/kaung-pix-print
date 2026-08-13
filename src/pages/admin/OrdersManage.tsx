@@ -760,6 +760,13 @@ const OrdersManage = () => {
                               <span className="mx-1.5 text-muted-foreground">•</span>
                               <span className="text-muted-foreground">Server:</span> <span className="font-medium">{order.server_id}</span>
                             </span>
+                          ) : isCocOrder(order.products.category) ? (
+                            <span>
+                              <span className="text-muted-foreground">
+                                {order.server_id === "supercell" ? "Supercell ID:" : "Player Tag:"}
+                              </span>{" "}
+                              <span className="font-medium break-all">{order.game_id}</span>
+                            </span>
                           ) : (
                             <span>
                               <span className="text-muted-foreground">Player ID:</span> <span className="font-medium">{order.game_id}</span>
