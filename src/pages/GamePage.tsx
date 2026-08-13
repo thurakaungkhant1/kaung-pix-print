@@ -1458,6 +1458,10 @@ const GamePage = () => {
                                   <Gamepad2 className="h-3 w-3 text-primary" />
                                   {isMLBB ? (
                                     <span>ID: {order.game_id} • Server: {order.server_id}</span>
+                                  ) : isCoc(order.products.category) ? (
+                                    <span className="break-all">
+                                      {order.server_id === "supercell" ? "Supercell ID" : "Player Tag"}: {order.game_id}
+                                    </span>
                                   ) : (
                                     <span>Player ID: {order.game_id}</span>
                                   )}
