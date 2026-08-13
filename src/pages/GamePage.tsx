@@ -1043,7 +1043,7 @@ const GamePage = () => {
                       </div>
 
                       {/* Packages grid */}
-                      <div className={cn("grid", isCoc(selectedGame.id) ? "grid-cols-3 gap-2" : "grid-cols-2 gap-2.5")}>
+                      <div className={cn("grid", isCoc(selectedGame.id) ? "grid-cols-2 gap-1.5" : "grid-cols-2 gap-2.5")}>
                         {group.items.map((product) => {
                           const active = selectedProduct?.id === product.id && showPurchaseDialog;
                           const hasDiscount = product.original_price && product.original_price > product.price;
@@ -1061,7 +1061,7 @@ const GamePage = () => {
                                 key={product.id}
                                 onClick={() => handleSelectPackage(product)}
                                 className={cn(
-                                  "group relative rounded-[20px] overflow-hidden border text-left transition-all",
+                                  "group relative rounded-2xl overflow-hidden border text-left transition-all",
                                   active ? "shadow-lg scale-[0.99]" : "hover:-translate-y-0.5 hover:shadow-xl"
                                 )}
                                 style={{
@@ -1071,11 +1071,11 @@ const GamePage = () => {
                                 }}
                               >
                                 {hasDiscount && showDiscountBadge && (
-                                  <span className="font-coc absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] shadow">
+                                  <span className="font-coc absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] shadow">
                                     {discountPct > 0 ? `-${discountPct}%` : "SALE"}
                                   </span>
                                 )}
-                                <div className="relative aspect-square w-full overflow-hidden">
+                                <div className="relative aspect-[4/3] w-full overflow-hidden">
                                   <div
                                     className="absolute inset-0"
                                     style={{
@@ -1086,36 +1086,36 @@ const GamePage = () => {
                                     src={product.image_url}
                                     alt={product.name}
                                     loading="lazy"
-                                    className="relative h-full w-full object-contain p-3 drop-shadow-[0_6px_14px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover:scale-105"
+                                    className="relative h-full w-full object-contain p-2 drop-shadow-[0_6px_14px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover:scale-105"
                                   />
                                 </div>
-                                <div className="px-3 pb-3 pt-1">
-                                  <p className="font-coc text-coc-outline text-[13px] leading-tight text-white/95 line-clamp-2 min-h-[32px]">
+                                <div className="px-2.5 pb-2.5 pt-1">
+                                  <p className="font-coc text-coc-outline text-[12px] leading-tight text-white/95 line-clamp-2 min-h-[34px]">
                                     {product.name}
                                   </p>
                                   {product.points_value > 0 && (
-                                    <p className="font-coc text-[11px] text-emerald-400 mt-0.5">
+                                    <p className="font-coc text-[10px] text-emerald-400 mt-0.5">
                                       +{product.points_value} pts
                                     </p>
                                   )}
-                                  <div className="mt-2 flex items-center gap-1.5">
+                                  <div className="mt-1.5 flex items-center gap-1">
                                     <span
-                                      className="inline-flex items-baseline gap-1 rounded-lg px-2 py-1 ring-1"
+                                      className="inline-flex items-baseline gap-1 rounded-lg px-1.5 py-0.5 ring-1"
                                       style={{ backgroundColor: `${cardAccent}26`, borderColor: cardAccent, boxShadow: `inset 0 0 0 1px ${cardAccent}66` }}
                                     >
-                                      <span className="font-coc text-[14px] tabular-nums" style={{ color: cardAccent }}>
+                                      <span className="font-coc text-[13px] tabular-nums" style={{ color: cardAccent }}>
                                         {product.price.toLocaleString()}
                                       </span>
-                                      <span className="font-coc text-[10px] text-white/70">{priceSuffix}</span>
+                                      <span className="font-coc text-[9px] text-white/70">{priceSuffix}</span>
                                     </span>
                                     {hasDiscount && (
-                                      <span className="font-coc text-[11px] line-through tabular-nums text-white/40">
+                                      <span className="font-coc text-[10px] line-through tabular-nums text-white/40">
                                         {product.original_price!.toLocaleString()}
                                       </span>
                                     )}
                                   </div>
                                   <span
-                                    className="font-coc mt-2 flex h-8 items-center justify-center rounded-xl text-[12px] tracking-wide transition-opacity"
+                                    className="font-coc mt-1.5 flex h-7 items-center justify-center rounded-xl text-[11px] tracking-wide transition-opacity"
                                     style={{ backgroundColor: cardAccent, color: "#3b2a00", opacity: active ? 1 : 0.92 }}
                                   >
                                     Buy Now
