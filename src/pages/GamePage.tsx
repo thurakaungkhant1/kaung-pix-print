@@ -571,11 +571,18 @@ const GamePage = () => {
 
   // Tier classification for diamond/UC packages
   const COC_TIER_NAMES: Record<string, string> = {
-    special: "Special Offers",
-    starter: "Pass",
-    popular: "Gems",
-    pro: "Magic Items",
-    mega: "Bundles",
+    special: "Skins",
+    starter: "Sceneries",
+    popular: "Gold Pass",
+    pro: "Event Pass",
+  };
+  // Noun used in the "Select ..." heading, per game
+  const itemNoun = (cat: string | null | undefined) => {
+    const c = (cat || "").toLowerCase();
+    if (c.includes("clash of clans")) return "Items";
+    if (c.includes("honor of kings") || c.includes("hok")) return "Tokens";
+    if (c.includes("pubg")) return "UC";
+    return "Diamonds";
   };
   const DIAMOND_TIERS = [
     { key: "special", name: "Special Offers", emoji: "🎁", chipIcon: Gift,     gradient: "from-pink-500/15 via-rose-500/10 to-pink-500/5",     ring: "ring-pink-500/30",     text: "text-pink-600 dark:text-pink-400" },
@@ -911,7 +918,7 @@ const GamePage = () => {
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-glow">
                     <Diamond className="h-4 w-4 text-primary" />
                   </div>
-                  <h3 className="text-sm font-semibold">Select {selectedGame.id === "PUBG UC" ? "UC" : "Diamonds"}</h3>
+                  <h3 className="text-sm font-semibold">Select {itemNoun(selectedGame.id)}</h3>
                 </div>
                 <span className="text-[11px] text-muted-foreground">{selectedGame.name}</span>
               </div>

@@ -71,12 +71,13 @@ interface PackageRow {
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
 
 const COC_TIER_LABELS: Record<string, string> = {
-  special: "Special Offers",
-  starter: "Pass",
-  popular: "Gems",
-  pro: "Magic Items",
-  mega: "Bundles",
+  special: "Skins",
+  starter: "Sceneries",
+  popular: "Gold Pass",
+  pro: "Event Pass",
 };
+const COC_TIERS = ["special", "starter", "popular", "pro"];
+const tiersFor = (category: string) => (category === "Clash of Clans" ? COC_TIERS : TIERS);
 const DEFAULT_TIER_LABELS: Record<string, string> = {
   special: "Special Offers",
   starter: "Starter Packs",
@@ -613,7 +614,7 @@ const GameCatalogManage = () => {
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {TIERS.map((t) => (
+                  {tiersFor(pkgCategory).map((t) => (
                     <SelectItem key={t} value={t}>{tierLabel(t, pkgCategory)}</SelectItem>
                   ))}
                 </SelectContent>
