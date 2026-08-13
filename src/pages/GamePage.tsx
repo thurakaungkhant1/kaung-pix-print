@@ -138,6 +138,8 @@ const GamePage = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [gameId, setGameId] = useState("");
   const [serverId, setServerId] = useState("");
+  const [cocIdType, setCocIdType] = useState<"tag" | "supercell">("tag");
+
   const [phoneNumber, setPhoneNumber] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>(() => localStorage.getItem("shopActiveTab") || "games");
@@ -395,7 +397,8 @@ const GamePage = () => {
       if (!gameId) {
         toast({
           title: "Error",
-          description: "Please enter your Player ID",
+          description: `Please enter your ${idLabel(selectedProduct.category)}`,
+
           variant: "destructive",
         });
         return;
@@ -522,10 +525,13 @@ const GamePage = () => {
 
 
 
-  // Clash of Clans uses a player tag instead of a numeric player ID
+  // Clash of Clans uses a player tag or a Supercell ID (email)
   const isCoc = (cat: string | null | undefined) => cat === "Clash of Clans";
-  const idLabel = (cat: string | null | undefined) => (isCoc(cat) ? "Player Tag" : "Player ID");
-  const idPlaceholder = (cat: string | null | undefined) => (isCoc(cat) ? "#XXXXXXXX" : "12345678");
+  const idLabel = (cat: string | null | undefined) =>
+    isCoc(cat) ? (cocIdType === "supercell" ? "Supercell ID (Email)" : "Player Tag") : "Player ID";
+  const idPlaceholder = (cat: string | null | undefined) =>
+    isCoc(cat) ? (cocIdType === "supercell" ? "you@example.com" : "#XXXXXXXX") : "12345678";
+
 
   // Tier classification for diamond/UC packages
   const COC_TIER_NAMES: Record<string, string> = {
@@ -585,7 +591,7 @@ const GamePage = () => {
       return;
     }
     if (!gameId) {
-      toast({ title: "Player ID required", description: "Please enter your Player ID", variant: "destructive" });
+      toast({ title: `${idLabel(selectedGame?.id)} required`, description: `Please enter your ${idLabel(selectedGame?.id)}`, variant: "destructive" });
       return;
     }
     if (needsServer && !serverId) {
@@ -716,7 +722,30 @@ const GamePage = () => {
                   <p className="text-[10px] text-muted-foreground">Enter your game account details</p>
                 </div>
               </div>
+              {isCoc(selectedGame.id) && (
+                <div className="mb-3 grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted/50 border border-border/50">
+                  {([
+                    { key: "tag", label: "Player Tag" },
+                    { key: "supercell", label: "Supercell ID" },
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => { setCocIdType(opt.key); setGameId(""); }}
+                      className={cn(
+                        "h-9 rounded-lg text-xs font-semibold transition-all",
+                        cocIdType === opt.key
+                          ? "bg-primary text-primary-foreground shadow"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className={cn("grid gap-3", needsServer ? "grid-cols-2" : "grid-cols-1")}>
+
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
@@ -1455,6 +1484,28 @@ const GamePage = () => {
                     </div>
                     <Label htmlFor="gameId" className="text-xs font-semibold">{idLabel(selectedProduct?.category)} *</Label>
                   </div>
+                  {isCoc(selectedProduct?.category) && (
+                    <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted/50 border border-border/50">
+                      {([
+                        { key: "tag", label: "Player Tag" },
+                        { key: "supercell", label: "Supercell ID" },
+                      ] as const).map((opt) => (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => { setCocIdType(opt.key); setGameId(""); }}
+                          className={cn(
+                            "h-9 rounded-lg text-xs font-semibold transition-all",
+                            cocIdType === opt.key
+                              ? "bg-primary text-primary-foreground shadow"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <div className="relative group/input">
                     <Input
                       id="gameId"
