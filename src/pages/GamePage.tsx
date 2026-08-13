@@ -120,9 +120,14 @@ const GamePage = () => {
         image: g.image_url || FALLBACK_GAME_IMAGE,
         requiresServerId: g.requires_server_id,
         nicknameKey: g.nickname_key,
+        cardStyle: g.card_style || "default",
+        cardAccent: g.card_accent || "#F5B301",
+        showDiscountBadge: g.show_discount_badge !== false,
+        priceSuffix: g.price_suffix || "MMK",
       })),
     [catalogGames]
   );
+
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -503,11 +508,16 @@ const GamePage = () => {
   // For new layout: track inline player credentials
   const selectedGame =
     GAME_CATEGORIES.find(g => g.id === selectedGameCategory) ||
-    GAME_CATEGORIES[0] || { id: "", name: "", icon: Diamond, color: "text-primary", image: FALLBACK_GAME_IMAGE, requiresServerId: false, nicknameKey: null };
+    GAME_CATEGORIES[0] || { id: "", name: "", icon: Diamond, color: "text-primary", image: FALLBACK_GAME_IMAGE, requiresServerId: false, nicknameKey: null, cardStyle: "default", cardAccent: "#F5B301", showDiscountBadge: true, priceSuffix: "MMK" };
+  const cardStyle = (selectedGame as any).cardStyle || "default";
+  const cardAccent = (selectedGame as any).cardAccent || "#F5B301";
+  const showDiscountBadge = (selectedGame as any).showDiscountBadge !== false;
+  const priceSuffix = (selectedGame as any).priceSuffix || "MMK";
   const gameProducts = products
     .filter(p => p.category === selectedGame.id)
     .sort((a, b) => a.price - b.price);
   const needsServer = requiresServerId(selectedGame.id);
+
 
 
 
@@ -841,49 +851,105 @@ const GamePage = () => {
                 <span className="text-[11px] text-muted-foreground">{selectedGame.name}</span>
               </div>
 
-              {/* Tier chip filter */}
+              {/* Tier chip filter — swipeable with snap + active indicator */}
               {groupedDiamonds.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-3 mb-1">
-                  <button
-                    onClick={() => setSelectedDiamondTier(null)}
-                    className={cn(
-                      "shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border transition-all",
-                      !selectedDiamondTier
-                        ? "bg-primary text-primary-foreground border-primary shadow-glow"
-                        : "bg-card/60 text-muted-foreground border-border/50 hover:border-primary/40 hover:text-foreground"
-                    )}
-                  >
-                    <Sparkles className="h-3.5 w-3.5" /> All
-                    <span className="ml-0.5 opacity-70">·{gameProducts.length}</span>
-                  </button>
-                  {groupedDiamonds.map((g) => {
-                    const Icon = g.chipIcon;
-                    const active = selectedDiamondTier === g.key;
-                    return (
-                      <button
-                        key={g.key}
-                        onClick={() => setSelectedDiamondTier(active ? null : g.key)}
-                        className={cn(
-                          "shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border transition-all",
-                          active
-                            ? "bg-primary text-primary-foreground border-primary shadow-glow"
-                            : "bg-card/60 text-foreground/80 border-border/50 hover:border-primary/40"
-                        )}
-                      >
-                        <Icon className="h-3.5 w-3.5" />
-                        {g.name.replace(" Packs", "").replace(" Offers", "")}
-                        <span className="ml-0.5 opacity-70">·{g.items.length}</span>
-                      </button>
-                    );
-                  })}
+                <div className="relative -mx-4 mb-1">
+                  <div className="pointer-events-none absolute left-0 top-0 bottom-3 w-6 bg-gradient-to-r from-background to-transparent z-10" />
+                  <div className="pointer-events-none absolute right-0 top-0 bottom-3 w-6 bg-gradient-to-l from-background to-transparent z-10" />
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-px-4 overscroll-x-contain px-4 pb-3">
+                    <button
+                      onClick={(e) => {
+                        setSelectedDiamondTier(null);
+                        e.currentTarget.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                      }}
+                      className={cn(
+                        "relative shrink-0 snap-center inline-flex flex-col items-center justify-center h-9 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                        !selectedDiamondTier
+                          ? "bg-primary text-primary-foreground border-primary shadow-glow scale-[1.03]"
+                          : "bg-card/60 text-muted-foreground border-border/50 hover:border-primary/40 hover:text-foreground"
+                      )}
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5" /> All
+                        <span className="ml-0.5 opacity-70">·{gameProducts.length}</span>
+                      </span>
+                    </button>
+                    {groupedDiamonds.map((g) => {
+                      const Icon = g.chipIcon;
+                      const active = selectedDiamondTier === g.key;
+                      return (
+                        <button
+                          key={g.key}
+                          onClick={(e) => {
+                            setSelectedDiamondTier(active ? null : g.key);
+                            e.currentTarget.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                          }}
+                          className={cn(
+                            "relative shrink-0 snap-center inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border transition-all duration-200",
+                            active
+                              ? "text-primary-foreground border-transparent shadow-glow scale-[1.03]"
+                              : "bg-card/60 text-foreground/80 border-border/50 hover:border-primary/40"
+                          )}
+                          style={
+                            active && cardStyle === "image"
+                              ? { backgroundColor: cardAccent, color: "#3b2a00", borderColor: cardAccent }
+                              : active
+                              ? undefined
+                              : undefined
+                          }
+                        >
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1.5",
+                              active && cardStyle !== "image" && "text-primary-foreground"
+                            )}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                            {g.name.replace(" Packs", "").replace(" Offers", "")}
+                            <span className="ml-0.5 opacity-70">·{g.items.length}</span>
+                          </span>
+                          {active && cardStyle !== "image" && (
+                            <span className="absolute inset-0 -z-10 rounded-full bg-primary" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
-              {gameProducts.length === 0 ? (
-                <div className="text-center py-10 rounded-2xl border border-dashed border-border/60">
-                  <p className="text-sm text-muted-foreground">No packages available</p>
+              {loading ? (
+                <div className="space-y-5" aria-busy="true">
+                  <div className="h-11 rounded-xl bg-muted/60 animate-pulse" />
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {[...Array(6)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          "rounded-2xl border border-border/50 bg-card/60 overflow-hidden animate-pulse",
+                          cardStyle === "image" ? "h-56" : "h-28"
+                        )}
+                      >
+                        {cardStyle === "image" && <div className="aspect-square w-full bg-muted/70" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : gameProducts.length === 0 ? (
+                <div className="text-center py-12 px-6 rounded-2xl border border-dashed border-border/60 bg-card/40">
+                  <div
+                    className="mx-auto mb-3 h-14 w-14 rounded-2xl flex items-center justify-center"
+                    style={{ backgroundColor: `${cardAccent}22` }}
+                  >
+                    <Gift className="h-6 w-6" style={{ color: cardAccent }} />
+                  </div>
+                  <p className="text-sm font-semibold">No packages yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {selectedGame.name} packages will appear here as soon as they are added.
+                  </p>
                 </div>
               ) : (
+
                 <div className="space-y-5">
                   {visibleGroups.map((group) => (
                     <motion.div
@@ -920,8 +986,11 @@ const GamePage = () => {
                         {group.items.map((product) => {
                           const active = selectedProduct?.id === product.id && showPurchaseDialog;
                           const hasDiscount = product.original_price && product.original_price > product.price;
+                          const discountPct = hasDiscount
+                            ? Math.round((1 - product.price / product.original_price!) * 100)
+                            : 0;
                           const imageCard =
-                            isCoc(selectedGame.id) &&
+                            cardStyle === "image" &&
                             !!product.image_url &&
                             !product.image_url.includes("placeholder");
 
@@ -932,22 +1001,26 @@ const GamePage = () => {
                                 onClick={() => handleSelectPackage(product)}
                                 className={cn(
                                   "group relative rounded-[20px] overflow-hidden border text-left transition-all",
-                                  active
-                                    ? "border-amber-400 shadow-lg scale-[0.99]"
-                                    : "border-amber-500/25 hover:border-amber-400/70 hover:-translate-y-0.5 hover:shadow-xl"
+                                  active ? "shadow-lg scale-[0.99]" : "hover:-translate-y-0.5 hover:shadow-xl"
                                 )}
                                 style={{
                                   background:
                                     "linear-gradient(160deg, hsl(220 30% 12%) 0%, hsl(222 32% 8%) 100%)",
+                                  borderColor: active ? cardAccent : `${cardAccent}40`,
                                 }}
                               >
-                                {hasDiscount && (
+                                {hasDiscount && showDiscountBadge && (
                                   <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold shadow">
-                                    SALE
+                                    {discountPct > 0 ? `-${discountPct}%` : "SALE"}
                                   </span>
                                 )}
                                 <div className="relative aspect-square w-full overflow-hidden">
-                                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,hsl(45_90%_55%/0.22),transparent_65%)]" />
+                                  <div
+                                    className="absolute inset-0"
+                                    style={{
+                                      background: `radial-gradient(circle at 50% 35%, ${cardAccent}38, transparent 65%)`,
+                                    }}
+                                  />
                                   <img
                                     src={product.image_url}
                                     alt={product.name}
@@ -956,7 +1029,7 @@ const GamePage = () => {
                                   />
                                 </div>
                                 <div className="px-3 pb-3 pt-1">
-                                  <p className="font-bold text-[12.5px] leading-tight text-amber-50 line-clamp-2 min-h-[30px]">
+                                  <p className="font-bold text-[12.5px] leading-tight text-white/95 line-clamp-2 min-h-[30px]">
                                     {product.name}
                                   </p>
                                   {product.points_value > 0 && (
@@ -965,25 +1038,24 @@ const GamePage = () => {
                                     </p>
                                   )}
                                   <div className="mt-2 flex items-center gap-1.5">
-                                    <span className="inline-flex items-baseline gap-1 rounded-lg bg-amber-400/15 ring-1 ring-amber-400/40 px-2 py-1">
-                                      <span className="text-[13px] font-extrabold tabular-nums text-amber-300">
+                                    <span
+                                      className="inline-flex items-baseline gap-1 rounded-lg px-2 py-1 ring-1"
+                                      style={{ backgroundColor: `${cardAccent}26`, borderColor: cardAccent, boxShadow: `inset 0 0 0 1px ${cardAccent}66` }}
+                                    >
+                                      <span className="text-[13px] font-extrabold tabular-nums" style={{ color: cardAccent }}>
                                         {product.price.toLocaleString()}
                                       </span>
-                                      <span className="text-[9px] font-semibold text-amber-200/80">MMK</span>
+                                      <span className="text-[9px] font-semibold text-white/70">{priceSuffix}</span>
                                     </span>
                                     {hasDiscount && (
-                                      <span className="text-[10px] line-through tabular-nums text-amber-100/45">
+                                      <span className="text-[10px] line-through tabular-nums text-white/40">
                                         {product.original_price!.toLocaleString()}
                                       </span>
                                     )}
                                   </div>
                                   <span
-                                    className={cn(
-                                      "mt-2 flex h-8 items-center justify-center rounded-xl text-[11px] font-bold tracking-wide transition-colors",
-                                      active
-                                        ? "bg-amber-400 text-amber-950"
-                                        : "bg-amber-500/90 text-amber-950 group-hover:bg-amber-400"
-                                    )}
+                                    className="mt-2 flex h-8 items-center justify-center rounded-xl text-[11px] font-bold tracking-wide transition-opacity"
+                                    style={{ backgroundColor: cardAccent, color: "#3b2a00", opacity: active ? 1 : 0.92 }}
                                   >
                                     Buy Now
                                   </span>
@@ -991,6 +1063,7 @@ const GamePage = () => {
                               </button>
                             );
                           }
+
 
                           return (
                             <button
@@ -1003,11 +1076,12 @@ const GamePage = () => {
                                   : "bg-card border-border/60 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5"
                               )}
                             >
-                              {hasDiscount && !active && (
+                              {hasDiscount && showDiscountBadge && !active && (
                                 <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold">
-                                  SALE
+                                  {discountPct > 0 ? `-${discountPct}%` : "SALE"}
                                 </span>
                               )}
+
                               <div className={cn(
                                 "h-9 w-9 rounded-xl flex items-center justify-center mb-2 bg-gradient-to-br",
                                 active ? "bg-white/20" : group.gradient
@@ -1033,8 +1107,9 @@ const GamePage = () => {
                                   {product.price.toLocaleString()}
                                 </p>
                                 <span className={cn("text-[10px] font-medium", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                                  MMK
+                                  {priceSuffix}
                                 </span>
+
                                 {hasDiscount && (
                                   <span className={cn(
                                     "ml-auto text-[10px] line-through tabular-nums",

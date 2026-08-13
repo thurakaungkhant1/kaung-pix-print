@@ -878,6 +878,8 @@ export type Database = {
       }
       game_catalog: {
         Row: {
+          card_accent: string
+          card_style: string
           category_key: string
           created_at: string
           display_order: number
@@ -886,11 +888,15 @@ export type Database = {
           is_active: boolean
           name: string
           nickname_key: string | null
+          price_suffix: string
           requires_server_id: boolean
           short_name: string | null
+          show_discount_badge: boolean
           updated_at: string
         }
         Insert: {
+          card_accent?: string
+          card_style?: string
           category_key: string
           created_at?: string
           display_order?: number
@@ -899,11 +905,15 @@ export type Database = {
           is_active?: boolean
           name: string
           nickname_key?: string | null
+          price_suffix?: string
           requires_server_id?: boolean
           short_name?: string | null
+          show_discount_badge?: boolean
           updated_at?: string
         }
         Update: {
+          card_accent?: string
+          card_style?: string
           category_key?: string
           created_at?: string
           display_order?: number
@@ -912,8 +922,10 @@ export type Database = {
           is_active?: boolean
           name?: string
           nickname_key?: string | null
+          price_suffix?: string
           requires_server_id?: boolean
           short_name?: string | null
+          show_discount_badge?: boolean
           updated_at?: string
         }
         Relationships: []

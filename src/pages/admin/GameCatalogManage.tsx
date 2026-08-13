@@ -46,7 +46,12 @@ interface GameRow {
   nickname_key: string | null;
   display_order: number;
   is_active: boolean;
+  card_style?: string | null;
+  card_accent?: string | null;
+  show_discount_badge?: boolean | null;
+  price_suffix?: string | null;
 }
+
 
 interface PackageRow {
   id: number;
@@ -70,7 +75,12 @@ const emptyGame = {
   idMode: "single" as "single" | "dual",
   nickname_key: "none",
   is_active: true,
+  card_style: "default",
+  card_accent: "#F5B301",
+  show_discount_badge: true,
+  price_suffix: "MMK",
 };
+
 
 const emptyPkg = {
   id: null as number | null,
@@ -146,7 +156,12 @@ const GameCatalogManage = () => {
       idMode: g.requires_server_id ? "dual" : "single",
       nickname_key: g.nickname_key || "none",
       is_active: g.is_active,
+      card_style: g.card_style || "default",
+      card_accent: g.card_accent || "#F5B301",
+      show_discount_badge: g.show_discount_badge !== false,
+      price_suffix: g.price_suffix || "MMK",
     });
+
     setGameDialog(true);
   };
 
@@ -172,8 +187,13 @@ const GameCatalogManage = () => {
       requires_server_id: gameForm.idMode === "dual",
       nickname_key: gameForm.nickname_key === "none" ? null : gameForm.nickname_key,
       is_active: gameForm.is_active,
+      card_style: gameForm.card_style,
+      card_accent: gameForm.card_accent,
+      show_discount_badge: gameForm.show_discount_badge,
+      price_suffix: gameForm.price_suffix.trim() || "MMK",
       display_order: editingGame?.display_order ?? games.length + 1,
     };
+
 
     const { error } = editingGame
       ? await (supabase as any).from("game_catalog").update(payload).eq("id", editingGame.id)
@@ -458,7 +478,57 @@ const GameCatalogManage = () => {
                 onCheckedChange={(v) => setGameForm({ ...gameForm, is_active: v })}
               />
             </div>
+
+            {/* Card style settings */}
+            <div className="rounded-xl border border-border/60 p-3 space-y-3">
+              <p className="text-xs font-semibold">Store card style</p>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Layout</Label>
+                <Select
+                  value={gameForm.card_style}
+                  onValueChange={(v) => setGameForm({ ...gameForm, card_style: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Compact list card</SelectItem>
+                    <SelectItem value="image">Image card (Supercell style)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Accent colour</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={gameForm.card_accent}
+                    onChange={(e) => setGameForm({ ...gameForm, card_accent: e.target.value })}
+                    className="h-9 w-12 rounded-md border border-border/60 bg-transparent p-1"
+                  />
+                  <Input
+                    value={gameForm.card_accent}
+                    onChange={(e) => setGameForm({ ...gameForm, card_accent: e.target.value })}
+                    placeholder="#F5B301"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Price suffix</Label>
+                <Input
+                  value={gameForm.price_suffix}
+                  onChange={(e) => setGameForm({ ...gameForm, price_suffix: e.target.value })}
+                  placeholder="MMK"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Show discount badge</Label>
+                <Switch
+                  checked={gameForm.show_discount_badge}
+                  onCheckedChange={(v) => setGameForm({ ...gameForm, show_discount_badge: v })}
+                />
+              </div>
+            </div>
           </div>
+
           <DialogFooter>
             <Button onClick={saveGame} disabled={saving} className="w-full">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
