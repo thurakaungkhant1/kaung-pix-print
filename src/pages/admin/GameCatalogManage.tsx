@@ -67,6 +67,23 @@ interface PackageRow {
 
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
 
+const COC_TIER_LABELS: Record<string, string> = {
+  special: "Special Offers",
+  starter: "Pass",
+  popular: "Gems",
+  pro: "Magic Items",
+  mega: "Bundles",
+};
+const DEFAULT_TIER_LABELS: Record<string, string> = {
+  special: "Special Offers",
+  starter: "Starter Packs",
+  popular: "Popular Packs",
+  pro: "Pro Packs",
+  mega: "Mega Packs",
+};
+const tierLabel = (tier: string, category: string) =>
+  (category === "Clash of Clans" ? COC_TIER_LABELS : DEFAULT_TIER_LABELS)[tier] || tier;
+
 const emptyGame = {
   name: "",
   short_name: "",
