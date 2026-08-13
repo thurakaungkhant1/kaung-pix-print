@@ -1097,6 +1097,14 @@ const GamePage = () => {
                                   <p className="font-coc text-coc-outline text-[12px] leading-tight text-white/95 line-clamp-2 min-h-[34px]">
                                     {product.name}
                                   </p>
+                                  {product.event_ends_at && (
+                                    <EventCountdown
+                                      endsAt={product.event_ends_at}
+                                      label={product.event_label || "EVENT"}
+                                      coc
+                                      className="mt-1"
+                                    />
+                                  )}
                                   {product.points_value > 0 && (
                                     <p className="font-coc text-[10px] text-emerald-400 mt-0.5">
                                       +{product.points_value} pts
