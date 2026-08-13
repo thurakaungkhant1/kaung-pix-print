@@ -478,7 +478,57 @@ const GameCatalogManage = () => {
                 onCheckedChange={(v) => setGameForm({ ...gameForm, is_active: v })}
               />
             </div>
+
+            {/* Card style settings */}
+            <div className="rounded-xl border border-border/60 p-3 space-y-3">
+              <p className="text-xs font-semibold">Store card style</p>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Layout</Label>
+                <Select
+                  value={gameForm.card_style}
+                  onValueChange={(v) => setGameForm({ ...gameForm, card_style: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Compact list card</SelectItem>
+                    <SelectItem value="image">Image card (Supercell style)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Accent colour</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={gameForm.card_accent}
+                    onChange={(e) => setGameForm({ ...gameForm, card_accent: e.target.value })}
+                    className="h-9 w-12 rounded-md border border-border/60 bg-transparent p-1"
+                  />
+                  <Input
+                    value={gameForm.card_accent}
+                    onChange={(e) => setGameForm({ ...gameForm, card_accent: e.target.value })}
+                    placeholder="#F5B301"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Price suffix</Label>
+                <Input
+                  value={gameForm.price_suffix}
+                  onChange={(e) => setGameForm({ ...gameForm, price_suffix: e.target.value })}
+                  placeholder="MMK"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Show discount badge</Label>
+                <Switch
+                  checked={gameForm.show_discount_badge}
+                  onCheckedChange={(v) => setGameForm({ ...gameForm, show_discount_badge: v })}
+                />
+              </div>
+            </div>
           </div>
+
           <DialogFooter>
             <Button onClick={saveGame} disabled={saving} className="w-full">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
