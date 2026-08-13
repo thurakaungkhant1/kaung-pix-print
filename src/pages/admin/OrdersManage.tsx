@@ -729,7 +729,7 @@ const OrdersManage = () => {
                   <img
                     src={order.products.image_url}
                     alt={order.products.name}
-                    className="w-16 h-16 md:w-20 md:h-20 object-cover rounded shrink-0"
+                    className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-xl shrink-0"
                   />
                   <div className="flex-1 min-w-0 md:hidden">
                     <h3 className="font-bold text-sm line-clamp-2 leading-tight">{order.products.name}</h3>
