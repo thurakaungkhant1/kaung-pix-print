@@ -1107,8 +1107,9 @@ const GamePage = () => {
                                   {product.price.toLocaleString()}
                                 </p>
                                 <span className={cn("text-[10px] font-medium", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                                  MMK
+                                  {priceSuffix}
                                 </span>
+
                                 {hasDiscount && (
                                   <span className={cn(
                                     "ml-auto text-[10px] line-through tabular-nums",
