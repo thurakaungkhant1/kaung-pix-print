@@ -1043,7 +1043,7 @@ const GamePage = () => {
                       </div>
 
                       {/* Packages grid */}
-                      <div className={cn("grid", isCoc(selectedGame.id) ? "grid-cols-2 gap-2" : "grid-cols-2 gap-2.5")}>
+                      <div className={cn("grid", isCoc(selectedGame.id) ? "grid-cols-2 gap-1.5" : "grid-cols-2 gap-2.5")}>
                         {group.items.map((product) => {
                           const active = selectedProduct?.id === product.id && showPurchaseDialog;
                           const hasDiscount = product.original_price && product.original_price > product.price;
