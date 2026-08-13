@@ -575,6 +575,7 @@ const GamePage = () => {
     starter: "Sceneries",
     popular: "Gold Pass",
     pro: "Event Pass",
+    gems: "Gems",
   };
   // Noun used in the "Select ..." heading, per game
   const itemNoun = (cat: string | null | undefined) => {
@@ -589,6 +590,7 @@ const GamePage = () => {
     { key: "starter", name: "Starter Packs",  emoji: "✨", chipIcon: Sparkles, gradient: "from-sky-500/15 via-cyan-500/10 to-sky-500/5",       ring: "ring-sky-500/30",      text: "text-sky-600 dark:text-sky-400" },
     { key: "popular", name: "Popular Packs",  emoji: "💎", chipIcon: Diamond,  gradient: "from-violet-500/15 via-indigo-500/10 to-violet-500/5", ring: "ring-violet-500/30", text: "text-violet-600 dark:text-violet-400" },
     { key: "pro",     name: "Pro Packs",      emoji: "🔥", chipIcon: Zap,      gradient: "from-amber-500/15 via-orange-500/10 to-amber-500/5", ring: "ring-amber-500/30",    text: "text-amber-600 dark:text-amber-400" },
+    { key: "gems",    name: "Gems",           emoji: "💎", chipIcon: Diamond,  gradient: "from-emerald-500/15 via-teal-500/10 to-emerald-500/5", ring: "ring-emerald-500/30",  text: "text-emerald-600 dark:text-emerald-400" },
     { key: "mega",    name: "Mega Packs",     emoji: "👑", chipIcon: Percent,  gradient: "from-yellow-400/20 via-amber-500/10 to-yellow-400/5", ring: "ring-yellow-500/30",  text: "text-yellow-600 dark:text-yellow-400" },
   ] as const;
 
