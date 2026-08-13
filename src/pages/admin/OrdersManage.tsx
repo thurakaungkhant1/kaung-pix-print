@@ -446,6 +446,7 @@ const OrdersManage = () => {
   const isGameOrder = (category: string) => GAME_CATEGORIES.includes(category);
   const isMobileOrder = (category: string) => MOBILE_CATEGORIES.includes(category);
   const isMLBB = (category: string) => category === "MLBB Diamonds";
+  const isCocOrder = (category: string) => category === "Clash of Clans";
 
   const pendingCount = filteredOrders.filter(o => o.status === "pending").length;
 
@@ -758,6 +759,13 @@ const OrdersManage = () => {
                               <span className="text-muted-foreground">ID:</span> <span className="font-medium">{order.game_id}</span>
                               <span className="mx-1.5 text-muted-foreground">•</span>
                               <span className="text-muted-foreground">Server:</span> <span className="font-medium">{order.server_id}</span>
+                            </span>
+                          ) : isCocOrder(order.products.category) ? (
+                            <span>
+                              <span className="text-muted-foreground">
+                                {order.server_id === "supercell" ? "Supercell ID:" : "Player Tag:"}
+                              </span>{" "}
+                              <span className="font-medium break-all">{order.game_id}</span>
                             </span>
                           ) : (
                             <span>

@@ -403,6 +403,27 @@ const GamePage = () => {
         });
         return;
       }
+      // Clash of Clans: validate Supercell ID (email) or Player Tag pattern
+      if (isCoc(selectedProduct.category)) {
+        const value = gameId.trim();
+        if (cocIdType === "supercell") {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
+            toast({
+              title: "Invalid Supercell ID",
+              description: "Please enter a valid email address (e.g. you@example.com)",
+              variant: "destructive",
+            });
+            return;
+          }
+        } else if (!/^#?[0289PYLQGRJCUV]{6,12}$/i.test(value)) {
+          toast({
+            title: "Invalid Player Tag",
+            description: "Player Tag must look like #XXXXXXXX (letters and numbers only)",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
       // Only MLBB requires Server ID
       if (requiresServerId(selectedProduct.category) && !serverId) {
         toast({
@@ -440,8 +461,19 @@ const GamePage = () => {
       const { data: rpcData, error: rpcError } = await supabase.rpc("purchase_product_wallet", {
         p_product_id: selectedProduct.id,
         p_quantity: 1,
-        p_game_id: isGameProduct(selectedProduct.category) ? gameId : null,
-        p_server_id: requiresServerId(selectedProduct.category) ? serverId : null,
+        p_game_id: isGameProduct(selectedProduct.category)
+          ? isCoc(selectedProduct.category)
+            ? cocIdType === "supercell"
+              ? gameId.trim().toLowerCase()
+              : `#${gameId.trim().replace(/^#/, "").toUpperCase()}`
+            : gameId
+          : null,
+        // For Clash of Clans we store which ID type the buyer chose
+        p_server_id: isCoc(selectedProduct.category)
+          ? cocIdType
+          : requiresServerId(selectedProduct.category)
+            ? serverId
+            : null,
         p_phone_number: isMobileProduct(selectedProduct.category) ? phoneNumber : null,
         p_plan_id: null,
         p_plan_name: null,
@@ -1426,6 +1458,10 @@ const GamePage = () => {
                                   <Gamepad2 className="h-3 w-3 text-primary" />
                                   {isMLBB ? (
                                     <span>ID: {order.game_id} • Server: {order.server_id}</span>
+                                  ) : isCoc(order.products.category) ? (
+                                    <span className="break-all">
+                                      {order.server_id === "supercell" ? "Supercell ID" : "Player Tag"}: {order.game_id}
+                                    </span>
                                   ) : (
                                     <span>Player ID: {order.game_id}</span>
                                   )}
