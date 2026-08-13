@@ -920,6 +920,78 @@ const GamePage = () => {
                         {group.items.map((product) => {
                           const active = selectedProduct?.id === product.id && showPurchaseDialog;
                           const hasDiscount = product.original_price && product.original_price > product.price;
+                          const imageCard =
+                            isCoc(selectedGame.id) &&
+                            !!product.image_url &&
+                            !product.image_url.includes("placeholder");
+
+                          if (imageCard) {
+                            return (
+                              <button
+                                key={product.id}
+                                onClick={() => handleSelectPackage(product)}
+                                className={cn(
+                                  "group relative rounded-[20px] overflow-hidden border text-left transition-all",
+                                  active
+                                    ? "border-amber-400 shadow-lg scale-[0.99]"
+                                    : "border-amber-500/25 hover:border-amber-400/70 hover:-translate-y-0.5 hover:shadow-xl"
+                                )}
+                                style={{
+                                  background:
+                                    "linear-gradient(160deg, hsl(220 30% 12%) 0%, hsl(222 32% 8%) 100%)",
+                                }}
+                              >
+                                {hasDiscount && (
+                                  <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold shadow">
+                                    SALE
+                                  </span>
+                                )}
+                                <div className="relative aspect-square w-full overflow-hidden">
+                                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,hsl(45_90%_55%/0.22),transparent_65%)]" />
+                                  <img
+                                    src={product.image_url}
+                                    alt={product.name}
+                                    loading="lazy"
+                                    className="relative h-full w-full object-contain p-3 drop-shadow-[0_6px_14px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover:scale-105"
+                                  />
+                                </div>
+                                <div className="px-3 pb-3 pt-1">
+                                  <p className="font-bold text-[12.5px] leading-tight text-amber-50 line-clamp-2 min-h-[30px]">
+                                    {product.name}
+                                  </p>
+                                  {product.points_value > 0 && (
+                                    <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">
+                                      +{product.points_value} pts
+                                    </p>
+                                  )}
+                                  <div className="mt-2 flex items-center gap-1.5">
+                                    <span className="inline-flex items-baseline gap-1 rounded-lg bg-amber-400/15 ring-1 ring-amber-400/40 px-2 py-1">
+                                      <span className="text-[13px] font-extrabold tabular-nums text-amber-300">
+                                        {product.price.toLocaleString()}
+                                      </span>
+                                      <span className="text-[9px] font-semibold text-amber-200/80">MMK</span>
+                                    </span>
+                                    {hasDiscount && (
+                                      <span className="text-[10px] line-through tabular-nums text-amber-100/45">
+                                        {product.original_price!.toLocaleString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span
+                                    className={cn(
+                                      "mt-2 flex h-8 items-center justify-center rounded-xl text-[11px] font-bold tracking-wide transition-colors",
+                                      active
+                                        ? "bg-amber-400 text-amber-950"
+                                        : "bg-amber-500/90 text-amber-950 group-hover:bg-amber-400"
+                                    )}
+                                  >
+                                    Buy Now
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          }
+
                           return (
                             <button
                               key={product.id}
@@ -976,6 +1048,7 @@ const GamePage = () => {
                           );
                         })}
                       </div>
+
                     </motion.div>
                   ))}
                 </div>
