@@ -120,9 +120,14 @@ const GamePage = () => {
         image: g.image_url || FALLBACK_GAME_IMAGE,
         requiresServerId: g.requires_server_id,
         nicknameKey: g.nickname_key,
+        cardStyle: g.card_style || "default",
+        cardAccent: g.card_accent || "#F5B301",
+        showDiscountBadge: g.show_discount_badge !== false,
+        priceSuffix: g.price_suffix || "MMK",
       })),
     [catalogGames]
   );
+
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
