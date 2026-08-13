@@ -512,7 +512,19 @@ const GamePage = () => {
 
 
 
+  // Clash of Clans uses a player tag instead of a numeric player ID
+  const isCoc = (cat: string | null | undefined) => cat === "Clash of Clans";
+  const idLabel = (cat: string | null | undefined) => (isCoc(cat) ? "Player Tag" : "Player ID");
+  const idPlaceholder = (cat: string | null | undefined) => (isCoc(cat) ? "#XXXXXXXX" : "12345678");
+
   // Tier classification for diamond/UC packages
+  const COC_TIER_NAMES: Record<string, string> = {
+    special: "Special Offers",
+    starter: "Pass",
+    popular: "Gems",
+    pro: "Magic Items",
+    mega: "Bundles",
+  };
   const DIAMOND_TIERS = [
     { key: "special", name: "Special Offers", emoji: "🎁", chipIcon: Gift,     gradient: "from-pink-500/15 via-rose-500/10 to-pink-500/5",     ring: "ring-pink-500/30",     text: "text-pink-600 dark:text-pink-400" },
     { key: "starter", name: "Starter Packs",  emoji: "✨", chipIcon: Sparkles, gradient: "from-sky-500/15 via-cyan-500/10 to-sky-500/5",       ring: "ring-sky-500/30",      text: "text-sky-600 dark:text-sky-400" },
@@ -545,7 +557,11 @@ const GamePage = () => {
 
 
   const groupedDiamonds = DIAMOND_TIERS
-    .map(tier => ({ ...tier, items: gameProducts.filter(p => tierOf(p) === tier.key) }))
+    .map(tier => ({
+      ...tier,
+      name: isCoc(selectedGame.id) ? (COC_TIER_NAMES[tier.key] || tier.name) : tier.name,
+      items: gameProducts.filter(p => tierOf(p) === tier.key),
+    }))
     .filter(g => g.items.length > 0);
 
   const visibleGroups = selectedDiamondTier
@@ -696,11 +712,11 @@ const GamePage = () => {
                   <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
                     <svg viewBox="0 0 24 24" className="h-3 w-3 text-primary" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6"/></svg>
                   </div>
-                  <Label className="text-xs font-semibold text-foreground/90">Player ID</Label>
+                  <Label className="text-xs font-semibold text-foreground/90">{idLabel(selectedGame.id)}</Label>
                 </div>
                 <div className="relative group/input">
                   <Input
-                    placeholder="12345678"
+                    placeholder={idPlaceholder(selectedGame.id)}
                     value={gameId}
                     onChange={(e) => setGameId(e.target.value)}
                     className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-base font-semibold tracking-wide placeholder:font-normal"
@@ -1289,12 +1305,12 @@ const GamePage = () => {
                     <div className="h-5 w-5 rounded-md bg-primary/15 flex items-center justify-center">
                       <svg viewBox="0 0 24 24" className="h-3 w-3 text-primary" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6"/></svg>
                     </div>
-                    <Label htmlFor="gameId" className="text-xs font-semibold">Player ID *</Label>
+                    <Label htmlFor="gameId" className="text-xs font-semibold">{idLabel(selectedProduct?.category)} *</Label>
                   </div>
                   <div className="relative group/input">
                     <Input
                       id="gameId"
-                      placeholder="123456789"
+                      placeholder={idPlaceholder(selectedProduct?.category)}
                       value={gameId}
                       onChange={(e) => setGameId(e.target.value)}
                       className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-base font-semibold tracking-wide"
