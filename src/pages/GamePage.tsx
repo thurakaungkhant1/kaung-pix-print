@@ -1076,11 +1076,12 @@ const GamePage = () => {
                                   : "bg-card border-border/60 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5"
                               )}
                             >
-                              {hasDiscount && !active && (
+                              {hasDiscount && showDiscountBadge && !active && (
                                 <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold">
-                                  SALE
+                                  {discountPct > 0 ? `-${discountPct}%` : "SALE"}
                                 </span>
                               )}
+
                               <div className={cn(
                                 "h-9 w-9 rounded-xl flex items-center justify-center mb-2 bg-gradient-to-br",
                                 active ? "bg-white/20" : group.gradient
