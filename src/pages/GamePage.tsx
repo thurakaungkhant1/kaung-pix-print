@@ -1090,7 +1090,7 @@ const GamePage = () => {
                                   />
                                 </div>
                                 <div className="px-2.5 pb-2.5 pt-1">
-                                  <p className="font-coc text-coc-outline text-[12px] leading-tight text-white/95 line-clamp-2 min-h-[28px]">
+                                  <p className="font-coc text-coc-outline text-[12px] leading-tight text-white/95 line-clamp-2 min-h-[34px]">
                                     {product.name}
                                   </p>
                                   {product.points_value > 0 && (
