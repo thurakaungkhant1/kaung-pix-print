@@ -595,7 +595,7 @@ const GameCatalogManage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Tier</Label>
+              <Label className="text-xs">Category / Tab</Label>
               <Select
                 value={pkgForm.diamond_tier}
                 onValueChange={(v) => setPkgForm({ ...pkgForm, diamond_tier: v })}
@@ -603,10 +603,13 @@ const GameCatalogManage = () => {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {TIERS.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t}>{tierLabel(t, pkgCategory)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-[10px] text-muted-foreground">
+                Controls which tab this package appears under in the game shop.
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Description (optional)</Label>
