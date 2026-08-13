@@ -62,20 +62,20 @@ export const EventCountdown = ({
     return (
       <div
         className={cn(
-          "pointer-events-none absolute left-2 top-2 z-20 flex items-center gap-1 rounded-full px-2 py-1 shadow-lg ring-1 ring-white/10 backdrop-blur-sm",
-          urgent ? "bg-rose-600/90 text-white" : "bg-black/70 text-amber-300",
+          "pointer-events-none absolute left-2 top-2 z-20 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 shadow-lg ring-1 ring-white/10 backdrop-blur-sm",
+          urgent ? "bg-rose-600/90 text-white" : "bg-black/75 text-amber-300",
           className
         )}
         title={label || "Limited-time event"}
       >
-        <Clock className="h-3 w-3 shrink-0" />
+        <Clock className="h-4 w-4 shrink-0" />
         <span
           className={cn(
-            "text-[10px] font-black tabular-nums tracking-wide leading-none",
+            "text-xs font-black tabular-nums tracking-wide leading-none",
             coc && "font-coc"
           )}
         >
-          {formatShort(remaining)}
+          {format(remaining)}
         </span>
       </div>
     );
