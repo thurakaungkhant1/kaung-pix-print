@@ -1605,9 +1605,25 @@ const GamePage = () => {
             
             {selectedProduct && (
               <div className="p-4 bg-muted rounded-xl space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Product</span>
-                  <span className="font-medium">{selectedProduct.name}</span>
+                <div className="flex items-center gap-3">
+                  {selectedProduct.image_url ? (
+                    <img
+                      src={selectedProduct.image_url}
+                      alt={selectedProduct.name}
+                      loading="lazy"
+                      className="h-14 w-14 rounded-xl object-contain bg-background/60 border border-border/50 p-1 shrink-0"
+                    />
+                  ) : (
+                    <div className="h-14 w-14 rounded-xl bg-background/60 border border-border/50 flex items-center justify-center shrink-0">
+                      <ShoppingBag className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Product</p>
+                    <p className={cn("font-semibold text-sm leading-tight", isCoc(selectedProduct.category) && "font-coc")}>
+                      {selectedProduct.name}
+                    </p>
+                  </div>
                 </div>
                 {selectedProduct.description && (() => {
                   const isLong = selectedProduct.description!.length > 140;

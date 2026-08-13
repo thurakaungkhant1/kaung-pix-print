@@ -67,6 +67,23 @@ interface PackageRow {
 
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
 
+const COC_TIER_LABELS: Record<string, string> = {
+  special: "Special Offers",
+  starter: "Pass",
+  popular: "Gems",
+  pro: "Magic Items",
+  mega: "Bundles",
+};
+const DEFAULT_TIER_LABELS: Record<string, string> = {
+  special: "Special Offers",
+  starter: "Starter Packs",
+  popular: "Popular Packs",
+  pro: "Pro Packs",
+  mega: "Mega Packs",
+};
+const tierLabel = (tier: string, category: string) =>
+  (category === "Clash of Clans" ? COC_TIER_LABELS : DEFAULT_TIER_LABELS)[tier] || tier;
+
 const emptyGame = {
   name: "",
   short_name: "",
@@ -375,7 +392,7 @@ const GameCatalogManage = () => {
                             <p className="text-xs font-semibold truncate">{p.name}</p>
                             <p className="text-[10px] text-muted-foreground">
                               {p.price.toLocaleString()} MMK
-                              {p.diamond_tier ? ` · ${p.diamond_tier}` : ""}
+                              {p.diamond_tier ? ` · ${tierLabel(p.diamond_tier, p.category)}` : ""}
                               {p.smile_package_id ? ` · #${p.smile_package_id}` : ""}
                             </p>
                           </div>
@@ -578,7 +595,7 @@ const GameCatalogManage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Tier</Label>
+              <Label className="text-xs">Category / Tab</Label>
               <Select
                 value={pkgForm.diamond_tier}
                 onValueChange={(v) => setPkgForm({ ...pkgForm, diamond_tier: v })}
@@ -586,10 +603,13 @@ const GameCatalogManage = () => {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {TIERS.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t}>{tierLabel(t, pkgCategory)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-[10px] text-muted-foreground">
+                Controls which tab this package appears under in the game shop.
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Description (optional)</Label>
