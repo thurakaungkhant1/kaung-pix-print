@@ -249,21 +249,52 @@ const GamePackageForm = () => {
               </div>
 
               <div>
-                <Label htmlFor="image_url">Image URL</Label>
+                <Label htmlFor="image_url">Skin / banner image</Label>
                 <Input
                   id="image_url"
                   placeholder="https://... (leave empty to use the game image)"
                   value={formData.image_url}
                   onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                 />
-                {(formData.image_url || gameImage) && (
-                  <img
-                    src={formData.image_url || gameImage}
-                    alt="preview"
-                    className="mt-2 h-16 w-16 rounded-lg object-cover"
+                <div className="mt-2 flex items-center gap-3">
+                  <input
+                    id="pkg_image_file"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadImage(f);
+                      e.target.value = "";
+                    }}
                   />
-                )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => document.getElementById("pkg_image_file")?.click()}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" /> Upload image
+                      </>
+                    )}
+                  </Button>
+                  {(formData.image_url || gameImage) && (
+                    <img
+                      src={formData.image_url || gameImage}
+                      alt="preview"
+                      className="h-16 w-16 rounded-lg object-cover"
+                    />
+                  )}
+                </div>
               </div>
+
               <div>
                 <Label htmlFor="description">Description</Label>
                 <Textarea
