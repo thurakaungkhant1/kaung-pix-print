@@ -143,6 +143,15 @@
 }
 
 @layer utilities {
+  /* Clash of Clans / Supercell-style display font */
+  .font-coc {
+    font-family: 'Lilita One', 'Outfit', system-ui, sans-serif;
+    letter-spacing: 0.02em;
+  }
+  .text-coc-outline {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.45);
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
