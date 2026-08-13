@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Timer } from "lucide-react";
+import { Clock, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface EventCountdownProps {
@@ -10,6 +10,8 @@ interface EventCountdownProps {
   className?: string;
   /** Use the Clash of Clans display font */
   coc?: boolean;
+  /** Visual layout: compact badge (default) or prominent top-of-card banner */
+  variant?: "badge" | "banner";
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -25,7 +27,13 @@ const format = (ms: number) => {
 };
 
 /** Live countdown badge for limited-time product events. Hides itself once expired. */
-export const EventCountdown = ({ endsAt, label, className, coc }: EventCountdownProps) => {
+export const EventCountdown = ({
+  endsAt,
+  label,
+  className,
+  coc,
+  variant = "badge",
+}: EventCountdownProps) => {
   const target = new Date(endsAt).getTime();
   const [remaining, setRemaining] = useState(() => target - Date.now());
 
@@ -38,6 +46,35 @@ export const EventCountdown = ({ endsAt, label, className, coc }: EventCountdown
   if (!target || Number.isNaN(target) || remaining <= 0) return null;
 
   const urgent = remaining < 60 * 60 * 1000;
+
+  if (variant === "banner") {
+    return (
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-center gap-1.5 px-2 py-1 text-center",
+          urgent
+            ? "bg-rose-500/90 text-white"
+            : "bg-amber-500/90 text-amber-950",
+          className
+        )}
+      >
+        <Clock className="h-3.5 w-3.5 shrink-0" />
+        {label && (
+          <span className={cn("text-[10px] font-bold uppercase tracking-wider", coc && "font-coc")}>
+            {label}
+          </span>
+        )}
+        <span
+          className={cn(
+            "text-[11px] font-black tabular-nums tracking-wide",
+            coc && "font-coc"
+          )}
+        >
+          {format(remaining)}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <span
@@ -58,3 +95,4 @@ export const EventCountdown = ({ endsAt, label, className, coc }: EventCountdown
 };
 
 export default EventCountdown;
+

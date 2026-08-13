@@ -1083,12 +1083,20 @@ const GamePage = () => {
                                   borderColor: active ? cardAccent : `${cardAccent}40`,
                                 }}
                               >
+                                {product.event_ends_at && (
+                                  <EventCountdown
+                                    endsAt={product.event_ends_at}
+                                    label={product.event_label || "EVENT"}
+                                    variant="banner"
+                                    coc={isCoc(selectedGame.id)}
+                                  />
+                                )}
                                 {hasDiscount && showDiscountBadge && (
-                                  <span className="font-coc absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] shadow">
+                                  <span className="font-coc absolute top-6 left-2 z-10 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] shadow">
                                     {discountPct > 0 ? `-${discountPct}%` : "SALE"}
                                   </span>
                                 )}
-                                <div className="relative aspect-[4/3] w-full overflow-hidden">
+                                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl">
                                   <div
                                     className="absolute inset-0"
                                     style={{
@@ -1106,14 +1114,6 @@ const GamePage = () => {
                                   <p className="font-coc text-coc-outline text-[12px] leading-tight text-white/95 line-clamp-2 min-h-[34px]">
                                     {product.name}
                                   </p>
-                                  {product.event_ends_at && (
-                                    <EventCountdown
-                                      endsAt={product.event_ends_at}
-                                      label={product.event_label || "EVENT"}
-                                      coc
-                                      className="mt-1"
-                                    />
-                                  )}
                                   {product.points_value > 0 && (
                                     <p className="font-coc text-[10px] text-emerald-400 mt-0.5">
                                       +{product.points_value} pts
