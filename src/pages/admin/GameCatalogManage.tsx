@@ -46,7 +46,12 @@ interface GameRow {
   nickname_key: string | null;
   display_order: number;
   is_active: boolean;
+  card_style?: string | null;
+  card_accent?: string | null;
+  show_discount_badge?: boolean | null;
+  price_suffix?: string | null;
 }
+
 
 interface PackageRow {
   id: number;
