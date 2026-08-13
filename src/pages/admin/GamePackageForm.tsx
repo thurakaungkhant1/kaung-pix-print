@@ -17,8 +17,9 @@ const COC_TIER_LABELS: Record<string, string> = {
   starter: "Sceneries",
   popular: "Gold Pass",
   pro: "Event Pass",
+  gems: "Gems",
 };
-const COC_TIERS = ["special", "starter", "popular", "pro"];
+const COC_TIERS = ["special", "starter", "popular", "pro", "gems"];
 const DEFAULT_TIER_LABELS: Record<string, string> = {
   special: "Special Offers",
   starter: "Starter Packs",
