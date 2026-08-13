@@ -170,6 +170,9 @@ const GamePackageForm = () => {
       image_url: formData.image_url || gameImage || "/placeholder.svg",
       points_value: parseInt(formData.points_value) || 0,
       smile_package_id: smileId || null,
+      diamond_tier: formData.diamond_tier,
+      event_label: formData.event_label.trim() || null,
+      event_ends_at: formData.event_ends_at ? new Date(formData.event_ends_at).toISOString() : null,
       category,
     };
 
