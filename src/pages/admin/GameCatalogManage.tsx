@@ -75,7 +75,12 @@ const emptyGame = {
   idMode: "single" as "single" | "dual",
   nickname_key: "none",
   is_active: true,
+  card_style: "default",
+  card_accent: "#F5B301",
+  show_discount_badge: true,
+  price_suffix: "MMK",
 };
+
 
 const emptyPkg = {
   id: null as number | null,
