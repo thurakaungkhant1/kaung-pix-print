@@ -6,8 +6,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Gem, IdCard, Server, Upload, Loader2 } from "lucide-react";
+
+const TIERS = ["special", "starter", "popular", "pro", "mega"];
+const COC_TIER_LABELS: Record<string, string> = {
+  special: "Special Offers",
+  starter: "Pass",
+  popular: "Gems",
+  pro: "Magic Items",
+  mega: "Bundles",
+};
+const DEFAULT_TIER_LABELS: Record<string, string> = {
+  special: "Special Offers",
+  starter: "Starter Packs",
+  popular: "Popular Packs",
+  pro: "Pro Packs",
+  mega: "Mega Packs",
+};
+
+/** Converts an ISO timestamp to a value usable by <input type="datetime-local"> (local time). */
+const toLocalInput = (iso?: string | null) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
+};
 
 const GamePackageForm = () => {
   const { id, categoryKey = "" } = useParams();
@@ -18,6 +44,8 @@ const GamePackageForm = () => {
   const [gameName, setGameName] = useState(category);
   const [gameImage, setGameImage] = useState("");
   const [requiresServerId, setRequiresServerId] = useState<boolean | null>(null);
+  const tierLabel = (tier: string) =>
+    (category === "Clash of Clans" ? COC_TIER_LABELS : DEFAULT_TIER_LABELS)[tier] || tier;
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -26,6 +54,9 @@ const GamePackageForm = () => {
     image_url: "",
     points_value: "0",
     smile_package_id: "",
+    diamond_tier: "popular",
+    event_label: "",
+    event_ends_at: "",
   });
 
   const [uploading, setUploading] = useState(false);
