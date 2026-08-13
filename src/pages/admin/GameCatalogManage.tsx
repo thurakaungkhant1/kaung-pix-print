@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useToast } from "@/hooks/use-toast";
+import { zonedInputToISO, isoToZonedInput, timezoneOptions, localTimeZone, formatInViewerZone } from "@/lib/eventTime";
 import MobileLayout from "@/components/MobileLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,14 +68,6 @@ interface PackageRow {
   event_label?: string | null;
 }
 
-/** Converts an ISO timestamp to a value usable by <input type="datetime-local"> (local time). */
-const toLocalInput = (iso?: string | null) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
-
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
 
 const COC_TIER_LABELS: Record<string, string> = {
@@ -127,6 +120,8 @@ const GameCatalogManage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const [eventTz, setEventTz] = useState(localTimeZone());
+  const tzOptions = timezoneOptions(eventTz);
   const [games, setGames] = useState<GameRow[]>([]);
   const [packages, setPackages] = useState<Record<string, PackageRow[]>>({});
   const [loading, setLoading] = useState(true);
@@ -270,7 +265,7 @@ const GameCatalogManage = () => {
       diamond_tier: p.diamond_tier || "popular",
       smile_package_id: p.smile_package_id || "",
       description: p.description || "",
-      event_ends_at: toLocalInput(p.event_ends_at),
+      event_ends_at: isoToZonedInput(p.event_ends_at, eventTz),
       event_label: p.event_label || "",
     });
     setPkgDialog(true);
@@ -291,7 +286,7 @@ const GameCatalogManage = () => {
       diamond_tier: pkgForm.diamond_tier,
       smile_package_id: pkgForm.smile_package_id.trim() || null,
       description: pkgForm.description.trim() || null,
-      event_ends_at: pkgForm.event_ends_at ? new Date(pkgForm.event_ends_at).toISOString() : null,
+      event_ends_at: zonedInputToISO(pkgForm.event_ends_at, eventTz),
       event_label: pkgForm.event_label.trim() || null,
       points_value: 0,
     };
@@ -636,6 +631,31 @@ const GameCatalogManage = () => {
                   value={pkgForm.event_ends_at}
                   onChange={(e) => setPkgForm({ ...pkgForm, event_ends_at: e.target.value })}
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Timezone</Label>
+                <Select
+                  value={eventTz}
+                  onValueChange={(tz) => {
+                    const iso = zonedInputToISO(pkgForm.event_ends_at, eventTz);
+                    setEventTz(tz);
+                    if (iso) setPkgForm((f) => ({ ...f, event_ends_at: isoToZonedInput(iso, tz) }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tzOptions.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {pkgForm.event_ends_at && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Your time: {formatInViewerZone(zonedInputToISO(pkgForm.event_ends_at, eventTz))}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Event label</Label>

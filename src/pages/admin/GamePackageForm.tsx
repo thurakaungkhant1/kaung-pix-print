@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Gem, IdCard, Server, Upload, Loader2 } from "lucide-react";
+import { zonedInputToISO, isoToZonedInput, timezoneOptions, localTimeZone, formatInViewerZone } from "@/lib/eventTime";
 
 const TIERS = ["special", "starter", "popular", "pro", "mega"];
 const COC_TIER_LABELS: Record<string, string> = {
@@ -26,14 +27,6 @@ const DEFAULT_TIER_LABELS: Record<string, string> = {
   mega: "Mega Packs",
 };
 
-/** Converts an ISO timestamp to a value usable by <input type="datetime-local"> (local time). */
-const toLocalInput = (iso?: string | null) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
-};
 
 const GamePackageForm = () => {
   const { id, categoryKey = "" } = useParams();
@@ -58,6 +51,9 @@ const GamePackageForm = () => {
     event_label: "",
     event_ends_at: "",
   });
+
+  const [eventTz, setEventTz] = useState(localTimeZone());
+  const tzOptions = timezoneOptions(eventTz);
 
   const [uploading, setUploading] = useState(false);
 
@@ -122,7 +118,7 @@ const GamePackageForm = () => {
         smile_package_id: (data as any).smile_package_id || "",
         diamond_tier: (data as any).diamond_tier || "popular",
         event_label: (data as any).event_label || "",
-        event_ends_at: toLocalInput((data as any).event_ends_at),
+        event_ends_at: isoToZonedInput((data as any).event_ends_at, eventTz),
       });
     }
   };
@@ -172,7 +168,7 @@ const GamePackageForm = () => {
       smile_package_id: smileId || null,
       diamond_tier: formData.diamond_tier,
       event_label: formData.event_label.trim() || null,
-      event_ends_at: formData.event_ends_at ? new Date(formData.event_ends_at).toISOString() : null,
+      event_ends_at: zonedInputToISO(formData.event_ends_at, eventTz),
       category,
     };
 
@@ -296,6 +292,32 @@ const GamePackageForm = () => {
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     သတ်မှတ်လိုက်ရင် user ဘက်မှာ item ပေါ်တွင် real-time countdown ပြပါမည်။ (ဥပမာ Gold Pass event)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="event_tz">Timezone</Label>
+                  <Select
+                    value={eventTz}
+                    onValueChange={(tz) => {
+                      const iso = zonedInputToISO(formData.event_ends_at, eventTz);
+                      setEventTz(tz);
+                      if (iso) setFormData((f) => ({ ...f, event_ends_at: isoToZonedInput(iso, tz) }));
+                    }}
+                  >
+                    <SelectTrigger id="event_tz">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tzOptions.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    အပေါ်က အချိန်ကို ဒီ timezone အတိုင်း သတ်မှတ်ပါမည်။ User တိုင်းအတွက် သူတို့ဒေသအချိန်နဲ့ တွက်ပြပါမည်။
+                    {formData.event_ends_at && (
+                      <> Your time: {formatInViewerZone(zonedInputToISO(formData.event_ends_at, eventTz))}</>
+                    )}
                   </p>
                 </div>
                 <div>
