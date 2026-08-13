@@ -403,6 +403,27 @@ const GamePage = () => {
         });
         return;
       }
+      // Clash of Clans: validate Supercell ID (email) or Player Tag pattern
+      if (isCoc(selectedProduct.category)) {
+        const value = gameId.trim();
+        if (cocIdType === "supercell") {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
+            toast({
+              title: "Invalid Supercell ID",
+              description: "Please enter a valid email address (e.g. you@example.com)",
+              variant: "destructive",
+            });
+            return;
+          }
+        } else if (!/^#?[0289PYLQGRJCUV]{6,12}$/i.test(value)) {
+          toast({
+            title: "Invalid Player Tag",
+            description: "Player Tag must look like #XXXXXXXX (letters and numbers only)",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
       // Only MLBB requires Server ID
       if (requiresServerId(selectedProduct.category) && !serverId) {
         toast({
