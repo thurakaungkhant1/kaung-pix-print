@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_events: {
+        Row: {
+          ad_type: string
+          context: string | null
+          created_at: string
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          ad_type?: string
+          context?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          ad_type?: string
+          context?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ad_placements: {
         Row: {
           created_at: string
