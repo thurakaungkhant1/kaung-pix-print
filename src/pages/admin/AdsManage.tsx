@@ -44,6 +44,7 @@ interface AdPlacement {
 interface AdSettings {
   interstitial_frequency: string;
   interstitial_cooldown: string;
+  game_interstitial_minutes: string;
 }
 
 const PLACEMENT_TYPES = [
@@ -80,6 +81,7 @@ const AdsManage = () => {
   const [settings, setSettings] = useState<AdSettings>({
     interstitial_frequency: "3",
     interstitial_cooldown: "60",
+    game_interstitial_minutes: "2",
   });
   const [savingSettings, setSavingSettings] = useState(false);
   const [formData, setFormData] = useState({
@@ -113,6 +115,7 @@ const AdsManage = () => {
       setSettings({
         interstitial_frequency: settingsObj.interstitial_frequency || "3",
         interstitial_cooldown: settingsObj.interstitial_cooldown || "60",
+        game_interstitial_minutes: settingsObj.game_interstitial_minutes || "2",
       });
     }
   };
@@ -123,13 +126,18 @@ const AdsManage = () => {
     const updates = [
       { setting_key: "interstitial_frequency", setting_value: settings.interstitial_frequency },
       { setting_key: "interstitial_cooldown", setting_value: settings.interstitial_cooldown },
+      { setting_key: "game_interstitial_minutes", setting_value: settings.game_interstitial_minutes },
     ];
 
     for (const update of updates) {
-      await supabase
+      const { data: updated } = await supabase
         .from("ad_settings")
         .update({ setting_value: update.setting_value })
-        .eq("setting_key", update.setting_key);
+        .eq("setting_key", update.setting_key)
+        .select("setting_key");
+      if (!updated || updated.length === 0) {
+        await supabase.from("ad_settings").insert(update);
+      }
     }
 
     toast({
@@ -526,6 +534,24 @@ const AdsManage = () => {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Minimum {settings.interstitial_cooldown} seconds between showing interstitial ads
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>In-game ad interval</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={settings.game_interstitial_minutes}
+                      onChange={(e) => setSettings({ ...settings, game_interstitial_minutes: e.target.value })}
+                      className="w-24"
+                    />
+                    <span className="text-sm text-muted-foreground">minutes</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    While a user keeps playing the same game, show an interstitial every {settings.game_interstitial_minutes} minutes
                   </p>
                 </div>
 
