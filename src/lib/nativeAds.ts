@@ -5,7 +5,7 @@
 // Ads are shown:
 //   - after every finished game
 //   - when the user switches from one game to another
-//   - periodically while staying inside the same game for a long time
+//   - every 2 minutes while staying inside the same game
 
 declare global {
   interface Window {
@@ -20,7 +20,7 @@ declare global {
 // Minimum gap between two ads so a long session doesn't spam back-to-back ads.
 const MIN_SECONDS_BETWEEN_ADS = 25;
 // While the user stays in one game, show an ad every this many minutes.
-const LONG_SESSION_MINUTES = 5;
+const LONG_SESSION_MINUTES = 2;
 
 const LAST_AD_TS_KEY = "ads:lastInterstitialTs";
 
