@@ -41,6 +41,14 @@ interface AdPlacement {
   display_order: number | null;
 }
 
+interface AdStat {
+  ad_type: string;
+  impressions: number;
+  clicks: number;
+  impressionsToday: number;
+  lastShown: string | null;
+}
+
 interface AdSettings {
   interstitial_frequency: string;
   interstitial_cooldown: string;
@@ -84,6 +92,8 @@ const AdsManage = () => {
     game_interstitial_minutes: "2",
   });
   const [savingSettings, setSavingSettings] = useState(false);
+  const [stats, setStats] = useState<AdStat[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     placement_type: "banner",
@@ -100,7 +110,37 @@ const AdsManage = () => {
   useEffect(() => {
     loadPlacements();
     loadSettings();
+    loadStats();
   }, []);
+
+  const loadStats = async () => {
+    setStatsLoading(true);
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data } = await supabase
+      .from("ad_events")
+      .select("ad_type, event_type, created_at")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(5000);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const map = new Map<string, AdStat>();
+    (data || []).forEach((row: any) => {
+      const key = row.ad_type || "interstitial";
+      const entry = map.get(key) || { ad_type: key, impressions: 0, clicks: 0, impressionsToday: 0, lastShown: null };
+      const ts = row.created_at as string;
+      if (row.event_type === "click") entry.clicks += 1;
+      else {
+        entry.impressions += 1;
+        if (new Date(ts) >= today) entry.impressionsToday += 1;
+        if (!entry.lastShown || new Date(ts) > new Date(entry.lastShown)) entry.lastShown = ts;
+      }
+      map.set(key, entry);
+    });
+    setStats(Array.from(map.values()).sort((a, b) => b.impressions - a.impressions));
+    setStatsLoading(false);
+  };
 
   const loadSettings = async () => {
     const { data } = await supabase
@@ -489,6 +529,59 @@ const AdsManage = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="mt-0 p-4 space-y-4">
+            {/* Ad Performance */}
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Eye className="h-5 w-5 text-primary" />
+                    Ad Performance (30 days)
+                  </CardTitle>
+                  <CardDescription>Impressions, clicks and last shown time</CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" onClick={loadStats} disabled={statsLoading}>
+                  <RefreshCw className={`h-4 w-4 ${statsLoading ? "animate-spin" : ""}`} />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {statsLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading...</p>
+                ) : stats.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No ad activity recorded yet.</p>
+                ) : (
+                  stats.map((s) => {
+                    const ctr = s.impressions > 0 ? ((s.clicks / s.impressions) * 100).toFixed(1) : "0.0";
+                    return (
+                      <div key={s.ad_type} className="rounded-lg border p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium capitalize">{s.ad_type}</span>
+                          <span className="text-xs text-muted-foreground">CTR {ctr}%</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div className="rounded-md bg-muted/50 p-2">
+                            <p className="text-lg font-bold">{s.impressions}</p>
+                            <p className="text-[11px] text-muted-foreground">Impressions</p>
+                          </div>
+                          <div className="rounded-md bg-muted/50 p-2">
+                            <p className="text-lg font-bold">{s.impressionsToday}</p>
+                            <p className="text-[11px] text-muted-foreground">Today</p>
+                          </div>
+                          <div className="rounded-md bg-muted/50 p-2">
+                            <p className="text-lg font-bold">{s.clicks}</p>
+                            <p className="text-[11px] text-muted-foreground">Clicks</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Timer className="h-3 w-3" />
+                          Last shown: {s.lastShown ? new Date(s.lastShown).toLocaleString() : "—"}
+                        </p>
+                      </div>
+                    );
+                  })
+                )}
+              </CardContent>
+            </Card>
+
             {/* Interstitial Settings */}
             <Card>
               <CardHeader>
