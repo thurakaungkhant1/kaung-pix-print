@@ -12,6 +12,9 @@ declare global {
     AndroidAds?: {
       showInterstitial?: () => void;
       showRewarded?: () => void;
+      preloadInterstitial?: () => void;
+      loadInterstitial?: () => void;
+      cacheInterstitial?: () => void;
     };
     onRewardEarned?: (amount: number, type: string) => void;
   }
@@ -19,8 +22,8 @@ declare global {
 
 // Minimum gap between two ads so a long session doesn't spam back-to-back ads.
 const MIN_SECONDS_BETWEEN_ADS = 25;
-// While the user stays in one game, show an ad every this many minutes.
-const LONG_SESSION_MINUTES = 2;
+// While the user stays in one game, show an ad every this many minutes (admin-configurable).
+export const DEFAULT_LONG_SESSION_MINUTES = 2;
 
 const LAST_AD_TS_KEY = "ads:lastInterstitialTs";
 
@@ -41,11 +44,24 @@ function writeNumber(key: string, value: number) {
   }
 }
 
+/** Ask the native layer to cache the next interstitial so it opens instantly. */
+export function preloadInterstitialAd(): void {
+  try {
+    const bridge = typeof window !== "undefined" ? window.AndroidAds : undefined;
+    const fn = bridge?.preloadInterstitial || bridge?.loadInterstitial || bridge?.cacheInterstitial;
+    if (fn) fn.call(bridge);
+  } catch (e) {
+    console.warn("preloadInterstitial failed", e);
+  }
+}
+
 function show(): boolean {
   try {
     if (typeof window !== "undefined" && window.AndroidAds?.showInterstitial) {
       window.AndroidAds.showInterstitial();
       writeNumber(LAST_AD_TS_KEY, Date.now());
+      // Immediately cache the next one so the following ad appears without delay.
+      setTimeout(preloadInterstitialAd, 1000);
       return true;
     }
   } catch (e) {
@@ -70,11 +86,13 @@ export function maybeShowInterstitialAfterGame(): void {
  * Start a repeating timer that shows an interstitial while the user keeps
  * playing the same game. Returns a cleanup function.
  */
-export function startLongSessionAds(): () => void {
+export function startLongSessionAds(minutes = DEFAULT_LONG_SESSION_MINUTES): () => void {
   if (typeof window === "undefined") return () => {};
+  const safeMinutes = Number.isFinite(minutes) && minutes > 0 ? minutes : DEFAULT_LONG_SESSION_MINUTES;
+  preloadInterstitialAd();
   const id = window.setInterval(() => {
     showInterstitialAd();
-  }, LONG_SESSION_MINUTES * 60 * 1000);
+  }, safeMinutes * 60 * 1000);
   return () => window.clearInterval(id);
 }
 
