@@ -365,7 +365,9 @@ const OrdersManage = () => {
   useEffect(() => {
     checkAdmin();
     loadOrders();
+    loadKgSettings();
   }, [user]);
+
 
   const checkAdmin = async () => {
     if (!user) {
