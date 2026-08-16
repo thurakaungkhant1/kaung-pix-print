@@ -440,6 +440,13 @@ const OrdersManage = () => {
             Approved
           </Badge>
         );
+      case "processing":
+        return (
+          <Badge className="bg-purple-500/15 text-purple-600 border-purple-500/30 gap-1">
+            <Hourglass className="h-3 w-3" />
+            Processing
+          </Badge>
+        );
       case "cancelled":
         return (
           <Badge className="bg-red-500/15 text-red-600 border-red-500/30 gap-1">
@@ -447,6 +454,7 @@ const OrdersManage = () => {
             Cancelled
           </Badge>
         );
+
       default:
         return (
           <Badge className="bg-yellow-500/15 text-yellow-600 border-yellow-500/30 gap-1">
@@ -979,6 +987,7 @@ const OrdersManage = () => {
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
                       <SelectItem value="finished">Finished</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>

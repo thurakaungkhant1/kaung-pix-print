@@ -68,13 +68,27 @@ export async function notifyAdminTelegram(text: string): Promise<void> {
   }
 }
 
-/** Maps a provider status onto the local order status vocabulary. */
-export function mapProviderStatus(providerStatus: string): 'processing' | 'completed' | 'failed' {
+/** Provider outcome, independent of the local status vocabulary. */
+export function providerOutcome(providerStatus: string): 'processing' | 'completed' | 'failed' {
   const s = (providerStatus || '').toLowerCase();
   if (['completed', 'success', 'delivered', 'done'].includes(s)) return 'completed';
   if (['failed', 'error', 'cancelled', 'canceled', 'refunded'].includes(s)) return 'failed';
   return 'processing';
 }
+
+/**
+ * Maps a provider status onto the EXISTING local order status vocabulary
+ * ('pending' | 'approved' | 'finished' | 'cancelled' | 'processing').
+ * A provider failure deliberately returns the order to 'approved' so it falls
+ * back into the normal manual workflow instead of a status the app cannot handle.
+ */
+export function mapProviderStatus(providerStatus: string): 'processing' | 'finished' | 'approved' {
+  const outcome = providerOutcome(providerStatus);
+  if (outcome === 'completed') return 'finished';
+  if (outcome === 'failed') return 'approved';
+  return 'processing';
+}
+
 
 export function shortId(id: string): string {
   return String(id).slice(0, 8).toUpperCase();

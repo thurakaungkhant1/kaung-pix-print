@@ -172,13 +172,14 @@ Deno.serve(async (req) => {
 
   if (!created.ok || !providerOrderId) {
     const reason = created.error || 'Provider did not return an order id';
+    // Provider failed => hand the order straight back to the existing manual workflow.
     await supabase.from('orders').update({
-      status: 'failed',
+      status: 'approved',
       provider_status: 'failed',
       provider_message: String(reason).slice(0, 1000),
     }).eq('id', order.id);
     await notifyAdminTelegram(
-      `❌ Auto Top-Up Failed\nOrder ${label}\n${productName}\nStatus: Failed (manual review)\nReason: ${String(reason).slice(0, 300)}`,
+      `❌ Auto Top-Up Failed\nOrder ${label}\n${productName}\nStatus: Back to manual (Approved)\nReason: ${String(reason).slice(0, 300)}`,
     );
     return json({ ok: false, reason: 'provider_error', details: reason });
   }
@@ -198,8 +199,9 @@ Deno.serve(async (req) => {
   await notifyAdminTelegram(
     `🛒 Auto Top-Up Sent\nOrder ${label}\n${productName}\nPlayer ID: ${order.game_id}` +
     (order.server_id ? `\nServer ID: ${order.server_id}` : '') +
-    `\nProvider Order: ${providerOrderId}\nStatus: ${localStatus === 'completed' ? 'Completed' : 'Processing'}`,
+    `\nProvider Order: ${providerOrderId}\nStatus: ${localStatus === 'finished' ? 'Completed' : 'Processing'}`,
   );
 
   return json({ ok: true, provider_order_id: String(providerOrderId), status: localStatus });
+
 });

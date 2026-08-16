@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
-import { notifyAdminTelegram, mapProviderStatus, shortId } from '../_shared/kgameshop.ts';
+import { notifyAdminTelegram, mapProviderStatus, providerOutcome, shortId } from '../_shared/kgameshop.ts';
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -57,14 +57,17 @@ Deno.serve(async (req) => {
   if (!order) return json({ ok: true, skipped: true, reason: 'unknown_provider_order' });
 
   const local = mapProviderStatus(providerStatus);
+  const outcome = providerOutcome(providerStatus);
+  const currentOutcome = providerOutcome(String(order.provider_status || ''));
 
-  // Idempotency: repeated webhooks for a finalised order change nothing.
-  if (['completed', 'failed'].includes(String(order.provider_status || '').toLowerCase()) &&
-      String(order.provider_status).toLowerCase() === providerStatus.toLowerCase()) {
-    return json({ ok: true, skipped: true, reason: 'duplicate' });
+  // Idempotency: once a provider order is finalised (completed/failed), later
+  // deliveries of the same or an earlier state change nothing.
+  if (currentOutcome !== 'processing') {
+    return json({ ok: true, skipped: true, reason: 'already_final' });
   }
 
-  const { error: upErr } = await supabase
+  // Only move a local order that is still under provider control.
+  let updateQuery = supabase
     .from('orders')
     .update({
       provider_status: providerStatus,
@@ -74,22 +77,29 @@ Deno.serve(async (req) => {
       status: local,
     })
     .eq('id', order.id);
+  updateQuery = order.provider_status
+    ? updateQuery.eq('provider_status', order.provider_status)
+    : updateQuery.is('provider_status', null);
+  const { data: updated, error: upErr } = await updateQuery.select('id').maybeSingle();
 
   if (upErr) {
     console.error('order update failed', upErr);
     return json({ error: 'Failed to update order' }, 500);
   }
+  // Another concurrent delivery already applied a change: do not notify twice.
+  if (!updated) return json({ ok: true, skipped: true, reason: 'concurrent_update' });
 
   const { data: product } = await supabase
     .from('products').select('name').eq('id', order.product_id).maybeSingle();
   const label = `#${shortId(order.id)}`;
   const pkg = providerOrder?.package ?? product?.name ?? '-';
 
-  if (local === 'completed') {
+  if (outcome === 'completed') {
     await notifyAdminTelegram(`✅ Auto Top-Up Successful\nOrder ${label}\n${pkg}\nPlayer: ${order.game_id ?? '-'}\nStatus: Completed`);
-  } else if (local === 'failed') {
-    await notifyAdminTelegram(`❌ Auto Top-Up Failed\nOrder ${label}\n${pkg}\nStatus: Failed\nReason: ${providerOrder?.message ?? 'Provider reported failure'}`);
+  } else if (outcome === 'failed') {
+    await notifyAdminTelegram(`❌ Auto Top-Up Failed\nOrder ${label}\n${pkg}\nStatus: Back to manual (Approved)\nReason: ${providerOrder?.message ?? 'Provider reported failure'}`);
   }
 
   return json({ ok: true, order_id: order.id, status: local });
+
 });
