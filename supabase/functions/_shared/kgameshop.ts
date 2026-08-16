@@ -34,6 +34,12 @@ export async function kgFetch<T = any>(
   const key = getApiKey();
   if (!key) return { ok: false, status: 0, data: null, error: 'KGAMESHOP_API_KEY is not configured' };
 
+  const proxied = isProxied();
+  const proxyKey = getProxyKey();
+  if (proxied && !proxyKey) {
+    return { ok: false, status: 0, data: null, error: 'KGAMESHOP_PROXY_SECRET is not configured' };
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), init.timeoutMs ?? 20000);
   try {
@@ -41,9 +47,11 @@ export async function kgFetch<T = any>(
       method: init.method ?? 'GET',
       headers: {
         'X-API-Key': key,
+        ...(proxied && proxyKey ? { 'X-Proxy-Key': proxyKey } : {}),
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
       signal: controller.signal,
     });
