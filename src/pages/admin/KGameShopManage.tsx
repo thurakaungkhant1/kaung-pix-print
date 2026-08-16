@@ -81,15 +81,30 @@ const KGameShopManage = () => {
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [orders, setOrders] = useState<AutoOrder[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [confirmBeforeSend, setConfirmBeforeSend] = useState(true);
 
   const loadSetting = async () => {
     const { data } = await supabase
       .from("ad_settings")
-      .select("setting_value")
-      .eq("setting_key", SETTING_KEY)
-      .maybeSingle();
-    setEnabled(data?.setting_value === "true");
+      .select("setting_key, setting_value")
+      .in("setting_key", [SETTING_KEY, CONFIRM_KEY]);
+    const rows = data || [];
+    setEnabled(rows.find((r) => r.setting_key === SETTING_KEY)?.setting_value === "true");
+    const confirmRow = rows.find((r) => r.setting_key === CONFIRM_KEY);
+    setConfirmBeforeSend(confirmRow ? confirmRow.setting_value === "true" : true);
   };
+
+  const applyConfirmSetting = async (next: boolean) => {
+    const { error } = await supabase
+      .from("ad_settings")
+      .upsert({ setting_key: CONFIRM_KEY, setting_value: next ? "true" : "false" }, { onConflict: "setting_key" });
+    if (error) {
+      toast({ title: "Error", description: "Setting သိမ်း၍မရပါ", variant: "destructive" });
+      return;
+    }
+    setConfirmBeforeSend(next);
+  };
+
 
   const loadStatus = async () => {
     setLoadingStatus(true);
