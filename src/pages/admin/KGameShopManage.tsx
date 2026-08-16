@@ -27,6 +27,8 @@ import {
   XCircle,
   Hourglass,
   Hand,
+  ShieldCheck,
+  Copy,
 } from "lucide-react";
 
 interface MappedProduct {
