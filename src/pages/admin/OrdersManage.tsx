@@ -418,9 +418,11 @@ const OrdersManage = () => {
         title: "Success",
         description: "Order status updated",
       });
+      if (status === "approved") await triggerAutoTopup([orderId]);
       loadOrders();
     }
   };
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
