@@ -83,6 +83,10 @@ const OrdersManage = () => {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; status: string }>({ open: false, status: "" });
+  const [autoTopupEnabled, setAutoTopupEnabled] = useState(false);
+  const [confirmBeforeSend, setConfirmBeforeSend] = useState(true);
+  const [autoSendConfirm, setAutoSendConfirm] = useState<Order | null>(null);
+
   
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
