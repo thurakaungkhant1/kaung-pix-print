@@ -29,8 +29,23 @@ import {
   Hand,
 } from "lucide-react";
 
+interface MappedProduct {
+  id: number;
+  name: string | null;
+  kgameshop_game: string | null;
+  kgameshop_product_id: string | null;
+  kgameshop_region: string | null;
+}
+
 interface ProviderStatus {
   configured: boolean;
+  api_key_configured?: boolean;
+  webhook_secret_configured?: boolean;
+  webhook_protected?: boolean;
+  webhook_url?: string;
+  auto_topup_enabled?: boolean;
+  mapped_products_count?: number;
+  mapped_products?: MappedProduct[];
   connection?: string;
   balance?: number | string | null;
   currency?: string;
@@ -53,6 +68,8 @@ interface AutoOrder {
 }
 
 const SETTING_KEY = "kgameshop_auto_topup_enabled";
+const CONFIRM_KEY = "kgameshop_confirm_before_send";
+
 
 const KGameShopManage = () => {
   const navigate = useNavigate();
