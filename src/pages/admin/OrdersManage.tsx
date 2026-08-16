@@ -300,6 +300,16 @@ const OrdersManage = () => {
     setSelectedOrders(new Set());
   };
 
+  // Optional KGameShop auto top-up hook. Never blocks or breaks the manual flow —
+  // the edge function silently skips orders that are not eligible.
+  const triggerAutoTopup = async (orderIds: string[]) => {
+    await Promise.allSettled(
+      orderIds.map((order_id) =>
+        supabase.functions.invoke("kgameshop-fulfill", { body: { order_id } })
+      )
+    );
+  };
+
   // Bulk update order status
   const bulkUpdateStatus = async (status: string) => {
     if (selectedOrders.size === 0) return;
@@ -328,6 +338,7 @@ const OrdersManage = () => {
           description: `${orderIds.length} order(s) updated to "${status}"`,
         });
         clearSelection();
+        if (status === "approved") await triggerAutoTopup(orderIds);
         loadOrders();
       }
     } catch (err) {
@@ -340,6 +351,7 @@ const OrdersManage = () => {
       setBulkUpdating(false);
     }
   };
+
 
   // Open confirmation dialog
   const openConfirmDialog = (status: string) => {
