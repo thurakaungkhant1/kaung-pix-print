@@ -169,6 +169,17 @@ const GamePackageForm = () => {
       return;
     }
 
+    const kgGame = formData.kgameshop_game.trim();
+    const kgProductId = formData.kgameshop_product_id.trim();
+    if (kgEnabled && (!kgGame || !kgProductId)) {
+      toast({
+        title: "KGameShop mapping မပြည့်စုံပါ",
+        description: "Auto top-up ဖွင့်ရန် Game slug နှင့် Product ID နှစ်ခုလုံး လိုအပ်ပါသည်။",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     const packageData: Record<string, unknown> = {
@@ -183,7 +194,12 @@ const GamePackageForm = () => {
       event_label: formData.event_label.trim() || null,
       event_ends_at: zonedInputToISO(formData.event_ends_at, eventTz),
       category,
+      kgameshop_enabled: kgEnabled,
+      kgameshop_game: kgGame || null,
+      kgameshop_product_id: kgProductId || null,
+      kgameshop_region: formData.kgameshop_region.trim() || null,
     };
+
 
 
     let error;
