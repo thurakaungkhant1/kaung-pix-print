@@ -53,7 +53,12 @@ const GamePackageForm = () => {
     diamond_tier: "popular",
     event_label: "",
     event_ends_at: "",
+    kgameshop_game: "",
+    kgameshop_product_id: "",
+    kgameshop_region: "",
   });
+  const [kgEnabled, setKgEnabled] = useState(false);
+
 
   const [eventTz, setEventTz] = useState(localTimeZone());
   const tzOptions = timezoneOptions(eventTz);
