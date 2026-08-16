@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
-import { notifyAdminTelegram, mapProviderStatus, shortId } from '../_shared/kgameshop.ts';
+import { notifyAdminTelegram, mapProviderStatus, providerOutcome, shortId } from '../_shared/kgameshop.ts';
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
   }
 
   // Only move a local order that is still under provider control.
-  const { data: updated, error: upErr } = await supabase
+  let updateQuery = supabase
     .from('orders')
     .update({
       provider_status: providerStatus,
@@ -76,10 +76,11 @@ Deno.serve(async (req) => {
       provider_currency: providerOrder?.currency ?? null,
       status: local,
     })
-    .eq('id', order.id)
-    .eq('provider_status', order.provider_status ?? '')
-    .select('id')
-    .maybeSingle();
+    .eq('id', order.id);
+  updateQuery = order.provider_status
+    ? updateQuery.eq('provider_status', order.provider_status)
+    : updateQuery.is('provider_status', null);
+  const { data: updated, error: upErr } = await updateQuery.select('id').maybeSingle();
 
   if (upErr) {
     console.error('order update failed', upErr);
