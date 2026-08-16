@@ -127,8 +127,13 @@ const GamePackageForm = () => {
         diamond_tier: (data as any).diamond_tier || "popular",
         event_label: (data as any).event_label || "",
         event_ends_at: isoToZonedInput((data as any).event_ends_at, eventTz),
+        kgameshop_game: (data as any).kgameshop_game || "",
+        kgameshop_product_id: (data as any).kgameshop_product_id || "",
+        kgameshop_region: (data as any).kgameshop_region || "",
       });
+      setKgEnabled(!!(data as any).kgameshop_enabled);
     }
+
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
