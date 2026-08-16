@@ -1070,7 +1070,40 @@ const OrdersManage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Controlled-test guard: shown only while Auto Top-Up + confirm setting are ON */}
+      <AlertDialog open={!!autoSendConfirm} onOpenChange={(open) => !open && setAutoSendConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Auto Top-Up is enabled</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-1 text-sm">
+                <p>This order will be sent to KGameShop automatically.</p>
+                <p><span className="text-muted-foreground">Order:</span> #{autoSendConfirm?.id.slice(0, 8).toUpperCase()}</p>
+                <p><span className="text-muted-foreground">Product:</span> {autoSendConfirm?.products?.name || "-"}</p>
+                <p><span className="text-muted-foreground">Provider product:</span> {autoSendConfirm?.products?.kgameshop_product_id || "-"}</p>
+                <p><span className="text-muted-foreground">Provider cost:</span> {autoSendConfirm?.products?.cost_price != null ? autoSendConfirm.products.cost_price : "-"}</p>
+                <p><span className="text-muted-foreground">Player:</span> {autoSendConfirm?.game_id || "-"}{autoSendConfirm?.server_id ? ` (${autoSendConfirm.server_id})` : ""}</p>
+                <p className="pt-1">Continue?</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const target = autoSendConfirm;
+                setAutoSendConfirm(null);
+                if (target) updateOrderStatus(target.id, "approved", true);
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MobileLayout>
+
   );
 };
 
