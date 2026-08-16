@@ -9,6 +9,17 @@ export function getApiKey(): string | null {
   return Deno.env.get('KGAMESHOP_API_KEY') || null;
 }
 
+/** Shared secret that authenticates this edge runtime to the static-IP proxy. */
+export function getProxyKey(): string | null {
+  return Deno.env.get('KGAMESHOP_PROXY_SECRET') || null;
+}
+
+/** True when KG_BASE_URL points at our own proxy rather than the provider directly. */
+export function isProxied(): boolean {
+  return !/admin\.kokhantgaming\.com/i.test(KG_BASE_URL);
+}
+
+
 export interface KgResult<T = any> {
   ok: boolean;
   status: number;
