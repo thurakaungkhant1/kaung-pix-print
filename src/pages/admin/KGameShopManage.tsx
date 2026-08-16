@@ -27,10 +27,27 @@ import {
   XCircle,
   Hourglass,
   Hand,
+  ShieldCheck,
+  Copy,
 } from "lucide-react";
+
+interface MappedProduct {
+  id: number;
+  name: string | null;
+  kgameshop_game: string | null;
+  kgameshop_product_id: string | null;
+  kgameshop_region: string | null;
+}
 
 interface ProviderStatus {
   configured: boolean;
+  api_key_configured?: boolean;
+  webhook_secret_configured?: boolean;
+  webhook_protected?: boolean;
+  webhook_url?: string;
+  auto_topup_enabled?: boolean;
+  mapped_products_count?: number;
+  mapped_products?: MappedProduct[];
   connection?: string;
   balance?: number | string | null;
   currency?: string;
@@ -53,6 +70,8 @@ interface AutoOrder {
 }
 
 const SETTING_KEY = "kgameshop_auto_topup_enabled";
+const CONFIRM_KEY = "kgameshop_confirm_before_send";
+
 
 const KGameShopManage = () => {
   const navigate = useNavigate();
@@ -64,15 +83,30 @@ const KGameShopManage = () => {
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [orders, setOrders] = useState<AutoOrder[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [confirmBeforeSend, setConfirmBeforeSend] = useState(true);
 
   const loadSetting = async () => {
     const { data } = await supabase
       .from("ad_settings")
-      .select("setting_value")
-      .eq("setting_key", SETTING_KEY)
-      .maybeSingle();
-    setEnabled(data?.setting_value === "true");
+      .select("setting_key, setting_value")
+      .in("setting_key", [SETTING_KEY, CONFIRM_KEY]);
+    const rows = data || [];
+    setEnabled(rows.find((r) => r.setting_key === SETTING_KEY)?.setting_value === "true");
+    const confirmRow = rows.find((r) => r.setting_key === CONFIRM_KEY);
+    setConfirmBeforeSend(confirmRow ? confirmRow.setting_value === "true" : true);
   };
+
+  const applyConfirmSetting = async (next: boolean) => {
+    const { error } = await supabase
+      .from("ad_settings")
+      .upsert({ setting_key: CONFIRM_KEY, setting_value: next ? "true" : "false" }, { onConflict: "setting_key" });
+    if (error) {
+      toast({ title: "Error", description: "Setting သိမ်း၍မရပါ", variant: "destructive" });
+      return;
+    }
+    setConfirmBeforeSend(next);
+  };
+
 
   const loadStatus = async () => {
     setLoadingStatus(true);
@@ -197,8 +231,98 @@ const KGameShopManage = () => {
               </div>
               <Switch checked={enabled} onCheckedChange={(v) => setPendingToggle(v)} />
             </div>
+            <div className="flex items-center justify-between gap-4 border-t border-border pt-3">
+              <div>
+                <p className="text-sm font-medium">Confirm before sending (test mode)</p>
+                <p className="text-xs text-muted-foreground">
+                  Approve လုပ်ချိန် KGameShop သို့ မပို့ခင် confirmation dialog ပြပါမည်။ Test ပြီးရင် ပိတ်ထားနိုင်သည်။
+                </p>
+              </div>
+              <Switch checked={confirmBeforeSend} onCheckedChange={applyConfirmSetting} />
+            </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" /> Live readiness
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {[
+              { label: "API key", ok: !!status?.api_key_configured, yes: "Configured ✓", no: "Not Configured" },
+              { label: "Webhook secret", ok: !!status?.webhook_secret_configured, yes: "Configured ✓", no: "Not Configured" },
+              { label: "Webhook", ok: !!status?.webhook_protected, yes: "Protected", no: "Not Protected" },
+              { label: "Global Auto Top-Up", ok: enabled, yes: "ON", no: "OFF" },
+            ].map((r) => (
+              <div key={r.label} className="flex items-center justify-between">
+                <span className="text-muted-foreground">{r.label}</span>
+                <Badge
+                  variant={r.ok ? "default" : "secondary"}
+                  className={r.ok ? "bg-green-500/15 text-green-600 border-green-500/30" : ""}
+                >
+                  {r.ok ? r.yes : r.no}
+                </Badge>
+              </div>
+            ))}
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Mapped products</span>
+              <span className="font-semibold">{status?.mapped_products_count ?? 0}</span>
+            </div>
+            {!status?.webhook_secret_configured && (
+              <p className="text-xs text-destructive">
+                ⚠️ Webhook secret မထည့်ရသေးပါ။ Production မတိုင်ခင် webhook protection ထည့်ရန် လိုအပ်ပါသည်။
+              </p>
+            )}
+            <div className="pt-2 space-y-1">
+              <p className="text-xs text-muted-foreground">KGameShop Webhook URL</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 truncate rounded bg-muted px-2 py-1 text-[11px]">
+                  {status?.webhook_url ?? "—"}
+                </code>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!status?.webhook_url}
+                  onClick={() => {
+                    navigator.clipboard.writeText(status?.webhook_url || "");
+                    toast({ title: "Copied", description: "Webhook URL ကို copy ကူးပြီးပါပြီ။" });
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Mapped products ({status?.mapped_products_count ?? 0})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {(status?.mapped_products?.length ?? 0) === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Mapping ထည့်ထားသော package မရှိပါ။ Explicit mapping ရှိသည့် package များသာ auto top-up သွားပါမည်။
+              </p>
+            )}
+            {status?.mapped_products?.map((p) => (
+              <div key={p.id} className="rounded-lg border border-border p-2">
+                <p className="font-medium text-sm">{p.name}</p>
+                <p className="text-xs text-muted-foreground break-all">
+                  game: {p.kgameshop_game || "—"} • product_id: {p.kgameshop_product_id || "—"}
+                  {p.kgameshop_region ? ` • region: ${p.kgameshop_region}` : ""}
+                </p>
+                {(!p.kgameshop_game || !p.kgameshop_product_id) && (
+                  <p className="text-xs text-destructive">Mapping မပြည့်စုံပါ — auto top-up ကျော်သွားပါမည်။</p>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+
 
         <Card>
           <CardHeader className="pb-3 flex-row items-center justify-between space-y-0">

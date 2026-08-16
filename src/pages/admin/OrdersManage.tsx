@@ -56,7 +56,7 @@ interface Order {
   server_id: string | null;
   game_name: string | null;
   profiles: { name: string; phone_number: string };
-  products: { name: string; image_url: string; points_value: number; category: string; cost_price: number | null };
+  products: { name: string; image_url: string; points_value: number; category: string; cost_price: number | null; kgameshop_enabled?: boolean | null; kgameshop_product_id?: string | null };
 }
 
 // Game categories that require game IDs
@@ -83,6 +83,10 @@ const OrdersManage = () => {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; status: string }>({ open: false, status: "" });
+  const [autoTopupEnabled, setAutoTopupEnabled] = useState(false);
+  const [confirmBeforeSend, setConfirmBeforeSend] = useState(true);
+  const [autoSendConfirm, setAutoSendConfirm] = useState<Order | null>(null);
+
   
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -361,7 +365,9 @@ const OrdersManage = () => {
   useEffect(() => {
     checkAdmin();
     loadOrders();
+    loadKgSettings();
   }, [user]);
+
 
   const checkAdmin = async () => {
     if (!user) {
@@ -392,7 +398,7 @@ const OrdersManage = () => {
       .select(`
         *,
         profiles:user_id(name, phone_number),
-        products:product_id(name, image_url, points_value, category, cost_price)
+        products:product_id(name, image_url, points_value, category, cost_price, kgameshop_enabled, kgameshop_product_id)
       `)
       .order("created_at", { ascending: false });
 
@@ -401,7 +407,31 @@ const OrdersManage = () => {
     }
   };
 
-  const updateOrderStatus = async (orderId: string, status: string) => {
+  // Optional test-mode guard: only when Auto Top-Up is ON, the confirm setting is
+  // ON, and this specific order is mapped to KGameShop.
+  const loadKgSettings = async () => {
+    const { data } = await supabase
+      .from("ad_settings")
+      .select("setting_key, setting_value")
+      .in("setting_key", ["kgameshop_auto_topup_enabled", "kgameshop_confirm_before_send"]);
+    const rows = data || [];
+    setAutoTopupEnabled(rows.find((r) => r.setting_key === "kgameshop_auto_topup_enabled")?.setting_value === "true");
+    const c = rows.find((r) => r.setting_key === "kgameshop_confirm_before_send");
+    setConfirmBeforeSend(c ? c.setting_value === "true" : true);
+  };
+
+  const needsAutoSendConfirm = (order: Order) =>
+    autoTopupEnabled && confirmBeforeSend && !!order.products?.kgameshop_enabled;
+
+  const updateOrderStatus = async (orderId: string, status: string, skipConfirm = false) => {
+    if (status === "approved" && !skipConfirm) {
+      const order = orders.find((o) => o.id === orderId);
+      if (order && needsAutoSendConfirm(order)) {
+        setAutoSendConfirm(order);
+        return;
+      }
+    }
+
     const { error } = await supabase
       .from("orders")
       .update({ status })
@@ -422,6 +452,7 @@ const OrdersManage = () => {
       loadOrders();
     }
   };
+
 
 
   const getStatusBadge = (status: string) => {
@@ -1039,7 +1070,40 @@ const OrdersManage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Controlled-test guard: shown only while Auto Top-Up + confirm setting are ON */}
+      <AlertDialog open={!!autoSendConfirm} onOpenChange={(open) => !open && setAutoSendConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Auto Top-Up is enabled</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-1 text-sm">
+                <p>This order will be sent to KGameShop automatically.</p>
+                <p><span className="text-muted-foreground">Order:</span> #{autoSendConfirm?.id.slice(0, 8).toUpperCase()}</p>
+                <p><span className="text-muted-foreground">Product:</span> {autoSendConfirm?.products?.name || "-"}</p>
+                <p><span className="text-muted-foreground">Provider product:</span> {autoSendConfirm?.products?.kgameshop_product_id || "-"}</p>
+                <p><span className="text-muted-foreground">Provider cost:</span> {autoSendConfirm?.products?.cost_price != null ? autoSendConfirm.products.cost_price : "-"}</p>
+                <p><span className="text-muted-foreground">Player:</span> {autoSendConfirm?.game_id || "-"}{autoSendConfirm?.server_id ? ` (${autoSendConfirm.server_id})` : ""}</p>
+                <p className="pt-1">Continue?</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const target = autoSendConfirm;
+                setAutoSendConfirm(null);
+                if (target) updateOrderStatus(target.id, "approved", true);
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MobileLayout>
+
   );
 };
 
