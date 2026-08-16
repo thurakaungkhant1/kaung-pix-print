@@ -480,6 +480,52 @@ const GamePackageForm = () => {
                   onChange={(e) => setFormData({ ...formData, smile_package_id: e.target.value })}
                 />
               </div>
+
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <Label htmlFor="kg_enabled" className="text-sm font-semibold">
+                      KGameShop Auto Top-Up (optional)
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Off ဖြစ်နေရင် ဒီ package က manual fulfilment အတိုင်းသာ လုပ်ဆောင်ပါမည်။
+                    </p>
+                  </div>
+                  <Switch id="kg_enabled" checked={kgEnabled} onCheckedChange={setKgEnabled} />
+                </div>
+                {kgEnabled && (
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div>
+                      <Label htmlFor="kg_game" className="text-xs">Game slug</Label>
+                      <Input
+                        id="kg_game"
+                        placeholder="mobile-legends"
+                        value={formData.kgameshop_game}
+                        onChange={(e) => setFormData({ ...formData, kgameshop_game: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="kg_product" className="text-xs">Product ID</Label>
+                      <Input
+                        id="kg_product"
+                        placeholder="e.g. 12345"
+                        value={formData.kgameshop_product_id}
+                        onChange={(e) => setFormData({ ...formData, kgameshop_product_id: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="kg_region" className="text-xs">Region (optional)</Label>
+                      <Input
+                        id="kg_region"
+                        placeholder="MM"
+                        value={formData.kgameshop_region}
+                        onChange={(e) => setFormData({ ...formData, kgameshop_region: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={() => navigate(listPath)} className="flex-1">
                   Cancel
