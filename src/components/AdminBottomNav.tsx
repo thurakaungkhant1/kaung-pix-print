@@ -84,6 +84,7 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDepo
         { id: "payment-methods", label: "Payment Methods", route: "/admin/payment-methods" },
         { id: "mobile-services", label: "Mobile Services", route: "/admin/mobile-services" },
         { id: "ads", label: "Ads", route: "/admin/ads" },
+        { id: "kgameshop", label: "Auto Top-Up (KGameShop)", route: "/admin/kgameshop" },
         { id: "settings", label: "Settings" },
       ]
     },
