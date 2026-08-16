@@ -987,6 +987,7 @@ const OrdersManage = () => {
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
                       <SelectItem value="finished">Finished</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
