@@ -396,7 +396,7 @@ const OrdersManage = () => {
       .select(`
         *,
         profiles:user_id(name, phone_number),
-        products:product_id(name, image_url, points_value, category, cost_price)
+        products:product_id(name, image_url, points_value, category, cost_price, kgameshop_enabled, kgameshop_product_id)
       `)
       .order("created_at", { ascending: false });
 
@@ -405,7 +405,31 @@ const OrdersManage = () => {
     }
   };
 
-  const updateOrderStatus = async (orderId: string, status: string) => {
+  // Optional test-mode guard: only when Auto Top-Up is ON, the confirm setting is
+  // ON, and this specific order is mapped to KGameShop.
+  const loadKgSettings = async () => {
+    const { data } = await supabase
+      .from("ad_settings")
+      .select("setting_key, setting_value")
+      .in("setting_key", ["kgameshop_auto_topup_enabled", "kgameshop_confirm_before_send"]);
+    const rows = data || [];
+    setAutoTopupEnabled(rows.find((r) => r.setting_key === "kgameshop_auto_topup_enabled")?.setting_value === "true");
+    const c = rows.find((r) => r.setting_key === "kgameshop_confirm_before_send");
+    setConfirmBeforeSend(c ? c.setting_value === "true" : true);
+  };
+
+  const needsAutoSendConfirm = (order: Order) =>
+    autoTopupEnabled && confirmBeforeSend && !!order.products?.kgameshop_enabled;
+
+  const updateOrderStatus = async (orderId: string, status: string, skipConfirm = false) => {
+    if (status === "approved" && !skipConfirm) {
+      const order = orders.find((o) => o.id === orderId);
+      if (order && needsAutoSendConfirm(order)) {
+        setAutoSendConfirm(order);
+        return;
+      }
+    }
+
     const { error } = await supabase
       .from("orders")
       .update({ status })
@@ -426,6 +450,7 @@ const OrdersManage = () => {
       loadOrders();
     }
   };
+
 
 
   const getStatusBadge = (status: string) => {
