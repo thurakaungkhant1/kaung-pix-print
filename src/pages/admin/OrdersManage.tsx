@@ -56,7 +56,7 @@ interface Order {
   server_id: string | null;
   game_name: string | null;
   profiles: { name: string; phone_number: string };
-  products: { name: string; image_url: string; points_value: number; category: string; cost_price: number | null };
+  products: { name: string; image_url: string; points_value: number; category: string; cost_price: number | null; kgameshop_enabled?: boolean | null; kgameshop_product_id?: string | null };
 }
 
 // Game categories that require game IDs
