@@ -9,7 +9,7 @@ import "@/lib/nativeAds";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { MusicProvider } from "@/contexts/MusicContext";
@@ -127,6 +127,43 @@ import InterstitialAd from "@/components/InterstitialAd";
 
 const queryClient = new QueryClient();
 
+const OfflineScoreSync = ({ isOnline }: { isOnline: boolean }) => {
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!isOnline || loading || !user) return;
+
+    const syncOfflineScores = async () => {
+      const pending = JSON.parse(localStorage.getItem("kaung_offline_pending_scores") || "[]");
+      if (pending.length === 0) return;
+
+      let totalPoints = 0;
+      for (const entry of pending) {
+        const points = Math.min(Math.floor(entry.score / 10), 50);
+        if (points > 0) {
+          totalPoints += points;
+          await supabase.from("game_scores").insert({
+            user_id: user.id,
+            game_name: "Offline Runner",
+            score: entry.score,
+            is_win: entry.score >= 100,
+            points_earned: points,
+          });
+        }
+      }
+      if (totalPoints > 0) {
+        await supabase.rpc("get_daily_game_points", { p_user_id: user.id });
+        await supabase.from("profiles").update({ game_points: totalPoints }).eq("id", user.id);
+      }
+      localStorage.removeItem("kaung_offline_pending_scores");
+    };
+
+    void syncOfflineScores();
+  }, [isOnline, loading, user]);
+
+  return null;
+};
+
 // Suspense fallback component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -148,40 +185,6 @@ const App = () => {
     return () => { delete window.onRewardEarned; };
   }, []);
 
-  // Sync offline game scores when coming back online
-  useEffect(() => {
-    if (!isOnline) return;
-    const syncOfflineScores = async () => {
-      const pending = JSON.parse(localStorage.getItem("kaung_offline_pending_scores") || "[]");
-      if (pending.length === 0) return;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      let totalPoints = 0;
-      for (const entry of pending) {
-        const points = Math.min(Math.floor(entry.score / 10), 50); // max 50 pts per game
-        if (points > 0) {
-          totalPoints += points;
-          await supabase.from("game_scores").insert({
-            user_id: user.id,
-            game_name: "Offline Runner",
-            score: entry.score,
-            is_win: entry.score >= 100,
-            points_earned: points,
-          });
-        }
-      }
-      if (totalPoints > 0) {
-        await supabase.rpc("get_daily_game_points", { p_user_id: user.id }); // just to validate
-        await supabase.from("profiles").update({ 
-          game_points: totalPoints 
-        }).eq("id", user.id);
-      }
-      localStorage.removeItem("kaung_offline_pending_scores");
-    };
-    syncOfflineScores();
-  }, [isOnline]);
-
   if (!isOnline) {
     return <OfflineGame />;
   }
@@ -198,6 +201,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <OfflineScoreSync isOnline={isOnline} />
             <LanguageProvider>
               <MusicProvider>
               <InterstitialAd />
