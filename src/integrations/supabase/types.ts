@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_events: {
+        Row: {
+          ad_type: string
+          context: string | null
+          created_at: string
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          ad_type?: string
+          context?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          ad_type?: string
+          context?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ad_placements: {
         Row: {
           created_at: string
@@ -1416,8 +1443,10 @@ export type Database = {
           auto_fill_message: string | null
           auto_fill_started_at: string | null
           auto_fill_status: string | null
+          auto_topup_eligible: boolean
           created_at: string | null
           delivery_address: string
+          fulfillment_provider: string | null
           game_id: string | null
           game_name: string | null
           id: string
@@ -1430,6 +1459,12 @@ export type Database = {
           points_awarded: boolean
           price: number
           product_id: number
+          provider_cost: number | null
+          provider_currency: string | null
+          provider_message: string | null
+          provider_order_id: string | null
+          provider_sent_at: string | null
+          provider_status: string | null
           quantity: number
           server_id: string | null
           smile_package_id: string | null
@@ -1443,8 +1478,10 @@ export type Database = {
           auto_fill_message?: string | null
           auto_fill_started_at?: string | null
           auto_fill_status?: string | null
+          auto_topup_eligible?: boolean
           created_at?: string | null
           delivery_address?: string
+          fulfillment_provider?: string | null
           game_id?: string | null
           game_name?: string | null
           id?: string
@@ -1457,6 +1494,12 @@ export type Database = {
           points_awarded?: boolean
           price: number
           product_id: number
+          provider_cost?: number | null
+          provider_currency?: string | null
+          provider_message?: string | null
+          provider_order_id?: string | null
+          provider_sent_at?: string | null
+          provider_status?: string | null
           quantity?: number
           server_id?: string | null
           smile_package_id?: string | null
@@ -1470,8 +1513,10 @@ export type Database = {
           auto_fill_message?: string | null
           auto_fill_started_at?: string | null
           auto_fill_status?: string | null
+          auto_topup_eligible?: boolean
           created_at?: string | null
           delivery_address?: string
+          fulfillment_provider?: string | null
           game_id?: string | null
           game_name?: string | null
           id?: string
@@ -1484,6 +1529,12 @@ export type Database = {
           points_awarded?: boolean
           price?: number
           product_id?: number
+          provider_cost?: number | null
+          provider_currency?: string | null
+          provider_message?: string | null
+          provider_order_id?: string | null
+          provider_sent_at?: string | null
+          provider_status?: string | null
           quantity?: number
           server_id?: string | null
           smile_package_id?: string | null
@@ -2023,6 +2074,10 @@ export type Database = {
           id: number
           image_url: string
           is_premium: boolean
+          kgameshop_enabled: boolean
+          kgameshop_game: string | null
+          kgameshop_product_id: string | null
+          kgameshop_region: string | null
           name: string
           original_price: number | null
           physical_category_id: string | null
@@ -2043,6 +2098,10 @@ export type Database = {
           id?: number
           image_url: string
           is_premium?: boolean
+          kgameshop_enabled?: boolean
+          kgameshop_game?: string | null
+          kgameshop_product_id?: string | null
+          kgameshop_region?: string | null
           name: string
           original_price?: number | null
           physical_category_id?: string | null
@@ -2063,6 +2122,10 @@ export type Database = {
           id?: number
           image_url?: string
           is_premium?: boolean
+          kgameshop_enabled?: boolean
+          kgameshop_game?: string | null
+          kgameshop_product_id?: string | null
+          kgameshop_region?: string | null
           name?: string
           original_price?: number | null
           physical_category_id?: string | null
