@@ -25,15 +25,13 @@ function gatewayUrl(path: string): string {
     window.location.hostname === "localhost"
     ? FALLBACK_ORIGIN
     : window.location.origin;
-  return `${origin}/api/backend?path=${encodeURIComponent(path)}`;
-}
-
-function gatewayInit(path: string, init?: RequestInit): RequestInit {
-  const headers = new Headers(init?.headers);
-  // Vercel deployments can normalize encoded query parameters differently.
-  // Send the target in a header as well so the gateway always receives it.
-  headers.set("x-backend-path", path);
-  return { ...init, headers };
+  // base64url keeps auth query strings intact without requiring a custom
+  // request header (which would trigger a CORS preflight on the fallback).
+  const encodedPath = btoa(unescape(encodeURIComponent(path)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  return `${origin}/api/backend?p=${encodedPath}`;
 }
 
 function isGatewayResponse(response: Response): boolean {
@@ -56,7 +54,7 @@ export function installBackendFetchFallback(): void {
     } catch (directError) {
       try {
         const path = backendPath(input);
-        const gatewayResponse = await nativeFetch(gatewayUrl(path), gatewayInit(path, init));
+        const gatewayResponse = await nativeFetch(gatewayUrl(path), init);
         if (!isGatewayResponse(gatewayResponse)) throw new Error("Invalid gateway response");
         // A misconfigured gateway must not mask the real network error.
         if (gatewayResponse.status === 400) {

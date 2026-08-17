@@ -6,7 +6,7 @@ const DEFAULT_PUBLISHABLE_KEY =
 
 export default async function handler(req: any, res: any) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "authorization, apikey, content-type, prefer, range, x-backend-path, x-client-info, x-supabase-api-version");
+  res.setHeader("Access-Control-Allow-Headers", "authorization, apikey, content-type, prefer, range, x-client-info, x-supabase-api-version");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
   res.setHeader("Cache-Control", "no-store");
 
@@ -17,12 +17,21 @@ export default async function handler(req: any, res: any) {
 
   const headerPath = req.headers["x-backend-path"];
   const queryPath = req.query?.path;
+  const encodedQueryPath = req.query?.p;
   const requestUrl = new URL(req.url || "/api/backend", "https://gateway.local");
-  const rawPath = typeof headerPath === "string"
+  let decodedPath = "";
+  if (typeof encodedQueryPath === "string") {
+    try {
+      decodedPath = Buffer.from(encodedQueryPath, "base64url").toString("utf8");
+    } catch {
+      decodedPath = "";
+    }
+  }
+  const rawPath = decodedPath || (typeof headerPath === "string"
     ? headerPath
     : typeof queryPath === "string"
       ? queryPath
-      : requestUrl.searchParams.get("path") || "";
+      : requestUrl.searchParams.get("path") || "");
   const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
   const backendUrl = process.env.VITE_SUPABASE_URL || DEFAULT_BACKEND_URL;
   const publishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || DEFAULT_PUBLISHABLE_KEY;
