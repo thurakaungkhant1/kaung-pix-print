@@ -9,6 +9,12 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
+const wait = (milliseconds: number) =>
+  new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+
+const isNetworkError = (error: unknown) =>
+  error instanceof TypeError && error.message.toLowerCase().includes("failed to fetch");
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,10 +64,16 @@ const Login = () => {
     try {
       // Password sign-in replaces any stale local session. Calling signOut here
       // first can wait on a failed refresh request and prevent login entirely.
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
+      const credentials = { email: email.trim().toLowerCase(), password };
+      let result;
+      try {
+        result = await supabase.auth.signInWithPassword(credentials);
+      } catch (error) {
+        if (!isNetworkError(error)) throw error;
+        await wait(1200);
+        result = await supabase.auth.signInWithPassword(credentials);
+      }
+      const { data, error } = result;
       if (error) throw error;
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);
@@ -71,6 +83,8 @@ const Login = () => {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
+      } else if (isNetworkError(error)) {
+        errorMessage = "Connection failed. Please switch between Wi-Fi and mobile data, then try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
