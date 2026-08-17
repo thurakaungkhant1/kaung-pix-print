@@ -84,7 +84,8 @@ const Login = () => {
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
       } else if (isNetworkError(error)) {
-        errorMessage = "The sign-in service could not be reached. Please refresh the app and try again.";
+        errorMessage =
+          "Couldn't reach the sign-in service. If you use an ad blocker or VPN, turn it off for this site, then try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
