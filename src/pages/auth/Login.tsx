@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
 const Login = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -32,46 +33,81 @@ const Login = () => {
     const isAdmin = roles.includes("admin");
     const isMobileAdmin = roles.includes("mobile_admin");
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("name")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const needsCompletion = !profile?.name;
-    if (needsCompletion) {
-      navigate("/auth/complete-profile", { replace: true });
-      return;
-    }
-
-    if (redirectTo) navigate(redirectTo);
-    else if (isAdmin) navigate("/admin");
-    else if (isMobileAdmin) navigate("/admin/mobile-panel");
-    else navigate("/");
+    if (redirectTo && redirectTo !== "/auth/complete-profile") navigate(redirectTo, { replace: true });
+    else if (isAdmin) navigate("/admin", { replace: true });
+    else if (isMobileAdmin) navigate("/admin/mobile-panel", { replace: true });
+    else navigate("/", { replace: true });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      toast({ title: "Enter your name", variant: "destructive" });
+      return;
+    }
+    if (password.length < 8) {
+      toast({ title: "Password must be at least 8 characters", variant: "destructive" });
+      return;
+    }
     setLoading(true);
     try {
+      // 1) Try signing in with existing account
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      toast({ title: "Welcome back!" });
-      await routeAfterAuth(data.user.id);
+
+      if (!error && data.user) {
+        // Keep the profile name in sync with what the user typed
+        await supabase.from("profiles").update({ name: trimmedName }).eq("id", data.user.id);
+        toast({ title: "Welcome back!" });
+        await routeAfterAuth(data.user.id);
+        return;
+      }
+
+      const invalidCreds = error?.message?.includes("Invalid login credentials");
+      if (!invalidCreds) throw error;
+
+      // 2) No account yet → create one instantly and sign in
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: { name: trimmedName },
+        },
+      });
+
+      if (signUpError) {
+        if (signUpError.message?.toLowerCase().includes("already registered")) {
+          throw new Error("Invalid login credentials");
+        }
+        throw signUpError;
+      }
+
+      let userId = signUpData.user?.id ?? null;
+      if (!signUpData.session) {
+        const { data: retry, error: retryError } = await supabase.auth.signInWithPassword({ email, password });
+        if (retryError) throw retryError;
+        userId = retry.user.id;
+      }
+
+      toast({ title: "Welcome aboard! 🎉", description: "Your account is ready" });
+      if (userId) await routeAfterAuth(userId);
+      else navigate("/", { replace: true });
     } catch (error: any) {
-      let errorMessage = error.message || "Failed to login";
-      if (error.message?.includes("Invalid login credentials")) {
-        errorMessage = "Invalid email or password. Please try again.";
-      } else if (error.code === "backend_unreachable" || error.status === 503) {
+      let errorMessage = error?.message || "Failed to login";
+      if (error?.message?.includes("Invalid login credentials")) {
+        errorMessage = "Wrong password for this email. Please try again.";
+      } else if (error?.code === "backend_unreachable" || error?.status === 503) {
         errorMessage = "Cannot reach the login service right now. Please check your connection and try again.";
-      } else if (error.status === 429 || error.code === "over_request_rate_limit") {
-        errorMessage = "Too many login attempts. Please wait a moment, then try again.";
+      } else if (error?.status === 429 || error?.code === "over_request_rate_limit") {
+        errorMessage = "Too many attempts. Please wait a moment, then try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
+
 
 
 
