@@ -59,20 +59,12 @@ const InterstitialAd = () => {
   }, [isVisible]);
 
   useEffect(() => {
-    const loadInterstitialAd = async () => {
-      const { data } = await supabase
-        .from("ad_placements")
-        .select("id, zone_id, script_code")
-        .eq("placement_type", "interstitial")
-        .eq("is_active", true)
-        .limit(1)
-        .maybeSingle();
-
-      if (data) {
-        setAdData(data);
+    loadPromoConfig().then(({ placements }) => {
+      const match = placements.find((p) => p.placement_type === "interstitial");
+      if (match) {
+        setAdData({ id: match.id, zone_id: match.zone_id, script_code: match.script_code });
       }
-    };
-    loadInterstitialAd();
+    });
   }, []);
 
   const handleClose = useCallback(() => {
