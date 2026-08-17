@@ -27,7 +27,11 @@ const Login = () => {
       const backendUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
       const projectRef = backendUrl ? new URL(backendUrl).hostname.split(".")[0] : null;
       if (projectRef) {
-        localStorage.removeItem(`sb-${projectRef}-auth-token`);
+        const storageKey = `sb-${projectRef}-auth-token`;
+        if (localStorage.getItem(storageKey)) {
+          localStorage.removeItem(storageKey);
+          window.location.reload();
+        }
       }
     } catch {
       // A malformed URL must not stop the user from using the login form.
