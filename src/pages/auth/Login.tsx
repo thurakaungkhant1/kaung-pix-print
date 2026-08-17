@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
 const Login = () => {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,80 +32,46 @@ const Login = () => {
     const isAdmin = roles.includes("admin");
     const isMobileAdmin = roles.includes("mobile_admin");
 
-    if (redirectTo && redirectTo !== "/auth/complete-profile") navigate(redirectTo, { replace: true });
-    else if (isAdmin) navigate("/admin", { replace: true });
-    else if (isMobileAdmin) navigate("/admin/mobile-panel", { replace: true });
-    else navigate("/", { replace: true });
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const needsCompletion = !profile?.name;
+    if (needsCompletion) {
+      navigate("/auth/complete-profile", { replace: true });
+      return;
+    }
+
+    if (redirectTo) navigate(redirectTo);
+    else if (isAdmin) navigate("/admin");
+    else if (isMobileAdmin) navigate("/admin/mobile-panel");
+    else navigate("/");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedName = name.trim();
-    if (password.length < 8) {
-      toast({ title: "Password must be at least 8 characters", variant: "destructive" });
-      return;
-    }
     setLoading(true);
     try {
-      // 1) Try signing in with existing account
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (!error && data.user) {
-        // Only sync the profile name when the user actually typed one
-        if (trimmedName) {
-          await supabase.from("profiles").update({ name: trimmedName }).eq("id", data.user.id);
-        }
-        toast({ title: "Welcome back!" });
-        await routeAfterAuth(data.user.id);
-        return;
-      }
-
-
-      const invalidCreds = error?.message?.includes("Invalid login credentials");
-      if (!invalidCreds) throw error;
-
-      // 2) No account yet → create one instantly and sign in
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: { name: trimmedName || email.split("@")[0] },
-        },
-      });
-
-      if (signUpError) {
-        if (signUpError.message?.toLowerCase().includes("already registered")) {
-          throw new Error("Invalid login credentials");
-        }
-        throw signUpError;
-      }
-
-      let userId = signUpData.user?.id ?? null;
-      if (!signUpData.session) {
-        const { data: retry, error: retryError } = await supabase.auth.signInWithPassword({ email, password });
-        if (retryError) throw retryError;
-        userId = retry.user.id;
-      }
-
-      toast({ title: "Welcome aboard! 🎉", description: "Your account is ready" });
-      if (userId) await routeAfterAuth(userId);
-      else navigate("/", { replace: true });
+      if (error) throw error;
+      toast({ title: "Welcome back!" });
+      await routeAfterAuth(data.user.id);
     } catch (error: any) {
-      let errorMessage = error?.message || "Failed to login";
-      if (error?.message?.includes("Invalid login credentials")) {
-        errorMessage = "Wrong password for this email. Please try again.";
-      } else if (error?.code === "backend_unreachable" || error?.status === 503) {
+      let errorMessage = error.message || "Failed to login";
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.code === "backend_unreachable" || error.status === 503) {
         errorMessage = "Cannot reach the login service right now. Please check your connection and try again.";
-      } else if (error?.status === 429 || error?.code === "over_request_rate_limit") {
-        errorMessage = "Too many attempts. Please wait a moment, then try again.";
+      } else if (error.status === 429 || error.code === "over_request_rate_limit") {
+        errorMessage = "Too many login attempts. Please wait a moment, then try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
-
 
 
 
@@ -153,25 +118,16 @@ const Login = () => {
         className="flex-1 px-6 pt-4 pb-10"
       >
         <div className="max-w-md mx-auto w-full">
-          <h2 className="text-3xl font-display font-bold">Welcome</h2>
+          <h2 className="text-3xl font-display font-bold">Welcome Back</h2>
           <p className="text-muted-foreground mt-1.5 text-sm">
-            Email နဲ့ password ထည့်ပြီး Sign In နှိပ်ပါ — အကောင့်မရှိသေးရင် အလိုအလျောက်ဖန်တီးပေးပါမယ်
+            Sign in to continue to your rewards & wallet
           </p>
 
           <div className="mt-6" />
 
+
+
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-sm font-semibold">
-                Name <span className="font-normal text-muted-foreground">(new account only)</span>
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="name" placeholder="Optional if you already have an account" value={name} onChange={(e) => setName(e.target.value)} className="h-12 pl-10" />
-              </div>
-            </div>
-
-
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
               <div className="relative">
@@ -184,7 +140,7 @@ const Login = () => {
               <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type={showPassword ? "text" : "password"} placeholder="At least 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 pl-10 pr-11" />
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 pl-10 pr-11" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -200,6 +156,14 @@ const Login = () => {
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign In"}
             </Button>
 
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => navigate("/auth/signup")}
+              className="w-full h-12 rounded-full text-sm font-semibold"
+            >
+              New here? <span className="text-primary ml-1">Create an account</span>
+            </Button>
 
 
 
