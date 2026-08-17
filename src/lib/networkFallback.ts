@@ -3,12 +3,20 @@
  * only succeed while a VPN is on and fail with "Failed to fetch" otherwise.
  *
  * This patches the global fetch: any request to the backend origin that fails
- * at the network level is retried through a same-origin proxy path (`/sb/...`),
- * which is rewritten to the backend by the hosting layer (see vercel.json).
+ * at the network level is retried through the Cloud Function gateway.
  * Once a block is detected we keep using the proxy for the rest of the session.
  */
 const BACKEND_URL: string = (import.meta.env.VITE_SUPABASE_URL || "").replace(/\/$/, "");
-const PROXY_PREFIX = "/sb";
+const PROJECT_REF = (() => {
+  try {
+    return new URL(BACKEND_URL).hostname.split(".")[0] || "";
+  } catch {
+    return "";
+  }
+})();
+const PROXY_URL = PROJECT_REF
+  ? `https://${PROJECT_REF}.functions.supabase.co/backend-proxy`
+  : "";
 const FLAG = "backend_blocked_v1";
 
 const isBlocked = () => {
@@ -35,8 +43,13 @@ const clearBlocked = () => {
   }
 };
 
-const toProxyUrl = (url: string) =>
-  `${window.location.origin}${PROXY_PREFIX}${url.slice(BACKEND_URL.length)}`;
+const toProxyUrl = (url: string) => {
+  const target = new URL(url);
+  const proxy = new URL(PROXY_URL);
+  proxy.searchParams.set("path", target.pathname);
+  target.searchParams.forEach((value, key) => proxy.searchParams.append(key, value));
+  return proxy.toString();
+};
 
 const isApiResponseUsable = async (response: Response) => {
   if (response.status === 204 || response.status === 205) return true;
@@ -80,7 +93,7 @@ const urlOf = (input: RequestInfo | URL): string => {
 };
 
 export function installBackendFallbackFetch() {
-  if (!BACKEND_URL || typeof window === "undefined") return;
+  if (!BACKEND_URL || !PROXY_URL || typeof window === "undefined") return;
   const original = window.fetch.bind(window);
 
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
