@@ -8,13 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
-import { purgeStaleAuthSession } from "@/lib/authRecovery";
-import { isTransportError, withNetworkRetry } from "@/lib/netRetry";
-import { signInWithPasswordViaXhr } from "@/lib/xhrAuth";
-
-
-const isNetworkError = (error: unknown) => isTransportError(error);
-
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -31,23 +24,21 @@ const Login = () => {
     : null;
 
   const routeAfterAuth = async (userId: string) => {
-    const [{ data: rolesData }, { data: profile, error: profileError }] = await Promise.all([
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId),
-      supabase
-        .from("profiles")
-        .select("name")
-        .eq("id", userId)
-        .maybeSingle(),
-    ]);
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
     const roles = (rolesData ?? []).map((r: any) => r.role);
     const isAdmin = roles.includes("admin");
     const isMobileAdmin = roles.includes("mobile_admin");
 
-    // A temporary profile API failure must not undo a successful auth session.
-    const needsCompletion = !profileError && !profile?.name;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const needsCompletion = !profile?.name;
     if (needsCompletion) {
       navigate("/auth/complete-profile", { replace: true });
       return;
@@ -63,46 +54,19 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Only discard a genuinely expired or malformed token. Removing every
-      // token here can race AuthProvider's initial session lookup and make a
-      // healthy password request surface as a browser-level fetch failure.
-      purgeStaleAuthSession();
-
-      const credentials = { email: email.trim().toLowerCase(), password };
-      // supabase-js returns transport failures in `error` instead of throwing,
-      // so retry inside the wrapper by rethrowing only those.
-      let session: { user: { id: string } };
-      try {
-        const { data, error } = await withNetworkRetry(async () => {
-          const result = await supabase.auth.signInWithPassword(credentials);
-          if (result.error && isTransportError(result.error)) throw result.error;
-          return result;
-        });
-        if (error) throw error;
-        session = data;
-      } catch (fetchError: any) {
-        // fetch is broken in this browser (extension/VPN/webview patching it) —
-        // retry the same request over XMLHttpRequest before giving up.
-        if (!isTransportError(fetchError)) throw fetchError;
-        session = await signInWithPasswordViaXhr(credentials.email, credentials.password);
-      }
+      // A failed refresh can leave an expired session in browser storage and
+      // make the next password sign-in hit the auth refresh rate limit.
+      await supabase.auth.signOut({ scope: "local" });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
       toast({ title: "Welcome back!" });
-      await routeAfterAuth(session.user.id);
-
+      await routeAfterAuth(data.user.id);
     } catch (error: any) {
       let errorMessage = error.message || "Failed to login";
-      // Credential errors (HTTP 400) must stay distinct from transport failures.
-      if (
-        error.message?.includes("Invalid login credentials") ||
-        error.code === "invalid_credentials" ||
-        (error.status === 400 && !isNetworkError(error))
-      ) {
+      if (error.message?.includes("Invalid login credentials")) {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
-      } else if (isNetworkError(error)) {
-        errorMessage =
-          "Couldn't reach the sign-in service. If you use an ad blocker or VPN, turn it off for this site, then try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {

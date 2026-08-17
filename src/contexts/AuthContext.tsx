@@ -2,8 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { ensureProfileRow } from "@/lib/profileEnsure";
-import { clearStoredAuthSession } from "@/lib/authRecovery";
+import { checkProfilesAccess, ensureProfileRow } from "@/lib/profileEnsure";
 
 interface AuthContextType {
   user: User | null;
@@ -12,14 +11,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-const defaultAuthContext: AuthContextType = {
-  user: null,
-  session: null,
-  loading: true,
-  signOut: async () => {},
-};
-
-const AuthContext = createContext<AuthContextType>(defaultAuthContext);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -28,6 +20,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Startup check: warn if the profiles table is unreachable via the Data API.
+    checkProfilesAccess();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -37,39 +32,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Defer to avoid blocking the auth callback tick
           setTimeout(() => { ensureProfileRow(session.user); }, 0);
         }
-        // A token refresh that resolves without a session means the stored
-        // refresh token is dead: purge it instead of retrying forever.
-        if (event === "TOKEN_REFRESHED" && !session) {
-          clearStoredAuthSession();
-        }
       }
     );
-
-    // Never leave the app stuck on a loading spinner if the initial session
-    // lookup cannot reach the network.
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
-        setSession(data.session ?? null);
-        setUser(data.session?.user ?? null);
-      })
-      .catch(() => {
-        clearStoredAuthSession();
-      })
-      .finally(() => setLoading(false));
 
     return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch {
-      // Sign-out must succeed locally even when the network call fails.
-    }
-    clearStoredAuthSession();
-    setSession(null);
-    setUser(null);
+    await supabase.auth.signOut();
     navigate("/auth/login");
   };
 
@@ -80,4 +50,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
