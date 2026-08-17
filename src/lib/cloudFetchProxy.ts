@@ -1,4 +1,42 @@
 const CLOUD_PROXY_PREFIX = "/cloud-backend";
+const REFRESH_FAILURE_WINDOW_MS = 15_000;
+const REFRESH_FAILURE_LIMIT = 3;
+const RECOVERY_RELOAD_KEY = "auth-refresh-recovery-reloaded-at";
+
+let refreshFailures: number[] = [];
+
+function isRefreshRequest(url: URL): boolean {
+  return url.pathname.endsWith("/auth/v1/token") && url.searchParams.get("grant_type") === "refresh_token";
+}
+
+function clearPersistedAuthSessions(): void {
+  for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+    const key = localStorage.key(index);
+    if (key?.startsWith("sb-") && key.endsWith("-auth-token")) {
+      localStorage.removeItem(key);
+    }
+  }
+}
+
+function recoverFromStaleSession(): void {
+  clearPersistedAuthSessions();
+
+  const lastReload = Number(sessionStorage.getItem(RECOVERY_RELOAD_KEY) ?? 0);
+  if (Date.now() - lastReload < REFRESH_FAILURE_WINDOW_MS) return;
+
+  sessionStorage.setItem(RECOVERY_RELOAD_KEY, String(Date.now()));
+  window.location.reload();
+}
+
+function recordRefreshFailure(forceRecovery = false): void {
+  const now = Date.now();
+  refreshFailures = refreshFailures.filter((timestamp) => now - timestamp < REFRESH_FAILURE_WINDOW_MS);
+  refreshFailures.push(now);
+
+  if (forceRecovery || refreshFailures.length >= REFRESH_FAILURE_LIMIT) {
+    recoverFromStaleSession();
+  }
+}
 
 function shouldUseProxy(backendUrl: URL): boolean {
   if (!import.meta.env.PROD || typeof window === "undefined") return false;
@@ -15,19 +53,15 @@ function shouldUseProxy(backendUrl: URL): boolean {
  */
 export function installCloudFetchProxy(): void {
   const configuredUrl = import.meta.env.VITE_SUPABASE_URL;
-  if (!configuredUrl) return;
-
-  let backendUrl: URL;
+  let backendUrl: URL | null = null;
   try {
-    backendUrl = new URL(configuredUrl);
+    backendUrl = configuredUrl ? new URL(configuredUrl) : null;
   } catch {
-    return;
+    backendUrl = null;
   }
 
-  if (!shouldUseProxy(backendUrl)) return;
-
   const nativeFetch = window.fetch.bind(window);
-  window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const originalUrl = input instanceof Request ? input.url : input.toString();
     let requestUrl: URL;
 
@@ -37,13 +71,24 @@ export function installCloudFetchProxy(): void {
       return nativeFetch(input, init);
     }
 
-    if (requestUrl.origin !== backendUrl.origin) return nativeFetch(input, init);
+    const refreshRequest = isRefreshRequest(requestUrl);
+    let requestInput: RequestInfo | URL = input;
 
-    const proxiedUrl = `${window.location.origin}${CLOUD_PROXY_PREFIX}${requestUrl.pathname}${requestUrl.search}`;
-    if (input instanceof Request) {
-      return nativeFetch(new Request(proxiedUrl, input), init);
+    if (backendUrl && shouldUseProxy(backendUrl) && requestUrl.origin === backendUrl.origin) {
+      const proxiedUrl = `${window.location.origin}${CLOUD_PROXY_PREFIX}${requestUrl.pathname}${requestUrl.search}`;
+      requestInput = input instanceof Request ? new Request(proxiedUrl, input) : proxiedUrl;
     }
 
-    return nativeFetch(proxiedUrl, init);
+    try {
+      const response = await nativeFetch(requestInput, init);
+      if (refreshRequest) {
+        if (response.status === 400 || response.status === 401) recordRefreshFailure(true);
+        else if (response.ok) refreshFailures = [];
+      }
+      return response;
+    } catch (error) {
+      if (refreshRequest) recordRefreshFailure();
+      throw error;
+    }
   };
 }
