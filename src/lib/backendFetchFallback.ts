@@ -49,6 +49,12 @@ export function installBackendFetchFallback(): void {
       try {
         const gatewayResponse = await nativeFetch(gatewayUrl(backendPath(input)), init);
         if (!isGatewayResponse(gatewayResponse)) throw new Error("Invalid gateway response");
+        // A misconfigured gateway must not mask the real network error.
+        if (gatewayResponse.status === 400) {
+          const clone = gatewayResponse.clone();
+          const body = await clone.json().catch(() => null);
+          if (body?.code === "invalid_gateway_request") throw new Error("Gateway misconfigured");
+        }
         return gatewayResponse;
       } catch {
         throw directError;

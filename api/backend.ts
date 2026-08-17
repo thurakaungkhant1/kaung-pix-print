@@ -1,4 +1,8 @@
-const ALLOWED_PATH = /^\/(auth|rest|storage)\/v1(?:\/|$)/;
+const ALLOWED_PATH = /^\/(auth|rest|storage|functions)\/v1(?:\/|$|\?)/;
+
+const DEFAULT_BACKEND_URL = "https://ojoenxchuzqonpixomkl.supabase.co";
+const DEFAULT_PUBLISHABLE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qb2VueGNodXpxb25waXhvbWtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MTg2NDUsImV4cCI6MjA3OTQ5NDY0NX0.zGVVOZMwMqHepUVa9gsja8DM7wUAnVSkxiPNefjTD58";
 
 export default async function handler(req: any, res: any) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -11,14 +15,16 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const path = typeof req.query?.path === "string" ? req.query.path : "";
-  const backendUrl = process.env.VITE_SUPABASE_URL;
-  const publishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const rawPath = typeof req.query?.path === "string" ? req.query.path : "";
+  const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+  const backendUrl = process.env.VITE_SUPABASE_URL || DEFAULT_BACKEND_URL;
+  const publishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || DEFAULT_PUBLISHABLE_KEY;
 
-  if (!backendUrl || !publishableKey || !ALLOWED_PATH.test(path)) {
+  if (!ALLOWED_PATH.test(path)) {
     res.status(400).json({ code: "invalid_gateway_request", message: "Invalid backend request" });
     return;
   }
+
 
   const headers = new Headers();
   const forwarded = [
