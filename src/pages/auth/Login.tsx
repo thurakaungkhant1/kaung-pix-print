@@ -54,9 +54,6 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // A failed refresh can leave an expired session in browser storage and
-      // make the next password sign-in hit the auth refresh rate limit.
-      await supabase.auth.signOut({ scope: "local" });
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast({ title: "Welcome back!" });
@@ -69,11 +66,13 @@ const Login = () => {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
       } else if (
         error.message?.includes("Failed to fetch") ||
+        error.message?.includes("Failed to connect") ||
+        error.message?.includes("Load failed") ||
         error.message?.includes("NetworkError") ||
         error.name === "AuthRetryableFetchError"
       ) {
         errorMessage =
-          "Cannot reach the server. Please check your internet connection, turn off any VPN/ad-blocker, then try again.";
+          "Sign in is temporarily unavailable. Please wait a moment and try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
