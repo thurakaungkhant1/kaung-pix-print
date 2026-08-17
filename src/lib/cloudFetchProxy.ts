@@ -39,12 +39,16 @@ function recordRefreshFailure(forceRecovery = false): void {
 }
 
 function shouldUseProxy(backendUrl: URL): boolean {
-  if (!import.meta.env.PROD || typeof window === "undefined") return false;
+  if (typeof window === "undefined") return false;
 
   const hostname = window.location.hostname;
-  const isLovableHosted = hostname.endsWith(".lovable.app") || hostname.endsWith(".lovableproject.com");
+  const isLovablePublished = hostname.endsWith(".lovable.app") && !hostname.startsWith("id-preview--");
 
-  return !isLovableHosted && backendUrl.origin !== window.location.origin;
+  return !isLovablePublished && backendUrl.origin !== window.location.origin;
+}
+
+function proxyUrlFor(requestUrl: URL): string {
+  return `${window.location.origin}${CLOUD_PROXY_PREFIX}${requestUrl.pathname}${requestUrl.search}`;
 }
 
 /**
@@ -73,9 +77,10 @@ export function installCloudFetchProxy(): void {
 
     const refreshRequest = isRefreshRequest(requestUrl);
     let requestInput: RequestInfo | URL = input;
+    const isBackendRequest = backendUrl && requestUrl.origin === backendUrl.origin;
 
-    if (backendUrl && shouldUseProxy(backendUrl) && requestUrl.origin === backendUrl.origin) {
-      const proxiedUrl = `${window.location.origin}${CLOUD_PROXY_PREFIX}${requestUrl.pathname}${requestUrl.search}`;
+    if (isBackendRequest && shouldUseProxy(backendUrl)) {
+      const proxiedUrl = proxyUrlFor(requestUrl);
       requestInput = input instanceof Request ? new Request(proxiedUrl, input) : proxiedUrl;
     }
 
@@ -88,6 +93,15 @@ export function installCloudFetchProxy(): void {
       return response;
     } catch (error) {
       if (refreshRequest) recordRefreshFailure();
+
+      // On hosted Lovable URLs the normal direct request is preferred, but
+      // filtered networks may block the backend hostname. Retry through the
+      // same-origin route when it is available (Vite preview or Vercel).
+      if (isBackendRequest && requestInput === input) {
+        const proxiedUrl = proxyUrlFor(requestUrl);
+        const fallbackInput = input instanceof Request ? new Request(proxiedUrl, input.clone()) : proxiedUrl;
+        return nativeFetch(fallbackInput, init);
+      }
       throw error;
     }
   };
