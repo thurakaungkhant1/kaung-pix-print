@@ -69,14 +69,24 @@ const Login = () => {
       const credentials = { email: email.trim().toLowerCase(), password };
       // supabase-js returns transport failures in `error` instead of throwing,
       // so retry inside the wrapper by rethrowing only those.
-      const { data, error } = await withNetworkRetry(async () => {
-        const result = await supabase.auth.signInWithPassword(credentials);
-        if (result.error && isTransportError(result.error)) throw result.error;
-        return result;
-      });
-      if (error) throw error;
+      let session: { user: { id: string } };
+      try {
+        const { data, error } = await withNetworkRetry(async () => {
+          const result = await supabase.auth.signInWithPassword(credentials);
+          if (result.error && isTransportError(result.error)) throw result.error;
+          return result;
+        });
+        if (error) throw error;
+        session = data;
+      } catch (fetchError: any) {
+        // fetch is broken in this browser (extension/VPN/webview patching it) —
+        // retry the same request over XMLHttpRequest before giving up.
+        if (!isTransportError(fetchError)) throw fetchError;
+        session = await signInWithPasswordViaXhr(credentials.email, credentials.password);
+      }
       toast({ title: "Welcome back!" });
-      await routeAfterAuth(data.user.id);
+      await routeAfterAuth(session.user.id);
+
     } catch (error: any) {
       let errorMessage = error.message || "Failed to login";
       if (error.message?.includes("Invalid login credentials")) {
