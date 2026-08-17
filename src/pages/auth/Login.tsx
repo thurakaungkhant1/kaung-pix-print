@@ -24,21 +24,23 @@ const Login = () => {
     : null;
 
   const routeAfterAuth = async (userId: string) => {
-    const { data: rolesData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
+    const [{ data: rolesData }, { data: profile, error: profileError }] = await Promise.all([
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId),
+      supabase
+        .from("profiles")
+        .select("name")
+        .eq("id", userId)
+        .maybeSingle(),
+    ]);
     const roles = (rolesData ?? []).map((r: any) => r.role);
     const isAdmin = roles.includes("admin");
     const isMobileAdmin = roles.includes("mobile_admin");
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("name")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const needsCompletion = !profile?.name;
+    // A temporary profile API failure must not undo a successful auth session.
+    const needsCompletion = !profileError && !profile?.name;
     if (needsCompletion) {
       navigate("/auth/complete-profile", { replace: true });
       return;
@@ -54,10 +56,12 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // A failed refresh can leave an expired session in browser storage and
-      // make the next password sign-in hit the auth refresh rate limit.
-      await supabase.auth.signOut({ scope: "local" });
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      // Password sign-in replaces any stale local session. Calling signOut here
+      // first can wait on a failed refresh request and prevent login entirely.
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
       if (error) throw error;
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);

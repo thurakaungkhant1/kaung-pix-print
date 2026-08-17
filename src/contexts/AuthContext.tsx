@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { checkProfilesAccess, ensureProfileRow } from "@/lib/profileEnsure";
+import { ensureProfileRow } from "@/lib/profileEnsure";
 
 interface AuthContextType {
   user: User | null;
@@ -20,9 +20,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Startup check: warn if the profiles table is unreachable via the Data API.
-    checkProfilesAccess();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
