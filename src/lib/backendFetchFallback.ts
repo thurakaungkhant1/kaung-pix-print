@@ -28,6 +28,14 @@ function gatewayUrl(path: string): string {
   return `${origin}/api/backend?path=${encodeURIComponent(path)}`;
 }
 
+function gatewayInit(path: string, init?: RequestInit): RequestInit {
+  const headers = new Headers(init?.headers);
+  // Vercel deployments can normalize encoded query parameters differently.
+  // Send the target in a header as well so the gateway always receives it.
+  headers.set("x-backend-path", path);
+  return { ...init, headers };
+}
+
 function isGatewayResponse(response: Response): boolean {
   const contentType = response.headers.get("content-type") ?? "";
   return contentType.includes("application/json");
@@ -47,7 +55,8 @@ export function installBackendFetchFallback(): void {
       return await nativeFetch(input, init);
     } catch (directError) {
       try {
-        const gatewayResponse = await nativeFetch(gatewayUrl(backendPath(input)), init);
+        const path = backendPath(input);
+        const gatewayResponse = await nativeFetch(gatewayUrl(path), gatewayInit(path, init));
         if (!isGatewayResponse(gatewayResponse)) throw new Error("Invalid gateway response");
         // A misconfigured gateway must not mask the real network error.
         if (gatewayResponse.status === 400) {

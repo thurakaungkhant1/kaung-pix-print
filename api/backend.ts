@@ -1,4 +1,4 @@
-const ALLOWED_PATH = /^\/(auth|rest|storage|functions)\/v1(?:\/|$|\?)/;
+const ALLOWED_PATH = /^\/(auth|rest|storage|functions)\/v1(?:\/|$)/;
 
 const DEFAULT_BACKEND_URL = "https://ojoenxchuzqonpixomkl.supabase.co";
 const DEFAULT_PUBLISHABLE_KEY =
@@ -6,7 +6,7 @@ const DEFAULT_PUBLISHABLE_KEY =
 
 export default async function handler(req: any, res: any) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "authorization, apikey, content-type, prefer, range, x-client-info, x-supabase-api-version");
+  res.setHeader("Access-Control-Allow-Headers", "authorization, apikey, content-type, prefer, range, x-backend-path, x-client-info, x-supabase-api-version");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
   res.setHeader("Cache-Control", "no-store");
 
@@ -15,12 +15,27 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const rawPath = typeof req.query?.path === "string" ? req.query.path : "";
+  const headerPath = req.headers["x-backend-path"];
+  const queryPath = req.query?.path;
+  const requestUrl = new URL(req.url || "/api/backend", "https://gateway.local");
+  const rawPath = typeof headerPath === "string"
+    ? headerPath
+    : typeof queryPath === "string"
+      ? queryPath
+      : requestUrl.searchParams.get("path") || "";
   const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
   const backendUrl = process.env.VITE_SUPABASE_URL || DEFAULT_BACKEND_URL;
   const publishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || DEFAULT_PUBLISHABLE_KEY;
 
-  if (!ALLOWED_PATH.test(path)) {
+  let target: URL;
+  try {
+    target = new URL(path, `${backendUrl}/`);
+  } catch {
+    res.status(400).json({ code: "invalid_gateway_request", message: "Invalid backend request" });
+    return;
+  }
+
+  if (!ALLOWED_PATH.test(target.pathname) || target.origin !== new URL(backendUrl).origin) {
     res.status(400).json({ code: "invalid_gateway_request", message: "Invalid backend request" });
     return;
   }
@@ -42,7 +57,7 @@ export default async function handler(req: any, res: any) {
   headers.set("apikey", publishableKey);
 
   try {
-    const upstream = await fetch(`${backendUrl}${path}`, {
+    const upstream = await fetch(target, {
       method: req.method,
       headers,
       body: req.method === "GET" || req.method === "HEAD"
