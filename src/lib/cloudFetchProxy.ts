@@ -42,9 +42,26 @@ function shouldUseProxy(backendUrl: URL): boolean {
   if (typeof window === "undefined") return false;
 
   const hostname = window.location.hostname;
-  const isLovablePublished = hostname.endsWith(".lovable.app") && !hostname.startsWith("id-preview--");
+  const isLovableHosted =
+    hostname.endsWith(".lovable.app") ||
+    hostname.endsWith(".lovableproject.com");
+  const isNativeWebView = window.location.protocol === "capacitor:";
 
-  return !isLovablePublished && backendUrl.origin !== window.location.origin;
+  // The same-origin rewrite is deployed by Vercel for custom domains. Lovable
+  // preview/published hosts and native WebViews do not expose that rewrite;
+  // attempting it there returns the app shell (or a gateway error) instead of
+  // an Auth response.
+  return !isLovableHosted && !isNativeWebView && backendUrl.origin !== window.location.origin;
+}
+
+function canTrySameOriginProxy(): boolean {
+  if (typeof window === "undefined") return false;
+  const hostname = window.location.hostname;
+  return (
+    window.location.protocol !== "capacitor:" &&
+    !hostname.endsWith(".lovable.app") &&
+    !hostname.endsWith(".lovableproject.com")
+  );
 }
 
 function proxyUrlFor(requestUrl: URL): string {
@@ -94,10 +111,10 @@ export function installCloudFetchProxy(): void {
     } catch (error) {
       if (refreshRequest) recordRefreshFailure();
 
-      // On hosted Lovable URLs the normal direct request is preferred, but
-      // filtered networks may block the backend hostname. Retry through the
-      // same-origin route when it is available (Vite preview or Vercel).
-      if (isBackendRequest && requestInput === input) {
+      // A Vercel/custom-domain deployment has the same-origin rewrite. Lovable
+      // hosts and native WebViews do not, so never send Auth calls to a route
+      // that would return HTML or expose a raw upstream connection error.
+      if (isBackendRequest && requestInput === input && canTrySameOriginProxy()) {
         const proxiedUrl = proxyUrlFor(requestUrl);
         const fallbackInput = input instanceof Request ? new Request(proxiedUrl, input.clone()) : proxiedUrl;
         return nativeFetch(fallbackInput, init);
