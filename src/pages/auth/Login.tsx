@@ -67,6 +67,13 @@ const Login = () => {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
+      } else if (
+        error.message?.includes("Failed to fetch") ||
+        error.message?.includes("NetworkError") ||
+        error.name === "AuthRetryableFetchError"
+      ) {
+        errorMessage =
+          "Cannot reach the server. Please check your internet connection, turn off any VPN/ad-blocker, then try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
