@@ -71,7 +71,7 @@ const Login = () => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: { name: trimmedName },
+          data: { name: trimmedName || email.split("@")[0] },
         },
       });
 
