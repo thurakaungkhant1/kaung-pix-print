@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,26 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // A broken persisted refresh token can keep retrying in the background and
+    // prevent a fresh password sign-in. The login screen always starts clean.
+    supabase.auth.stopAutoRefresh();
+
+    try {
+      const backendUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+      const projectRef = backendUrl ? new URL(backendUrl).hostname.split(".")[0] : null;
+      if (projectRef) {
+        localStorage.removeItem(`sb-${projectRef}-auth-token`);
+      }
+    } catch {
+      // A malformed URL must not stop the user from using the login form.
+    }
+
+    return () => {
+      supabase.auth.startAutoRefresh();
+    };
+  }, []);
 
   const requestedRedirect = searchParams.get("redirectTo");
   const redirectTo = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
@@ -61,6 +81,7 @@ const Login = () => {
         password,
       });
       if (error) throw error;
+      supabase.auth.startAutoRefresh();
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);
     } catch (error: any) {
