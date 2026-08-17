@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
-import { clearStoredAuthSession } from "@/lib/authRecovery";
+import { purgeStaleAuthSession } from "@/lib/authRecovery";
 
 const isNetworkError = (error: unknown) => {
   if (!error || typeof error !== "object") return false;
@@ -65,10 +65,10 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // The login route always starts a new session. Clearing every previous
-      // local token prevents an unexpired but revoked refresh token from
-      // holding the auth client's lock in browser previews.
-      clearStoredAuthSession();
+      // Only discard a genuinely expired or malformed token. Removing every
+      // token here can race AuthProvider's initial session lookup and make a
+      // healthy password request surface as a browser-level fetch failure.
+      purgeStaleAuthSession();
 
       const credentials = { email: email.trim().toLowerCase(), password };
       const { data, error } = await supabase.auth.signInWithPassword(credentials);
@@ -82,7 +82,7 @@ const Login = () => {
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
       } else if (isNetworkError(error)) {
-        errorMessage = "Connection failed. Please switch between Wi-Fi and mobile data, then try again.";
+        errorMessage = "The sign-in service could not be reached. Please refresh the app and try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
