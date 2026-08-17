@@ -35,9 +35,43 @@ const clearBlocked = () => {
   }
 };
 
-
 const toProxyUrl = (url: string) =>
   `${window.location.origin}${PROXY_PREFIX}${url.slice(BACKEND_URL.length)}`;
+
+const isApiResponseUsable = async (response: Response) => {
+  if (response.status === 204 || response.status === 205) return true;
+
+  const type = response.headers.get("content-type")?.toLowerCase() || "";
+  if (type.includes("text/html")) return false;
+
+  // Auth and Data API errors must contain JSON. ISP block pages commonly
+  // answer with an empty 404, which otherwise makes the auth SDK call
+  // Response.json() and throw "Unexpected end of JSON input".
+  if (response.status >= 400) {
+    if (!type.includes("json")) return false;
+    const body = await response.clone().text();
+    if (!body.trim()) return false;
+    try {
+      JSON.parse(body);
+    } catch {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const networkErrorResponse = () =>
+  new Response(
+    JSON.stringify({
+      message: "Backend connection unavailable. Please check your connection and try again.",
+      code: "backend_unreachable",
+    }),
+    {
+      status: 503,
+      headers: { "content-type": "application/json; charset=utf-8" },
+    },
+  );
 
 const urlOf = (input: RequestInfo | URL): string => {
   if (typeof input === "string") return input;
@@ -57,10 +91,7 @@ export function installBackendFallbackFetch() {
 
     const viaProxy = async () => {
       const res = await original(proxied, init ?? (input instanceof Request ? input : undefined));
-      // A static host without rewrites answers with the SPA shell (HTML),
-      // which would break JSON parsing. Treat that as "no proxy available".
-      const type = res.headers.get("content-type") || "";
-      if (type.includes("text/html")) throw new Error("proxy_unavailable");
+      if (!(await isApiResponseUsable(res))) throw new Error("proxy_unavailable");
       return res;
     };
 
@@ -69,19 +100,34 @@ export function installBackendFallbackFetch() {
         return await viaProxy();
       } catch {
         clearBlocked();
-        return original(input, init);
+        try {
+          const direct = await original(input, init);
+          return (await isApiResponseUsable(direct)) ? direct : networkErrorResponse();
+        } catch {
+          return networkErrorResponse();
+        }
       }
     }
 
     try {
-      return await original(input, init);
+      const direct = await original(input, init);
+      if (await isApiResponseUsable(direct)) return direct;
+
+      const proxy = await viaProxy();
+      setBlocked();
+      return proxy;
     } catch (err) {
       try {
         const res = await viaProxy();
         setBlocked();
         return res;
       } catch {
-        throw err;
+        // Always return a JSON API error. The auth client parses every error
+        // response as JSON, so returning an ISP/static-host empty body here
+        // causes a misleading JSON parsing exception instead of a useful
+        // connection error.
+        console.warn("[backend fallback] Direct and proxy requests failed", err);
+        return networkErrorResponse();
       }
     }
   };
