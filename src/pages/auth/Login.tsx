@@ -155,19 +155,22 @@ const Login = () => {
         <div className="max-w-md mx-auto w-full">
           <h2 className="text-3xl font-display font-bold">Welcome</h2>
           <p className="text-muted-foreground mt-1.5 text-sm">
-            Enter your details — we'll sign you in or create your account automatically
+            Email နဲ့ password ထည့်ပြီး Sign In နှိပ်ပါ — အကောင့်မရှိသေးရင် အလိုအလျောက်ဖန်တီးပေးပါမယ်
           </p>
 
           <div className="mt-6" />
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-sm font-semibold">Name</Label>
+              <Label htmlFor="name" className="text-sm font-semibold">
+                Name <span className="font-normal text-muted-foreground">(new account only)</span>
+              </Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="name" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} required className="h-12 pl-10" />
+                <Input id="name" placeholder="Optional if you already have an account" value={name} onChange={(e) => setName(e.target.value)} className="h-12 pl-10" />
               </div>
             </div>
+
 
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
