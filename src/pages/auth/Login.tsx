@@ -65,6 +65,8 @@ const Login = () => {
       let errorMessage = error.message || "Failed to login";
       if (error.message?.includes("Invalid login credentials")) {
         errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.code === "backend_unreachable" || error.status === 503) {
+        errorMessage = "Cannot reach the login service right now. Please check your connection and try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
       }
