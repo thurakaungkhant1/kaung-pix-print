@@ -54,9 +54,6 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // A failed refresh can leave an expired session in browser storage and
-      // make the next password sign-in hit the auth refresh rate limit.
-      await supabase.auth.signOut({ scope: "local" });
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast({ title: "Welcome back!" });
