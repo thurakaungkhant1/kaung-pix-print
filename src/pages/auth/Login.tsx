@@ -154,16 +154,22 @@ const Login = () => {
         className="flex-1 px-6 pt-4 pb-10"
       >
         <div className="max-w-md mx-auto w-full">
-          <h2 className="text-3xl font-display font-bold">Welcome Back</h2>
+          <h2 className="text-3xl font-display font-bold">Welcome</h2>
           <p className="text-muted-foreground mt-1.5 text-sm">
-            Sign in to continue to your rewards & wallet
+            Enter your details — we'll sign you in or create your account automatically
           </p>
 
           <div className="mt-6" />
 
-
-
           <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-sm font-semibold">Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input id="name" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} required className="h-12 pl-10" />
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
               <div className="relative">
@@ -176,7 +182,7 @@ const Login = () => {
               <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 pl-10 pr-11" />
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="At least 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 pl-10 pr-11" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -192,14 +198,6 @@ const Login = () => {
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign In"}
             </Button>
 
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate("/auth/signup")}
-              className="w-full h-12 rounded-full text-sm font-semibold"
-            >
-              New here? <span className="text-primary ml-1">Create an account</span>
-            </Button>
 
 
 
