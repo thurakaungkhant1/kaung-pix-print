@@ -27,6 +27,15 @@ const setBlocked = () => {
   }
 };
 
+const clearBlocked = () => {
+  try {
+    sessionStorage.removeItem(FLAG);
+  } catch {
+    /* ignore */
+  }
+};
+
+
 const toProxyUrl = (url: string) =>
   `${window.location.origin}${PROXY_PREFIX}${url.slice(BACKEND_URL.length)}`;
 
@@ -46,11 +55,20 @@ export function installBackendFallbackFetch() {
 
     const proxied = toProxyUrl(url);
 
+    const viaProxy = async () => {
+      const res = await original(proxied, init ?? (input instanceof Request ? input : undefined));
+      // A static host without rewrites answers with the SPA shell (HTML),
+      // which would break JSON parsing. Treat that as "no proxy available".
+      const type = res.headers.get("content-type") || "";
+      if (type.includes("text/html")) throw new Error("proxy_unavailable");
+      return res;
+    };
+
     if (isBlocked()) {
       try {
-        return await original(proxied, init ?? (input instanceof Request ? input : undefined));
+        return await viaProxy();
       } catch {
-        // Proxy unavailable (e.g. static host without rewrites) — try direct.
+        clearBlocked();
         return original(input, init);
       }
     }
@@ -58,9 +76,8 @@ export function installBackendFallbackFetch() {
     try {
       return await original(input, init);
     } catch (err) {
-      // Network-level failure only (CORS/DNS/blocked). HTTP errors never throw.
       try {
-        const res = await original(proxied, init ?? (input instanceof Request ? input : undefined));
+        const res = await viaProxy();
         setBlocked();
         return res;
       } catch {
@@ -69,3 +86,4 @@ export function installBackendFallbackFetch() {
     }
   };
 }
+
