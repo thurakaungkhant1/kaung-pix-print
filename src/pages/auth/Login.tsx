@@ -54,6 +54,9 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      // A failed refresh can leave an expired session in browser storage and
+      // make the next password sign-in hit the auth refresh rate limit.
+      await supabase.auth.signOut({ scope: "local" });
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast({ title: "Welcome back!" });
@@ -62,8 +65,6 @@ const Login = () => {
       let errorMessage = error.message || "Failed to login";
       if (error.message?.includes("Invalid login credentials")) {
         errorMessage = "Invalid email or password. Please try again.";
-      } else if (error.code === "backend_unreachable" || error.status === 503) {
-        errorMessage = "Cannot reach the login service right now. Please check your connection and try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
       }

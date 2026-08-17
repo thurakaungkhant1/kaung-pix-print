@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import AIGameHint from "@/components/AIGameHint";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import defaultAvatar from "@/assets/default-avatar.svg";
-import { showInterstitialAd, startLongSessionAds, showRewardedAd, hasRewardedAds, preloadInterstitialAd, DEFAULT_LONG_SESSION_MINUTES } from "@/lib/nativeAds";
+import { showInterstitialAd, startLongSessionAds, showRewardedAd, hasRewardedAds } from "@/lib/nativeAds";
 
 const LAST_GAME_KEY = "games:lastOpenedId";
 // Show interstitial when user switches from one game to another
@@ -36,7 +36,6 @@ const openGameWithAd = (
   try {
     const last = localStorage.getItem(LAST_GAME_KEY);
     if (last && last !== newId) showInterstitialAd();
-    else preloadInterstitialAd();
     localStorage.setItem(LAST_GAME_KEY, newId);
   } catch { /* ignore */ }
   setter(newId);
@@ -138,27 +137,12 @@ const GamesPortal = () => {
   const isOnline = useNetworkStatus();
   const { gamePoints, dailyEarned, dailyLimit, streak, canPlay, getCooldownRemaining, submitScore, refreshData } = useGamePoints();
   const [activeGame, setActiveGame] = useState<string | null>(null);
-  const [adIntervalMinutes, setAdIntervalMinutes] = useState(DEFAULT_LONG_SESSION_MINUTES);
-
-  // Preload the first interstitial + load the admin-configured interval.
-  useEffect(() => {
-    preloadInterstitialAd();
-    (async () => {
-      const { data } = await supabase
-        .from("ad_settings")
-        .select("setting_value")
-        .eq("setting_key", "game_interstitial_minutes")
-        .maybeSingle();
-      const mins = parseFloat(data?.setting_value ?? "");
-      if (Number.isFinite(mins) && mins > 0) setAdIntervalMinutes(mins);
-    })();
-  }, []);
 
   // Long session ads: while the user stays inside one game, keep showing ads periodically.
   useEffect(() => {
     if (!activeGame) return;
-    return startLongSessionAds(adIntervalMinutes);
-  }, [activeGame, adIntervalMinutes]);
+    return startLongSessionAds();
+  }, [activeGame]);
 
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [hasSpunToday, setHasSpunToday] = useState(false);
