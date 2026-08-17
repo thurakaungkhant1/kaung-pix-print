@@ -1,16 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-
-interface AdPlacement {
-  id: string;
-  name: string;
-  placement_type: string;
-  zone_id: string | null;
-  script_code: string | null;
-  page_location: string;
-  position: string;
-}
+import { loadPromoConfig, PromoPlacement as AdPlacement } from "@/lib/promoConfig";
 
 interface AdBannerProps {
   pageLocation: string;
@@ -24,25 +14,19 @@ const AdBanner = ({ pageLocation, position, className }: AdBannerProps) => {
   const adsInitialized = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    const loadPlacements = async () => {
-      let query = supabase
-        .from("ad_placements")
-        .select("*")
-        .eq("is_active", true)
-        .or(`page_location.eq.${pageLocation},page_location.eq.all`);
-
-      if (position) {
-        query = query.eq("position", position);
-      }
-
-      const { data } = await query.order("display_order", { ascending: true });
-      
-      if (data) {
-        setPlacements(data);
-      }
+    let cancelled = false;
+    loadPromoConfig().then(({ placements: all }) => {
+      if (cancelled) return;
+      const filtered = all.filter(
+        (p) =>
+          (p.page_location === pageLocation || p.page_location === "all") &&
+          (!position || p.position === position),
+      );
+      setPlacements(filtered);
+    });
+    return () => {
+      cancelled = true;
     };
-
-    loadPlacements();
   }, [pageLocation, position]);
 
   useEffect(() => {

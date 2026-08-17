@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadPromoConfig } from "@/lib/promoConfig";
 
 interface InterstitialAdData {
   id: string;
@@ -19,23 +19,12 @@ const InterstitialAd = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const loadSettings = async () => {
-      const { data } = await supabase
-        .from("ad_settings")
-        .select("setting_key, setting_value");
-
-      if (data) {
-        const settingsObj: Record<string, string> = {};
-        data.forEach((s) => {
-          settingsObj[s.setting_key] = s.setting_value;
-        });
-        setSettings({
-          frequency: parseInt(settingsObj.interstitial_frequency || "3"),
-          cooldown: parseInt(settingsObj.interstitial_cooldown || "60"),
-        });
-      }
-    };
-    loadSettings();
+    loadPromoConfig().then(({ settings: s }) => {
+      setSettings({
+        frequency: parseInt(s.interstitial_frequency || "3"),
+        cooldown: parseInt(s.interstitial_cooldown || "60"),
+      });
+    });
   }, []);
 
   useEffect(() => {
