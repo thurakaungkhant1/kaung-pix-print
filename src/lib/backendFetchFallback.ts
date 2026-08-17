@@ -28,6 +28,11 @@ function gatewayUrl(path: string): string {
   return `${origin}/api/backend?path=${encodeURIComponent(path)}`;
 }
 
+function isGatewayResponse(response: Response): boolean {
+  const contentType = response.headers.get("content-type") ?? "";
+  return contentType.includes("application/json");
+}
+
 /**
  * Retries blocked backend calls through the app's own Vercel domain. This is
  * primarily for networks that cannot resolve the direct backend hostname.
@@ -42,7 +47,9 @@ export function installBackendFetchFallback(): void {
       return await nativeFetch(input, init);
     } catch (directError) {
       try {
-        return await nativeFetch(gatewayUrl(backendPath(input)), init);
+        const gatewayResponse = await nativeFetch(gatewayUrl(backendPath(input)), init);
+        if (!isGatewayResponse(gatewayResponse)) throw new Error("Invalid gateway response");
+        return gatewayResponse;
       } catch {
         throw directError;
       }
