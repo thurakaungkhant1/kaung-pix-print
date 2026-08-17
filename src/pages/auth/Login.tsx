@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
-import type { PostgrestError } from "@supabase/supabase-js";
 
 type LoginError = Error & {
   code?: string;
