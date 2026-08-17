@@ -29,8 +29,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Defer to avoid blocking the auth callback tick
           setTimeout(() => { ensureProfileRow(session.user); }, 0);
         }
+        // A token refresh that resolves without a session means the stored
+        // refresh token is dead: purge it instead of retrying forever.
+        if (event === "TOKEN_REFRESHED" && !session) {
+          clearStoredAuthSession();
+        }
       }
     );
+
+    // Never leave the app stuck on a loading spinner if the initial session
+    // lookup cannot reach the network.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session ?? null);
+        setUser(data.session?.user ?? null);
+      })
+      .catch(() => {
+        clearStoredAuthSession();
+      })
+      .finally(() => setLoading(false));
 
     return () => subscription.unsubscribe();
   }, []);

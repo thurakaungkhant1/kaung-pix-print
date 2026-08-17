@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
+import { purgeStaleAuthSession, clearStoredAuthSession, withTimeout } from "@/lib/authRecovery";
 
 const wait = (milliseconds: number) =>
   new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
