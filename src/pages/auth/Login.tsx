@@ -42,10 +42,6 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = name.trim();
-    if (!trimmedName) {
-      toast({ title: "Enter your name", variant: "destructive" });
-      return;
-    }
     if (password.length < 8) {
       toast({ title: "Password must be at least 8 characters", variant: "destructive" });
       return;
@@ -56,12 +52,15 @@ const Login = () => {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (!error && data.user) {
-        // Keep the profile name in sync with what the user typed
-        await supabase.from("profiles").update({ name: trimmedName }).eq("id", data.user.id);
+        // Only sync the profile name when the user actually typed one
+        if (trimmedName) {
+          await supabase.from("profiles").update({ name: trimmedName }).eq("id", data.user.id);
+        }
         toast({ title: "Welcome back!" });
         await routeAfterAuth(data.user.id);
         return;
       }
+
 
       const invalidCreds = error?.message?.includes("Invalid login credentials");
       if (!invalidCreds) throw error;
