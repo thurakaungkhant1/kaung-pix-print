@@ -8,6 +8,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
+import type { PostgrestError } from "@supabase/supabase-js";
+
+type LoginError = Error & {
+  code?: string;
+  status?: number;
+};
+
+function toLoginError(error: unknown): LoginError {
+  return error instanceof Error ? error as LoginError : new Error("Failed to login");
+}
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -28,7 +38,7 @@ const Login = () => {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    const roles = (rolesData ?? []).map((r: any) => r.role);
+    const roles = (rolesData ?? []).map((roleRow) => roleRow.role);
     const isAdmin = roles.includes("admin");
     const isMobileAdmin = roles.includes("mobile_admin");
 
@@ -58,17 +68,18 @@ const Login = () => {
       if (error) throw error;
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);
-    } catch (error: any) {
+    } catch (caughtError: unknown) {
+      const error = toLoginError(caughtError);
       let errorMessage = error.message || "Failed to login";
-      if (error.message?.includes("Invalid login credentials")) {
+      if (error.message.includes("Invalid login credentials")) {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
       } else if (
-        error.message?.includes("Failed to fetch") ||
-        error.message?.includes("Failed to connect") ||
-        error.message?.includes("Load failed") ||
-        error.message?.includes("NetworkError") ||
+        error.message.includes("Failed to fetch") ||
+        error.message.includes("Failed to connect") ||
+        error.message.includes("Load failed") ||
+        error.message.includes("NetworkError") ||
         error.name === "AuthRetryableFetchError"
       ) {
         errorMessage =
