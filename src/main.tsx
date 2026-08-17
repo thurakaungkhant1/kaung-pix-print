@@ -1,5 +1,11 @@
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
 import "./index.css";
+import { installCloudFetchProxy } from "./lib/cloudFetchProxy";
 
-createRoot(document.getElementById("root")!).render(<App />);
+installCloudFetchProxy();
+
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Application root element was not found");
+
+const { default: App } = await import("./App.tsx");
+createRoot(rootElement).render(<App />);
