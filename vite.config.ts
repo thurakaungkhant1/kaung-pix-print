@@ -10,13 +10,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    proxy: {
-      "/cloud-backend": {
-        target: "https://ojoenxchuzqonpixomkl.supabase.co",
-        changeOrigin: true,
-        rewrite: (requestPath) => requestPath.replace(/^\/cloud-backend/, ""),
-      },
-    },
   },
   plugins: [
     react(),
