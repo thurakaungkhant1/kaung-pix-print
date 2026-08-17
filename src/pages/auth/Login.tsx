@@ -12,8 +12,13 @@ import { motion } from "framer-motion";
 const wait = (milliseconds: number) =>
   new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
 
-const isNetworkError = (error: unknown) =>
-  error instanceof TypeError && error.message.toLowerCase().includes("failed to fetch");
+const isNetworkError = (error: unknown) => {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { message?: unknown; name?: unknown };
+  const message = typeof candidate.message === "string" ? candidate.message.toLowerCase() : "";
+  const name = typeof candidate.name === "string" ? candidate.name.toLowerCase() : "";
+  return message.includes("failed to fetch") || name.includes("fetcherror");
+};
 
 const Login = () => {
   const [email, setEmail] = useState("");
