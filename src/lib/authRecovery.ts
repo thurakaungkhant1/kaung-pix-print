@@ -7,7 +7,16 @@
  * complete and surfaces as "Failed to fetch" on the Sign In screen.
  */
 
-const projectRef = (import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined) ?? "";
+const configuredProjectRef = (import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined) ?? "";
+const backendUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+const projectRefFromUrl = (() => {
+  try {
+    return new URL(backendUrl).hostname.split(".")[0] ?? "";
+  } catch {
+    return "";
+  }
+})();
+const projectRef = configuredProjectRef || projectRefFromUrl;
 
 export const AUTH_STORAGE_KEY = projectRef ? `sb-${projectRef}-auth-token` : "";
 
@@ -44,19 +53,3 @@ export function purgeStaleAuthSession() {
   }
 }
 
-/** Reject a promise after `ms` so the UI never hangs on a dead network. */
-export function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = window.setTimeout(() => reject(new Error(message)), ms);
-    promise.then(
-      (value) => {
-        window.clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        window.clearTimeout(timer);
-        reject(error);
-      }
-    );
-  });
-}

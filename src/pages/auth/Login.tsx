@@ -8,10 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
-import { purgeStaleAuthSession, clearStoredAuthSession, withTimeout } from "@/lib/authRecovery";
-
-const wait = (milliseconds: number) =>
-  new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+import { clearStoredAuthSession } from "@/lib/authRecovery";
 
 const isNetworkError = (error: unknown) => {
   if (!error || typeof error !== "object") return false;
@@ -68,34 +65,13 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // A stale/expired token in localStorage makes the auth client loop on
-      // refresh requests and hold its internal lock, which blocks a fresh
-      // password sign-in. Drop it before signing in.
-      purgeStaleAuthSession();
+      // The login route always starts a new session. Clearing every previous
+      // local token prevents an unexpired but revoked refresh token from
+      // holding the auth client's lock in browser previews.
+      clearStoredAuthSession();
 
       const credentials = { email: email.trim().toLowerCase(), password };
-      const attempt = () =>
-        withTimeout(
-          supabase.auth.signInWithPassword(credentials),
-          20000,
-          "Failed to fetch"
-        );
-
-      let result;
-      try {
-        result = await attempt();
-        if (result.error && isNetworkError(result.error)) {
-          clearStoredAuthSession();
-          await wait(1200);
-          result = await attempt();
-        }
-      } catch (error) {
-        if (!isNetworkError(error)) throw error;
-        clearStoredAuthSession();
-        await wait(1200);
-        result = await attempt();
-      }
-      const { data, error } = result;
+      const { data, error } = await supabase.auth.signInWithPassword(credentials);
       if (error) throw error;
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);
