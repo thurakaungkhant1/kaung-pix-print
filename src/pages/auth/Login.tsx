@@ -68,6 +68,10 @@ const Login = () => {
       let result;
       try {
         result = await supabase.auth.signInWithPassword(credentials);
+        if (result.error && isNetworkError(result.error)) {
+          await wait(1200);
+          result = await supabase.auth.signInWithPassword(credentials);
+        }
       } catch (error) {
         if (!isNetworkError(error)) throw error;
         await wait(1200);
