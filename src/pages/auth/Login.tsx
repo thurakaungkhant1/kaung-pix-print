@@ -9,14 +9,10 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 import { purgeStaleAuthSession } from "@/lib/authRecovery";
+import { isTransportError, withNetworkRetry } from "@/lib/netRetry";
 
-const isNetworkError = (error: unknown) => {
-  if (!error || typeof error !== "object") return false;
-  const candidate = error as { message?: unknown; name?: unknown };
-  const message = typeof candidate.message === "string" ? candidate.message.toLowerCase() : "";
-  const name = typeof candidate.name === "string" ? candidate.name.toLowerCase() : "";
-  return message.includes("failed to fetch") || name.includes("fetcherror");
-};
+const isNetworkError = (error: unknown) => isTransportError(error);
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
