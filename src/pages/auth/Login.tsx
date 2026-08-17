@@ -67,7 +67,13 @@ const Login = () => {
       purgeStaleAuthSession();
 
       const credentials = { email: email.trim().toLowerCase(), password };
-      const { data, error } = await supabase.auth.signInWithPassword(credentials);
+      // supabase-js returns transport failures in `error` instead of throwing,
+      // so retry inside the wrapper by rethrowing only those.
+      const { data, error } = await withNetworkRetry(async () => {
+        const result = await supabase.auth.signInWithPassword(credentials);
+        if (result.error && isTransportError(result.error)) throw result.error;
+        return result;
+      });
       if (error) throw error;
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);
