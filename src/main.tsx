@@ -12,12 +12,27 @@ const isLovablePreview =
   hostname.endsWith(".lovableproject.com") ||
   window.self !== window.top;
 
-if (isLovablePreview && "serviceWorker" in navigator) {
-  void navigator.serviceWorker.getRegistrations().then((registrations) =>
-    Promise.all(registrations.map((registration) => registration.unregister())),
-  );
-  if ("caches" in window) {
-    void caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
+if ("serviceWorker" in navigator) {
+  if (isLovablePreview) {
+    void navigator.serviceWorker.getRegistrations().then((registrations) =>
+      Promise.all(registrations.map((registration) => registration.unregister())),
+    );
+    if ("caches" in window) {
+      void caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
+    }
+  } else {
+    // Production: ask an already-installed worker to check for the newest
+    // build, and reload once when a new worker takes control so users can
+    // never stay stuck on an outdated login bundle.
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    });
+    void navigator.serviceWorker.getRegistrations().then((registrations) =>
+      Promise.all(registrations.map((registration) => registration.update().catch(() => undefined))),
+    );
   }
 }
 

@@ -91,7 +91,12 @@ const Login = () => {
 
     } catch (error: any) {
       let errorMessage = error.message || "Failed to login";
-      if (error.message?.includes("Invalid login credentials")) {
+      // Credential errors (HTTP 400) must stay distinct from transport failures.
+      if (
+        error.message?.includes("Invalid login credentials") ||
+        error.code === "invalid_credentials" ||
+        (error.status === 400 && !isNetworkError(error))
+      ) {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
