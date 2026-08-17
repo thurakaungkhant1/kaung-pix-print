@@ -10,6 +10,8 @@ import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 import { purgeStaleAuthSession } from "@/lib/authRecovery";
 import { isTransportError, withNetworkRetry } from "@/lib/netRetry";
+import { signInWithPasswordViaXhr } from "@/lib/xhrAuth";
+
 
 const isNetworkError = (error: unknown) => isTransportError(error);
 
