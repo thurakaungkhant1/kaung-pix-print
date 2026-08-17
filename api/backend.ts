@@ -47,7 +47,9 @@ export default async function handler(req: any, res: any) {
       headers,
       body: req.method === "GET" || req.method === "HEAD"
         ? undefined
-        : JSON.stringify(req.body ?? {}),
+        : typeof req.body === "string" || req.body === undefined || req.body === null
+          ? (req.body ?? undefined)
+          : JSON.stringify(req.body),
       redirect: "manual",
     });
     const body = await upstream.arrayBuffer();
