@@ -75,7 +75,10 @@ const isApiResponseUsable = async (response: Response) => {
     const body = await response.clone().text();
     if (!body.trim()) return false;
     try {
-      JSON.parse(body);
+      const parsed = JSON.parse(body) as { code?: string };
+      if (parsed.code === "backend_unreachable" || parsed.code === "proxy_unavailable") {
+        return false;
+      }
     } catch {
       return false;
     }
