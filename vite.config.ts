@@ -49,17 +49,7 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        // Take control immediately so a new deploy never keeps serving an old
-        // auth bundle from a previously installed service worker.
-        skipWaiting: true,
-        clientsClaim: true,
-        cleanupOutdatedCaches: true,
         runtimeCaching: [
-          {
-            // Auth/API traffic must never be served or intercepted from cache.
-            urlPattern: /^https:\/\/[a-z0-9-]+\.supabase\.co\/.*/i,
-            handler: "NetworkOnly",
-          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: "CacheFirst",
