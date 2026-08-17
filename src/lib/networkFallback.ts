@@ -14,8 +14,13 @@ const PROJECT_REF = (() => {
     return "";
   }
 })();
-const PROXY_URL = PROJECT_REF
+const CLOUD_PROXY_URL = PROJECT_REF
   ? `https://${PROJECT_REF}.functions.supabase.co/backend-proxy`
+  : "";
+// Vercel applies the /sb rewrite from vercel.json, keeping the browser on the
+// app's domain so ISP filters never see the blocked backend hostname.
+const SAME_ORIGIN_PROXY_URL = typeof window !== "undefined"
+  ? `${window.location.origin}/sb`
   : "";
 const FLAG = "backend_blocked_v1";
 
@@ -43,12 +48,17 @@ const clearBlocked = () => {
   }
 };
 
-const toProxyUrl = (url: string) => {
+const toCloudProxyUrl = (url: string) => {
   const target = new URL(url);
-  const proxy = new URL(PROXY_URL);
+  const proxy = new URL(CLOUD_PROXY_URL);
   proxy.searchParams.set("path", target.pathname);
   target.searchParams.forEach((value, key) => proxy.searchParams.append(key, value));
   return proxy.toString();
+};
+
+const toSameOriginProxyUrl = (url: string) => {
+  const target = new URL(url);
+  return `${SAME_ORIGIN_PROXY_URL}${target.pathname}${target.search}`;
 };
 
 const isApiResponseUsable = async (response: Response) => {
@@ -65,7 +75,10 @@ const isApiResponseUsable = async (response: Response) => {
     const body = await response.clone().text();
     if (!body.trim()) return false;
     try {
-      JSON.parse(body);
+      const parsed = JSON.parse(body) as { code?: string };
+      if (parsed.code === "backend_unreachable" || parsed.code === "proxy_unavailable") {
+        return false;
+      }
     } catch {
       return false;
     }
@@ -93,24 +106,49 @@ const urlOf = (input: RequestInfo | URL): string => {
 };
 
 export function installBackendFallbackFetch() {
-  if (!BACKEND_URL || !PROXY_URL || typeof window === "undefined") return;
+  if (!BACKEND_URL || typeof window === "undefined") return;
   const original = window.fetch.bind(window);
 
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = urlOf(input);
     if (!url.startsWith(BACKEND_URL)) return original(input, init);
 
-    const proxied = toProxyUrl(url);
+    const viaFallback = async () => {
+      const requestInit = init ?? (input instanceof Request ? {
+        method: input.method,
+        headers: input.headers,
+        body: input.method === "GET" || input.method === "HEAD" ? undefined : await input.clone().arrayBuffer(),
+        credentials: input.credentials,
+        cache: input.cache,
+        redirect: input.redirect,
+        referrer: input.referrer,
+        referrerPolicy: input.referrerPolicy,
+        integrity: input.integrity,
+        keepalive: input.keepalive,
+        signal: input.signal,
+      } : undefined);
 
-    const viaProxy = async () => {
-      const res = await original(proxied, init ?? (input instanceof Request ? input : undefined));
-      if (!(await isApiResponseUsable(res))) throw new Error("proxy_unavailable");
-      return res;
+      const candidates = [
+        toSameOriginProxyUrl(url),
+        CLOUD_PROXY_URL ? toCloudProxyUrl(url) : "",
+      ].filter(Boolean);
+
+      for (const candidate of candidates) {
+        try {
+          const res = await original(candidate, requestInit);
+          if (await isApiResponseUsable(res)) return res;
+        } catch {
+          // Try the next gateway. On Lovable hosting /sb is an SPA route;
+          // on Vercel it is the rewrite configured in vercel.json.
+        }
+      }
+
+      throw new Error("proxy_unavailable");
     };
 
     if (isBlocked()) {
       try {
-        return await viaProxy();
+        return await viaFallback();
       } catch {
         clearBlocked();
         try {
@@ -126,12 +164,12 @@ export function installBackendFallbackFetch() {
       const direct = await original(input, init);
       if (await isApiResponseUsable(direct)) return direct;
 
-      const proxy = await viaProxy();
+      const proxy = await viaFallback();
       setBlocked();
       return proxy;
     } catch (err) {
       try {
-        const res = await viaProxy();
+        const res = await viaFallback();
         setBlocked();
         return res;
       } catch {
