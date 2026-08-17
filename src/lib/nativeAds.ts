@@ -7,8 +7,6 @@
 //   - when the user switches from one game to another
 //   - every 2 minutes while staying inside the same game
 
-import { supabase } from "@/integrations/supabase/client";
-
 declare global {
   interface Window {
     AndroidAds?: {
@@ -19,34 +17,7 @@ declare global {
       cacheInterstitial?: () => void;
     };
     onRewardEarned?: (amount: number, type: string) => void;
-    onAdClicked?: (adType?: string) => void;
   }
-}
-
-/** Fire-and-forget analytics log for ad impressions/clicks. */
-export async function logAdEvent(
-  eventType: "impression" | "click",
-  adType: string = "interstitial",
-  context?: string,
-) {
-  try {
-    const { data } = await supabase.auth.getUser();
-    await supabase.from("ad_events").insert({
-      event_type: eventType,
-      ad_type: adType,
-      user_id: data.user?.id ?? null,
-      context: context ?? null,
-    });
-  } catch (e) {
-    console.warn("logAdEvent failed", e);
-  }
-}
-
-if (typeof window !== "undefined") {
-  // Native layer can report ad clicks back into the web view.
-  window.onAdClicked = (adType?: string) => {
-    void logAdEvent("click", adType || "interstitial");
-  };
 }
 
 // Minimum gap between two ads so a long session doesn't spam back-to-back ads.
@@ -89,7 +60,6 @@ function show(): boolean {
     if (typeof window !== "undefined" && window.AndroidAds?.showInterstitial) {
       window.AndroidAds.showInterstitial();
       writeNumber(LAST_AD_TS_KEY, Date.now());
-      void logAdEvent("impression", "interstitial");
       // Immediately cache the next one so the following ad appears without delay.
       setTimeout(preloadInterstitialAd, 1000);
       return true;
@@ -141,7 +111,6 @@ export function showRewardedAd(): boolean {
   try {
     if (hasRewardedAds()) {
       window.AndroidAds!.showRewarded!();
-      void logAdEvent("impression", "rewarded");
       return true;
     }
   } catch (e) {
