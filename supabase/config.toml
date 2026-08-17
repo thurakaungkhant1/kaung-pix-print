@@ -47,12 +47,3 @@ verify_jwt = true
 
 [functions.verify-photo-pin]
 verify_jwt = true
-
-[functions.kgameshop-fulfill]
-verify_jwt = true
-
-[functions.kgameshop-status]
-verify_jwt = true
-
-[functions.kgameshop-webhook]
-verify_jwt = false

@@ -329,23 +329,6 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true }));
   }
 
-  // Optional KGameShop auto top-up. Fire-and-forget: any failure leaves the
-  // existing manual workflow completely untouched.
-  if (action === 'confirm') {
-    try {
-      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/kgameshop-fulfill`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${serviceKey}` },
-        body: JSON.stringify({ order_id: entityId }),
-      });
-    } catch (e) {
-      console.error('kgameshop-fulfill trigger failed', e);
-    }
-  }
-
-
-
   const [{ data: profile }, { data: product }] = await Promise.all([
     supabase.from('profiles').select('name, email, phone_number').eq('id', order.user_id).maybeSingle(),
     supabase.from('products').select('name, category').eq('id', order.product_id).maybeSingle(),

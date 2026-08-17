@@ -100,7 +100,6 @@ const MobileAdminPanel = lazy(() => import("./pages/admin/MobileAdminPanel"));
 const PaymentMethodsManage = lazy(() => import("./pages/admin/PaymentMethodsManage"));
 const BackgroundMusicManage = lazy(() => import("./pages/admin/BackgroundMusicManage"));
 const AdsManage = lazy(() => import("./pages/admin/AdsManage"));
-const KGameShopManage = lazy(() => import("./pages/admin/KGameShopManage"));
 const PubgUcPackages = lazy(() => import("./pages/admin/PubgUcPackages"));
 const PubgUcPackageForm = lazy(() => import("./pages/admin/PubgUcPackageForm"));
 const ApiSettings = lazy(() => import("./pages/admin/ApiSettings"));
@@ -632,14 +631,6 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <BackgroundMusicManage />
-                    </ProtectedAdminRoute>
-                  }
-                />
-                <Route
-                  path="/admin/kgameshop"
-                  element={
-                    <ProtectedAdminRoute>
-                      <KGameShopManage />
                     </ProtectedAdminRoute>
                   }
                 />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,30 +17,6 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-
-  useEffect(() => {
-    // A broken persisted refresh token can keep retrying in the background and
-    // prevent a fresh password sign-in. The login screen always starts clean.
-    supabase.auth.stopAutoRefresh();
-
-    try {
-      const backendUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-      const projectRef = backendUrl ? new URL(backendUrl).hostname.split(".")[0] : null;
-      if (projectRef) {
-        const storageKey = `sb-${projectRef}-auth-token`;
-        if (localStorage.getItem(storageKey)) {
-          localStorage.removeItem(storageKey);
-          window.location.reload();
-        }
-      }
-    } catch {
-      // A malformed URL must not stop the user from using the login form.
-    }
-
-    return () => {
-      supabase.auth.startAutoRefresh();
-    };
-  }, []);
 
   const requestedRedirect = searchParams.get("redirectTo");
   const redirectTo = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
@@ -78,25 +54,19 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Sign in directly. Signing out first can wait behind a failed refresh
-      // request and prevent valid credentials from ever being submitted.
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
+      // A failed refresh can leave an expired session in browser storage and
+      // make the next password sign-in hit the auth refresh rate limit.
+      await supabase.auth.signOut({ scope: "local" });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      supabase.auth.startAutoRefresh();
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);
     } catch (error: any) {
-      const message = typeof error?.message === "string" ? error.message : "";
-      let errorMessage = "Unable to sign in. Please try again.";
-      if (message.includes("Invalid login credentials")) {
+      let errorMessage = error.message || "Failed to login";
+      if (error.message?.includes("Invalid login credentials")) {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
-      } else if (message.includes("Failed to fetch") || error?.name === "AuthRetryableFetchError") {
-        errorMessage = "Cannot reach the login service. Check your connection and try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
