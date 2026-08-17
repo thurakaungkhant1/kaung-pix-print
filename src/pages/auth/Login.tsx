@@ -33,30 +33,34 @@ const Login = () => {
     : null;
 
   const routeAfterAuth = async (userId: string) => {
-    const { data: rolesData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-    const roles = (rolesData ?? []).map((roleRow) => roleRow.role);
-    const isAdmin = roles.includes("admin");
-    const isMobileAdmin = roles.includes("mobile_admin");
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("name")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const needsCompletion = !profile?.name;
-    if (needsCompletion) {
-      navigate("/auth/complete-profile", { replace: true });
+    if (redirectTo) {
+      navigate(redirectTo, { replace: true });
       return;
     }
 
-    if (redirectTo) navigate(redirectTo);
-    else if (isAdmin) navigate("/admin");
-    else if (isMobileAdmin) navigate("/admin/mobile-panel");
-    else navigate("/");
+    try {
+      const [{ data: rolesData, error: rolesError }, { data: profile, error: profileError }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+        supabase.from("profiles").select("name").eq("id", userId).maybeSingle(),
+      ]);
+
+      if (rolesError) throw rolesError;
+      if (profileError) throw profileError;
+
+      if (!profile?.name) {
+        navigate("/auth/complete-profile", { replace: true });
+        return;
+      }
+
+      const roles = (rolesData ?? []).map((roleRow) => roleRow.role);
+      if (roles.includes("admin")) navigate("/admin", { replace: true });
+      else if (roles.includes("mobile_admin")) navigate("/admin/mobile-panel", { replace: true });
+      else navigate("/", { replace: true });
+    } catch {
+      // Authentication has already succeeded. A temporary profile or role
+      // lookup failure must not turn a valid sign-in into a login error.
+      navigate("/", { replace: true });
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -66,7 +70,7 @@ const Login = () => {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast({ title: "Welcome back!" });
-      await routeAfterAuth(data.user.id);
+      void routeAfterAuth(data.user.id);
     } catch (caughtError: unknown) {
       const error = toLoginError(caughtError);
       let errorMessage = error.message || "Failed to login";
