@@ -9,14 +9,10 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 import { purgeStaleAuthSession } from "@/lib/authRecovery";
+import { isTransportError, withNetworkRetry } from "@/lib/netRetry";
 
-const isNetworkError = (error: unknown) => {
-  if (!error || typeof error !== "object") return false;
-  const candidate = error as { message?: unknown; name?: unknown };
-  const message = typeof candidate.message === "string" ? candidate.message.toLowerCase() : "";
-  const name = typeof candidate.name === "string" ? candidate.name.toLowerCase() : "";
-  return message.includes("failed to fetch") || name.includes("fetcherror");
-};
+const isNetworkError = (error: unknown) => isTransportError(error);
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -71,7 +67,13 @@ const Login = () => {
       purgeStaleAuthSession();
 
       const credentials = { email: email.trim().toLowerCase(), password };
-      const { data, error } = await supabase.auth.signInWithPassword(credentials);
+      // supabase-js returns transport failures in `error` instead of throwing,
+      // so retry inside the wrapper by rethrowing only those.
+      const { data, error } = await withNetworkRetry(async () => {
+        const result = await supabase.auth.signInWithPassword(credentials);
+        if (result.error && isTransportError(result.error)) throw result.error;
+        return result;
+      });
       if (error) throw error;
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);
@@ -82,7 +84,8 @@ const Login = () => {
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
       } else if (isNetworkError(error)) {
-        errorMessage = "The sign-in service could not be reached. Please refresh the app and try again.";
+        errorMessage =
+          "Couldn't reach the sign-in service. If you use an ad blocker or VPN, turn it off for this site, then try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
