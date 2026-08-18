@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
-import { signInWithPasswordFallback } from "@/lib/authFallback";
+import { supabase } from "@/integrations/supabase/client";
 
 type LoginError = Error & {
   code?: string;
@@ -19,9 +19,9 @@ function toLoginError(error: unknown): LoginError {
 }
 
 async function signIn(email: string, password: string) {
-  // Use one native browser request for password login. The preview shell wraps
-  // fetch and can turn valid auth responses into a misleading network error.
-  await signInWithPasswordFallback(email, password);
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  if (!data.session || !data.user) throw new Error("Sign in did not return a valid session");
 }
 
 const Login = () => {
