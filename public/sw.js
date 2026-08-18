@@ -4,7 +4,14 @@ function isAppShellCache(name) {
   return /(^|-)precache-v\d+-|(^|-)runtime-|(^|-)googleAnalytics-|^app-pages$|^images-cache$|^google-fonts-cache$|^gstatic-fonts-cache$/.test(name);
 }
 
-self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    (async () => {
+      await self.skipWaiting();
+      await self.registration.unregister();
+    })(),
+  );
+});
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
