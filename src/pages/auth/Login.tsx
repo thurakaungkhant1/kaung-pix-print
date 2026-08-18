@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
-import { signInDirect } from "@/lib/directAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 type LoginError = Error & {
   code?: string;
@@ -46,13 +46,13 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await signInDirect(email.trim().toLowerCase(), password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
       if (error) throw error;
       if (!data.user || !data.session) throw new Error("Failed to login");
       toast({ title: "Welcome back!" });
-      // The direct auth client has persisted the session. Reloading lets the
-      // app's single shared client hydrate it without using the preview's
-      // injected fetch wrapper during this critical handoff.
       window.location.replace(redirectTo ?? "/");
     } catch (caughtError: unknown) {
       const error = toLoginError(caughtError);
