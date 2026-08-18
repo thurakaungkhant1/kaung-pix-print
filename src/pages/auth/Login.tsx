@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,37 +41,6 @@ const Login = () => {
   const redirectTo = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
     ? requestedRedirect
     : null;
-
-  const routeAfterAuth = async (userId: string) => {
-    if (redirectTo) {
-      navigate(redirectTo, { replace: true });
-      return;
-    }
-
-    try {
-      const [{ data: rolesData, error: rolesError }, { data: profile, error: profileError }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", userId),
-        supabase.from("profiles").select("name").eq("id", userId).maybeSingle(),
-      ]);
-
-      if (rolesError) throw rolesError;
-      if (profileError) throw profileError;
-
-      if (!profile?.name) {
-        navigate("/auth/complete-profile", { replace: true });
-        return;
-      }
-
-      const roles = (rolesData ?? []).map((roleRow) => roleRow.role);
-      if (roles.includes("admin")) navigate("/admin", { replace: true });
-      else if (roles.includes("mobile_admin")) navigate("/admin/mobile-panel", { replace: true });
-      else navigate("/", { replace: true });
-    } catch {
-      // Authentication has already succeeded. A temporary profile or role
-      // lookup failure must not turn a valid sign-in into a login error.
-      navigate("/", { replace: true });
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
