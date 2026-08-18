@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
 import { signInWithPasswordFallback } from "@/lib/authFallback";
 
 type LoginError = Error & {
@@ -19,23 +18,9 @@ function toLoginError(error: unknown): LoginError {
   return error instanceof Error ? error as LoginError : new Error("Failed to login");
 }
 
-function isRetryableLoginError(error: LoginError): boolean {
-  return (
-    error.message.includes("Failed to fetch") ||
-    error.message.includes("Failed to connect") ||
-    error.message.includes("Load failed") ||
-    error.message.includes("NetworkError") ||
-    error.name === "AuthRetryableFetchError"
-  );
-}
-
 async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (!error && data.user && data.session) return;
-  if (error && !isRetryableLoginError(toLoginError(error))) throw error;
-
-  // The preview shell may block fetch before the request reaches auth.
-  // XHR bypasses that wrapper while preserving the same backend and session.
+  // Use one native browser request for password login. The preview shell wraps
+  // fetch and can turn valid auth responses into a misleading network error.
   await signInWithPasswordFallback(email, password);
 }
 
@@ -67,9 +52,8 @@ const Login = () => {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
-      } else if (isRetryableLoginError(error)) {
-        errorMessage =
-          "Sign in is temporarily unavailable. Please wait a moment and try again.";
+      } else if (error.status === 0) {
+        errorMessage = "Cannot reach the sign-in server. Check your connection and try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {

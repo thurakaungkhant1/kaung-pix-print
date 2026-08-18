@@ -57,6 +57,7 @@ export function signInWithPasswordFallback(
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
     request.open("POST", `${backendUrl}/auth/v1/token?grant_type=password`, true);
+    request.withCredentials = false;
     request.setRequestHeader("apikey", publishableKey);
     request.setRequestHeader("Authorization", `Bearer ${publishableKey}`);
     request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
@@ -87,6 +88,7 @@ export function signInWithPasswordFallback(
     };
 
     request.onerror = () => reject(new PasswordAuthError("Failed to connect to authentication server", 0));
+    request.onabort = () => reject(new PasswordAuthError("Authentication request was cancelled", 0));
     request.ontimeout = () => reject(new PasswordAuthError("Authentication request timed out", 0));
     request.send(JSON.stringify({ email, password }));
   });
