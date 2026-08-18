@@ -38,8 +38,10 @@ const MessageNotifier = () => {
       host.endsWith(".lovableproject.com") ||
       window.self !== window.top;
     if (inPreview) return;
+    // Keep the notification worker outside the app scope so it can never
+    // intercept authentication or other application network requests.
     navigator.serviceWorker
-      .register("/notification-sw.js", { scope: "/" })
+      .register("/notification-sw.js", { scope: "/notification-worker/" })
       .then((reg) => {
         swRef.current = reg;
       })
