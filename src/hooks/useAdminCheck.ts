@@ -12,51 +12,56 @@ export const useAdminCheck = (options: UseAdminCheckOptions = {}) => {
   const { redirectTo = "/", redirectOnFail = true } = options;
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, session, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    let cancelled = false;
-
     const checkAdmin = async () => {
       if (authLoading) return;
-
-      if (!user || !session) {
+      
+      if (!user) {
         setIsLoading(false);
-        if (redirectOnFail) navigate(redirectTo);
+        if (redirectOnFail) {
+          navigate(redirectTo);
+        }
         return;
       }
 
       try {
-        const { data, error } = await supabase.rpc("has_role", {
-          _user_id: user.id,
-          _role: "admin",
-        });
-        if (cancelled) return;
+        const { data, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
 
-        if (error) throw error;
-
-        if (data === true) {
-          setIsAdmin(true);
-        } else {
+        if (error) {
+          console.error("Error checking admin status:", error);
           setIsAdmin(false);
-          if (redirectOnFail) navigate(redirectTo);
+          if (redirectOnFail) {
+            navigate(redirectTo);
+          }
+        } else if (!data) {
+          setIsAdmin(false);
+          if (redirectOnFail) {
+            navigate(redirectTo);
+          }
+        } else {
+          setIsAdmin(true);
         }
       } catch (err) {
-        if (cancelled) return;
         console.error("Failed to check admin status:", err);
         setIsAdmin(false);
-        // Network/temporary failures must not bounce the user around.
+        if (redirectOnFail) {
+          navigate(redirectTo);
+        }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        setIsLoading(false);
       }
     };
 
     checkAdmin();
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id, !!session, authLoading, navigate, redirectTo, redirectOnFail]);
+  }, [user, authLoading, navigate, redirectTo, redirectOnFail]);
 
   return { isAdmin, isLoading, user };
 };
