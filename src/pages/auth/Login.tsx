@@ -9,15 +9,6 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 
-type LoginError = Error & {
-  code?: string;
-  status?: number;
-};
-
-function toLoginError(error: unknown): LoginError {
-  return error instanceof Error ? error as LoginError : new Error("Failed to login");
-}
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,60 +24,49 @@ const Login = () => {
     : null;
 
   const routeAfterAuth = async (userId: string) => {
-    if (redirectTo) {
-      navigate(redirectTo, { replace: true });
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    const roles = (rolesData ?? []).map((r: any) => r.role);
+    const isAdmin = roles.includes("admin");
+    const isMobileAdmin = roles.includes("mobile_admin");
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const needsCompletion = !profile?.name;
+    if (needsCompletion) {
+      navigate("/auth/complete-profile", { replace: true });
       return;
     }
 
-    try {
-      const [{ data: rolesData, error: rolesError }, { data: profile, error: profileError }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", userId),
-        supabase.from("profiles").select("name").eq("id", userId).maybeSingle(),
-      ]);
-
-      if (rolesError) throw rolesError;
-      if (profileError) throw profileError;
-
-      if (!profile?.name) {
-        navigate("/auth/complete-profile", { replace: true });
-        return;
-      }
-
-      const roles = (rolesData ?? []).map((roleRow) => roleRow.role);
-      if (roles.includes("admin")) navigate("/admin", { replace: true });
-      else if (roles.includes("mobile_admin")) navigate("/admin/mobile-panel", { replace: true });
-      else navigate("/", { replace: true });
-    } catch {
-      // Authentication has already succeeded. A temporary profile or role
-      // lookup failure must not turn a valid sign-in into a login error.
-      navigate("/", { replace: true });
-    }
+    if (redirectTo) navigate(redirectTo);
+    else if (isAdmin) navigate("/admin");
+    else if (isMobileAdmin) navigate("/admin/mobile-panel");
+    else navigate("/");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      // A failed refresh can leave an expired session in browser storage and
+      // make the next password sign-in hit the auth refresh rate limit.
+      await supabase.auth.signOut({ scope: "local" });
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast({ title: "Welcome back!" });
-      void routeAfterAuth(data.user.id);
-    } catch (caughtError: unknown) {
-      const error = toLoginError(caughtError);
+      await routeAfterAuth(data.user.id);
+    } catch (error: any) {
       let errorMessage = error.message || "Failed to login";
-      if (error.message.includes("Invalid login credentials")) {
+      if (error.message?.includes("Invalid login credentials")) {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
-      } else if (
-        error.message.includes("Failed to fetch") ||
-        error.message.includes("Failed to connect") ||
-        error.message.includes("Load failed") ||
-        error.message.includes("NetworkError") ||
-        error.name === "AuthRetryableFetchError"
-      ) {
-        errorMessage =
-          "Sign in is temporarily unavailable. Please wait a moment and try again.";
       }
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {

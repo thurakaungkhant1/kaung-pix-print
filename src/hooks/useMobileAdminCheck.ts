@@ -15,44 +15,39 @@ export const useMobileAdminCheck = (options: Options = {}) => {
   const { redirectTo = "/", redirectOnFail = true } = options;
   const [allowed, setAllowed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, session, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    let cancelled = false;
-
     const check = async () => {
       if (authLoading) return;
-      if (!user || !session) {
+      if (!user) {
         setIsLoading(false);
         if (redirectOnFail) navigate(redirectTo);
         return;
       }
       try {
-        const [admin, mobileAdmin] = await Promise.all([
-          supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
-          supabase.rpc("has_role", { _user_id: user.id, _role: "mobile_admin" as any }),
-        ]);
-        if (cancelled) return;
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .in("role", ["admin", "mobile_admin"] as any);
 
-        if (admin.data === true || mobileAdmin.data === true) {
+        if (data && data.length > 0) {
           setAllowed(true);
         } else {
           setAllowed(false);
           if (redirectOnFail) navigate(redirectTo);
         }
       } catch (e) {
-        if (cancelled) return;
         setAllowed(false);
+        if (redirectOnFail) navigate(redirectTo);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        setIsLoading(false);
       }
     };
     check();
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id, !!session, authLoading, navigate, redirectTo, redirectOnFail]);
+  }, [user, authLoading, navigate, redirectTo, redirectOnFail]);
 
   return { allowed, isLoading, user };
 };
