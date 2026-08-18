@@ -81,13 +81,11 @@ const Login = () => {
       const { data, error } = await signInDirect(email.trim().toLowerCase(), password);
       if (error) throw error;
       if (!data.user || !data.session) throw new Error("Failed to login");
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      });
-      if (sessionError) throw sessionError;
       toast({ title: "Welcome back!" });
-      await routeAfterAuth(data.user.id);
+      // The direct auth client has persisted the session. Reloading lets the
+      // app's single shared client hydrate it without using the preview's
+      // injected fetch wrapper during this critical handoff.
+      window.location.replace(redirectTo ?? "/");
     } catch (caughtError: unknown) {
       const error = toLoginError(caughtError);
       let errorMessage = error.message || "Failed to login";
