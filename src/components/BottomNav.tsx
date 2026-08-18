@@ -8,22 +8,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSupportUnread } from "@/hooks/useSupportUnread";
 
 const BottomNav = () => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
   const { unread: supportUnread } = useSupportUnread();
 
   useEffect(() => {
-    if (user) {
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle()
-        .then(({ data }) => setIsAdmin(!!data));
+    let cancelled = false;
+    if (!user || !session) {
+      setIsAdmin(false);
+      return;
     }
-  }, [user]);
+    supabase
+      .rpc("has_role", { _user_id: user.id, _role: "admin" })
+      .then(({ data }) => {
+        if (!cancelled) setIsAdmin(data === true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, !!session]);
+
 
   const navItems: { to: string; icon: any; label: string; badge?: number }[] = [
     { to: "/", icon: Home, label: "Home" },
