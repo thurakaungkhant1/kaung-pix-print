@@ -125,6 +125,30 @@ const Login = () => {
 
           <div className="mt-6" />
 
+          {failure && (
+            <motion.div
+              role="alert"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 p-4"
+            >
+              <div className="flex gap-3">
+                <AlertCircle className="h-5 w-5 shrink-0 text-destructive mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-destructive">{failure.title}</p>
+                  <p className="text-xs text-foreground/80 leading-relaxed">{failure.message}</p>
+                  {failure.hint && (
+                    <p className="text-xs text-muted-foreground leading-relaxed">{failure.hint}</p>
+                  )}
+                  <p className="text-[10px] font-mono text-muted-foreground/70 break-all pt-1">
+                    {failure.detail}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+
 
 
           <form onSubmit={handleLogin} className="space-y-4">
