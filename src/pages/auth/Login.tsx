@@ -4,19 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-
-type LoginError = Error & {
-  code?: string;
-  status?: number;
-};
-
-function toLoginError(error: unknown): LoginError {
-  return error instanceof Error ? error as LoginError : new Error("Failed to login");
-}
+import { classifyLoginError, logLoginError, probeAuthServer, type LoginFailure } from "@/lib/loginDiagnostics";
 
 async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -29,6 +21,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [failure, setFailure] = useState<LoginFailure | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -41,25 +34,44 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setFailure(null);
+    const startedAt = performance.now();
+    const normalizedEmail = email.trim().toLowerCase();
     try {
-      await signIn(email.trim().toLowerCase(), password);
+      await signIn(normalizedEmail, password);
       toast({ title: "Welcome back!" });
       window.location.replace(redirectTo ?? "/");
     } catch (caughtError: unknown) {
-      const error = toLoginError(caughtError);
-      let errorMessage = error.message || "Failed to login";
-      if (error.message.includes("Invalid login credentials")) {
-        errorMessage = "Invalid email or password. Please try again.";
-      } else if (error.status === 429 || error.code === "over_request_rate_limit") {
-        errorMessage = "Too many login attempts. Please wait a moment, then try again.";
-      } else if (error.status === 0) {
-        errorMessage = "Cannot reach the sign-in server. Check your connection and try again.";
+      const result = classifyLoginError(caughtError);
+
+      // For network-class failures, probe the auth server so we can tell the user
+      // whether the server is down or their own connection is blocking the request.
+      if (result.title === "Cannot reach the sign-in server") {
+        const probe = await probeAuthServer();
+        result.detail += ` · probe=${probe.ok ? "reachable" : `unreachable(${probe.error ?? probe.status})`}`;
+        if (probe.ok) {
+          result.message =
+            "The auth server is reachable, but this browser could not complete the request — usually an extension, ad-blocker, VPN or offline cache is blocking it.";
+          result.hint = "Try again in a normal (non-preview) browser tab, or disable blocking extensions.";
+        }
       }
-      toast({ title: "Error", description: errorMessage, variant: "destructive" });
+
+      logLoginError(
+        { email: normalizedEmail, elapsedMs: Math.round(performance.now() - startedAt), online: navigator.onLine },
+        caughtError,
+        result,
+      );
+      setFailure(result);
+      toast({
+        title: result.title,
+        description: result.hint ? `${result.message} ${result.hint}` : result.message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
+
 
 
 
