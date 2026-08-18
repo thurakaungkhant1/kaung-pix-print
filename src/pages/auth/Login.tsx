@@ -80,7 +80,12 @@ const Login = () => {
     try {
       const { data, error } = await signInDirect(email.trim().toLowerCase(), password);
       if (error) throw error;
-      if (!data.user) throw new Error("Failed to login");
+      if (!data.user || !data.session) throw new Error("Failed to login");
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+      if (sessionError) throw sessionError;
       toast({ title: "Welcome back!" });
       await routeAfterAuth(data.user.id);
     } catch (caughtError: unknown) {
