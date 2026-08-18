@@ -9,7 +9,7 @@ import "./index.css";
  * caches once forces those clients onto the current bundle, which talks to
  * Lovable Cloud directly with the publishable key attached.
  */
-const CLEANUP_FLAG = "cloud-api-proxy-cleanup-v2";
+const CLEANUP_FLAG = "cloud-api-proxy-cleanup-v3";
 
 async function clearStaleServiceWorkerCaches() {
   if (typeof window === "undefined") return;
@@ -38,8 +38,8 @@ async function clearStaleServiceWorkerCaches() {
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Application root element was not found");
 
-void clearStaleServiceWorkerCaches();
-
-void import("./App.tsx").then(({ default: App }) => {
-  createRoot(rootElement).render(<App />);
+void clearStaleServiceWorkerCaches().finally(() => {
+  void import("./App.tsx").then(({ default: App }) => {
+    createRoot(rootElement).render(<App />);
+  });
 });

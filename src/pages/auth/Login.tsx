@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
+import { signInDirect } from "@/lib/directAuth";
 
 type LoginError = Error & {
   code?: string;
@@ -27,9 +28,6 @@ function isRetryableLoginError(error: LoginError): boolean {
     error.name === "AuthRetryableFetchError"
   );
 }
-
-const wait = (milliseconds: number) =>
-  new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -80,28 +78,16 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      let authenticatedUserId: string | null = null;
-      let lastError: LoginError | null = null;
-
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: email.trim().toLowerCase(),
-            password,
-          });
-          if (error) throw error;
-          authenticatedUserId = data.user.id;
-          break;
-        } catch (attemptError: unknown) {
-          lastError = toLoginError(attemptError);
-          if (!isRetryableLoginError(lastError) || attempt === 2) throw lastError;
-          await wait(500 * (attempt + 1));
-        }
-      }
-
-      if (!authenticatedUserId) throw lastError ?? new Error("Failed to login");
+      const { data, error } = await signInDirect(email.trim().toLowerCase(), password);
+      if (error) throw error;
+      if (!data.user || !data.session) throw new Error("Failed to login");
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+      if (sessionError) throw sessionError;
       toast({ title: "Welcome back!" });
-      void routeAfterAuth(authenticatedUserId);
+      await routeAfterAuth(data.user.id);
     } catch (caughtError: unknown) {
       const error = toLoginError(caughtError);
       let errorMessage = error.message || "Failed to login";
