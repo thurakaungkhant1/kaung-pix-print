@@ -9,7 +9,7 @@ import "./index.css";
  * caches once forces those clients onto the current bundle, which talks to
  * Lovable Cloud directly with the publishable key attached.
  */
-const CLEANUP_FLAG = "cloud-api-proxy-cleanup-v1";
+const CLEANUP_FLAG = "cloud-api-proxy-cleanup-v2";
 
 async function clearStaleServiceWorkerCaches() {
   if (typeof window === "undefined") return;
@@ -25,13 +25,14 @@ async function clearStaleServiceWorkerCaches() {
     }
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registrations.map((registration) => registration.update()));
+      hadStaleCache = hadStaleCache || registrations.length > 0;
+      await Promise.all(registrations.map((registration) => registration.unregister()));
     }
   } catch {
     // Cache cleanup is best-effort; never block app start.
   }
 
-  if (hadStaleCache) window.location.reload();
+  if (hadStaleCache) window.location.replace(window.location.href);
 }
 
 const rootElement = document.getElementById("root");

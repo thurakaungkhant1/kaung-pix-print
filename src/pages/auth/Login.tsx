@@ -18,6 +18,19 @@ function toLoginError(error: unknown): LoginError {
   return error instanceof Error ? error as LoginError : new Error("Failed to login");
 }
 
+function isRetryableLoginError(error: LoginError): boolean {
+  return (
+    error.message.includes("Failed to fetch") ||
+    error.message.includes("Failed to connect") ||
+    error.message.includes("Load failed") ||
+    error.message.includes("NetworkError") ||
+    error.name === "AuthRetryableFetchError"
+  );
+}
+
+const wait = (milliseconds: number) =>
+  new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,10 +80,28 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      let authenticatedUserId: string | null = null;
+      let lastError: LoginError | null = null;
+
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: email.trim().toLowerCase(),
+            password,
+          });
+          if (error) throw error;
+          authenticatedUserId = data.user.id;
+          break;
+        } catch (attemptError: unknown) {
+          lastError = toLoginError(attemptError);
+          if (!isRetryableLoginError(lastError) || attempt === 2) throw lastError;
+          await wait(500 * (attempt + 1));
+        }
+      }
+
+      if (!authenticatedUserId) throw lastError ?? new Error("Failed to login");
       toast({ title: "Welcome back!" });
-      void routeAfterAuth(data.user.id);
+      void routeAfterAuth(authenticatedUserId);
     } catch (caughtError: unknown) {
       const error = toLoginError(caughtError);
       let errorMessage = error.message || "Failed to login";
@@ -78,13 +109,7 @@ const Login = () => {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.status === 429 || error.code === "over_request_rate_limit") {
         errorMessage = "Too many login attempts. Please wait a moment, then try again.";
-      } else if (
-        error.message.includes("Failed to fetch") ||
-        error.message.includes("Failed to connect") ||
-        error.message.includes("Load failed") ||
-        error.message.includes("NetworkError") ||
-        error.name === "AuthRetryableFetchError"
-      ) {
+      } else if (isRetryableLoginError(error)) {
         errorMessage =
           "Sign in is temporarily unavailable. Please wait a moment and try again.";
       }
