@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.award_offline_game_points(integer, integer);

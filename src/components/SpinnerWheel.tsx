@@ -142,7 +142,7 @@ const SpinnerWheel = ({ open, onOpenChange, onPointsWon }: SpinnerWheelProps) =>
             <div className="relative w-64 h-64">
               {/* Spinner wheel */}
               <div
-                className="w-full h-full rounded-full border-8 border-primary relative overflow-hidden transition-transform duration-[4000ms] ease-out"
+                className="w-full h-full rounded-full border-8 border-primary relative overflow-hidden transition-transform [transition-duration:4000ms] ease-out"
                 style={{
                   transform: `rotate(${rotation}deg)`,
                   background: "conic-gradient(from 0deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 20%, hsl(var(--primary)) 40%, hsl(var(--primary-glow)) 60%, hsl(var(--primary)) 80%, hsl(var(--primary-glow)) 100%)",
