@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,37 +42,6 @@ const Login = () => {
     ? requestedRedirect
     : null;
 
-  const routeAfterAuth = async (userId: string) => {
-    if (redirectTo) {
-      navigate(redirectTo, { replace: true });
-      return;
-    }
-
-    try {
-      const [{ data: rolesData, error: rolesError }, { data: profile, error: profileError }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", userId),
-        supabase.from("profiles").select("name").eq("id", userId).maybeSingle(),
-      ]);
-
-      if (rolesError) throw rolesError;
-      if (profileError) throw profileError;
-
-      if (!profile?.name) {
-        navigate("/auth/complete-profile", { replace: true });
-        return;
-      }
-
-      const roles = (rolesData ?? []).map((roleRow) => roleRow.role);
-      if (roles.includes("admin")) navigate("/admin", { replace: true });
-      else if (roles.includes("mobile_admin")) navigate("/admin/mobile-panel", { replace: true });
-      else navigate("/", { replace: true });
-    } catch {
-      // Authentication has already succeeded. A temporary profile or role
-      // lookup failure must not turn a valid sign-in into a login error.
-      navigate("/", { replace: true });
-    }
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -81,13 +49,11 @@ const Login = () => {
       const { data, error } = await signInDirect(email.trim().toLowerCase(), password);
       if (error) throw error;
       if (!data.user || !data.session) throw new Error("Failed to login");
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      });
-      if (sessionError) throw sessionError;
       toast({ title: "Welcome back!" });
-      await routeAfterAuth(data.user.id);
+      // The direct auth client has persisted the session. Reloading lets the
+      // app's single shared client hydrate it without using the preview's
+      // injected fetch wrapper during this critical handoff.
+      window.location.replace(redirectTo ?? "/");
     } catch (caughtError: unknown) {
       const error = toLoginError(caughtError);
       let errorMessage = error.message || "Failed to login";
