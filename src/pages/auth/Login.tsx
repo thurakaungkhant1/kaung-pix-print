@@ -8,6 +8,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { signInWithPasswordFallback } from "@/lib/authFallback";
 
 type LoginError = Error & {
   code?: string;
@@ -28,6 +29,16 @@ function isRetryableLoginError(error: LoginError): boolean {
   );
 }
 
+async function signIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (!error && data.user && data.session) return;
+  if (error && !isRetryableLoginError(toLoginError(error))) throw error;
+
+  // The preview shell may block fetch before the request reaches auth.
+  // XHR bypasses that wrapper while preserving the same backend and session.
+  await signInWithPasswordFallback(email, password);
+}
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,12 +57,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
-      if (error) throw error;
-      if (!data.user || !data.session) throw new Error("Failed to login");
+      await signIn(email.trim().toLowerCase(), password);
       toast({ title: "Welcome back!" });
       window.location.replace(redirectTo ?? "/");
     } catch (caughtError: unknown) {
