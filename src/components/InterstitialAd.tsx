@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { loadPromoConfig } from "@/lib/promoConfig";
 
 interface InterstitialAdData {
   id: string;
@@ -19,12 +19,23 @@ const InterstitialAd = () => {
   const location = useLocation();
 
   useEffect(() => {
-    loadPromoConfig().then(({ settings: s }) => {
-      setSettings({
-        frequency: parseInt(s.interstitial_frequency || "3"),
-        cooldown: parseInt(s.interstitial_cooldown || "60"),
-      });
-    });
+    const loadSettings = async () => {
+      const { data } = await supabase
+        .from("ad_settings")
+        .select("setting_key, setting_value");
+
+      if (data) {
+        const settingsObj: Record<string, string> = {};
+        data.forEach((s) => {
+          settingsObj[s.setting_key] = s.setting_value;
+        });
+        setSettings({
+          frequency: parseInt(settingsObj.interstitial_frequency || "3"),
+          cooldown: parseInt(settingsObj.interstitial_cooldown || "60"),
+        });
+      }
+    };
+    loadSettings();
   }, []);
 
   useEffect(() => {
@@ -59,12 +70,20 @@ const InterstitialAd = () => {
   }, [isVisible]);
 
   useEffect(() => {
-    loadPromoConfig().then(({ placements }) => {
-      const match = placements.find((p) => p.placement_type === "interstitial");
-      if (match) {
-        setAdData({ id: match.id, zone_id: match.zone_id, script_code: match.script_code });
+    const loadInterstitialAd = async () => {
+      const { data } = await supabase
+        .from("ad_placements")
+        .select("id, zone_id, script_code")
+        .eq("placement_type", "interstitial")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        setAdData(data);
       }
-    });
+    };
+    loadInterstitialAd();
   }, []);
 
   const handleClose = useCallback(() => {
