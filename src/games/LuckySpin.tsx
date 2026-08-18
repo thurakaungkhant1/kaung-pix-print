@@ -37,7 +37,7 @@ const LuckySpin = ({ onWin, disabled }: Props) => {
         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 blur-md" />
         <svg
           viewBox="0 0 200 200"
-          className="w-full h-full relative transition-transform duration-[3000ms] ease-out drop-shadow-lg"
+          className="w-full h-full relative transition-transform [transition-duration:3000ms] ease-out drop-shadow-lg"
           style={{ transform: `rotate(${rotation}deg)` }}
         >
           {/* Outer ring */}

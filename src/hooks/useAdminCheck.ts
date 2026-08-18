@@ -28,10 +28,14 @@ export const useAdminCheck = (options: UseAdminCheckOptions = {}) => {
       }
 
       try {
-        const { data, error } = await supabase.rpc("has_role", {
-          _user_id: user.id,
-          _role: "admin",
+        const roleRequest = supabase.rpc("has_role", {
+            _user_id: user.id,
+            _role: "admin",
+          });
+        const timeout = new Promise<never>((_, reject) => {
+          window.setTimeout(() => reject(new Error("Admin check timed out")), 12_000);
         });
+        const { data, error } = await Promise.race([roleRequest, timeout]);
         if (cancelled) return;
 
         if (error) throw error;

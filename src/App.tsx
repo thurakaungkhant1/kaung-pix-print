@@ -137,25 +137,24 @@ const OfflineScoreSync = ({ isOnline }: { isOnline: boolean }) => {
       const pending = JSON.parse(localStorage.getItem("kaung_offline_pending_scores") || "[]");
       if (pending.length === 0) return;
 
-      let totalPoints = 0;
+      const unsynced = [];
       for (const entry of pending) {
-        const points = Math.min(Math.floor(entry.score / 10), 50);
-        if (points > 0) {
-          totalPoints += points;
-          await supabase.from("game_scores").insert({
-            user_id: user.id,
+        const { error } = await supabase.functions.invoke("award-points", {
+          body: {
+            source: "game",
             game_name: "Offline Runner",
             score: entry.score,
             is_win: entry.score >= 100,
-            points_earned: points,
-          });
-        }
+          },
+        });
+        if (error) unsynced.push(entry);
       }
-      if (totalPoints > 0) {
-        await supabase.rpc("get_daily_game_points", { p_user_id: user.id });
-        await supabase.from("profiles").update({ game_points: totalPoints }).eq("id", user.id);
+
+      if (unsynced.length > 0) {
+        localStorage.setItem("kaung_offline_pending_scores", JSON.stringify(unsynced));
+      } else {
+        localStorage.removeItem("kaung_offline_pending_scores");
       }
-      localStorage.removeItem("kaung_offline_pending_scores");
     };
 
     void syncOfflineScores();
