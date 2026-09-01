@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.notify_n8n_on_order_insert() FROM PUBLIC, anon, authenticated;
