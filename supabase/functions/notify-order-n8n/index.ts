@@ -57,23 +57,33 @@ Deno.serve(async (req) => {
       created_at: order.created_at,
     };
 
+    console.log('Sending order to n8n production webhook', JSON.stringify({
+      url: N8N_WEBHOOK_URL,
+      method: 'POST',
+      contentType: 'application/json',
+      payload: { ...payload, phone_number: payload.phone_number ? '***' : null },
+    }));
+
     const res = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
+    const responseText = await res.text().catch(() => '');
+    console.log('n8n webhook response', res.status, responseText.slice(0, 500));
+
     if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      console.error('n8n webhook failed:', res.status, text);
-      return new Response(JSON.stringify({ ok: false, status: res.status }), {
+      console.error('n8n webhook failed:', res.status, responseText);
+      return new Response(JSON.stringify({ ok: false, status: res.status, body: responseText.slice(0, 500) }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
+    return new Response(JSON.stringify({ ok: true, status: res.status, body: responseText.slice(0, 500) }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (e) {
     // Never let n8n failures affect the order — just log.
     console.error('notify-order-n8n error:', e);
