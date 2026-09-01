@@ -1,7 +1,11 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const N8N_WEBHOOK_URL = 'https://n8n.kaungcomputer.com/webhook/kaung-digital-order';
+// Production n8n webhook. Override via N8N_ORDER_WEBHOOK_URL secret if it ever changes.
+// Test endpoints (/webhook-test/...) must never be used here.
+const N8N_WEBHOOK_URL =
+  Deno.env.get('N8N_ORDER_WEBHOOK_URL') ??
+  'https://n8n.kaungcomputer.com/webhook/kaung-digital-order';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
