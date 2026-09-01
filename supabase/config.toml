@@ -18,8 +18,12 @@ verify_jwt = false
 [functions.ml-nickname]
 verify_jwt = false
 
+[functions.notify-order-n8n]
+verify_jwt = false
+
 [functions.notify-order-telegram]
 verify_jwt = false
+
 
 [functions.notify-deposit-telegram]
 verify_jwt = false
