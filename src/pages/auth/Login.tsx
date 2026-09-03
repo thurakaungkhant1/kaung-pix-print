@@ -31,6 +31,22 @@ const Login = () => {
     ? requestedRedirect
     : null;
 
+  const resolvePostLoginPath = async (userId: string): Promise<string> => {
+    try {
+      const [{ data: rolesData }, { data: profile }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+        supabase.from("profiles").select("name").eq("id", userId).maybeSingle(),
+      ]);
+      const roles = (rolesData ?? []).map((r: any) => r.role);
+      if (!profile?.name) return "/auth/complete-profile";
+      if (roles.includes("admin")) return "/admin";
+      if (roles.includes("mobile_admin")) return "/admin/mobile-panel";
+    } catch (err) {
+      console.error("Post-login routing lookup failed:", err);
+    }
+    return "/";
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -38,9 +54,11 @@ const Login = () => {
     const startedAt = performance.now();
     const normalizedEmail = email.trim().toLowerCase();
     try {
-      await signIn(normalizedEmail, password);
+      const { data } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+      if (!data.session || !data.user) throw new Error("Sign in did not return a valid session");
       toast({ title: "Welcome back!" });
-      window.location.replace(redirectTo ?? "/");
+      const fallbackPath = await resolvePostLoginPath(data.user.id);
+      window.location.replace(redirectTo ?? fallbackPath);
     } catch (caughtError: unknown) {
       const result = classifyLoginError(caughtError);
 
