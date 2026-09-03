@@ -10,12 +10,6 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { classifyLoginError, logLoginError, probeAuthServer, type LoginFailure } from "@/lib/loginDiagnostics";
 
-async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  if (!data.session || !data.user) throw new Error("Sign in did not return a valid session");
-}
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
