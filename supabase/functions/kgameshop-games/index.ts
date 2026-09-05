@@ -89,33 +89,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const probe = new URL(req.url).searchParams.get('probe') === '1';
-    if (probe) {
-      const variants: Record<string, Record<string, string>> = {
-        xapikey: { 'X-API-KEY': API_KEY },
-        bearer: { Authorization: `Bearer ${API_KEY}` },
-        apikey: { 'api-key': API_KEY },
-        xapitoken: { 'X-API-TOKEN': API_KEY },
-        authorization_raw: { Authorization: API_KEY },
-      };
-      const out: Record<string, unknown> = {};
-      for (const [k, h] of Object.entries(variants)) {
-        try {
-          const r = await fetch(BASE_URL, { headers: { ...h, Accept: 'application/json' } });
-          out[k] = { status: r.status, body: (await r.text()).slice(0, 200) };
-        } catch (e) {
-          out[k] = { error: String(e) };
-        }
-      }
-      try {
-        const r = await fetch(`${BASE_URL}?api_key=${encodeURIComponent(API_KEY)}`, { headers: { Accept: 'application/json' } });
-        out['query'] = { status: r.status, body: (await r.text()).slice(0, 200) };
-      } catch (e) {
-        out['query'] = { error: String(e) };
-      }
-      return new Response(JSON.stringify(out), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
     const debug = new URL(req.url).searchParams.get('debug') === '1';
 
     const all: AnyRec[] = [];
