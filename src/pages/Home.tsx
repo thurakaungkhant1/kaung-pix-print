@@ -19,7 +19,7 @@ import AnimatedSection from "@/components/animations/AnimatedSection";
 import { motion } from "framer-motion";
 import appLogo from "@/assets/app-logo.png";
 import NotificationBell from "@/components/NotificationBell";
-import { useGameCatalog } from "@/hooks/useGameCatalog";
+import { useKGameShopGames } from "@/hooks/useKGameShopGames";
 
 
 interface PromotionalBanner {
@@ -78,7 +78,7 @@ const EARN_POINTS_GAMES = [
 ];
 
 const Home = () => {
-  const { games: catalogGames } = useGameCatalog();
+  const { games: catalogGames, loading: gamesLoading, error: gamesError } = useKGameShopGames();
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [digitalLoading, setDigitalLoading] = useState(true);
   const [digitalError, setDigitalError] = useState<string | null>(null);
