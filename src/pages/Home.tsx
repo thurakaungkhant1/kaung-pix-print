@@ -19,7 +19,7 @@ import AnimatedSection from "@/components/animations/AnimatedSection";
 import { motion } from "framer-motion";
 import appLogo from "@/assets/app-logo.png";
 import NotificationBell from "@/components/NotificationBell";
-import { useKGameShopGames } from "@/hooks/useKGameShopGames";
+import { useGameCatalog } from "@/hooks/useGameCatalog";
 
 
 interface PromotionalBanner {
@@ -78,7 +78,7 @@ const EARN_POINTS_GAMES = [
 ];
 
 const Home = () => {
-  const { games: catalogGames, loading: gamesLoading, error: gamesError } = useKGameShopGames();
+  const { games: catalogGames } = useGameCatalog();
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [digitalLoading, setDigitalLoading] = useState(true);
   const [digitalError, setDigitalError] = useState<string | null>(null);
@@ -355,18 +355,7 @@ const Home = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                {gamesLoading && catalogGames.length === 0 &&
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <div key={`gs-skel-${i}`} className="rounded-2xl overflow-hidden bg-card border border-border/60">
-                      <div className="aspect-square bg-muted animate-pulse" />
-                      <div className="p-2 space-y-1">
-                        <div className="h-2.5 w-4/5 rounded bg-muted animate-pulse" />
-                        <div className="h-2 w-2/5 rounded bg-muted animate-pulse" />
-                      </div>
-                    </div>
-                  ))}
                 {catalogGames.map((cg, i) => {
-
                   const g = {
                     id: cg.category_key,
                     name: cg.name,
@@ -400,14 +389,7 @@ const Home = () => {
                   );
                 })}
 
-                {!gamesLoading && gamesError && catalogGames.length === 0 && (
-                  <div className="col-span-3 rounded-2xl border border-border/60 bg-card p-4 text-center">
-                    <p className="text-xs font-semibold">Games list မရနိုင်သေးပါ</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">ခဏနေမှ ပြန်ကြိုးစားကြည့်ပါ</p>
-                  </div>
-                )}
               </div>
-
             </section>
           </AnimatedSection>
 
