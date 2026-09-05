@@ -355,7 +355,18 @@ const Home = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-3">
+                {gamesLoading && catalogGames.length === 0 &&
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <div key={`gs-skel-${i}`} className="rounded-2xl overflow-hidden bg-card border border-border/60">
+                      <div className="aspect-square bg-muted animate-pulse" />
+                      <div className="p-2 space-y-1">
+                        <div className="h-2.5 w-4/5 rounded bg-muted animate-pulse" />
+                        <div className="h-2 w-2/5 rounded bg-muted animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
                 {catalogGames.map((cg, i) => {
+
                   const g = {
                     id: cg.category_key,
                     name: cg.name,
