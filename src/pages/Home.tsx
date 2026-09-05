@@ -400,7 +400,14 @@ const Home = () => {
                   );
                 })}
 
+                {!gamesLoading && gamesError && catalogGames.length === 0 && (
+                  <div className="col-span-3 rounded-2xl border border-border/60 bg-card p-4 text-center">
+                    <p className="text-xs font-semibold">Games list မရနိုင်သေးပါ</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">ခဏနေမှ ပြန်ကြိုးစားကြည့်ပါ</p>
+                  </div>
+                )}
               </div>
+
             </section>
           </AnimatedSection>
 
