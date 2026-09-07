@@ -35,8 +35,14 @@ Deno.serve(async (req) => {
     const text = await res.text()
     if (!res.ok) {
       console.error('KGameShop responded with', res.status, text.slice(0, 500))
-      return json({ ok: false, error: `KGameShop API error (${res.status})` }, 502)
+      let reason = ''
+      try {
+        const j = JSON.parse(text)
+        reason = j?.message || j?.error || ''
+      } catch { /* non-JSON error body */ }
+      return json({ ok: false, error: `KGameShop API error (${res.status})${reason ? `: ${reason}` : ''}` }, 502)
     }
+
 
     let payload: any
     try {
