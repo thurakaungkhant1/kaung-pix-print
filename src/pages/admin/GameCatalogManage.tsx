@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useToast } from "@/hooks/use-toast";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import { KGAMESHOP_FLAG } from "@/hooks/useGameCatalog";
+
 import { zonedInputToISO, isoToZonedInput, timezoneOptions, localTimeZone, formatInViewerZone } from "@/lib/eventTime";
 import MobileLayout from "@/components/MobileLayout";
 import { Card, CardContent } from "@/components/ui/card";
