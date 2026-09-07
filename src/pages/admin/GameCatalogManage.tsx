@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useToast } from "@/hooks/use-toast";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import { KGAMESHOP_FLAG } from "@/hooks/useGameCatalog";
+
 import { zonedInputToISO, isoToZonedInput, timezoneOptions, localTimeZone, formatInViewerZone } from "@/lib/eventTime";
 import MobileLayout from "@/components/MobileLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -121,6 +124,9 @@ const GameCatalogManage = () => {
   const { isAdmin, isLoading: adminLoading } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { enabled: kgameshopOn, setFlag: setKgameshopFlag } = useFeatureFlag(KGAMESHOP_FLAG, false);
+
+
 
   const [eventTz, setEventTz] = useState(localTimeZone());
   const tzOptions = timezoneOptions(eventTz);
@@ -338,9 +344,35 @@ const GameCatalogManage = () => {
       </header>
 
       <div className="max-w-screen-md mx-auto p-4 space-y-4">
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold leading-none">Use KGameShop Game List</p>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {kgameshopOn
+                  ? "Users see games from the KGameShop API. Your manual games are hidden but kept safe."
+                  : "Users see the manually added games below."}
+              </p>
+            </div>
+            <Switch
+              checked={kgameshopOn}
+              onCheckedChange={async (v) => {
+                const err = await setKgameshopFlag(v, "Use KGameShop Game List");
+                toast({
+                  title: err ? "Update failed" : v ? "KGameShop list enabled" : "Manual game list restored",
+                  description: err ? err.message : "Game Shop updated for all users.",
+                  variant: err ? "destructive" : undefined,
+                });
+              }}
+              aria-label="Toggle KGameShop game list"
+            />
+          </CardContent>
+        </Card>
+
         <Button className="w-full gap-2" onClick={openNewGame}>
           <Plus className="h-4 w-4" /> Add Game
         </Button>
+
 
         <div className="space-y-3">
           {games.map((g) => {

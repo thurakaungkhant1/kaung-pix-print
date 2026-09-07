@@ -78,7 +78,7 @@ const EARN_POINTS_GAMES = [
 ];
 
 const Home = () => {
-  const { games: catalogGames } = useGameCatalog();
+  const { games: catalogGames, loading: gamesLoading, error: gamesError, reload: reloadGames } = useGameCatalog();
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [digitalLoading, setDigitalLoading] = useState(true);
   const [digitalError, setDigitalError] = useState<string | null>(null);
@@ -354,8 +354,29 @@ const Home = () => {
                 </button>
               </div>
 
+              {gamesError ? (
+                <div className="rounded-2xl border border-border/60 bg-card p-4 text-center">
+                  <p className="text-xs text-muted-foreground">Couldn't load the game list.</p>
+                  <button
+                    onClick={() => reloadGames()}
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-primary font-semibold px-3 h-8 rounded-full bg-primary/10 border border-primary/20"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : (
               <div className="grid grid-cols-3 gap-3">
-                {catalogGames.map((cg, i) => {
+                {gamesLoading && catalogGames.length === 0
+                  ? Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="rounded-2xl overflow-hidden bg-card border border-border/60">
+                        <div className="aspect-square bg-muted animate-pulse" />
+                        <div className="p-2 space-y-1">
+                          <div className="h-2.5 rounded bg-muted animate-pulse" />
+                          <div className="h-2 w-2/3 rounded bg-muted animate-pulse" />
+                        </div>
+                      </div>
+                    ))
+                  : catalogGames.map((cg, i) => {
                   const g = {
                     id: cg.category_key,
                     name: cg.name,
@@ -390,6 +411,8 @@ const Home = () => {
                 })}
 
               </div>
+              )}
+
             </section>
           </AnimatedSection>
 
