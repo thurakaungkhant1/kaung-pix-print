@@ -78,7 +78,7 @@ const EARN_POINTS_GAMES = [
 ];
 
 const Home = () => {
-  const { games: catalogGames } = useGameCatalog();
+  const { games: catalogGames, loading: gamesLoading, error: gamesError, reload: reloadGames } = useGameCatalog();
   const [digitalCats, setDigitalCats] = useState<DigitalCategory[]>([]);
   const [digitalLoading, setDigitalLoading] = useState(true);
   const [digitalError, setDigitalError] = useState<string | null>(null);
