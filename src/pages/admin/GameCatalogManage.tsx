@@ -121,6 +121,9 @@ const GameCatalogManage = () => {
   const { isAdmin, isLoading: adminLoading } = useAdminCheck({ redirectTo: "/", redirectOnFail: true });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { enabled: kgameshopOn, setFlag: setKgameshopFlag } = useFeatureFlag(KGAMESHOP_FLAG, false);
+
+
 
   const [eventTz, setEventTz] = useState(localTimeZone());
   const tzOptions = timezoneOptions(eventTz);
