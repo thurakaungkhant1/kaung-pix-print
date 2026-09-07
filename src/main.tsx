@@ -23,6 +23,12 @@ async function removeLegacyAppWorkers() {
     if (legacyWorkers.length === 0) return;
     await Promise.allSettled(legacyWorkers.map((registration) => registration.unregister()));
 
+    // Old workers also leave stale precached bundles behind.
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.allSettled(keys.map((key) => caches.delete(key)));
+    }
+
     // A tab already controlled by the old worker needs one clean navigation
     // before its fetch handler is fully detached.
     if (navigator.serviceWorker.controller && !sessionStorage.getItem("legacy-sw-cleaned-v1")) {
@@ -35,8 +41,30 @@ async function removeLegacyAppWorkers() {
   }
 }
 
-void removeLegacyAppWorkers().then(() =>
-  import("./App.tsx").then(({ default: App }) => {
-    createRoot(rootElement).render(<App />);
-  }),
-);
+async function bootstrap() {
+  await removeLegacyAppWorkers();
+
+  try {
+    const { default: App } = await import("./App.tsx");
+    createRoot(rootElement!).render(<App />);
+  } catch (error) {
+    console.error("Failed to load application module", error);
+
+    // A stale cached module graph can break the first dynamic import.
+    // Clear everything once and retry with a hard reload.
+    if (!sessionStorage.getItem("app-chunk-recovery-v1")) {
+      sessionStorage.setItem("app-chunk-recovery-v1", "1");
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.allSettled(keys.map((key) => caches.delete(key)));
+      }
+      window.location.reload();
+      return;
+    }
+
+    throw error;
+  }
+}
+
+void bootstrap();
+
