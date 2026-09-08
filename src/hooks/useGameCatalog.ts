@@ -39,15 +39,29 @@ export const useGameCatalog = (includeInactive = false) => {
     setError(null);
 
     // Which source should we use? (admin-controlled, persisted in feature_flags)
-    const { data: flag } = await (supabase as any)
+    const { data: flags } = await (supabase as any)
       .from("feature_flags")
-      .select("enabled")
-      .eq("key", KGAMESHOP_FLAG)
-      .maybeSingle();
-    const useKGameShop = Boolean(flag?.enabled);
+      .select("key, enabled")
+      .in("key", [KGAMESHOP_FLAG, KGAMESHOP_MERGE_FLAG]);
+    const flagMap = new Map<string, boolean>(((flags || []) as any[]).map((f) => [f.key, Boolean(f.enabled)]));
+    const useKGameShop = flagMap.get(KGAMESHOP_FLAG) === true;
+    // Merge defaults to ON so manual games never disappear unexpectedly.
+    const mergeManual = flagMap.get(KGAMESHOP_MERGE_FLAG) !== false;
     setSource(useKGameShop ? "kgameshop" : "manual");
 
+    const loadManual = async (): Promise<GameCatalogItem[]> => {
+      let query = (supabase as any)
+        .from("game_catalog")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (!includeInactive) query = query.eq("is_active", true);
+      const { data, error: dbError } = await query;
+      if (dbError) throw dbError;
+      return ((data || []) as GameCatalogItem[]).map((g) => ({ ...g, source: "manual" as const }));
+    };
+
     if (useKGameShop) {
+      const manual = mergeManual ? await loadManual().catch(() => []) : [];
       try {
         const { data, error: fnError } = await supabase.functions.invoke("kgameshop-games");
         if (fnError) throw fnError;
@@ -68,26 +82,24 @@ export const useGameCatalog = (includeInactive = false) => {
           price_suffix: null,
           source: "kgameshop" as const,
         }));
-        setGames(apiGames);
+        const seen = new Set(manual.map((m) => m.category_key.toLowerCase()));
+        setGames([...manual, ...apiGames.filter((g) => !seen.has(g.category_key.toLowerCase()))]);
       } catch (e: any) {
         console.error("Failed to load KGameShop games:", e);
-        // Never silently fall back to manual games while KGameShop mode is ON.
-        setGames([]);
-        setError(e?.message || "Could not load games from KGameShop");
+        setGames(manual);
+        // Only block the shop when there is nothing else to show.
+        setError(manual.length ? null : e?.message || "Could not load games from KGameShop");
       } finally {
         setLoading(false);
       }
       return;
     }
 
-    let query = (supabase as any)
-      .from("game_catalog")
-      .select("*")
-      .order("display_order", { ascending: true });
-    if (!includeInactive) query = query.eq("is_active", true);
-    const { data, error: dbError } = await query;
-    if (dbError) setError(dbError.message);
-    setGames(((data || []) as GameCatalogItem[]).map((g) => ({ ...g, source: "manual" as const })));
+    try {
+      setGames(await loadManual());
+    } catch (e: any) {
+      setError(e?.message || "Could not load games");
+    }
     setLoading(false);
   }, [includeInactive]);
 
