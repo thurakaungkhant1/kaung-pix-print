@@ -344,30 +344,20 @@ const GameCatalogManage = () => {
       </header>
 
       <div className="max-w-screen-md mx-auto p-4 space-y-4">
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-all"
+          onClick={() => navigate("/admin/kgameshop")}
+        >
           <CardContent className="p-4 flex items-center gap-3">
             <div className="flex-1">
-              <p className="text-sm font-semibold leading-none">Use KGameShop Game List</p>
+              <p className="text-sm font-semibold leading-none">KGameShop API</p>
               <p className="text-[11px] text-muted-foreground mt-1">
-                {kgameshopOn
-                  ? "Users see games from the KGameShop API. Your manual games are hidden but kept safe."
-                  : "Users see the manually added games below."}
+                {kgameshopOn ? "Currently ON" : "Currently OFF"} · Open settings page
               </p>
             </div>
-            <Switch
-              checked={kgameshopOn}
-              onCheckedChange={async (v) => {
-                const err = await setKgameshopFlag(v, "Use KGameShop Game List");
-                toast({
-                  title: err ? "Update failed" : v ? "KGameShop list enabled" : "Manual game list restored",
-                  description: err ? err.message : "Game Shop updated for all users.",
-                  variant: err ? "destructive" : undefined,
-                });
-              }}
-              aria-label="Toggle KGameShop game list"
-            />
           </CardContent>
         </Card>
+
 
         <Button className="w-full gap-2" onClick={openNewGame}>
           <Plus className="h-4 w-4" /> Add Game
