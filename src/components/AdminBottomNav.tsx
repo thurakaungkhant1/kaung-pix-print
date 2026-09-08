@@ -57,6 +57,7 @@ const AdminBottomNav = ({ activeTab, onTabChange, pendingOrders = 0, pendingDepo
       label: "Content",
       items: [
         { id: "games-catalog", label: "Games (Add Game)", route: "/admin/game-catalog" },
+        { id: "kgameshop", label: "KGameShop API", route: "/admin/kgameshop" },
         ...catalogGames.map((g) => ({
           id: `game-${g.id}`,
           label: `${g.short_name || g.name} Packages`,
