@@ -363,6 +363,15 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/admin/kgameshop"
+                  element={
+                    <ProtectedAdminRoute>
+                      <KGameShopManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+
+                <Route
                   path="/admin/notifications"
                   element={
                     <ProtectedAdminRoute>
