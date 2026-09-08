@@ -24,6 +24,9 @@ export interface GameCatalogItem {
 /** Feature flag key controlling where the game list comes from. */
 export const KGAMESHOP_FLAG = "kgameshop_game_list";
 
+/** When enabled (default), manual games stay visible alongside KGameShop games. */
+export const KGAMESHOP_MERGE_FLAG = "kgameshop_merge_manual";
+
 /** Loads the admin-managed list of games available in the Game Shop. */
 export const useGameCatalog = (includeInactive = false) => {
   const [games, setGames] = useState<GameCatalogItem[]>([]);
