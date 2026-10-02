@@ -37,8 +37,20 @@ const KGameShopManage = () => {
   const [packageName, setPackageName] = useState("");
   const [packagePrice, setPackagePrice] = useState("");
   const [packageCoins, setPackageCoins] = useState("0");
+  const [kgBalance, setKgBalance] = useState<{ balance: number | null; currency: string | null; checked_at: string } | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
 
-  useEffect(() => { void loadGames(); void loadRate(); }, []);
+  const loadBalance = async () => {
+    setBalanceLoading(true); setBalanceError(null);
+    const { data, error } = await supabase.functions.invoke("kgameshop-order", { body: { action: "balance" } });
+    let msg = data?.error as string | undefined;
+    if (error) { try { msg = (await (error as any).context?.json())?.error || error.message; } catch { msg = error.message; } }
+    if (msg) setBalanceError(msg); else setKgBalance(data);
+    setBalanceLoading(false);
+  };
+
+  useEffect(() => { void loadGames(); void loadRate(); void loadBalance(); }, []);
   useEffect(() => { if (selectedGame) void loadProducts(selectedGame.game); }, [selectedGame]);
 
   const loadRate = async () => {
@@ -153,6 +165,8 @@ const KGameShopManage = () => {
           <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex-1"><p className="text-sm font-semibold">Use VPS Game List</p><p className="text-xs text-muted-foreground">Show games loaded from your VPS.</p></div><Switch checked={kgameshopOn} disabled={loading} onCheckedChange={(v) => apply(setKgameshopFlag, v, "Use KGameShop Game List")} /></CardContent></Card>
           <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex-1"><p className="text-sm font-semibold">Keep manual games visible</p><p className="text-xs text-muted-foreground">Show your own games together with VPS games.</p></div><Switch checked={mergeOn} disabled={!kgameshopOn} onCheckedChange={(v) => apply(setMergeFlag as any, v, "Keep manual games with KGameShop")} /></CardContent></Card>
         </div>
+
+        <Card><CardHeader><div className="flex items-center justify-between"><CardTitle className="text-base">KGameShop Balance</CardTitle><Button variant="outline" size="sm" onClick={loadBalance} disabled={balanceLoading}><RefreshCw className={balanceLoading ? "mr-1 h-4 w-4 animate-spin" : "mr-1 h-4 w-4"} />Check again</Button></div></CardHeader><CardContent className="space-y-1">{balanceError ? <p className="flex items-center gap-2 text-sm text-destructive"><XCircle className="h-4 w-4" />{balanceError}</p> : kgBalance ? <><p className="text-2xl font-bold text-primary">{kgBalance.balance === null ? "-" : kgBalance.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })} <span className="text-base font-semibold">{kgBalance.currency || ""}</span></p><p className="text-xs text-muted-foreground">Last checked: {new Date(kgBalance.checked_at).toLocaleString()}</p></> : <Loader2 className="h-5 w-5 animate-spin" />}</CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-base">MMK Rate</CardTitle></CardHeader><CardContent className="space-y-3"><Label htmlFor="kg-rate">1 USD equals</Label><div className="flex gap-2"><Input id="kg-rate" type="number" min="1" value={rate} onChange={(e) => { setRate(e.target.value); if (selectedApiProduct) setPackagePrice(String(Math.round(selectedApiProduct.price_usd * Number(e.target.value || 0)))); }} /><span className="self-center text-sm font-semibold">MMK</span><Button onClick={saveRate} disabled={saving}>Save Rate</Button></div><p className="text-xs text-muted-foreground">Package USD prices below are converted automatically with this rate.</p></CardContent></Card>
 
