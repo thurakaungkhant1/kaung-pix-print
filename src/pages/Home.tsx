@@ -376,7 +376,7 @@ const Home = () => {
                         </div>
                       </div>
                     ))
-                  : catalogGames.map((cg, i) => {
+                  : catalogGames.slice(0, 9).map((cg, i) => {
                   const g = {
                     id: cg.category_key,
                     name: cg.name,
