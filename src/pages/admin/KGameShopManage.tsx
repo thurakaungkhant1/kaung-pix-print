@@ -15,7 +15,7 @@ import { KGAMESHOP_PRODUCTS_URL, type KGameShopProduct } from "@/lib/kgameshop";
 import { supabase } from "@/integrations/supabase/client";
 
 type ApiGame = { game: string; name: string; category?: string; icon?: string };
-type SavedProduct = { id: number; name: string; price: number; kgameshop_product_id: string | null; kgameshop_game: string | null };
+type SavedProduct = { id: number; name: string; price: number; cost_price?: number | null; points_value?: number | null; kgameshop_product_id: string | null; kgameshop_game: string | null };
 
 const KGameShopManage = () => {
   const navigate = useNavigate();
