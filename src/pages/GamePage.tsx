@@ -509,6 +509,7 @@ const GamePage = () => {
             description: nameCheckLoading ? "Checking player name, please wait…" : nameCheckResult?.message || "Enter a valid Player ID to verify the player name",
             variant: "destructive",
           });
+          setPurchasing(false);
           return;
         }
         const { data, error } = await supabase.functions.invoke("kgameshop-order", {
