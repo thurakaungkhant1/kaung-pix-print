@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
   if (!productRowId) {
     const { data: ins, error } = await admin.from("products").insert({
       name: String(item.name), price: autoPrice, cost_price: autoPrice, image_url: body.icon || "/placeholder.svg",
-      description: item.bundle_summary || null, category: game, points_value: 0, status: "active",
+      description: item.bundle_summary || null, category: game, points_value: 0, status: "available",
       kgameshop_enabled: true, kgameshop_game: game, kgameshop_product_id: productId, kgameshop_region: "auto",
     }).select("id").single();
     if (error) return json({ error: error.message }, 500);
