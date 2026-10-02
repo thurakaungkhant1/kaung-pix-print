@@ -54,3 +54,6 @@ verify_jwt = true
 
 [functions.kgameshop-order]
 verify_jwt = false
+
+[functions.kgameshop-poll]
+verify_jwt = false

@@ -1,23 +1,14 @@
 // KGameShop package purchase + auto top-up via the owner's VPS.
 // Price is computed server-side from the VPS catalog and the admin MMK rate.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { VPS, applyProvider as applyShared, checkProviderStatus, notifyKgOrder } from "../_shared/kgameshop.ts";
 
-const VPS = "https://study.kaungcomputer.com/api/kgameshop";
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 const json = (o: unknown, status = 200) =>
   new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json" } });
-
-// Only an explicit "failed" result fails (and refunds) an order. Partial/refunded/
-// unknown results and transport errors stay Processing for admin review.
-const mapStatus = (s: string | undefined) => {
-  const v = String(s || "").toLowerCase();
-  if (v === "completed") return "finished";
-  if (v === "failed") return "rejected";
-  return "approved";
-};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -35,31 +26,16 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid body" }, 400); }
 
-  const applyProvider = async (orderId: string, r: any, httpOk: boolean) => {
-    const status = mapStatus(r?.status);
-    const update: Record<string, unknown> = {
-      status,
-      fulfillment_provider: "kgameshop",
-      provider_status: String(r?.status || (httpOk ? "unknown" : "http_error")),
-      provider_message: String(r?.message || r?.error || "").slice(0, 500) || null,
-      provider_sent_at: new Date().toISOString(),
-    };
-    if (r?.provider_order_id) update.provider_order_id = String(r.provider_order_id);
-    await admin.from("orders").update(update).eq("id", orderId);
-    return status;
-  };
+  const applyProvider = (orderId: string, r: any, httpOk: boolean) => applyShared(admin, orderId, r, httpOk);
 
-  // Admin: re-check provider status for an order
+  // Admin: re-check provider status for an order (read-only, no new order)
   if (body.action === "check") {
     const { data: isAdmin } = await admin.rpc("has_role", { _user_id: uid, _role: "admin" });
     if (!isAdmin) return json({ error: "Forbidden" }, 403);
-    if (!secret) return json({ error: "VPS secret not configured" }, 400);
-    const { data: order } = await admin.from("orders").select("id,provider_order_id").eq("id", body.order_id).single();
-    if (!order?.provider_order_id) return json({ error: "No provider order" }, 400);
-    const res = await fetch(`${VPS}/order/${encodeURIComponent(order.provider_order_id)}`, { headers: { "X-Store-Secret": secret } });
-    const r = await res.json().catch(() => ({}));
-    const status = await applyProvider(order.id, { ...r, provider_order_id: order.provider_order_id }, res.ok);
-    return json({ ok: true, status });
+    const r = await checkProviderStatus(admin, String(body.order_id || ""));
+    if ((r as any).error && !(r as any).status) return json({ error: (r as any).error }, 400);
+    await notifyKgOrder(admin, String(body.order_id));
+    return json({ ok: true, status: (r as any).status });
   }
 
   // Buyer: purchase a VPS package
@@ -109,7 +85,10 @@ Deno.serve(async (req) => {
 
   await admin.from("orders").update({ provider_cost: usd, provider_currency: "USD", fulfillment_provider: "kgameshop" }).eq("id", orderId);
 
-  if (!secret) return json({ ok: true, order_id: orderId, new_balance: newBalance, status: "pending", auto: false });
+  if (!secret) {
+    await notifyKgOrder(admin, orderId).catch((e) => console.error("notify", e));
+    return json({ ok: true, order_id: orderId, new_balance: newBalance, status: "pending", auto: false });
+  }
 
   let status = "approved";
   try {
@@ -124,5 +103,6 @@ Deno.serve(async (req) => {
     // Network issue: keep order Processing for admin to check
     await admin.from("orders").update({ status: "approved", provider_message: String(e).slice(0, 300) }).eq("id", orderId);
   }
+  await notifyKgOrder(admin, orderId).catch((e) => console.error("notify", e));
   return json({ ok: true, order_id: orderId, new_balance: newBalance, status, auto: true });
 });
