@@ -49,9 +49,11 @@ Deno.serve(async (req) => {
       const r = await res.json().catch(() => ({}));
       const d = r?.data && typeof r.data === "object" ? { ...r.data, ...r } : r;
       if (!res.ok || d?.ok === false) return json({ error: String(d?.message || d?.error || `VPS returned ${res.status}`).slice(0, 200) }, 502);
-      console.log("kg balance shape", JSON.stringify(r).slice(0, 400));
-      const balance = Number(d?.balance ?? d?.amount ?? d?.credit);
-      return json({ ok: true, balance: Number.isFinite(balance) ? balance : null, currency: String(d?.currency ?? d?.currency_code ?? "") || null, checked_at: new Date().toISOString() });
+      let balance: number | null = null; let currency: string | null = d?.currency ? String(d.currency) : null;
+      const b = d?.balance ?? d?.amount ?? d?.credit;
+      if (b && typeof b === "object") { const [k, v] = Object.entries(b)[0] ?? []; if (k) { currency = String(k).toUpperCase(); balance = Number(v); } }
+      else if (b !== undefined && b !== null) balance = Number(b);
+      return json({ ok: true, balance: Number.isFinite(balance) ? balance : null, currency, checked_at: new Date().toISOString() });
     } catch {
       return json({ error: "Could not reach VPS" }, 502);
     }
