@@ -38,6 +38,24 @@ Deno.serve(async (req) => {
     return json({ ok: true, status: (r as any).status });
   }
 
+  // Admin only: KGameShop account balance via VPS (secret stays server-side)
+  if (body.action === "balance") {
+    const { data: isAdmin } = await admin.rpc("has_role", { _user_id: uid, _role: "admin" });
+    if (!isAdmin) return json({ error: "Forbidden" }, 403);
+    const secret = Deno.env.get("KGAMESHOP_VPS_SECRET");
+    if (!secret) return json({ error: "VPS secret not configured" }, 500);
+    try {
+      const res = await fetch(`${VPS}/balance`, { headers: { "X-Store-Secret": secret, Accept: "application/json" } });
+      const r = await res.json().catch(() => ({}));
+      const d = r?.data && typeof r.data === "object" ? { ...r.data, ...r } : r;
+      if (!res.ok || d?.ok === false) return json({ error: String(d?.message || d?.error || `VPS returned ${res.status}`).slice(0, 200) }, 502);
+      const balance = Number(d?.balance ?? d?.amount ?? d?.credit);
+      return json({ ok: true, balance: Number.isFinite(balance) ? balance : null, currency: String(d?.currency ?? d?.currency_code ?? "") || null, checked_at: new Date().toISOString() });
+    } catch {
+      return json({ error: "Could not reach VPS" }, 502);
+    }
+  }
+
   const game = String(body.game || "").trim().slice(0, 100);
   const playerId = String(body.player_id || "").trim().slice(0, 100);
   const needsServer = kgameshopNeedsServer(game);
