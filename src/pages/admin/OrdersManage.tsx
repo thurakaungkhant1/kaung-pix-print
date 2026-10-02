@@ -971,6 +971,20 @@ const OrdersManage = () => {
                     </SelectContent>
                   </Select>
                   
+                  {(order as any).provider_order_id && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      onClick={async () => {
+                        const { data, error } = await supabase.functions.invoke("kgameshop-order", { body: { action: "check", order_id: order.id } });
+                        toast({ title: error || (data as any)?.error ? "Check failed" : `Provider status: ${(data as any)?.status}`, description: (data as any)?.error || error?.message, variant: error || (data as any)?.error ? "destructive" : undefined });
+                        loadOrders();
+                      }}
+                    >
+                      Check auto top-up status
+                    </Button>
+                  )}
                   {order.status === "finished" && (
                     <p className="text-xs text-green-600 font-semibold">
                       ✓ Points awarded to customer
