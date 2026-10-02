@@ -24,6 +24,9 @@ export interface GameCatalogItem {
 /** Feature flag key controlling where the game list comes from. */
 export const KGAMESHOP_FLAG = "kgameshop_game_list";
 
+/** VPS proxy endpoint for the KGameShop game list (read-only, no auth). */
+export const KGAMESHOP_GAMES_URL = "https://study.kaungcomputer.com/api/kgameshop/games";
+
 /** When enabled (default), manual games stay visible alongside KGameShop games. */
 export const KGAMESHOP_MERGE_FLAG = "kgameshop_merge_manual";
 
