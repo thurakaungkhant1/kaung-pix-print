@@ -1122,3 +1122,8 @@
     .cta-pulse-border::after { animation: none !important; }
   }
 }
+
+/* Desktop game-shop layout: page sticky headers sit under the fixed top nav */
+@media (min-width: 1024px) {
+  body.has-desktop-topnav .sticky.top-0 { top: 4rem; }
+}

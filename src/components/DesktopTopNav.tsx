@@ -32,8 +32,8 @@ const DesktopTopNav = () => {
     { to: "/", label: "Home", icon: Home, active: location.pathname === "/" },
     { to: "/game", label: "Games", icon: Gamepad2, active: location.pathname === "/game" && !isShop },
     { to: "/game?view=shop", label: "Shop", icon: ShoppingBag, active: location.pathname === "/game" && isShop },
-    { to: "/order-history", label: "Orders", icon: History, active: location.pathname.startsWith("/order") },
-    { to: "/topup", label: "Top Up", icon: Wallet, active: location.pathname.startsWith("/topup") },
+    { to: "/orders", label: "Orders", icon: History, active: location.pathname.startsWith("/orders") },
+    { to: "/top-up", label: "Top Up", icon: Wallet, active: location.pathname.startsWith("/top-up") },
   ];
 
   return (
