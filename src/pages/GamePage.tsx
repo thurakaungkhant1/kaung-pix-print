@@ -38,6 +38,7 @@ import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import WalletDisplay from "@/components/WalletDisplay";
 import TopUpDialog from "@/components/TopUpDialog";
 import { useGameCatalog } from "@/hooks/useGameCatalog";
+import { KGameShopProducts } from "@/components/KGameShopProducts";
 
 
 import {
@@ -753,6 +754,18 @@ const GamePage = () => {
                 </Button>
               </div>
             </section>
+
+            {catalogGames.find((c) => c.category_key === selectedGame.id)?.source === "kgameshop" && (
+              <KGameShopProducts
+                game={selectedGame.id}
+                onChooseAnother={() => {
+                  setSelectedGameCategory(null);
+                  setNameCheckResult(null);
+                  setNameCheckError({});
+                }}
+              />
+            )}
+
 
 
             {/* Player Credentials */}
