@@ -10,11 +10,13 @@ const cors = {
 const json = (o: unknown, status = 200) =>
   new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
+// Only an explicit "failed" result fails (and refunds) an order. Partial/refunded/
+// unknown results and transport errors stay Processing for admin review.
 const mapStatus = (s: string | undefined) => {
   const v = String(s || "").toLowerCase();
-  if (["completed", "success", "done", "finished"].includes(v)) return "finished";
-  if (["failed", "error", "rejected", "refunded"].includes(v)) return "rejected";
-  return "approved"; // processing / pending at provider
+  if (v === "completed") return "finished";
+  if (v === "failed") return "rejected";
+  return "approved";
 };
 
 Deno.serve(async (req) => {
@@ -34,15 +36,16 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: "Invalid body" }, 400); }
 
   const applyProvider = async (orderId: string, r: any, httpOk: boolean) => {
-    const status = httpOk && r?.ok !== false ? mapStatus(r?.status) : "rejected";
-    await admin.from("orders").update({
+    const status = mapStatus(r?.status);
+    const update: Record<string, unknown> = {
       status,
       fulfillment_provider: "kgameshop",
-      provider_order_id: r?.provider_order_id ? String(r.provider_order_id) : null,
-      provider_status: String(r?.status || (httpOk ? "unknown" : "error")),
+      provider_status: String(r?.status || (httpOk ? "unknown" : "http_error")),
       provider_message: String(r?.message || r?.error || "").slice(0, 500) || null,
       provider_sent_at: new Date().toISOString(),
-    }).eq("id", orderId);
+    };
+    if (r?.provider_order_id) update.provider_order_id = String(r.provider_order_id);
+    await admin.from("orders").update(update).eq("id", orderId);
     return status;
   };
 
