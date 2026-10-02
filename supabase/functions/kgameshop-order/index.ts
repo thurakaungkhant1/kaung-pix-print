@@ -1,7 +1,7 @@
 // KGameShop package purchase + auto top-up via the owner's VPS.
 // Price is computed server-side from the VPS catalog and the admin MMK rate.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { VPS, applyProvider as applyShared, checkPlayer, checkProviderStatus, notifyKgOrder } from "../_shared/kgameshop.ts";
+import { VPS, applyProvider as applyShared, checkPlayer, kgameshopNeedsServer, checkProviderStatus, notifyKgOrder } from "../_shared/kgameshop.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +40,9 @@ Deno.serve(async (req) => {
 
   const game = String(body.game || "").trim().slice(0, 100);
   const playerId = String(body.player_id || "").trim().slice(0, 100);
-  const serverId = String(body.server_id || "").trim().slice(0, 50) || null;
+  const needsServer = kgameshopNeedsServer(game);
+  const serverId = needsServer ? String(body.server_id || "").trim().slice(0, 50) || null : null;
+  if (needsServer && !serverId) return json({ error: "Server ID is required for this game" }, 400);
   const region = String(body.region || "").trim().slice(0, 20) || null;
 
   // Buyer: verify player name only (no charge)

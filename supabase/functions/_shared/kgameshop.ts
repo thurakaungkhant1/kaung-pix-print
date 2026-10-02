@@ -116,3 +116,7 @@ export async function notifyKgOrder(admin: any, orderId: string) {
   if (!r.ok) console.error("kg telegram send failed", r.status, await r.text());
   return r.ok;
 }
+
+// VPS game slugs needing a Server/Zone ID; keep in sync with src/lib/kgameshop.ts.
+export const KGAMESHOP_SERVER_GAMES = ["mobile-legends", "magic-chess"];
+export const kgameshopNeedsServer = (game: string) => KGAMESHOP_SERVER_GAMES.includes(game);
