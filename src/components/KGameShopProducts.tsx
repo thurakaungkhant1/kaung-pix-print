@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { AlertCircle, Loader2, Package, RefreshCw } from "lucide-react";
+import { AlertCircle, Diamond, Loader2, Package, RefreshCw, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 export const KGAMESHOP_PRODUCTS_URL = "https://study.kaungcomputer.com/api/kgameshop/products";
 
@@ -53,6 +54,7 @@ async function fetchProducts(game: string): Promise<Result> {
 }
 
 export function KGameShopProducts({ game, onChooseAnother }: { game: string; onChooseAnother: () => void }) {
+  const [usdToMmkRate, setUsdToMmkRate] = useState(4500);
   const [state, setState] = useState<{ loading: boolean; result: Result | null }>(() =>
     cache.has(game) ? { loading: false, result: { ok: true, products: cache.get(game)! } } : { loading: true, result: null },
   );
@@ -64,6 +66,20 @@ export function KGameShopProducts({ game, onChooseAnother }: { game: string; onC
   }, [game]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    supabase
+      .from("ad_settings")
+      .select("setting_value")
+      .eq("setting_key", "usd_to_mmk_rate")
+      .maybeSingle()
+      .then(({ data }) => {
+        const value = Number(data?.setting_value);
+        if (active && Number.isFinite(value) && value > 0) setUsdToMmkRate(value);
+      });
+    return () => { active = false; };
+  }, []);
 
   if (state.loading) {
     return (
@@ -109,17 +125,32 @@ export function KGameShopProducts({ game, onChooseAnother }: { game: string; onC
   }
 
   return (
-    <section className="space-y-2">
-      <h3 className="text-sm font-bold">Products</h3>
-      <div className="grid grid-cols-2 gap-2">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/40 px-3.5 py-2.5">
+        <div className="flex items-center gap-2">
+          <Diamond className="h-4 w-4 text-primary" />
+          <p className="text-xs font-bold">Available Packages</p>
+        </div>
+        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary">
+          <Zap className="h-3 w-3" /> Instant
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
         {r.products.map((p) => (
-          <div key={p.product_id} className="rounded-xl border border-border/60 bg-card p-3">
-            <p className="text-sm font-semibold leading-tight">{p.name}</p>
-            {p.bundle_summary && <p className="text-[10px] text-muted-foreground mt-0.5">{p.bundle_summary}</p>}
-            <p className="text-xs font-bold text-primary mt-1">${p.price_usd.toFixed(2)}</p>
+          <div key={p.product_id} className="relative flex min-h-28 flex-col overflow-hidden rounded-2xl border border-border/60 bg-card p-3 text-left shadow-sm">
+            <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+              <Diamond className="h-4 w-4 text-primary" />
+            </div>
+            <p className="text-sm font-bold leading-tight text-foreground">{p.name}</p>
+            {p.bundle_summary && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{p.bundle_summary}</p>}
+            <div className="mt-auto border-t border-border/50 pt-2">
+              <p className="text-sm font-bold tabular-nums text-primary">
+                {Math.round(p.price_usd * usdToMmkRate).toLocaleString()} <span className="text-[10px] font-medium text-muted-foreground">MMK</span>
+              </p>
+            </div>
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }
