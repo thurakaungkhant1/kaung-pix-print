@@ -694,6 +694,29 @@ const OrdersManage = () => {
       </div>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-4">
+        {(() => {
+          const counted = filteredOrders.filter((o) => o.status !== "rejected" && o.status !== "cancelled");
+          const revenue = counted.reduce((s, o) => s + Number(o.price || 0), 0);
+          const cost = counted.reduce((s, o) => s + Number(o.products?.cost_price || 0) * Number(o.quantity || 1), 0);
+          const coins = counted.reduce((s, o) => s + Number(o.products?.points_value || 0) * Number(o.quantity || 1), 0);
+          const profit = revenue - cost;
+          const items = [
+            { label: "Sales (MMK)", value: revenue.toLocaleString(), cls: "text-primary" },
+            { label: "Cost (MMK)", value: cost.toLocaleString(), cls: "" },
+            { label: "Profit (MMK)", value: profit.toLocaleString(), cls: profit >= 0 ? "text-green-600" : "text-destructive" },
+            { label: "Coins given", value: coins.toLocaleString(), cls: "text-green-600" },
+          ];
+          return (
+            <div className="space-y-1">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {items.map((i) => (
+                  <Card key={i.label}><CardContent className="p-3"><p className="text-xs text-muted-foreground">{i.label}</p><p className={cn("text-lg font-bold", i.cls)}>{i.value}</p></CardContent></Card>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground">{counted.length} orders shown (failed and cancelled orders not counted). Filters apply.</p>
+            </div>
+          );
+        })()}
         {filteredOrders.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             {hasActiveFilters ? (
