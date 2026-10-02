@@ -7,8 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
-import { KGAMESHOP_FLAG, KGAMESHOP_MERGE_FLAG } from "@/hooks/useGameCatalog";
-import { supabase } from "@/integrations/supabase/client";
+import { KGAMESHOP_FLAG, KGAMESHOP_MERGE_FLAG, KGAMESHOP_GAMES_URL } from "@/hooks/useGameCatalog";
 
 const KGameShopManage = () => {
   const navigate = useNavigate();
@@ -22,10 +21,12 @@ const KGameShopManage = () => {
     setTesting(true);
     setResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("kgameshop-games");
-      if (error) throw error;
-      if (!data?.ok) throw new Error(data?.error || "KGameShop request failed");
-      setResult({ ok: true, message: `Connected. ${(data.games || []).length} games received.` });
+      const res = await fetch(KGAMESHOP_GAMES_URL, { headers: { Accept: "application/json" } });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const data: any = await res.json();
+      if (data?.ok === false) throw new Error(data?.error || "KGameShop request failed");
+      const list = Array.isArray(data?.games) ? data.games : Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      setResult({ ok: true, message: `Connected. ${list.length} games received.` });
     } catch (e: any) {
       setResult({ ok: false, message: e?.message || "Could not reach KGameShop" });
     } finally {

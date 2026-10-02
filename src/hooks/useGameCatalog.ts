@@ -24,6 +24,9 @@ export interface GameCatalogItem {
 /** Feature flag key controlling where the game list comes from. */
 export const KGAMESHOP_FLAG = "kgameshop_game_list";
 
+/** VPS proxy endpoint for the KGameShop game list (read-only, no auth). */
+export const KGAMESHOP_GAMES_URL = "https://study.kaungcomputer.com/api/kgameshop/games";
+
 /** When enabled (default), manual games stay visible alongside KGameShop games. */
 export const KGAMESHOP_MERGE_FLAG = "kgameshop_merge_manual";
 
@@ -63,15 +66,27 @@ export const useGameCatalog = (includeInactive = false) => {
     if (useKGameShop) {
       const manual = mergeManual ? await loadManual().catch(() => []) : [];
       try {
-        const { data, error: fnError } = await supabase.functions.invoke("kgameshop-games");
-        if (fnError) throw fnError;
-        if (!data?.ok) throw new Error(data?.error || "KGameShop request failed");
-        const apiGames: GameCatalogItem[] = (data.games || []).map((g: any, i: number) => ({
-          id: String(g.id),
-          category_key: String(g.category_key ?? g.id),
-          name: String(g.name),
-          short_name: g.short_name ?? g.name,
-          image_url: g.image_url ?? null,
+        const res = await fetch(KGAMESHOP_GAMES_URL, { headers: { Accept: "application/json" } });
+        if (!res.ok) throw new Error(`Game list request failed (${res.status})`);
+        const data: any = await res.json();
+        if (data?.ok === false) throw new Error(data?.error || "Game list request failed");
+        // Handle the actual response shape: { ok, games: [...] }, but tolerate
+        // a bare array or a { data: [...] } wrapper.
+        const list: any[] = Array.isArray(data?.games)
+          ? data.games
+          : Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data)
+              ? data
+              : [];
+        const apiGames: GameCatalogItem[] = list
+          .filter((g: any) => g && (g.game || g.slug || g.id))
+          .map((g: any, i: number) => ({
+          id: String(g.game ?? g.slug ?? g.id),
+          category_key: String(g.game ?? g.slug ?? g.id),
+          name: String(g.name ?? g.title ?? "Game"),
+          short_name: g.short_name ?? g.name ?? null,
+          image_url: g.icon ?? g.image ?? g.image_url ?? null,
           requires_server_id: false,
           nickname_key: null,
           display_order: typeof g.display_order === "number" ? g.display_order : i,
