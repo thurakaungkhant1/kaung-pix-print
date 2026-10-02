@@ -200,6 +200,9 @@ const ApiSettings = () => {
               <span className="text-sm font-semibold text-muted-foreground">MMK</span>
             </div>
             <p className="text-xs text-muted-foreground">VPS USD prices are multiplied by this rate and rounded to the nearest MMK.</p>
+            <Button onClick={handleSave} disabled={saving} className="w-full">
+              {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : "Save MMK Rate"}
+            </Button>
           </CardContent>
         </Card>
 

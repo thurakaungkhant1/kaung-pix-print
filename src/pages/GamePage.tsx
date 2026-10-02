@@ -62,6 +62,8 @@ interface Product {
   description: string | null;
   category: string;
   points_value: number;
+  kgameshop_enabled?: boolean;
+  kgameshop_product_id?: string | null;
   diamond_tier?: string | null;
   event_ends_at?: string | null;
   event_label?: string | null;
@@ -938,7 +940,8 @@ const GamePage = () => {
 
               {selectedGame.source === "kgameshop" ? (
                 <KGameShopProducts
-                  game={selectedGame.apiSlug}
+                  products={gameProducts.filter((product) => product.kgameshop_enabled)}
+                  onSelect={(product) => handleSelectPackage(product as Product)}
                   onChooseAnother={() => {
                     setSelectedGameCategory(null);
                     setNameCheckResult(null);
