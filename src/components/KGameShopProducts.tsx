@@ -75,7 +75,8 @@ export function KGameShopProducts({ game, onChooseAnother }: { game: string; onC
 
   const r = state.result;
   if (!r || !r.ok) {
-    const disabled = r && !r.ok && /disabled|unavailable/i.test(`${r.code} ${r.error}`);
+    const err = r as { error?: string; code?: string } | null;
+    const disabled = /disabled|unavailable/i.test(`${err?.code ?? ""} ${err?.error ?? ""}`);
     return (
       <div className="rounded-2xl border border-border/60 bg-card p-5 text-center space-y-3">
         <AlertCircle className="h-8 w-8 mx-auto text-destructive" />
@@ -83,7 +84,7 @@ export function KGameShopProducts({ game, onChooseAnother }: { game: string; onC
           {disabled ? "Products are currently unavailable for this game" : "Could not load products"}
         </p>
         <p className="text-xs text-muted-foreground">
-          {disabled ? "ဒီဂိမ်းအတွက် package တွေ လောလောဆယ် မရနိုင်ပါ။ တခြားဂိမ်း ရွေးပါ။" : r && !r.ok ? r.error : ""}
+          {disabled ? "ဒီဂိမ်းအတွက် package တွေ လောလောဆယ် မရနိုင်ပါ။ တခြားဂိမ်း ရွေးပါ။" : err?.error ?? ""}
         </p>
         <div className="flex justify-center gap-2">
           {!disabled && (
