@@ -129,6 +129,8 @@ const GamePage = () => {
         cardAccent: g.card_accent || "#F5B301",
         showDiscountBadge: g.show_discount_badge !== false,
         priceSuffix: g.price_suffix || "MMK",
+        source: g.source || "manual",
+        apiSlug: g.category_key,
       })),
     [catalogGames]
   );
@@ -155,6 +157,7 @@ const GamePage = () => {
   const [nameCheckLoading, setNameCheckLoading] = useState(false);
   const [nameCheckResult, setNameCheckResult] = useState<{ ok: boolean; name?: string; message?: string } | null>(null);
   const [nameCheckError, setNameCheckError] = useState<{ id?: string; server?: string }>({});
+  const [gameSearch, setGameSearch] = useState("");
 
   const nicknameGameKey = (cat: string | null): string | null =>
     GAME_CATEGORIES.find((g) => g.id === cat)?.nicknameKey || null;
@@ -548,7 +551,7 @@ const GamePage = () => {
   // For new layout: track inline player credentials
   const selectedGame =
     GAME_CATEGORIES.find(g => g.id === selectedGameCategory) ||
-    GAME_CATEGORIES[0] || { id: "", name: "", icon: Diamond, color: "text-primary", image: FALLBACK_GAME_IMAGE, requiresServerId: false, nicknameKey: null, cardStyle: "default", cardAccent: "#F5B301", showDiscountBadge: true, priceSuffix: "MMK" };
+    GAME_CATEGORIES[0] || { id: "", name: "", icon: Diamond, color: "text-primary", image: FALLBACK_GAME_IMAGE, requiresServerId: false, nicknameKey: null, cardStyle: "default", cardAccent: "#F5B301", showDiscountBadge: true, priceSuffix: "MMK", source: "manual", apiSlug: "" };
   const cardStyle = (selectedGame as any).cardStyle || "default";
   const cardAccent = (selectedGame as any).cardAccent || "#F5B301";
   const showDiscountBadge = (selectedGame as any).showDiscountBadge !== false;
@@ -557,6 +560,9 @@ const GamePage = () => {
     .filter(p => p.category === selectedGame.id)
     .sort((a, b) => a.price - b.price);
   const needsServer = requiresServerId(selectedGame.id);
+  const visibleGames = GAME_CATEGORIES.filter((game) =>
+    game.name.toLocaleLowerCase().includes(gameSearch.trim().toLocaleLowerCase())
+  );
 
 
 
@@ -702,28 +708,33 @@ const GamePage = () => {
                   <h2 className="text-base font-display font-bold tracking-tight">Choose a Game</h2>
                   <p className="text-[11px] text-muted-foreground">Instant top-up, official rates</p>
                 </div>
-                <div className="grid grid-cols-1 gap-3">
-                  {GAME_CATEGORIES.map((cat) => (
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={gameSearch}
+                    onChange={(event) => setGameSearch(event.target.value)}
+                    placeholder="Search games by name"
+                    aria-label="Search games by name"
+                    className="h-11 rounded-xl pl-9"
+                  />
+                </div>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-6">
+                  {visibleGames.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => setSelectedGameCategory(cat.id)}
-                      className="flex items-center gap-3 rounded-2xl bg-card border border-border/60 p-3 text-left hover:border-primary/40 hover:shadow-lg transition-all"
+                      className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl bg-card border border-border/60 p-1.5 text-center hover:border-primary/40 hover:shadow-lg transition-all"
                     >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
+                      <div className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
                         <img src={cat.image} alt={cat.name} loading="lazy" className="w-full h-full object-cover" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold truncate">{cat.name}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {products.filter(p => p.category === cat.id).length} packages available
-                        </p>
-                      </div>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
-                        <Zap className="h-2.5 w-2.5" /> Instant
-                      </span>
+                      <p className="line-clamp-2 min-h-7 w-full text-[10px] font-bold leading-tight">{cat.name}</p>
                     </button>
                   ))}
                 </div>
+                {visibleGames.length === 0 && (
+                  <div className="py-10 text-center text-sm text-muted-foreground">No games match “{gameSearch.trim()}”</div>
+                )}
               </section>
             ) : (
               <>
@@ -754,19 +765,6 @@ const GamePage = () => {
                 </Button>
               </div>
             </section>
-
-            {catalogGames.find((c) => c.category_key === selectedGame.id)?.source === "kgameshop" && (
-              <KGameShopProducts
-                game={selectedGame.id}
-                onChooseAnother={() => {
-                  setSelectedGameCategory(null);
-                  setNameCheckResult(null);
-                  setNameCheckError({});
-                }}
-              />
-            )}
-
-
 
             {/* Player Credentials */}
             <section className="relative overflow-hidden rounded-2xl bg-card/80 backdrop-blur-md border border-border/50 p-4 space-y-4 shadow-lg shadow-primary/5">
@@ -937,6 +935,18 @@ const GamePage = () => {
                 </div>
                 <span className="text-[11px] text-muted-foreground">{selectedGame.name}</span>
               </div>
+
+              {selectedGame.source === "kgameshop" ? (
+                <KGameShopProducts
+                  game={selectedGame.apiSlug}
+                  onChooseAnother={() => {
+                    setSelectedGameCategory(null);
+                    setNameCheckResult(null);
+                    setNameCheckError({});
+                  }}
+                />
+              ) : (
+                <>
 
               {/* Tier chip filter — swipeable with snap + active indicator */}
               {groupedDiamonds.length > 0 && (
@@ -1229,6 +1239,8 @@ const GamePage = () => {
                     </motion.div>
                   ))}
                 </div>
+              )}
+                </>
               )}
             </section>
               </>

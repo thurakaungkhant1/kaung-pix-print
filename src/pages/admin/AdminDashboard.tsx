@@ -937,6 +937,8 @@ const AdminDashboard = () => {
         { id: "deposits", label: "Deposits", icon: Wallet, badge: 0, route: "/admin/deposits" },
         { id: "wallets", label: "Wallet Management", icon: Wallet, badge: 0, route: "/admin/wallets" },
         { id: "payment-methods", label: "Payment Methods", icon: Wallet, badge: 0, route: "/admin/payment-methods" },
+        { id: "point-management", label: "Points", icon: Coins, badge: 0 },
+        { id: "point-history", label: "Point History", icon: History, badge: 0 },
       ]
     },
     {
@@ -944,7 +946,15 @@ const AdminDashboard = () => {
       items: [
         { id: "shop", label: "Shop", icon: Package, badge: 0 },
         { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
+        { id: "game-catalog", label: "Games", icon: Gamepad2, badge: 0, route: "/admin/game-catalog" },
+        { id: "kgameshop", label: "KGameShop API", icon: Zap, badge: 0, route: "/admin/kgameshop" },
+        { id: "mlbb-tiers", label: "MLBB Categories", icon: Gem, badge: 0, route: "/admin/diamond-tiers" },
         { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
+        { id: "digital-products", label: "Digital Products", icon: ShoppingCart, badge: 0, route: "/admin/digital-products" },
+        { id: "shop-categories", label: "Shop Categories", icon: Package, badge: 0, route: "/admin/categories" },
+        { id: "photos", label: "Photos", icon: Image, badge: 0, route: "/admin/photos" },
+        { id: "banners", label: "Promo Banners", icon: Megaphone, badge: 0, route: "/admin/banners" },
+        { id: "support", label: "Support Inbox", icon: MessageCircle, badge: 0, route: "/admin/support" },
       ]
     },
       {

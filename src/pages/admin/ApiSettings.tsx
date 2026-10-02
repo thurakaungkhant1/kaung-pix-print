@@ -21,6 +21,7 @@ const ApiSettings = () => {
   const [smileApiKey, setSmileApiKey] = useState("");
   const [smilePartnerId, setSmilePartnerId] = useState("");
   const [autoTopupEnabled, setAutoTopupEnabled] = useState(false);
+  const [usdToMmkRate, setUsdToMmkRate] = useState("4500");
   const [apiStatus, setApiStatus] = useState<"unknown" | "connected" | "error">("unknown");
 
   useEffect(() => {
@@ -32,7 +33,7 @@ const ApiSettings = () => {
       const { data } = await supabase
         .from("ad_settings")
         .select("*")
-        .in("setting_key", ["smile_api_key", "smile_partner_id", "auto_topup_enabled"]);
+        .in("setting_key", ["smile_api_key", "smile_partner_id", "auto_topup_enabled", "usd_to_mmk_rate"]);
 
       if (data) {
         data.forEach((setting) => {
@@ -45,6 +46,9 @@ const ApiSettings = () => {
               break;
             case "auto_topup_enabled":
               setAutoTopupEnabled(setting.setting_value === "true");
+              break;
+            case "usd_to_mmk_rate":
+              setUsdToMmkRate(setting.setting_value);
               break;
           }
         });
@@ -74,12 +78,18 @@ const ApiSettings = () => {
   };
 
   const handleSave = async () => {
+    const rate = Number(usdToMmkRate);
+    if (!Number.isFinite(rate) || rate <= 0) {
+      toast({ title: "Invalid exchange rate", description: "Enter a valid MMK amount for 1 USD", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       await Promise.all([
         saveSetting("smile_api_key", smileApiKey, "Smile.one API Key for auto top-up"),
         saveSetting("smile_partner_id", smilePartnerId, "Smile.one Partner ID"),
         saveSetting("auto_topup_enabled", autoTopupEnabled.toString(), "Enable auto top-up feature"),
+        saveSetting("usd_to_mmk_rate", String(rate), "MMK value of 1 USD for VPS game products"),
       ]);
 
       if (smileApiKey) {
@@ -167,6 +177,29 @@ const ApiSettings = () => {
                 {apiStatus === "connected" ? <><CheckCircle className="h-3 w-3 mr-1" />Active</> : <><AlertCircle className="h-3 w-3 mr-1" />Inactive</>}
               </Badge>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>VPS Product Exchange Rate</CardTitle>
+            <CardDescription>Set the MMK selling price used for products returned in USD.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Label htmlFor="usd_to_mmk_rate">1 USD equals</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="usd_to_mmk_rate"
+                type="number"
+                min="1"
+                step="1"
+                inputMode="numeric"
+                value={usdToMmkRate}
+                onChange={(event) => setUsdToMmkRate(event.target.value)}
+              />
+              <span className="text-sm font-semibold text-muted-foreground">MMK</span>
+            </div>
+            <p className="text-xs text-muted-foreground">VPS USD prices are multiplied by this rate and rounded to the nearest MMK.</p>
           </CardContent>
         </Card>
 
