@@ -1,7 +1,7 @@
 // KGameShop package purchase + auto top-up via the owner's VPS.
 // Price is computed server-side from the VPS catalog and the admin MMK rate.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { VPS, applyProvider as applyShared, checkProviderStatus, notifyKgOrder } from "../_shared/kgameshop.ts";
+import { VPS, applyProvider as applyShared, checkPlayer, checkProviderStatus, notifyKgOrder } from "../_shared/kgameshop.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -38,11 +38,19 @@ Deno.serve(async (req) => {
     return json({ ok: true, status: (r as any).status });
   }
 
+  const game = String(body.game || "").trim().slice(0, 100);
+  const playerId = String(body.player_id || "").trim().slice(0, 100);
+  const serverId = String(body.server_id || "").trim().slice(0, 50) || null;
+  const region = String(body.region || "").trim().slice(0, 20) || null;
+
+  // Buyer: verify player name only (no charge)
+  if (body.action === "check_player") {
+    if (!game || !playerId) return json({ error: "game and player_id are required" }, 400);
+    return json(await checkPlayer({ game, player_id: playerId, server_id: serverId, region }));
+  }
+
   // Buyer: purchase a VPS package
-  const game = String(body.game || "").trim();
   const productId = String(body.product_id || "").trim();
-  const playerId = String(body.player_id || "").trim();
-  const serverId = String(body.server_id || "").trim() || null;
   if (!game || !productId || !playerId) return json({ error: "game, product_id and player_id are required" }, 400);
 
   const catRes = await fetch(`${VPS}/products?game=${encodeURIComponent(game)}`, { headers: { Accept: "application/json" } });
@@ -50,6 +58,11 @@ Deno.serve(async (req) => {
   const list = Array.isArray(cat) ? cat : cat?.products || cat?.data || [];
   const item = list.find((p: any) => String(p.product_id) === productId);
   if (!catRes.ok || !item) return json({ error: "Package is not available" }, 400);
+
+  // Re-verify the player server-side before charging; block if not found or can_pay is false.
+  const player = await checkPlayer({ game, player_id: playerId, server_id: serverId, region: region || cat?.region || null });
+  if (!player.ok) return json({ error: player.message || "Player name could not be verified" }, 400);
+  if (!player.can_pay) return json({ error: player.message || "This player cannot be topped up right now" }, 400);
 
   const { data: rateRow } = await admin.from("ad_settings").select("setting_value").eq("setting_key", "usd_to_mmk_rate").maybeSingle();
   const rate = Number(rateRow?.setting_value || 0);
@@ -77,7 +90,7 @@ Deno.serve(async (req) => {
   const { data: rpc, error: rpcErr } = await userDb.rpc("purchase_product_wallet", {
     p_product_id: productRowId, p_quantity: 1, p_game_id: playerId, p_server_id: serverId,
     p_phone_number: null, p_plan_id: null, p_plan_name: String(item.name), p_delivery_address: "",
-    p_player_name: body.player_name || null,
+    p_player_name: player.username,
   });
   if (rpcErr) return json({ error: rpcErr.message }, 400);
   const orderId = (rpc as any)?.[0]?.order_id as string;

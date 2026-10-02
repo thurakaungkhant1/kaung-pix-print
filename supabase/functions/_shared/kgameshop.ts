@@ -45,6 +45,31 @@ export async function checkProviderStatus(admin: any, orderId: string) {
   return { status };
 }
 
+// Verifies the player name via the VPS (server-side secret). Never charges anything.
+export async function checkPlayer(input: { game: string; player_id: string; server_id?: string | null; region?: string | null }) {
+  const secret = Deno.env.get("KGAMESHOP_VPS_SECRET");
+  if (!secret) return { ok: false, can_pay: false, message: "Player check is not configured" };
+  const payload: Record<string, string> = { game: input.game, player_id: input.player_id };
+  if (input.server_id) payload.server_id = input.server_id;
+  if (input.region) payload.region = input.region;
+  try {
+    const res = await fetch(`${VPS}/check-player`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Store-Secret": secret },
+      body: JSON.stringify(payload),
+    });
+    const r = await res.json().catch(() => ({}));
+    const d = r?.data && typeof r.data === "object" ? { ...r.data, ...r } : r;
+    const username = String(d?.username ?? d?.player_name ?? d?.nickname ?? d?.name ?? "").trim();
+    const ok = res.ok && d?.ok !== false && !!username;
+    const can_pay = ok && d?.can_pay !== false;
+    const message = String(d?.message || d?.error || (ok ? "" : `Player not found (${res.status})`)).slice(0, 200);
+    return { ok, can_pay, username: username || null, message };
+  } catch (_e) {
+    return { ok: false, can_pay: false, message: "Could not reach player check service" };
+  }
+}
+
 // Sends one Telegram message per distinct status; claims atomically to avoid duplicates.
 export async function notifyKgOrder(admin: any, orderId: string) {
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
@@ -72,6 +97,7 @@ export async function notifyKgOrder(admin: any, orderId: string) {
     line("🎮 Game", product?.kgameshop_game) +
     line("🎯 Player ID", o.game_id) +
     line("🌐 Server ID", o.server_id) +
+    line("🧑‍💻 Player Name", String(o.game_name ?? "").match(/\(([^)]+)\)\s*$/)?.[1] ?? null) +
     `💰 Price: ${new Intl.NumberFormat("en-US").format(Number(o.price) || 0)} MMK\n` +
     `👤 Customer: ${profile?.name ?? "Unknown"}\n` +
     line("🧾 Provider order", o.provider_order_id) +
