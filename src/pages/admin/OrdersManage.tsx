@@ -964,8 +964,9 @@ const OrdersManage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="finished">Finished</SelectItem>
+                      <SelectItem value="approved">Processing</SelectItem>
+                      <SelectItem value="finished">Completed</SelectItem>
+                      <SelectItem value="rejected">Failed (refund)</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
