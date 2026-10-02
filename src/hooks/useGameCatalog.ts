@@ -1,3 +1,4 @@
+import { kgameshopNeedsServer } from "@/lib/kgameshop";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -87,7 +88,7 @@ export const useGameCatalog = (includeInactive = false) => {
           name: String(g.name ?? g.title ?? "Game"),
           short_name: g.short_name ?? g.name ?? null,
           image_url: g.icon ?? g.image ?? g.image_url ?? null,
-          requires_server_id: true,
+          requires_server_id: kgameshopNeedsServer(String(g.game ?? g.slug ?? g.id)),
           nickname_key: null,
           display_order: typeof g.display_order === "number" ? g.display_order : i,
           is_active: true,
