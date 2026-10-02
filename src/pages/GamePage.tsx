@@ -180,7 +180,7 @@ const GamePage = () => {
     const t = setTimeout(async () => {
       try {
         const { data, error } = await supabase.functions.invoke("kgameshop-order", {
-          body: { action: "check_player", game: selectedGameCategory, player_id: id, server_id: zone || null },
+          body: { action: "check_player", game: selectedGameCategory, player_id: id, ...(zoneNeeded ? { server_id: zone } : {}) },
         });
         if (cancelled) return;
         const d: any = data || {};
@@ -517,7 +517,7 @@ const GamePage = () => {
             game: kg.game,
             product_id: kg.product_id,
             player_id: gameId.trim(),
-            server_id: serverId?.trim() || null,
+            ...(requiresServerId(selectedGameCategory || kg.game) ? { server_id: serverId.trim() } : {}),
             player_name: nameCheckResult?.ok ? nameCheckResult.name ?? null : null,
             icon: selectedProduct.image_url,
           },
