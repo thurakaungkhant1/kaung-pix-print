@@ -164,8 +164,41 @@ const GamePage = () => {
   const nicknameGameKey = (cat: string | null): string | null =>
     GAME_CATEGORIES.find((g) => g.id === cat)?.nicknameKey || null;
 
+  const selectedIsKg = GAME_CATEGORIES.find((g) => g.id === selectedGameCategory)?.source === "kgameshop";
+
+  // KGameShop games: verify the player via our server once the IDs are complete (debounced).
+  useEffect(() => {
+    if (!selectedIsKg || !selectedGameCategory) return;
+    const id = gameId.trim();
+    const zone = serverId.trim();
+    const zoneNeeded = !!GAME_CATEGORIES.find((g) => g.id === selectedGameCategory)?.requiresServerId;
+    setNameCheckError({});
+    setNameCheckResult(null);
+    if (id.length < 4 || (zoneNeeded && zone.length < 1)) { setNameCheckLoading(false); return; }
+    let cancelled = false;
+    setNameCheckLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("kgameshop-order", {
+          body: { action: "check_player", game: selectedGameCategory, player_id: id, server_id: zone || null },
+        });
+        if (cancelled) return;
+        const d: any = data || {};
+        if (error || !d.ok) setNameCheckResult({ ok: false, message: d.message || "Player not found" });
+        else if (!d.can_pay) setNameCheckResult({ ok: false, name: d.username, message: d.message || `${d.username}: cannot be topped up` });
+        else setNameCheckResult({ ok: true, name: d.username });
+      } catch {
+        if (!cancelled) setNameCheckResult({ ok: false, message: "Cannot retrieve game name" });
+      } finally {
+        if (!cancelled) setNameCheckLoading(false);
+      }
+    }, 900);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [gameId, serverId, selectedGameCategory, selectedIsKg, GAME_CATEGORIES]);
+
   // Auto check the in-game name whenever the player enters valid credentials
   useEffect(() => {
+    if (selectedIsKg) return;
     const key = nicknameGameKey(selectedGameCategory);
     const id = gameId.trim();
     const zone = serverId.trim();
@@ -201,7 +234,7 @@ const GamePage = () => {
     }, 600);
 
     return () => { cancelled = true; clearTimeout(t); };
-  }, [gameId, serverId, selectedGameCategory, GAME_CATEGORIES]);
+  }, [gameId, serverId, selectedGameCategory, GAME_CATEGORIES, selectedIsKg]);
 
 
   const handleCopyName = async () => {
@@ -470,6 +503,14 @@ const GamePage = () => {
     try {
       const kg = (selectedProduct as any).kg as { game: string; product_id: string } | undefined;
       if (kg) {
+        if (nameCheckLoading || !nameCheckResult?.ok) {
+          toast({
+            title: "Player not verified",
+            description: nameCheckLoading ? "Checking player name, please wait…" : nameCheckResult?.message || "Enter a valid Player ID to verify the player name",
+            variant: "destructive",
+          });
+          return;
+        }
         const { data, error } = await supabase.functions.invoke("kgameshop-order", {
           body: {
             game: kg.game,
