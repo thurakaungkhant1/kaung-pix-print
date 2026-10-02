@@ -468,6 +468,27 @@ const GamePage = () => {
     setPurchasing(true);
 
     try {
+      const kg = (selectedProduct as any).kg as { game: string; product_id: string } | undefined;
+      if (kg) {
+        const { data, error } = await supabase.functions.invoke("kgameshop-order", {
+          body: {
+            game: kg.game,
+            product_id: kg.product_id,
+            player_id: gameId.trim(),
+            server_id: serverId?.trim() || null,
+            player_name: nameCheckResult?.ok ? nameCheckResult.name ?? null : null,
+            icon: selectedProduct.image_url,
+          },
+        });
+        if (error || (data as any)?.error) throw new Error((data as any)?.error || error?.message || "Purchase failed");
+        setWalletBalance(Number((data as any).new_balance ?? walletBalance - selectedProduct.price));
+        setShowPurchaseDialog(false);
+        setShowSuccessDialog(true);
+        loadOrders();
+        loadProducts();
+        setPurchasing(false);
+        return;
+      }
       const { data: rpcData, error: rpcError } = await supabase.rpc("purchase_product_wallet", {
         p_product_id: selectedProduct.id,
         p_quantity: 1,
@@ -940,8 +961,11 @@ const GamePage = () => {
 
               {selectedGame.source === "kgameshop" ? (
                 <KGameShopProducts
-                  products={gameProducts.filter((product) => product.kgameshop_enabled)}
-                  onSelect={(product) => handleSelectPackage(product as Product)}
+                  game={(selectedGame as any).apiSlug || selectedGame.id}
+                  category={selectedGame.id}
+                  icon={selectedGame.image}
+                  saved={products.filter((p: any) => p.kgameshop_enabled && p.kgameshop_game === ((selectedGame as any).apiSlug || selectedGame.id)) as any}
+                  onSelect={(product) => handleSelectPackage(product as unknown as Product)}
                   onChooseAnother={() => {
                     setSelectedGameCategory(null);
                     setNameCheckResult(null);
