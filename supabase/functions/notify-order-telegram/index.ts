@@ -34,8 +34,15 @@ Deno.serve(async (req) => {
 
     const [{ data: profile }, { data: product }] = await Promise.all([
       supabase.from('profiles').select('name, wallet_balance').eq('id', order.user_id).maybeSingle(),
-      supabase.from('products').select('name, category').eq('id', order.product_id).maybeSingle(),
+      supabase.from('products').select('name, category, kgameshop_enabled').eq('id', order.product_id).maybeSingle(),
     ]);
+
+    // KGameShop API orders get their own notice (with "Check status") from kgameshop-order.
+    if (product?.kgameshop_enabled) {
+      return new Response(JSON.stringify({ ok: true, skipped: 'kgameshop' }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const balanceStr = `${new Intl.NumberFormat('en-US').format(Number(profile?.wallet_balance) || 0)} MMK`;
 

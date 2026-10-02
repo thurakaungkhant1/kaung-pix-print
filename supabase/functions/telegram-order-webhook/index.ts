@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { checkProviderStatus, notifyKgOrder } from '../_shared/kgameshop.ts';
 
 const CHAT_ID = '7642545999';
 const REJECT_PROMPT_PREFIX = 'Reject deposit ';
@@ -167,6 +168,20 @@ Deno.serve(async (req) => {
 
     await editMessage(chatId, messageId, newText);
     await tg('answerCallbackQuery', { callback_query_id: cb.id, text: 'Deposit approved ✅' });
+    return new Response(JSON.stringify({ ok: true }));
+  }
+
+  // -------- KGameShop API order: read-only status check --------
+  if (action === 'kgcheck') {
+    if (!entityId) {
+      await tg('answerCallbackQuery', { callback_query_id: cb.id, text: 'Invalid action' });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+    const r: any = await checkProviderStatus(supabase, entityId).catch((e) => ({ error: String(e) }));
+    const sent = await notifyKgOrder(supabase, entityId).catch(() => false);
+    const label: Record<string, string> = { approved: 'Processing', finished: 'Completed', rejected: 'Failed', cancelled: 'Cancelled', pending: 'Pending' };
+    const text = r.error && !r.status ? `⚠️ ${r.error}` : `Status: ${label[r.status] ?? r.status}${sent ? ' (changed)' : ' (no change)'}`;
+    await tg('answerCallbackQuery', { callback_query_id: cb.id, text, show_alert: true });
     return new Response(JSON.stringify({ ok: true }));
   }
 
