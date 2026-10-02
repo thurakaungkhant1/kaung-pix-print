@@ -22,10 +22,12 @@ const KGameShopManage = () => {
     setTesting(true);
     setResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("kgameshop-games");
-      if (error) throw error;
-      if (!data?.ok) throw new Error(data?.error || "KGameShop request failed");
-      setResult({ ok: true, message: `Connected. ${(data.games || []).length} games received.` });
+      const res = await fetch(KGAMESHOP_GAMES_URL, { headers: { Accept: "application/json" } });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const data: any = await res.json();
+      if (data?.ok === false) throw new Error(data?.error || "KGameShop request failed");
+      const list = Array.isArray(data?.games) ? data.games : Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      setResult({ ok: true, message: `Connected. ${list.length} games received.` });
     } catch (e: any) {
       setResult({ ok: false, message: e?.message || "Could not reach KGameShop" });
     } finally {
