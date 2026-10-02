@@ -1,30 +1,23 @@
-# AI App Upgrade Plan (existing project ထဲမှာ ဖြည့်စွက်)
+# Game Catalog and KGameShop Product Improvements
 
-လက်ရှိ project မှာ ရှိပြီးသား feature တွေ — auth, profiles, `ai_photo_generations`, `ai_usage_settings`, watermark, MLBB name checker (`verify-mlbb-player`), `premium_memberships`, `premium_plans`, manual deposits, admin panel — အပေါ်မှာ တင်ပြီး အောက်က phase တွေအတိုင်း ဖြည့်မယ်။ Phase တစ်ခုပြီးတိုင်း approve လုပ်ပြီးမှ နောက်တစ်ခုကို ဆက်မယ်။
+## What will change
+- Add a name search field to the View All game screen and filter the 200+ VPS games instantly.
+- Replace the current list with the same compact image-card grid style used on Home, using four columns on mobile and comfortable wider layouts on larger screens.
+- Keep Home limited to nine games; View All continues to show the full catalog.
+- Move VPS products below the Player ID / Server ID fields, inside the existing “Select Diamond” area.
+- Restyle VPS product choices to match the existing manually-added package cards rather than using a separate plain card design.
+- Convert `price_usd` to MMK throughout these VPS product cards.
+- Add an admin-editable USD → MMK exchange-rate setting, starting at **1 USD = 4,500 MMK**.
+- Add the mobile-only admin destinations, including KGameShop and related settings, to the desktop admin sidebar so they remain accessible on larger screens.
 
----
+## Behavior and states
+- Product requests remain lazy: only the selected game’s products are fetched.
+- Successful product responses remain cached per game for the browser session.
+- Loading, empty, network error, and `game_disabled` states remain available with retry or “choose another game” actions.
+- No KGameShop API key or direct KGameShop request will be added; the browser will use only the two existing VPS endpoints.
 
-## Phase 1 — Free / Premium Credit System (foundation)
-
-**Database (migration):**
-- `profiles` ထဲ ထပ်ထည့်: `daily_ai_credits int default 5`, `premium_ai_credits int default 0`, `total_ai_generations int default 0`, `daily_credits_reset_date date`
-- `ai_usage_settings` ထဲ ထပ်ထည့်: `free_daily_limit int default 5`, `premium_daily_limit int default 100`, `ai_paused boolean default false`, `free_styles text[]`, `premium_styles text[]`
-- New table `ai_styles` (id, key, label, tier `free|premium`, prompt_suffix, is_active, display_order)
-- Premium check helper: `is_premium_active(uuid)` SQL function reading `premium_memberships`
-
-**Edge function `ai-generate-photo` updates:**
-- Reset `daily_ai_credits` when `daily_credits_reset_date != today`
-- Block when `ai_paused = true` → return 503
-- Premium → consume `premium_ai_credits` (skip if `premium_daily_limit` not yet hit per day); Free → consume `daily_ai_credits`
-- Reject styles user can't access (free user picking premium style)
-- Increment `total_ai_generations`
-- Skip watermark for premium users
-
-**Frontend (`AIPhoto.tsx`):**
-- Show two counters: "Free credits today" + "Premium credits"
-- Premium upgrade modal when free user hits 0 → link `/premium`
-- Style picker: premium styles show 👑 badge, click → upgrade modal for free users
-
----
-
-## Phase 2 — Premium Styles +
+## Technical details
+- Preserve the VPS `game` slug through the catalog mapping and URL-encode it for product requests.
+- Store the global exchange rate as a protected admin-managed setting and read it for storefront price conversion.
+- Use the current semantic colors and existing card/control components.
+- Verify filtering, four-column mobile layout, selected-game product placement, MMK conversion at 4,500, desktop admin access, and current preview build health.
