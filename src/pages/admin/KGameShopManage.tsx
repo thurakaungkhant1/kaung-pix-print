@@ -111,7 +111,7 @@ const KGameShopManage = () => {
     const payload = {
       name: packageName.trim(), price: Number(packagePrice), cost_price: Math.round(selectedApiProduct.price_usd * Number(rate)),
       image_url: selectedGame.icon || "/placeholder.svg", description: selectedApiProduct.bundle_summary || null,
-      category: selectedGame.game, points_value: 0, status: "active", kgameshop_enabled: true,
+      category: selectedGame.game, points_value: 0, status: "available", kgameshop_enabled: true,
       kgameshop_game: selectedGame.game, kgameshop_product_id: selectedApiProduct.product_id, kgameshop_region: null,
     };
     const existingId = editingId || savedProducts.find((product) => product.kgameshop_product_id === selectedApiProduct.product_id)?.id || null;
