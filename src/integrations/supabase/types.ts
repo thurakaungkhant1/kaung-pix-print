@@ -1470,6 +1470,7 @@ export type Database = {
           smile_package_id: string | null
           status: string
           telegram_message_id: number | null
+          telegram_notified_status: string | null
           transaction_id: string | null
           user_id: string
         }
@@ -1505,6 +1506,7 @@ export type Database = {
           smile_package_id?: string | null
           status?: string
           telegram_message_id?: number | null
+          telegram_notified_status?: string | null
           transaction_id?: string | null
           user_id: string
         }
@@ -1540,6 +1542,7 @@ export type Database = {
           smile_package_id?: string | null
           status?: string
           telegram_message_id?: number | null
+          telegram_notified_status?: string | null
           transaction_id?: string | null
           user_id?: string
         }

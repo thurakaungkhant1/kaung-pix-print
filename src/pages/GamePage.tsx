@@ -480,7 +480,12 @@ const GamePage = () => {
             icon: selectedProduct.image_url,
           },
         });
-        if (error || (data as any)?.error) throw new Error((data as any)?.error || error?.message || "Purchase failed");
+        if (error) {
+          let msg = error.message;
+          try { const b = await (error as any).context?.json?.(); if (b?.error) msg = b.error; } catch { /* keep default */ }
+          throw new Error(msg);
+        }
+        if ((data as any)?.error) throw new Error((data as any).error);
         setWalletBalance(Number((data as any).new_balance ?? walletBalance - selectedProduct.price));
         setShowPurchaseDialog(false);
         setShowSuccessDialog(true);
