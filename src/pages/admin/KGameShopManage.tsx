@@ -65,14 +65,14 @@ const KGameShopManage = () => {
     setSelectedApiProduct(null);
     setEditingId(null);
     try {
-      const [response, saved] = await Promise.all([
-        fetch(`${KGAMESHOP_PRODUCTS_URL}?game=${encodeURIComponent(game)}`, { headers: { Accept: "application/json" } }),
-        (supabase as any).from("products").select("id,name,price,kgameshop_product_id,kgameshop_game").eq("kgameshop_enabled", true).eq("kgameshop_game", game).order("price"),
-      ]);
+      const response = await fetch(`${KGAMESHOP_PRODUCTS_URL}?game=${encodeURIComponent(game)}`, { headers: { Accept: "application/json" } });
       const body = await response.json();
       if (!response.ok || body?.ok === false) throw new Error(body?.message || body?.error || `Request failed (${response.status})`);
       const list = Array.isArray(body) ? body : Array.isArray(body?.products) ? body.products : Array.isArray(body?.data) ? body.data : [];
       setApiProducts(list.map((item: any) => ({ product_id: String(item.product_id), name: String(item.name), price_usd: Number(item.price_usd || 0), is_bundle: !!item.is_bundle, bundle_summary: item.bundle_summary })));
+      setProductsLoading(false);
+      const saved = await (supabase as any).from("products").select("id,name,price,kgameshop_product_id,kgameshop_game").eq("kgameshop_enabled", true).eq("kgameshop_game", game).order("price");
+      if (saved.error) throw saved.error;
       setSavedProducts((saved.data || []) as SavedProduct[]);
     } catch (error: any) {
       toast({ title: "Packages unavailable", description: error?.message || "Could not load packages", variant: "destructive" });
