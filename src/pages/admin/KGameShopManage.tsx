@@ -114,13 +114,14 @@ const KGameShopManage = () => {
       category: selectedGame.game, points_value: 0, status: "active", kgameshop_enabled: true,
       kgameshop_game: selectedGame.game, kgameshop_product_id: selectedApiProduct.product_id, kgameshop_region: null,
     };
-    const query = editingId
-      ? (supabase as any).from("products").update(payload).eq("id", editingId)
+    const existingId = editingId || savedProducts.find((product) => product.kgameshop_product_id === selectedApiProduct.product_id)?.id || null;
+    const query = existingId
+      ? (supabase as any).from("products").update(payload).eq("id", existingId)
       : (supabase as any).from("products").insert(payload);
     const { error } = await query;
     setSaving(false);
     if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
-    toast({ title: editingId ? "Package updated" : "Package added to shop" });
+    toast({ title: existingId ? "Package updated" : "Package added to shop" });
     setSelectedApiProduct(null); setEditingId(null); setPackageName(""); setPackagePrice("");
     void loadProducts(selectedGame.game);
   };
