@@ -36,6 +36,7 @@ const KGameShopManage = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [packageName, setPackageName] = useState("");
   const [packagePrice, setPackagePrice] = useState("");
+  const [packageCoins, setPackageCoins] = useState("0");
 
   useEffect(() => { void loadGames(); void loadRate(); }, []);
   useEffect(() => { if (selectedGame) void loadProducts(selectedGame.game); }, [selectedGame]);
@@ -71,7 +72,7 @@ const KGameShopManage = () => {
       const list = Array.isArray(body) ? body : Array.isArray(body?.products) ? body.products : Array.isArray(body?.data) ? body.data : [];
       setApiProducts(list.map((item: any) => ({ product_id: String(item.product_id), name: String(item.name), price_usd: Number(item.price_usd || 0), is_bundle: !!item.is_bundle, bundle_summary: item.bundle_summary })));
       setProductsLoading(false);
-      const saved = await (supabase as any).from("products").select("id,name,price,kgameshop_product_id,kgameshop_game").eq("kgameshop_enabled", true).eq("kgameshop_game", game).order("price");
+      const saved = await (supabase as any).from("products").select("id,name,price,cost_price,points_value,kgameshop_product_id,kgameshop_game").eq("kgameshop_enabled", true).eq("kgameshop_game", game).order("price");
       if (saved.error) throw saved.error;
       setSavedProducts((saved.data || []) as SavedProduct[]);
     } catch (error: any) {
@@ -84,6 +85,7 @@ const KGameShopManage = () => {
     setEditingId(null);
     setPackageName(product.name);
     setPackagePrice(String(Math.round(product.price_usd * Number(rate || 0))));
+    setPackageCoins(String(savedProducts.find((p) => p.kgameshop_product_id === product.product_id)?.points_value ?? 0));
   };
 
   const editSaved = (product: SavedProduct) => {
@@ -91,6 +93,7 @@ const KGameShopManage = () => {
     setSelectedApiProduct(apiProducts.find((item) => item.product_id === product.kgameshop_product_id) || null);
     setPackageName(product.name);
     setPackagePrice(String(product.price));
+    setPackageCoins(String(product.points_value ?? 0));
   };
 
   const saveRate = async () => {
@@ -111,7 +114,7 @@ const KGameShopManage = () => {
     const payload = {
       name: packageName.trim(), price: Number(packagePrice), cost_price: Math.round(selectedApiProduct.price_usd * Number(rate)),
       image_url: selectedGame.icon || "/placeholder.svg", description: selectedApiProduct.bundle_summary || null,
-      category: selectedGame.game, points_value: 0, status: "available", kgameshop_enabled: true,
+      category: selectedGame.game, points_value: Math.max(0, Math.round(Number(packageCoins) || 0)), status: "available", kgameshop_enabled: true,
       kgameshop_game: selectedGame.game, kgameshop_product_id: selectedApiProduct.product_id, kgameshop_region: null,
     };
     const existingId = editingId || savedProducts.find((product) => product.kgameshop_product_id === selectedApiProduct.product_id)?.id || null;
@@ -122,7 +125,7 @@ const KGameShopManage = () => {
     setSaving(false);
     if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
     toast({ title: existingId ? "Package updated" : "Package added to shop" });
-    setSelectedApiProduct(null); setEditingId(null); setPackageName(""); setPackagePrice("");
+    setSelectedApiProduct(null); setEditingId(null); setPackageName(""); setPackagePrice(""); setPackageCoins("0");
     void loadProducts(selectedGame.game);
   };
 
@@ -158,8 +161,8 @@ const KGameShopManage = () => {
         {selectedGame && <div className="grid items-start gap-4 lg:grid-cols-2">
           <Card><CardHeader><CardTitle className="text-base">{selectedGame.name} VPS Packages</CardTitle></CardHeader><CardContent>{productsLoading ? <Loader2 className="mx-auto h-6 w-6 animate-spin" /> : apiProducts.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">Products are unavailable for this game.</p> : <div className="space-y-2">{apiProducts.map((product) => <Button key={product.product_id} variant={selectedApiProduct?.product_id === product.product_id ? "secondary" : "outline"} className="h-auto w-full justify-between gap-3 p-3 text-left" onClick={() => chooseProduct(product)}><span className="whitespace-normal text-sm font-medium">{product.name}</span><span className="shrink-0 text-right text-xs"><strong>${product.price_usd.toFixed(2)}</strong><br />{Math.round(product.price_usd * Number(rate || 0)).toLocaleString()} MMK</span></Button>)}</div>}</CardContent></Card>
           <div className="space-y-4">
-            <Card><CardHeader><CardTitle className="text-base">{editingId ? "Edit Store Package" : "Add Store Package"}</CardTitle></CardHeader><CardContent className="space-y-3"><div><Label>VPS package</Label><p className="mt-1 text-sm text-muted-foreground">{selectedApiProduct?.name || "Choose a VPS package from the list"}</p></div><div><Label htmlFor="package-name">Package name</Label><Input id="package-name" value={packageName} onChange={(e) => setPackageName(e.target.value)} /></div><div><Label htmlFor="package-price">Selling price (MMK)</Label><Input id="package-price" type="number" min="1" value={packagePrice} onChange={(e) => setPackagePrice(e.target.value)} /></div><Button className="w-full" onClick={savePackage} disabled={saving || !selectedApiProduct}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{editingId ? "Update package" : "Add package to shop"}</Button></CardContent></Card>
-            <Card><CardHeader><CardTitle className="text-base">Packages in Shop <Badge variant="secondary">{savedProducts.length}</Badge></CardTitle></CardHeader><CardContent className="space-y-2">{savedProducts.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">No saved packages yet.</p> : savedProducts.map((product) => <div key={product.id} className="flex items-center gap-2 rounded-lg border p-3"><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{product.name}</p><p className="text-xs text-primary">{Number(product.price).toLocaleString()} MMK</p></div><Button size="icon" variant="ghost" onClick={() => editSaved(product)}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" onClick={() => deletePackage(product.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></div>)}</CardContent></Card>
+            <Card><CardHeader><CardTitle className="text-base">{editingId ? "Edit Store Package" : "Add Store Package"}</CardTitle></CardHeader><CardContent className="space-y-3"><div><Label>VPS package</Label><p className="mt-1 text-sm text-muted-foreground">{selectedApiProduct?.name || "Choose a VPS package from the list"}</p></div><div><Label htmlFor="package-name">Package name</Label><Input id="package-name" value={packageName} onChange={(e) => setPackageName(e.target.value)} /></div><div><Label htmlFor="package-price">Selling price (MMK)</Label><Input id="package-price" type="number" min="1" value={packagePrice} onChange={(e) => setPackagePrice(e.target.value)} /></div><div><Label htmlFor="package-coins">Coins given to buyer</Label><Input id="package-coins" type="number" min="0" value={packageCoins} onChange={(e) => setPackageCoins(e.target.value)} /></div>{selectedApiProduct && (() => { const cost = Math.round(selectedApiProduct.price_usd * Number(rate || 0)); const profit = Number(packagePrice || 0) - cost; return <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/50 p-2 text-center text-xs"><div><p className="text-muted-foreground">Cost</p><p className="font-semibold">{cost.toLocaleString()}</p></div><div><p className="text-muted-foreground">Price</p><p className="font-semibold">{Number(packagePrice || 0).toLocaleString()}</p></div><div><p className="text-muted-foreground">Profit</p><p className={profit >= 0 ? "font-semibold text-green-600" : "font-semibold text-destructive"}>{profit.toLocaleString()}</p></div></div>; })()}<Button className="w-full" onClick={savePackage} disabled={saving || !selectedApiProduct}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{editingId ? "Update package" : "Add package to shop"}</Button></CardContent></Card>
+            <Card><CardHeader><CardTitle className="text-base">Packages in Shop <Badge variant="secondary">{savedProducts.length}</Badge></CardTitle></CardHeader><CardContent className="space-y-2">{savedProducts.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">No saved packages yet.</p> : savedProducts.map((product) => <div key={product.id} className="flex items-center gap-2 rounded-lg border p-3"><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{product.name}</p><p className="text-xs text-primary">{Number(product.price).toLocaleString()} MMK · {product.points_value ?? 0} coins</p><p className="text-[11px] text-muted-foreground">Cost {Number(product.cost_price || 0).toLocaleString()} · Profit {(Number(product.price) - Number(product.cost_price || 0)).toLocaleString()} MMK</p></div><Button size="icon" variant="ghost" onClick={() => editSaved(product)}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" onClick={() => deletePackage(product.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></div>)}</CardContent></Card>
           </div>
         </div>}
       </div>
