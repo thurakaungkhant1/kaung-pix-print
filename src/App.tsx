@@ -1,3 +1,4 @@
+import DesktopTopNav from "@/components/DesktopTopNav";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import OfflineGame from "@/components/OfflineGame";
@@ -212,6 +213,7 @@ const App = () => {
               <AdminDepositNotifier />
               <PresenceTracker />
               <BanGate />
+              <DesktopTopNav />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />
