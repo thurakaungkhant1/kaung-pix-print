@@ -57,3 +57,6 @@ verify_jwt = false
 
 [functions.kgameshop-poll]
 verify_jwt = false
+
+[functions.kokhant-orders-webhook]
+verify_jwt = false
