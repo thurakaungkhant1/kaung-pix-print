@@ -52,6 +52,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import EventCountdown from "@/components/EventCountdown";
+import { fetchKgSchema, type KgSchema } from "@/lib/kgameshop";
 
 interface Product {
   id: number;
@@ -166,12 +167,25 @@ const GamePage = () => {
 
   const selectedIsKg = GAME_CATEGORIES.find((g) => g.id === selectedGameCategory)?.source === "kgameshop";
 
+  // KGameShop account-field schema (server is the source of truth).
+  const [kgSchema, setKgSchema] = useState<KgSchema | null>(null);
+  useEffect(() => {
+    setKgSchema(null);
+    if (!selectedIsKg || !selectedGameCategory) return;
+    let live = true;
+    fetchKgSchema(selectedGameCategory).then((s) => { if (live) setKgSchema(s); }).catch(() => {});
+    return () => { live = false; };
+  }, [selectedIsKg, selectedGameCategory]);
+  const kgFields = selectedIsKg ? kgSchema?.fields ?? null : null;
+  const kgFieldBody = () =>
+    Object.fromEntries((kgFields ?? []).map((f, i) => [f.key, (i === 0 ? gameId : serverId).trim()]));
+
   // KGameShop games: verify the player via our server once the IDs are complete (debounced).
   useEffect(() => {
-    if (!selectedIsKg || !selectedGameCategory) return;
+    if (!selectedIsKg || !selectedGameCategory || !kgFields) return;
     const id = gameId.trim();
     const zone = serverId.trim();
-    const zoneNeeded = !!GAME_CATEGORIES.find((g) => g.id === selectedGameCategory)?.requiresServerId;
+    const zoneNeeded = kgFields.length > 1;
     setNameCheckError({});
     setNameCheckResult(null);
     if (id.length < 4 || (zoneNeeded && zone.length < 1)) { setNameCheckLoading(false); return; }
@@ -180,7 +194,7 @@ const GamePage = () => {
     const t = setTimeout(async () => {
       try {
         const { data, error } = await supabase.functions.invoke("kgameshop-order", {
-          body: { action: "check_player", game: selectedGameCategory, player_id: id, ...(zoneNeeded ? { server_id: zone } : {}) },
+          body: { action: "check_player", game: selectedGameCategory, fields: kgFieldBody() },
         });
         if (cancelled) return;
         const d: any = data || {};
@@ -194,7 +208,7 @@ const GamePage = () => {
       }
     }, 900);
     return () => { cancelled = true; clearTimeout(t); };
-  }, [gameId, serverId, selectedGameCategory, selectedIsKg, GAME_CATEGORIES]);
+  }, [gameId, serverId, selectedGameCategory, selectedIsKg, kgSchema]);
 
   // Auto check the in-game name whenever the player enters valid credentials
   useEffect(() => {
@@ -392,9 +406,12 @@ const GamePage = () => {
     return MOBILE_CATEGORIES.some(cat => cat.id === category);
   };
 
-  // Admin decides per game whether a Server / Zone ID is needed
-  const requiresServerId = (category: string) =>
-    !!GAME_CATEGORIES.find((g) => g.id === category)?.requiresServerId;
+  // Admin decides per game whether a Server / Zone ID is needed; KGameShop uses the server schema
+  const requiresServerId = (category: string) => {
+    const g = GAME_CATEGORIES.find((x) => x.id === category);
+    if (g?.source === "kgameshop") return (kgFields?.length ?? 1) > 1;
+    return !!g?.requiresServerId;
+  };
 
   const getFilteredProducts = () => {
     if (activeCategory === "games") {
@@ -516,8 +533,7 @@ const GamePage = () => {
           body: {
             game: kg.game,
             product_id: kg.product_id,
-            player_id: gameId.trim(),
-            ...(requiresServerId(selectedGameCategory || kg.game) ? { server_id: serverId.trim() } : {}),
+            fields: kgFieldBody(),
             player_name: nameCheckResult?.ok ? nameCheckResult.name ?? null : null,
             icon: selectedProduct.image_url,
           },
@@ -641,9 +657,13 @@ const GamePage = () => {
   // Clash of Clans uses a player tag or a Supercell ID (email)
   const isCoc = (cat: string | null | undefined) => cat === "Clash of Clans";
   const idLabel = (cat: string | null | undefined) =>
+    kgFields?.[0] ? kgFields[0].label :
     isCoc(cat) ? (cocIdType === "supercell" ? "Supercell ID (Email)" : "Player Tag") : "Player ID";
   const idPlaceholder = (cat: string | null | undefined) =>
+    kgFields?.[0]?.placeholder ? kgFields[0].placeholder :
     isCoc(cat) ? (cocIdType === "supercell" ? "you@example.com" : "#XXXXXXXX") : "12345678";
+  const serverLabel = kgFields?.[1]?.label ?? "Server ID";
+  const serverPlaceholder = kgFields?.[1]?.placeholder ?? "1234";
 
 
   // Tier classification for diamond/UC packages
@@ -897,11 +917,11 @@ const GamePage = () => {
                     <div className="h-5 w-5 rounded-md bg-accent/15 flex items-center justify-center">
                       <svg viewBox="0 0 24 24" className="h-3 w-3 text-accent" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
                     </div>
-                    <Label className="text-xs font-semibold text-foreground/90">Server ID</Label>
+                    <Label className="text-xs font-semibold text-foreground/90">{serverLabel}</Label>
                   </div>
                   <div className="relative group/input">
                     <Input
-                      placeholder="1234"
+                      placeholder={serverPlaceholder}
                       value={serverId}
                       onChange={(e) => setServerId(e.target.value)}
                       className="h-12 pl-10 pr-4 rounded-xl bg-background/60 border-border/60 focus-visible:border-accent/50 focus-visible:ring-2 focus-visible:ring-accent/20 transition-all duration-300 text-base font-semibold tracking-wide placeholder:font-normal"
