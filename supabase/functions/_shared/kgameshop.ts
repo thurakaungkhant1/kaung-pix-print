@@ -46,10 +46,10 @@ export async function checkProviderStatus(admin: any, orderId: string) {
 }
 
 // Verifies the player name via the VPS (server-side secret). Never charges anything.
-export async function checkPlayer(input: { game: string; player_id: string; server_id?: string | null; region?: string | null }) {
+export async function checkPlayer(input: { game: string; player_id: string; server_id?: string | null; region?: string | null; fields?: Record<string, string> }) {
   const secret = Deno.env.get("KGAMESHOP_VPS_SECRET");
   if (!secret) return { ok: false, can_pay: false, message: "Player check is not configured" };
-  const payload: Record<string, string> = { game: input.game, player_id: input.player_id };
+  const payload: Record<string, string> = { ...(input.fields || {}), game: input.game, player_id: input.player_id };
   if (input.server_id) payload.server_id = input.server_id;
   if (input.region) payload.region = input.region;
   try {
@@ -117,6 +117,40 @@ export async function notifyKgOrder(admin: any, orderId: string) {
   return r.ok;
 }
 
-// VPS game slugs needing a Server/Zone ID; keep in sync with src/lib/kgameshop.ts.
-export const KGAMESHOP_SERVER_GAMES = ["mobile-legends", "magic-chess"];
-export const kgameshopNeedsServer = (game: string) => KGAMESHOP_SERVER_GAMES.includes(game);
+// Central account-field schema per VPS game slug (the VPS exposes no field metadata).
+// Only verified games are listed. Field order maps to orders.game_id / orders.server_id.
+export type KgField = { key: string; label: string; placeholder?: string };
+export const KG_ACCOUNT_SCHEMAS: Record<string, KgField[]> = {
+  "mobile-legends": [
+    { key: "user_id", label: "User ID", placeholder: "12345678" },
+    { key: "zone_id", label: "Zone ID", placeholder: "1234" },
+  ],
+  "magic-chess": [
+    { key: "user_id", label: "User ID", placeholder: "12345678" },
+    { key: "zone_id", label: "Zone ID", placeholder: "1234" },
+  ],
+  "k-pubgm": [{ key: "player_id", label: "Player ID", placeholder: "5123456789" }],
+};
+// Unverified games keep the legacy single Player ID behaviour and are flagged verified:false.
+export const getAccountSchema = (game: string) => {
+  const fields = KG_ACCOUNT_SCHEMAS[game];
+  return fields
+    ? { game, fields, verified: true }
+    : { game, fields: [{ key: "player_id", label: "Player ID", placeholder: "12345678" }] as KgField[], verified: false };
+};
+export const kgameshopNeedsServer = (game: string) => getAccountSchema(game).fields.length > 1;
+
+// Reads schema values from body.fields (by key) with legacy player_id/server_id fallback.
+export function readAccountFields(game: string, body: any) {
+  const { fields } = getAccountSchema(game);
+  const src = body?.fields && typeof body.fields === "object" ? body.fields : {};
+  const legacy = [body?.player_id, body?.server_id];
+  const values: Record<string, string> = {};
+  const missing: string[] = [];
+  fields.forEach((f, i) => {
+    const v = String(src[f.key] ?? legacy[i] ?? "").trim().slice(0, 100);
+    if (!v) missing.push(f.label); else values[f.key] = v;
+  });
+  const ordered = fields.map((f) => values[f.key] || "");
+  return { fields, values, missing, playerId: ordered[0] || "", serverId: ordered[1] || null };
+}
