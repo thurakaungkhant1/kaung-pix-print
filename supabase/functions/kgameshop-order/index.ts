@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
   if (!catRes.ok || !item) return json({ error: "Package is not available" }, 400);
 
   // Re-verify the player server-side before charging; block if not found or can_pay is false.
-  const player = await checkPlayer({ game, player_id: playerId, server_id: serverId, region: region || cat?.region || null });
+  const player = await checkPlayer({ game, player_id: playerId, server_id: serverId, region: region || cat?.region || null, fields: fieldValues });
   if (!player.ok) return json({ error: player.message || "Player name could not be verified" }, 400);
   if (!player.can_pay) return json({ error: player.message || "This player cannot be topped up right now" }, 400);
 
@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
     const res = await fetch(`${VPS}/order`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Store-Secret": secret },
-      body: JSON.stringify({ reference: orderId, game, product_id: productId, player_id: playerId, server_id: serverId }),
+      body: JSON.stringify({ ...fieldValues, reference: orderId, game, product_id: productId, player_id: playerId, server_id: serverId }),
     });
     const r = await res.json().catch(() => ({}));
     status = await applyProvider(orderId, r, res.ok);
