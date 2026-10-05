@@ -1,7 +1,7 @@
 // KGameShop package purchase + auto top-up via the owner's VPS.
 // Price is computed server-side from the VPS catalog and the admin MMK rate.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { VPS, applyProvider as applyShared, checkPlayer, kgameshopNeedsServer, checkProviderStatus, notifyKgOrder } from "../_shared/kgameshop.ts";
+import { VPS, applyProvider as applyShared, checkPlayer, readAccountFields, getAccountSchema, checkProviderStatus, notifyKgOrder } from "../_shared/kgameshop.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +12,11 @@ const json = (o: unknown, status = 200) =>
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  // Public, read-only: account-field schema for a game (no secrets involved).
+  if (req.method === "GET") {
+    const g = new URL(req.url).searchParams.get("schema");
+    if (g) return json({ ok: true, ...getAccountSchema(g.slice(0, 100)) });
+  }
   const auth = req.headers.get("Authorization") || "";
   if (!auth.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
 
@@ -60,21 +65,22 @@ Deno.serve(async (req) => {
   }
 
   const game = String(body.game || "").trim().slice(0, 100);
-  const playerId = String(body.player_id || "").trim().slice(0, 100);
-  const needsServer = kgameshopNeedsServer(game);
-  const serverId = needsServer ? String(body.server_id || "").trim().slice(0, 50) || null : null;
-  if (needsServer && !serverId) return json({ error: "Server ID is required for this game" }, 400);
+  if (!game) return json({ error: "game is required" }, 400);
+  const acct = readAccountFields(game, body);
+  if (acct.missing.length) return json({ error: `${acct.missing.join(", ")} required for this game` }, 400);
+  const playerId = acct.playerId;
+  const serverId = acct.serverId;
+  const fieldValues = acct.values;
   const region = String(body.region || "").trim().slice(0, 20) || null;
 
   // Buyer: verify player name only (no charge)
   if (body.action === "check_player") {
-    if (!game || !playerId) return json({ error: "game and player_id are required" }, 400);
-    return json(await checkPlayer({ game, player_id: playerId, server_id: serverId, region }));
+    return json(await checkPlayer({ game, player_id: playerId, server_id: serverId, region, fields: fieldValues }));
   }
 
   // Buyer: purchase a VPS package
   const productId = String(body.product_id || "").trim();
-  if (!game || !productId || !playerId) return json({ error: "game, product_id and player_id are required" }, 400);
+  if (!productId) return json({ error: "product_id is required" }, 400);
 
   const catRes = await fetch(`${VPS}/products?game=${encodeURIComponent(game)}`, { headers: { Accept: "application/json" } });
   const cat = await catRes.json().catch(() => ({}));
@@ -83,7 +89,7 @@ Deno.serve(async (req) => {
   if (!catRes.ok || !item) return json({ error: "Package is not available" }, 400);
 
   // Re-verify the player server-side before charging; block if not found or can_pay is false.
-  const player = await checkPlayer({ game, player_id: playerId, server_id: serverId, region: region || cat?.region || null });
+  const player = await checkPlayer({ game, player_id: playerId, server_id: serverId, region: region || cat?.region || null, fields: fieldValues });
   if (!player.ok) return json({ error: player.message || "Player name could not be verified" }, 400);
   if (!player.can_pay) return json({ error: player.message || "This player cannot be topped up right now" }, 400);
 
@@ -131,7 +137,7 @@ Deno.serve(async (req) => {
     const res = await fetch(`${VPS}/order`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Store-Secret": secret },
-      body: JSON.stringify({ reference: orderId, game, product_id: productId, player_id: playerId, server_id: serverId }),
+      body: JSON.stringify({ ...fieldValues, reference: orderId, game, product_id: productId, player_id: playerId, server_id: serverId }),
     });
     const r = await res.json().catch(() => ({}));
     status = await applyProvider(orderId, r, res.ok);
