@@ -95,8 +95,8 @@ export async function notifyKgOrder(admin: any, orderId: string) {
     `🆔 Order ID: #${String(o.id).slice(0, 8).toUpperCase()}\n` +
     `📦 Package: ${product?.name ?? o.plan_name ?? "-"}\n` +
     line("🎮 Game", product?.kgameshop_game) +
-    line("🎯 Player ID", o.game_id) +
-    line("🌐 Server ID", o.server_id) +
+    line(`🎯 ${getAccountSchema(String(product?.kgameshop_game ?? "")).fields[0]?.label ?? "Player ID"}`, o.game_id) +
+    line(`🌐 ${getAccountSchema(String(product?.kgameshop_game ?? "")).fields[1]?.label ?? "Server ID"}`, o.server_id) +
     line("🧑‍💻 Player Name", String(o.game_name ?? "").match(/\(([^)]+)\)\s*$/)?.[1] ?? null) +
     `💰 Price: ${new Intl.NumberFormat("en-US").format(Number(o.price) || 0)} MMK\n` +
     `👤 Customer: ${profile?.name ?? "Unknown"}\n` +
