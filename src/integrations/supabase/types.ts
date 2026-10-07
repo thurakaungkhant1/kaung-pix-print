@@ -2352,6 +2352,30 @@ export type Database = {
           },
         ]
       }
+      resellers: {
+        Row: {
+          created_at: string
+          discount_usd: number
+          email: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_usd?: number
+          email: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_usd?: number
+          email?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shop_categories: {
         Row: {
           created_at: string
@@ -2834,6 +2858,20 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      purchase_kg_reseller: {
+        Args: {
+          p_discount_mmk: number
+          p_game_id: string
+          p_player_name: string
+          p_product_id: number
+          p_server_id: string
+          p_user_id: string
+        }
+        Returns: {
+          new_balance: number
+          order_id: string
+        }[]
       }
       purchase_product_wallet: {
         Args: {
