@@ -37,6 +37,12 @@ export function KGameShopProducts({
 }) {
   const [items, setItems] = useState<KGameShopProduct[] | null>(cache.get(game) || null);
   const [rate, setRate] = useState<number | null>(rateCache);
+  // Reseller discount for the signed-in user (RLS returns only their own row); server re-applies it.
+  const [resellerUsd, setResellerUsd] = useState(0);
+  useEffect(() => {
+    (supabase as any).from("resellers").select("discount_usd").maybeSingle()
+      .then(({ data }: any) => setResellerUsd(Number(data?.discount_usd || 0)));
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -88,12 +94,13 @@ export function KGameShopProducts({
   }
 
   const r = rate || 4500;
+  const discount = Math.round(resellerUsd * r);
   const packages: KGameShopPackage[] = items.map((p, i) => {
     const s = saved.find((x) => x.kgameshop_product_id === p.product_id && x.kgameshop_region !== "auto");
     return {
       id: -(i + 1),
       name: s?.name || p.name,
-      price: s ? Number(s.price) : Math.round(p.price_usd * r),
+      price: Math.max((s ? Number(s.price) : Math.round(p.price_usd * r)) - discount, 0),
       image_url: icon || "/placeholder.svg",
       description: p.bundle_summary || null,
       category,
