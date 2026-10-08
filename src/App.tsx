@@ -108,6 +108,7 @@ const ApiSettings = lazy(() => import("./pages/admin/ApiSettings"));
 const GamePointsManage = lazy(() => import("./pages/admin/GamePointsManage"));
 const GameCatalogManage = lazy(() => import("./pages/admin/GameCatalogManage"));
 const KGameShopManage = lazy(() => import("./pages/admin/KGameShopManage"));
+const ResellersManage = lazy(() => import("./pages/admin/ResellersManage"));
 const NotificationsManage = lazy(() => import("./pages/admin/NotificationsManage"));
 const MiniGamesManage = lazy(() => import("./pages/admin/MiniGamesManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
@@ -369,6 +370,14 @@ const App = () => {
                   element={
                     <ProtectedAdminRoute>
                       <KGameShopManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/resellers"
+                  element={
+                    <ProtectedAdminRoute>
+                      <ResellersManage />
                     </ProtectedAdminRoute>
                   }
                 />

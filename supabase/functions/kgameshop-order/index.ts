@@ -116,11 +116,22 @@ Deno.serve(async (req) => {
     await admin.from("products").update({ cost_price: autoPrice }).eq("id", productRowId);
   }
 
-  const { data: rpc, error: rpcErr } = await userDb.rpc("purchase_product_wallet", {
-    p_product_id: productRowId, p_quantity: 1, p_game_id: playerId, p_server_id: serverId,
-    p_phone_number: null, p_plan_id: null, p_plan_name: String(item.name), p_delivery_address: "",
-    p_player_name: player.username,
-  });
+  // Reseller discount (USD × rate), looked up by the signed-in email; never below API cost.
+  const email = String((claims?.claims as any)?.email || "").toLowerCase();
+  const { data: reseller } = email
+    ? await admin.from("resellers").select("discount_usd").eq("email", email).maybeSingle()
+    : { data: null };
+  const discountMmk = Math.round(Number(reseller?.discount_usd || 0) * rate);
+  const { data: rpc, error: rpcErr } = discountMmk > 0
+    ? await admin.rpc("purchase_kg_reseller", {
+        p_user_id: uid, p_product_id: productRowId, p_discount_mmk: discountMmk,
+        p_game_id: playerId, p_server_id: serverId, p_player_name: player.username,
+      })
+    : await userDb.rpc("purchase_product_wallet", {
+        p_product_id: productRowId, p_quantity: 1, p_game_id: playerId, p_server_id: serverId,
+        p_phone_number: null, p_plan_id: null, p_plan_name: String(item.name), p_delivery_address: "",
+        p_player_name: player.username,
+      });
   if (rpcErr) return json({ error: rpcErr.message }, 400);
   const orderId = (rpc as any)?.[0]?.order_id as string;
   const newBalance = (rpc as any)?.[0]?.new_balance;

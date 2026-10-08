@@ -6,3 +6,4 @@
 - Desktop (lg+) uses the global `DesktopTopNav` and widened `MobileLayout` containers while mobile keeps `BottomNav`; auth pages are excluded so the sign-in screens stay unchanged.
 - Receive provider order-status webhooks only through the `kokhant-orders-webhook` function, authenticated by a shared server-side secret and applied with conditional, final-state-safe updates; this keeps duplicate deliveries harmless.
 - Define KGameShop account fields only in `KG_ACCOUNT_SCHEMAS` (`_shared/kgameshop.ts`), served via `kgameshop-order?schema=<game>`; the VPS exposes no field metadata, so this is the single source of truth for UI, validation and VPS payloads.
+- Apply reseller discounts (`public.resellers`, USD per package, matched by login email) server-side in `kgameshop-order` via the service-only `purchase_kg_reseller` RPC; the browser only displays the discounted price.

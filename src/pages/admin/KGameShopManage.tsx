@@ -158,7 +158,7 @@ const KGameShopManage = () => {
   return (
     <MobileLayout className="pb-24">
       <header className="sticky top-0 z-40 bg-gradient-primary p-4 text-primary-foreground">
-        <div className="flex items-center gap-3"><Button variant="ghost" size="icon" onClick={() => navigate("/admin")}><ArrowLeft /></Button><Cloud /><div><h1 className="text-lg font-bold">KGameShop API</h1><p className="text-xs opacity-80">VPS games, packages and MMK prices</p></div></div>
+        <div className="flex items-center gap-3"><Button variant="ghost" size="icon" onClick={() => navigate("/admin")}><ArrowLeft /></Button><Cloud /><div className="flex-1"><h1 className="text-lg font-bold">KGameShop API</h1><p className="text-xs opacity-80">VPS games, packages and MMK prices</p></div><Button variant="secondary" size="sm" onClick={() => navigate("/admin/resellers")}>Resellers</Button></div>
       </header>
       <div className="mx-auto max-w-screen-xl space-y-4 p-4">
         <div className="grid gap-4 lg:grid-cols-2">
