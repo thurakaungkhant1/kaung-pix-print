@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
   // Reseller discount (USD × rate), looked up by the signed-in email; never below API cost.
   const email = String((claims?.claims as any)?.email || "").toLowerCase();
   const { data: reseller } = email
-    ? await admin.from("resellers").select("discount_usd").ilike("email", email).maybeSingle()
+    ? await admin.from("resellers").select("discount_usd").eq("email", email).maybeSingle()
     : { data: null };
   const discountMmk = Math.round(Number(reseller?.discount_usd || 0) * rate);
   const { data: rpc, error: rpcErr } = discountMmk > 0
