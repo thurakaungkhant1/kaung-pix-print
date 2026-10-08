@@ -7,3 +7,4 @@
 - Receive provider order-status webhooks only through the `kokhant-orders-webhook` function, authenticated by a shared server-side secret and applied with conditional, final-state-safe updates; this keeps duplicate deliveries harmless.
 - Define KGameShop account fields only in `KG_ACCOUNT_SCHEMAS` (`_shared/kgameshop.ts`), served via `kgameshop-order?schema=<game>`; the VPS exposes no field metadata, so this is the single source of truth for UI, validation and VPS payloads.
 - Apply reseller discounts (`public.resellers`, USD per package, matched by login email) server-side in `kgameshop-order` via the service-only `purchase_kg_reseller` RPC; the browser only displays the discounted price.
+- Scope reseller profile styling to the Account container and read membership from the existing RLS-protected resellers table by login email; this avoids changing other pages or using discount amounts as membership flags.

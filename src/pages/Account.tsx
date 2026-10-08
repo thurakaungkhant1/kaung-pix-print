@@ -67,6 +67,7 @@ const Account = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMobileAdmin, setIsMobileAdmin] = useState(false);
+  const [resellerEmail, setResellerEmail] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -133,6 +134,41 @@ const Account = () => {
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const loginEmail = user?.email?.trim().toLowerCase() || null;
+  const isReseller = loginEmail !== null && resellerEmail === loginEmail;
+
+  useEffect(() => {
+    let cancelled = false;
+    let checking = false;
+    setResellerEmail(null);
+    if (!loginEmail) return;
+
+    const checkReseller = async () => {
+      if (checking) return;
+      checking = true;
+      try {
+        // Existing RLS protects reseller membership; never read another email.
+        const { data, error } = await supabase.from("resellers")
+          .select("id").eq("email", loginEmail).maybeSingle();
+        if (!cancelled) setResellerEmail(!error && data ? loginEmail : null);
+      } catch {
+        if (!cancelled) setResellerEmail(null);
+      } finally {
+        checking = false;
+      }
+    };
+    const onFocus = () => { void checkReseller(); };
+    void checkReseller();
+    // Pick up admin additions/removals while this account page stays open.
+    const interval = window.setInterval(onFocus, 30000);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [loginEmail, user?.id]);
 
   useEffect(() => {
     if (user) { loadProfile(); checkAdmin(); loadWithdrawalSettings(); loadFavCounts(); loadReferrals(); loadCoinTxns(); }
@@ -445,7 +481,7 @@ const Account = () => {
 
   return (
     <AnimatedPage>
-    <MobileLayout className="pb-24 bg-background">
+    <MobileLayout className={cn("pb-24 bg-background", isReseller && "reseller-profile")}>
       {/* Header */}
       <div className="px-5 pt-6 pb-3">
         <h1 className="text-[22px] font-bold tracking-tight">Profile & Settings</h1>
@@ -453,7 +489,7 @@ const Account = () => {
 
       {/* Profile card */}
       <div className="px-4">
-        <div className="relative rounded-2xl bg-foreground text-background px-4 py-4 flex items-center gap-3 shadow-sm">
+        <div className={cn("relative rounded-2xl text-background px-4 py-4 flex items-center gap-3 shadow-sm", isReseller ? "bg-primary" : "bg-foreground")}>
           <div className="relative cursor-pointer" onClick={() => fileInputRef.current?.click()}>
             <Avatar className="h-14 w-14 border-2 border-background/20">
               <AvatarImage src={avatarPreview || profile?.avatar_url || defaultAvatar} alt="Profile" className="object-cover" />
