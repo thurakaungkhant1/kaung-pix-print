@@ -42,6 +42,12 @@
 
     --nav-bg: 160 25% 10%;
     --nav-active: 160 84% 38%;
+    --nav-foreground: 150 15% 96%;
+    --nav-muted: 160 10% 68%;
+
+    /* Gold highlight used for coins, badges and promo accents */
+    --highlight: 42 96% 56%;
+    --highlight-foreground: 30 60% 12%;
 
     --gradient-primary: linear-gradient(135deg, hsl(160 84% 30%), hsl(160 70% 40%));
     --gradient-hero: linear-gradient(145deg, hsl(160 25% 8%), hsl(160 30% 14%), hsl(160 84% 30% / 0.25));
@@ -1138,5 +1144,5 @@
 
 /* Desktop game-shop layout: page sticky headers sit under the fixed top nav */
 @media (min-width: 1024px) {
-  body.has-desktop-topnav .sticky.top-0 { top: 4rem; }
+  body.has-desktop-topnav .sticky.top-0 { top: 6.75rem; }
 }

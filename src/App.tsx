@@ -1,4 +1,5 @@
 import DesktopTopNav from "@/components/DesktopTopNav";
+import DesktopFooter from "@/components/DesktopFooter";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import OfflineGame from "@/components/OfflineGame";
@@ -767,6 +768,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              <DesktopFooter />
               </MusicProvider>
             </LanguageProvider>
           </AuthProvider>

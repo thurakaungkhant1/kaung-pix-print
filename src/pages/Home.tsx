@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import appLogo from "@/assets/app-logo.png";
 import NotificationBell from "@/components/NotificationBell";
 import { useGameCatalog } from "@/hooks/useGameCatalog";
+import DesktopHome from "@/components/DesktopHome";
 
 
 interface PromotionalBanner {
@@ -234,6 +235,20 @@ const Home = () => {
       <OnboardingFlow isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       <AnimatedPage>
         <MobileLayout className="max-w-screen-xl mx-auto bg-background">
+          <DesktopHome
+            games={catalogGames}
+            gamesLoading={gamesLoading}
+            gamesError={gamesError}
+            reloadGames={reloadGames}
+            banners={banners}
+            bannerBackground={(b: any) =>
+              `linear-gradient(135deg, ${getBannerColor(b.gradient_from)}, ${b.gradient_via ? getBannerColor(b.gradient_via) + ',' : ''} ${getBannerColor(b.gradient_to)})`
+            }
+            walletBalance={walletBalance}
+            totalCoins={totalCoins}
+            signedIn={!!user}
+          />
+          <div className="lg:hidden">
           {/* ── Hero: brand, balance card, quick actions ── */}
           <header className="px-5 pt-6 pb-2">
             <motion.div
@@ -551,9 +566,10 @@ const Home = () => {
 
 
           {/* Photo Gallery section removed */}
-          <AdBanner pageLocation="home" position="inline" className="px-5 mt-6" />
+          </div>
+          <AdBanner pageLocation="home" position="inline" className="px-5 mt-6 lg:mx-auto lg:max-w-7xl lg:px-8 lg:mt-12" />
 
-          <div className="text-center py-4 pb-24 mt-4">
+          <div className="text-center py-4 pb-24 mt-4 lg:hidden">
             <p className="text-[10px] text-muted-foreground/50 tracking-wide">created by thurakaungkhant</p>
           </div>
         </MobileLayout>

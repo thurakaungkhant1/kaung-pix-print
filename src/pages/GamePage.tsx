@@ -319,6 +319,8 @@ const GamePage = () => {
     const g = searchParams.get("g") || "";
     setActiveCategory("games");
     setSelectedGameCategory(g || null);
+    const q = searchParams.get("q");
+    if (q !== null) setGameSearch(q);
   }, [searchParams]);
 
 
@@ -748,7 +750,7 @@ const GamePage = () => {
     <AnimatedPage>
     <MobileLayout>
       {/* Premium Header */}
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border/40">
+      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border/40 lg:hidden">
         <div className="flex items-center justify-between px-4 h-14">
           <button
             onClick={() => window.history.back()}
@@ -766,7 +768,31 @@ const GamePage = () => {
         </div>
       </header>
 
-      <div className="max-w-screen-md lg:max-w-6xl mx-auto p-4 pb-28 space-y-5">
+      {/* Desktop page banner */}
+      <section className="hidden lg:block bg-nav text-nav-foreground">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-8 py-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-nav-active">
+              {shopMode ? "Digital & Mobile" : "Game Top-Up"}
+            </p>
+            <h1 className="mt-1 text-3xl font-display font-black tracking-tight">
+              {shopMode ? "Shop" : selectedGameCategory ? selectedGame.name : "Choose your game"}
+            </h1>
+            <p className="mt-1 text-sm text-nav-muted">
+              {shopMode ? "Gift cards, phone top-up and data plans" : "Instant delivery · Official rates · Secure wallet payment"}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 rounded-2xl border border-nav-foreground/15 bg-nav-foreground/5 px-5 py-3">
+            <CreditCard className="h-5 w-5 text-nav-active" />
+            <div className="leading-tight">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-nav-muted">Wallet balance</p>
+              <p className="text-lg font-bold tabular-nums">{walletBalance.toLocaleString()} <span className="text-xs text-nav-muted">MMK</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-screen-md lg:max-w-6xl mx-auto p-4 pb-28 space-y-5 lg:pt-8 lg:pb-8">
         <Tabs value={activeCategory} className="w-full" onValueChange={(v) => setActiveCategory(v)}>
           <TabsList className={cn("grid w-full mb-2 h-11 bg-card/60 border border-border/50", shopMode ? ((mobileServicesEnabled ? 1 : 0) + (digitalProductsEnabled ? 1 : 0) >= 2 ? "grid-cols-2" : "grid-cols-1") : "grid-cols-2")}>
             {!shopMode && (
@@ -808,17 +834,17 @@ const GamePage = () => {
                     className="h-11 rounded-xl pl-9"
                   />
                 </div>
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-6">
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-6 lg:gap-4 xl:grid-cols-7">
                   {visibleGames.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => setSelectedGameCategory(cat.id)}
-                      className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl bg-card border border-border/60 p-1.5 text-center hover:border-primary/40 hover:shadow-lg transition-all"
+                      className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl bg-card border border-border/60 p-1.5 text-center hover:border-primary/40 hover:shadow-lg transition-all lg:rounded-2xl lg:p-2 lg:gap-2 lg:hover:-translate-y-1 lg:duration-300"
                     >
-                      <div className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                        <img src={cat.image} alt={cat.name} loading="lazy" className="w-full h-full object-cover" />
+                      <div className="w-full aspect-square rounded-lg overflow-hidden bg-muted lg:rounded-xl">
+                        <img src={cat.image} alt={cat.name} loading="lazy" className="w-full h-full object-cover lg:transition-transform lg:duration-500 lg:group-hover:scale-110" />
                       </div>
-                      <p className="line-clamp-2 min-h-7 w-full text-[10px] font-bold leading-tight">{cat.name}</p>
+                      <p className="line-clamp-2 min-h-7 w-full text-[10px] font-bold leading-tight lg:text-sm lg:min-h-10">{cat.name}</p>
                     </button>
                   ))}
                 </div>

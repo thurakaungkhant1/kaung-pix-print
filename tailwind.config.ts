@@ -54,6 +54,12 @@ export default {
         nav: {
           DEFAULT: "hsl(var(--nav-bg))",
           active: "hsl(var(--nav-active))",
+          foreground: "hsl(var(--nav-foreground))",
+          muted: "hsl(var(--nav-muted))",
+        },
+        highlight: {
+          DEFAULT: "hsl(var(--highlight))",
+          foreground: "hsl(var(--highlight-foreground))",
         },
         chat: {
           pink: "hsl(var(--chat-pink))",
