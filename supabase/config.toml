@@ -60,3 +60,6 @@ verify_jwt = false
 
 [functions.kokhant-orders-webhook]
 verify_jwt = false
+
+[functions.mlbb-events-sync]
+verify_jwt = false

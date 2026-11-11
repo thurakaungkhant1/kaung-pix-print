@@ -1297,6 +1297,171 @@ export type Database = {
         }
         Relationships: []
       }
+      mlbb_event_source_items: {
+        Row: {
+          analyzed_at: string | null
+          content_hash: string | null
+          events_found: number
+          first_seen_at: string
+          last_error: string | null
+          last_seen_at: string
+          published_on: string | null
+          source_name: string
+          title: string | null
+          url: string
+        }
+        Insert: {
+          analyzed_at?: string | null
+          content_hash?: string | null
+          events_found?: number
+          first_seen_at?: string
+          last_error?: string | null
+          last_seen_at?: string
+          published_on?: string | null
+          source_name: string
+          title?: string | null
+          url: string
+        }
+        Update: {
+          analyzed_at?: string | null
+          content_hash?: string | null
+          events_found?: number
+          first_seen_at?: string
+          last_error?: string | null
+          last_seen_at?: string
+          published_on?: string | null
+          source_name?: string
+          title?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
+      mlbb_event_sync_runs: {
+        Row: {
+          articles_analyzed: number
+          articles_checked: number
+          errors: Json
+          events_found: number
+          finished_at: string | null
+          id: string
+          inserted: number
+          sources: Json
+          started_at: string
+          status: string
+          trigger: string
+          triggered_by: string | null
+          unchanged: number
+          updated: number
+        }
+        Insert: {
+          articles_analyzed?: number
+          articles_checked?: number
+          errors?: Json
+          events_found?: number
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          sources?: Json
+          started_at?: string
+          status?: string
+          trigger?: string
+          triggered_by?: string | null
+          unchanged?: number
+          updated?: number
+        }
+        Update: {
+          articles_analyzed?: number
+          articles_checked?: number
+          errors?: Json
+          events_found?: number
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          sources?: Json
+          started_at?: string
+          status?: string
+          trigger?: string
+          triggered_by?: string | null
+          unchanged?: number
+          updated?: number
+        }
+        Relationships: []
+      }
+      mlbb_events: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          evidence: string | null
+          id: string
+          image_permitted: boolean
+          image_url: string | null
+          last_synced_at: string | null
+          needs_review: boolean
+          origin: string
+          review_status: string
+          schedule_changed_at: string | null
+          show_topup: boolean
+          source_name: string | null
+          source_url: string | null
+          starts_at: string | null
+          title: string
+          title_key: string | null
+          updated_at: string
+          verification: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          evidence?: string | null
+          id?: string
+          image_permitted?: boolean
+          image_url?: string | null
+          last_synced_at?: string | null
+          needs_review?: boolean
+          origin?: string
+          review_status?: string
+          schedule_changed_at?: string | null
+          show_topup?: boolean
+          source_name?: string | null
+          source_url?: string | null
+          starts_at?: string | null
+          title: string
+          title_key?: string | null
+          updated_at?: string
+          verification?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          evidence?: string | null
+          id?: string
+          image_permitted?: boolean
+          image_url?: string | null
+          last_synced_at?: string | null
+          needs_review?: boolean
+          origin?: string
+          review_status?: string
+          schedule_changed_at?: string | null
+          show_topup?: boolean
+          source_name?: string | null
+          source_url?: string | null
+          starts_at?: string | null
+          title?: string
+          title_key?: string | null
+          updated_at?: string
+          verification?: string
+        }
+        Relationships: []
+      }
       mobile_operators: {
         Row: {
           code: string
@@ -2850,6 +3015,7 @@ export type Database = {
       }
       is_premium_active: { Args: { _user_id: string }; Returns: boolean }
       max_game_points_for: { Args: { _game: string }; Returns: number }
+      mlbb_events_last_sync: { Args: never; Returns: string }
       move_to_dlq: {
         Args: {
           dlq_name: string
