@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/desktop-hero.jpg";
 import type { GameCatalogItem } from "@/hooks/useGameCatalog";
+import MlbbEventsSection from "@/components/mlbb/MlbbEventsSection";
 
 interface Banner {
   id: string;
@@ -72,6 +73,26 @@ const DesktopHome = ({
 
   const popular = games.slice(0, 12);
   const current = slides ? banners[slide % slides] : null;
+
+  const renderTile = (g: GameCatalogItem) => (
+                  <button
+                    key={g.category_key}
+                    onClick={() => navigate(`/game?g=${encodeURIComponent(g.category_key)}`)}
+                    className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl"
+                  >
+                    <div className="aspect-[4/5] overflow-hidden bg-muted">
+                      <img src={g.image_url || "/images/games/mobile-legends.png"} alt={g.name} loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-nav via-nav/85 to-transparent p-3 pt-10 text-nav-foreground">
+                      <p className="truncate text-sm font-bold">{g.short_name || g.name}</p>
+                      <p className="flex items-center gap-1 text-[11px] text-nav-muted"><Zap className="h-3 w-3 text-nav-active" /> Instant top-up</p>
+                    </div>
+                    <span className="absolute right-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                      Top Up
+                    </span>
+                  </button>
+  );
 
   return (
     <div className="hidden lg:block">
@@ -199,33 +220,24 @@ const DesktopHome = ({
         ) : (
           <div className="grid grid-cols-6 gap-5">
             {gamesLoading && popular.length === 0
-              ? Array.from({ length: 12 }).map((_, i) => (
+              ? Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="overflow-hidden rounded-2xl border border-border bg-card">
                     <div className="aspect-[4/5] animate-pulse bg-muted" />
                   </div>
                 ))
-              : popular.map((g) => (
-                  <button
-                    key={g.category_key}
-                    onClick={() => navigate(`/game?g=${encodeURIComponent(g.category_key)}`)}
-                    className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl"
-                  >
-                    <div className="aspect-[4/5] overflow-hidden bg-muted">
-                      <img src={g.image_url || "/images/games/mobile-legends.png"} alt={g.name} loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-nav via-nav/85 to-transparent p-3 pt-10 text-nav-foreground">
-                      <p className="truncate text-sm font-bold">{g.short_name || g.name}</p>
-                      <p className="flex items-center gap-1 text-[11px] text-nav-muted"><Zap className="h-3 w-3 text-nav-active" /> Instant top-up</p>
-                    </div>
-                    <span className="absolute right-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                      Top Up
-                    </span>
-                  </button>
-                ))}
+              : popular.slice(0, 6).map(renderTile)}
           </div>
         )}
       </section>
+
+      {/* ── MLBB events (after the first Popular Games row) ── */}
+      <MlbbEventsSection variant="desktop" />
+
+      {!gamesError && popular.length > 6 && (
+        <section className="mx-auto mt-10 max-w-7xl px-8" aria-label="More popular games">
+          <div className="grid grid-cols-6 gap-5">{popular.slice(6).map(renderTile)}</div>
+        </section>
+      )}
 
       {/* ── How it works ── */}
       <section className="mx-auto mt-14 max-w-7xl px-8">

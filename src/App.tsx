@@ -110,6 +110,8 @@ const GamePointsManage = lazy(() => import("./pages/admin/GamePointsManage"));
 const GameCatalogManage = lazy(() => import("./pages/admin/GameCatalogManage"));
 const KGameShopManage = lazy(() => import("./pages/admin/KGameShopManage"));
 const ResellersManage = lazy(() => import("./pages/admin/ResellersManage"));
+const MlbbEventsManage = lazy(() => import("./pages/admin/MlbbEventsManage"));
+const MlbbEvents = lazy(() => import("./pages/MlbbEvents"));
 const NotificationsManage = lazy(() => import("./pages/admin/NotificationsManage"));
 const MiniGamesManage = lazy(() => import("./pages/admin/MiniGamesManage"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory"));
@@ -382,6 +384,15 @@ const App = () => {
                     </ProtectedAdminRoute>
                   }
                 />
+                <Route
+                  path="/admin/mlbb-events"
+                  element={
+                    <ProtectedAdminRoute>
+                      <MlbbEventsManage />
+                    </ProtectedAdminRoute>
+                  }
+                />
+                <Route path="/mlbb-events" element={<ProtectedRoute><MlbbEvents /></ProtectedRoute>} />
 
                 <Route
                   path="/admin/notifications"

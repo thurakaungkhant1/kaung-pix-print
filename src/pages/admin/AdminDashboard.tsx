@@ -948,6 +948,7 @@ const AdminDashboard = () => {
         { id: "products", label: "Products", icon: Package, badge: 0, route: "/admin/products" },
         { id: "game-catalog", label: "Games", icon: Gamepad2, badge: 0, route: "/admin/game-catalog" },
         { id: "kgameshop", label: "KGameShop API", icon: Zap, badge: 0, route: "/admin/kgameshop" },
+        { id: "mlbb-events", label: "MLBB Events", icon: Megaphone, badge: 0, route: "/admin/mlbb-events" },
         { id: "mlbb-tiers", label: "MLBB Categories", icon: Gem, badge: 0, route: "/admin/diamond-tiers" },
         { id: "mobile-services", label: "Mobile Services", icon: Phone, badge: 0, route: "/admin/mobile-services" },
         { id: "digital-products", label: "Digital Products", icon: ShoppingCart, badge: 0, route: "/admin/digital-products" },

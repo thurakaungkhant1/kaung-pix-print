@@ -21,6 +21,7 @@ import appLogo from "@/assets/app-logo.png";
 import NotificationBell from "@/components/NotificationBell";
 import { useGameCatalog } from "@/hooks/useGameCatalog";
 import DesktopHome from "@/components/DesktopHome";
+import MlbbEventsSection from "@/components/mlbb/MlbbEventsSection";
 
 
 interface PromotionalBanner {
@@ -227,6 +228,40 @@ const Home = () => {
     setShowOnboarding(false);
   }, []);
 
+  const renderGameTile = (cg: (typeof catalogGames)[number], i: number) => {
+                  const g = {
+                    id: cg.category_key,
+                    name: cg.name,
+                    short: cg.short_name || cg.name,
+                    image: cg.image_url || "/images/games/mobile-legends.png",
+                  };
+                  return (
+                  <motion.button
+                    key={g.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 + i * 0.05 }}
+                    whileTap={{ scale: 0.96 }}
+                    whileHover={{ y: -3 }}
+                    onClick={() => navigate(`/game?g=${encodeURIComponent(g.id)}`)}
+                    className="rounded-2xl overflow-hidden bg-card border border-border/60 hover:border-primary/40 hover:shadow-xl transition-all text-left"
+                  >
+                    <div className="aspect-square bg-muted overflow-hidden">
+                      <img
+                        src={g.image}
+                        alt={g.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-2">
+                      <p className="text-[11px] font-bold leading-tight truncate">{g.short}</p>
+                      <p className="text-[9px] text-muted-foreground truncate">Instant</p>
+                    </div>
+                  </motion.button>
+                  );
+  };
+
   const formatMMK = (n: number) =>
     new Intl.NumberFormat('en-US').format(Math.round(n)) + ' MMK';
 
@@ -391,41 +426,17 @@ const Home = () => {
                         </div>
                       </div>
                     ))
-                  : catalogGames.slice(0, 9).map((cg, i) => {
-                  const g = {
-                    id: cg.category_key,
-                    name: cg.name,
-                    short: cg.short_name || cg.name,
-                    image: cg.image_url || "/images/games/mobile-legends.png",
-                  };
-                  return (
-                  <motion.button
-                    key={g.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 + i * 0.05 }}
-                    whileTap={{ scale: 0.96 }}
-                    whileHover={{ y: -3 }}
-                    onClick={() => navigate(`/game?g=${encodeURIComponent(g.id)}`)}
-                    className="rounded-2xl overflow-hidden bg-card border border-border/60 hover:border-primary/40 hover:shadow-xl transition-all text-left"
-                  >
-                    <div className="aspect-square bg-muted overflow-hidden">
-                      <img
-                        src={g.image}
-                        alt={g.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="p-2">
-                      <p className="text-[11px] font-bold leading-tight truncate">{g.short}</p>
-                      <p className="text-[9px] text-muted-foreground truncate">Instant</p>
-                    </div>
-                  </motion.button>
-                  );
-                })}
-
+                  : catalogGames.slice(0, 3).map(renderGameTile)}
               </div>
+              )}
+              {/* MLBB events slider sits right after the first Game Shop row */}
+              <div className="-mx-5 mt-4">
+                <MlbbEventsSection variant="mobile" />
+              </div>
+              {!gamesError && catalogGames.length > 3 && (
+                <div className="grid grid-cols-3 gap-3">
+                  {catalogGames.slice(3, 9).map((cg, i) => renderGameTile(cg, i + 3))}
+                </div>
               )}
 
             </section>

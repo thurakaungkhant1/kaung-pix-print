@@ -39,6 +39,8 @@ import WalletDisplay from "@/components/WalletDisplay";
 import TopUpDialog from "@/components/TopUpDialog";
 import { useGameCatalog } from "@/hooks/useGameCatalog";
 import { KGameShopProducts } from "@/components/KGameShopProducts";
+import MlbbEventsEntry from "@/components/mlbb/MlbbEventsEntry";
+import { MLBB_GAME_IDS } from "@/lib/mlbbEvents";
 
 
 import {
@@ -881,6 +883,9 @@ const GamePage = () => {
                 </Button>
               </div>
             </section>
+            {MLBB_GAME_IDS.includes(selectedGame.id) && (
+              <section><MlbbEventsEntry /></section>
+            )}
 
             {/* Player Credentials */}
             <section className="relative overflow-hidden rounded-2xl bg-card/80 backdrop-blur-md border border-border/50 p-4 space-y-4 shadow-lg shadow-primary/5">
