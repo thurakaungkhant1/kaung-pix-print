@@ -147,7 +147,7 @@ async function runSync(db: SupabaseClient, runId: string) {
         }
         if (aiStopped) continue;
         analyzed++;
-        const events = cleanEvents(await extractEvents(a, text), text);
+        const events = cleanEvents(await extractEvents(a, text), text, Date.now(), a.published);
         found += events.length;
         for (const ev of events) await saveEvent(db, ev, a, counts);
         await db.from("mlbb_event_source_items").upsert({ ...base, content_hash: hash, analyzed_at: new Date().toISOString(), events_found: events.length, last_error: null });

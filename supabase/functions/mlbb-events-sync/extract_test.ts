@@ -20,3 +20,21 @@ Deno.test("drops quotes that are not in the article", () => {
   const out = cleanEvents([{ ...base, starts_on: "2027-01-14", ends_on: null, evidence: "Grand Finals on 14 January 2027" }], article, NOW);
   assertEquals(out.length, 0);
 });
+
+Deno.test("drops a guessed year that the quote does not state", () => {
+  const txt = "The M8 Knockout Stage runs from 14 to 19 January.";
+  const ev = { ...base, starts_on: "2029-01-14", ends_on: "2029-01-19", evidence: "M8 Knockout Stage runs from 14 to 19 January" };
+  assertEquals(cleanEvents([ev], txt, NOW, "2026-11-01").length, 0);
+  // the nearest January after publication is accepted
+  const ok = { ...ev, starts_on: "2027-01-14", ends_on: "2027-01-19" };
+  assertEquals(cleanEvents([ok], txt, NOW, "2026-11-01").length, 1);
+  // no publish date and no year in the quote → dropped
+  assertEquals(cleanEvents([ok], txt, NOW, null).length, 0);
+});
+
+Deno.test("drops dates pinned on an event the quote is not about", () => {
+  const txt = "Early-bird tickets go on sale from 24 October to 21 November 2026.";
+  const ev = { ...base, title: "M8 Knockout Stage", starts_on: "2026-10-24", ends_on: "2026-11-21", evidence: "Early-bird tickets go on sale from 24 October to 21 November 2026" };
+  assertEquals(cleanEvents([ev], txt, NOW, "2026-10-01").length, 0);
+  assertEquals(cleanEvents([{ ...ev, title: "M8 early-bird tickets" }], txt, NOW, "2026-10-01").length, 1);
+});
