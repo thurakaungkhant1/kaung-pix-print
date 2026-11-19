@@ -1,8 +1,9 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { WifiOff } from "lucide-react";
 import { motion } from "framer-motion";
 
-const SnakeGame = lazy(() => import("@/games/SnakeGame"));
+// Bundled up front: this screen only appears offline, when no new file can be downloaded.
+import SnakeGame from "@/games/SnakeGame";
 
 const OfflineGame = () => {
   return (

@@ -41,6 +41,25 @@ async function removeLegacyAppWorkers() {
   }
 }
 
+// After a new release, an open tab may ask for old file names that no longer exist.
+// Reload once (only when online) so it picks up the current release instead of a blank screen.
+const CHUNK_RELOAD_KEY = "app-chunk-reload-at";
+function recoverFromStaleChunk(event?: Event) {
+  if (!navigator.onLine) return;
+  const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
+  if (Date.now() - last < 30_000) return; // avoid reload loops
+  event?.preventDefault();
+  sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  window.location.reload();
+}
+window.addEventListener("vite:preloadError", (e) => recoverFromStaleChunk(e));
+window.addEventListener("unhandledrejection", (e) => {
+  const msg = String((e.reason as Error | undefined)?.message ?? e.reason ?? "");
+  if (/Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(msg)) {
+    recoverFromStaleChunk(e);
+  }
+});
+
 async function bootstrap() {
   await removeLegacyAppWorkers();
 
