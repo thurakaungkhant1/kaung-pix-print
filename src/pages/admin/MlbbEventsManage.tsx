@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import {
-  ArrowLeft, CalendarClock, CheckCircle2, EyeOff, ExternalLink, ImagePlus, Loader2, Pencil, Plus, RefreshCw, Trash2, AlertTriangle, History,
+  ArrowLeft, CalendarClock, CheckCircle2, Eye, EyeOff, ExternalLink, ImagePlus, Loader2, Pencil, Plus, RefreshCw, Trash2, AlertTriangle, History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ import {
   categoryLabel, EVENT_CATEGORIES, eventStatus, formatRange, formatYangonDateTime, fromYangonInput, isPopupActive, toYangonInput, type MlbbEvent,
 } from "@/lib/mlbbEvents";
 import { StatusBadge, VerificationBadge } from "@/components/mlbb/MlbbEventCard";
+import MlbbEventDialog from "@/components/mlbb/MlbbEventDialog";
 
 type SyncRun = {
   id: string; trigger: string; status: string; started_at: string; finished_at: string | null;
@@ -45,6 +46,20 @@ const toForm = (e: MlbbEvent): Form => ({
   popup_enabled: e.popup_enabled ?? false, popup_starts: toYangonInput(e.popup_starts_at ?? null), popup_ends: toYangonInput(e.popup_ends_at ?? null),
 });
 
+/** Builds the customer-facing event from unsaved form values, for the popup preview. */
+const formToPreview = (f: Form): MlbbEvent => {
+  const now = new Date().toISOString();
+  return {
+    id: f.id ?? "preview", title: f.title.trim() || "Event name", category: f.category as MlbbEvent["category"],
+    description: f.description.trim() || null, image_url: f.image_url || null, image_permitted: f.image_permitted,
+    starts_at: fromYangonInput(f.starts), ends_at: fromYangonInput(f.ends), verification: f.verification,
+    review_status: "approved", source_name: f.source_name.trim() || null, source_url: f.source_url.trim() || null,
+    evidence: null, show_topup: f.show_topup, origin: "manual", needs_review: false, schedule_changed_at: null,
+    last_synced_at: null, created_at: now, updated_at: now, popup_enabled: f.popup_enabled,
+    popup_starts_at: fromYangonInput(f.popup_starts), popup_ends_at: fromYangonInput(f.popup_ends),
+  };
+};
+
 const FILTERS = [
   { key: "review", label: "Needs review" },
   { key: "approved", label: "Approved" },
@@ -63,6 +78,7 @@ const MlbbEventsManage = () => {
   const [uploading, setUploading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [toDelete, setToDelete] = useState<MlbbEvent | null>(null);
+  const [preview, setPreview] = useState<MlbbEvent | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -377,10 +393,17 @@ const MlbbEventsManage = () => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setForm(null)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => form && setPreview(formToPreview(form))}><Eye className="mr-1 h-4 w-4" /> Preview popup</Button>
             <Button onClick={save} disabled={saving}>{saving && <Loader2 className="mr-1 h-4 w-4 animate-spin" />} Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MlbbEventDialog
+        event={preview}
+        onClose={() => setPreview(null)}
+        className="[&>button:last-child]:right-3 [&>button:last-child]:top-3 [&>button:last-child]:z-10 [&>button:last-child]:rounded-full [&>button:last-child]:bg-background/90 [&>button:last-child]:p-1.5 [&>button:last-child]:opacity-100 [&>button:last-child]:shadow-md"
+      />
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
