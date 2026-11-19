@@ -1,6 +1,6 @@
 
 import { useCallback, useEffect, useState } from "react";
-import { mobileLegendsFirst } from "@/lib/gameOrder";
+import { isMobileLegendsGame, mobileLegendsFirst } from "@/lib/gameOrder";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface GameCatalogItem {
@@ -62,7 +62,12 @@ export const useGameCatalog = (includeInactive = false) => {
       if (!includeInactive) query = query.eq("is_active", true);
       const { data, error: dbError } = await query;
       if (dbError) throw dbError;
-      return ((data || []) as GameCatalogItem[]).map((g) => ({ ...g, source: "manual" as const }));
+      // Mobile Legends always needs User ID + Zone ID, even if the admin left "single ID" selected.
+      return ((data || []) as GameCatalogItem[]).map((g) => ({
+        ...g,
+        requires_server_id: g.requires_server_id || isMobileLegendsGame({ category_key: g.category_key, name: g.name }),
+        source: "manual" as const,
+      }));
     };
 
     if (useKGameShop) {
