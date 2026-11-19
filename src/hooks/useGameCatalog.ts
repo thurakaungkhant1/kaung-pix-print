@@ -1,5 +1,6 @@
 
 import { useCallback, useEffect, useState } from "react";
+import { mobileLegendsFirst } from "@/lib/gameOrder";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface GameCatalogItem {
@@ -99,7 +100,7 @@ export const useGameCatalog = (includeInactive = false) => {
           source: "kgameshop" as const,
         }));
         const seen = new Set(manual.map((m) => m.category_key.toLowerCase()));
-        setGames([...manual, ...apiGames.filter((g) => !seen.has(g.category_key.toLowerCase()))]);
+        setGames([...manual, ...mobileLegendsFirst(apiGames.filter((g) => !seen.has(g.category_key.toLowerCase())))]);
       } catch (e: any) {
         console.error("Failed to load KGameShop games:", e);
         setGames(manual);
