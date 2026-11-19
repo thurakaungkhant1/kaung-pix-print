@@ -3,6 +3,7 @@ import DesktopFooter from "@/components/DesktopFooter";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import OfflineGame from "@/components/OfflineGame";
+import MlbbEventPopup from "@/components/mlbb/MlbbEventPopup";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -218,6 +219,7 @@ const App = () => {
               <PresenceTracker />
               <BanGate />
               <DesktopTopNav />
+              <MlbbEventPopup />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth/login" element={<Login />} />

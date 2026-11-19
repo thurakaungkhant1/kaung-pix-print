@@ -1401,6 +1401,9 @@ export type Database = {
           last_synced_at: string | null
           needs_review: boolean
           origin: string
+          popup_enabled: boolean
+          popup_ends_at: string | null
+          popup_starts_at: string | null
           review_status: string
           schedule_changed_at: string | null
           show_topup: boolean
@@ -1425,6 +1428,9 @@ export type Database = {
           last_synced_at?: string | null
           needs_review?: boolean
           origin?: string
+          popup_enabled?: boolean
+          popup_ends_at?: string | null
+          popup_starts_at?: string | null
           review_status?: string
           schedule_changed_at?: string | null
           show_topup?: boolean
@@ -1449,6 +1455,9 @@ export type Database = {
           last_synced_at?: string | null
           needs_review?: boolean
           origin?: string
+          popup_enabled?: boolean
+          popup_ends_at?: string | null
+          popup_starts_at?: string | null
           review_status?: string
           schedule_changed_at?: string | null
           show_topup?: boolean

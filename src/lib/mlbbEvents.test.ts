@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { eventStatus, fromYangonInput, toYangonInput, formatYangonDate, countdownTarget } from "./mlbbEvents";
+import { eventStatus, fromYangonInput, toYangonInput, formatYangonDate, countdownTarget, isPopupActive } from "./mlbbEvents";
 
 const now = Date.parse("2026-11-11T03:00:00Z");
 
@@ -29,5 +29,20 @@ describe("Asia/Yangon time", () => {
   test("stored time shows back in Yangon time", () => {
     expect(toYangonInput("2027-01-13T17:30:00.000Z")).toBe("2027-01-14T00:00");
     expect(formatYangonDate("2027-01-13T17:30:00.000Z")).toBe("14 Jan 2027");
+  });
+});
+
+describe("event popup window", () => {
+  const base = { popup_enabled: true, review_status: "approved" as const, popup_starts_at: "2026-11-11T00:00:00Z", popup_ends_at: "2026-11-12T00:00:00Z" };
+  test("shows inside the admin's window", () => {
+    expect(isPopupActive(base, now)).toBe(true);
+  });
+  test("hidden before start and after end", () => {
+    expect(isPopupActive(base, Date.parse("2026-11-10T23:59:00Z"))).toBe(false);
+    expect(isPopupActive(base, Date.parse("2026-11-12T00:00:00Z"))).toBe(false);
+  });
+  test("hidden when switched off or not approved", () => {
+    expect(isPopupActive({ ...base, popup_enabled: false }, now)).toBe(false);
+    expect(isPopupActive({ ...base, review_status: "pending" }, now)).toBe(false);
   });
 });

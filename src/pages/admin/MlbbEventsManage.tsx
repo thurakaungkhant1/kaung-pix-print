@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
-  categoryLabel, EVENT_CATEGORIES, eventStatus, formatRange, formatYangonDateTime, fromYangonInput, toYangonInput, type MlbbEvent,
+  categoryLabel, EVENT_CATEGORIES, eventStatus, formatRange, formatYangonDateTime, fromYangonInput, isPopupActive, toYangonInput, type MlbbEvent,
 } from "@/lib/mlbbEvents";
 import { StatusBadge, VerificationBadge } from "@/components/mlbb/MlbbEventCard";
 
@@ -31,15 +31,18 @@ type Form = {
   id?: string; title: string; category: string; description: string; starts: string; ends: string;
   verification: "verified" | "tentative"; review_status: "pending" | "approved" | "hidden";
   source_name: string; source_url: string; image_url: string; image_permitted: boolean; show_topup: boolean;
+  popup_enabled: boolean; popup_starts: string; popup_ends: string;
 };
 const EMPTY: Form = {
   title: "", category: "special", description: "", starts: "", ends: "", verification: "tentative", review_status: "pending",
   source_name: "", source_url: "", image_url: "", image_permitted: false, show_topup: true,
+  popup_enabled: false, popup_starts: "", popup_ends: "",
 };
 const toForm = (e: MlbbEvent): Form => ({
   id: e.id, title: e.title, category: e.category, description: e.description ?? "", starts: toYangonInput(e.starts_at), ends: toYangonInput(e.ends_at),
   verification: e.verification, review_status: e.review_status, source_name: e.source_name ?? "", source_url: e.source_url ?? "",
   image_url: e.image_url ?? "", image_permitted: e.image_permitted, show_topup: e.show_topup,
+  popup_enabled: e.popup_enabled ?? false, popup_starts: toYangonInput(e.popup_starts_at ?? null), popup_ends: toYangonInput(e.popup_ends_at ?? null),
 });
 
 const FILTERS = [
@@ -97,8 +100,16 @@ const MlbbEventsManage = () => {
     if (starts_at && ends_at && Date.parse(ends_at) < Date.parse(starts_at)) return toast.error("End must be after start");
     if (form.verification === "verified" && !form.source_url.trim()) return toast.error("A verified event needs its official source link");
     if (form.source_url && !/^https?:\/\//i.test(form.source_url.trim())) return toast.error("Source link must start with https://");
+    const popup_starts_at = fromYangonInput(form.popup_starts);
+    const popup_ends_at = fromYangonInput(form.popup_ends);
+    if (form.popup_enabled) {
+      if (!popup_starts_at || !popup_ends_at) return toast.error("Popup ON needs a start and end date/time");
+      if (Date.parse(popup_ends_at) <= Date.parse(popup_starts_at)) return toast.error("Popup end must be after its start");
+      if (form.review_status !== "approved") return toast.error("Set Visibility to Approved so customers can see the popup");
+    }
     setSaving(true);
     const payload = {
+      popup_enabled: form.popup_enabled, popup_starts_at, popup_ends_at,
       title, category: form.category, description: form.description.trim() || null, starts_at, ends_at,
       verification: form.verification, review_status: form.review_status,
       source_name: form.source_name.trim() || null, source_url: form.source_url.trim() || null,
@@ -212,6 +223,11 @@ const MlbbEventsManage = () => {
                         {e.review_status}
                       </span>
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold">{e.origin === "sync" ? "Auto-found" : "Manual"}</span>
+                      {e.popup_enabled && (
+                        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", isPopupActive(e) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                          Popup {isPopupActive(e) ? "showing" : "scheduled"} · {e.popup_starts_at ? formatYangonDateTime(e.popup_starts_at) : "?"} → {e.popup_ends_at ? formatYangonDateTime(e.popup_ends_at) : "?"}
+                        </span>
+                      )}
                       {e.needs_review && e.review_status !== "pending" && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive"><AlertTriangle className="h-3 w-3" /> Source changed — re-check</span>
                       )}
@@ -343,6 +359,20 @@ const MlbbEventsManage = () => {
                 <span>Show “Top Up Diamonds” button</span>
                 <Switch checked={form.show_topup} onCheckedChange={(v) => setForm({ ...form, show_topup: v })} />
               </label>
+              <div className="space-y-3 rounded-xl border border-primary/40 bg-primary/5 p-3">
+                <label className="flex items-center justify-between gap-3 text-sm font-semibold">
+                  <span>Show as popup in the app</span>
+                  <Switch checked={form.popup_enabled}
+                    onCheckedChange={(v) => setForm({ ...form, popup_enabled: v, review_status: v ? "approved" : form.review_status })} />
+                </label>
+                {form.popup_enabled && (
+                  <div className="flex flex-wrap gap-3">
+                    <div className="min-w-[200px] flex-1"><Label>Popup from (date &amp; time, MMT)</Label><Input type="datetime-local" value={form.popup_starts} onChange={(e) => setForm({ ...form, popup_starts: e.target.value })} /></div>
+                    <div className="min-w-[200px] flex-1"><Label>Popup until (date &amp; time, MMT)</Label><Input type="datetime-local" value={form.popup_ends} onChange={(e) => setForm({ ...form, popup_ends: e.target.value })} /></div>
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground">Customers see this event as a popup only between these times.</p>
+              </div>
             </div>
           )}
           <DialogFooter>

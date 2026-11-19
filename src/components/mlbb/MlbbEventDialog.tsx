@@ -2,17 +2,18 @@ import { useNavigate } from "react-router-dom";
 import { CalendarDays, ExternalLink, Gem, Quote, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   categoryLabel, eventStatus, formatYangonDateTime, MLBB_TOPUP_ROUTE, type MlbbEvent,
 } from "@/lib/mlbbEvents";
 import { EventArtwork, LiveCountdown, StatusBadge, VerificationBadge } from "./MlbbEventCard";
 
-const MlbbEventDialog = ({ event, onClose }: { event: MlbbEvent | null; onClose: () => void }) => {
+const MlbbEventDialog = ({ event, onClose, className }: { event: MlbbEvent | null; onClose: () => void; className?: string }) => {
   const navigate = useNavigate();
   const status = event ? eventStatus(event) : "upcoming";
   return (
     <Dialog open={!!event} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg overflow-hidden p-0">
+      <DialogContent className={cn("max-w-lg overflow-hidden p-0", className)}>
         {event && (
           <>
             <div className="aspect-[16/8] w-full overflow-hidden bg-muted"><EventArtwork event={event} /></div>

@@ -41,10 +41,13 @@ export type MlbbEvent = {
   last_synced_at: string | null;
   created_at: string;
   updated_at: string;
+  popup_enabled: boolean;
+  popup_starts_at: string | null;
+  popup_ends_at: string | null;
 };
 
 export const PUBLIC_EVENT_COLUMNS =
-  "id,title,category,description,image_url,image_permitted,starts_at,ends_at,verification,review_status,source_name,source_url,show_topup,origin,needs_review,schedule_changed_at,last_synced_at,created_at,updated_at,evidence";
+  "id,title,category,description,image_url,image_permitted,starts_at,ends_at,verification,review_status,source_name,source_url,show_topup,origin,needs_review,schedule_changed_at,last_synced_at,created_at,updated_at,evidence,popup_enabled,popup_starts_at,popup_ends_at";
 
 export type EventStatus = "upcoming" | "live" | "ended";
 const DAY = 864e5;
@@ -119,4 +122,13 @@ export function formatCountdown(ms: number): string {
   const d = Math.floor(t / 86400), h = Math.floor((t % 86400) / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
   const p = (n: number) => String(n).padStart(2, "0");
   return d > 0 ? `${d}d ${p(h)}h ${p(m)}m` : `${p(h)}:${p(m)}:${p(s)}`;
+}
+
+/** Popup shows only when switched on, approved, and now is inside the admin's start–end window. */
+export function isPopupActive(
+  e: Pick<MlbbEvent, "popup_enabled" | "popup_starts_at" | "popup_ends_at" | "review_status">,
+  now = Date.now(),
+): boolean {
+  if (!e.popup_enabled || e.review_status !== "approved" || !e.popup_starts_at || !e.popup_ends_at) return false;
+  return now >= Date.parse(e.popup_starts_at) && now < Date.parse(e.popup_ends_at);
 }
