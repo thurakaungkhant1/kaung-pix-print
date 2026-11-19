@@ -1,3 +1,4 @@
+import ChunkErrorBoundary from "@/components/ChunkErrorBoundary";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import MobileLayout from "@/components/MobileLayout";
@@ -442,6 +443,7 @@ const GamesPortal = () => {
             </div>
             <Card className="rounded-none sm:rounded-2xl border-x-0 sm:border-x border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
               <div className="p-2 sm:p-6 w-full">
+                <ChunkErrorBoundary key={activeGame} compact>
                 <Suspense fallback={
                   <div className="flex flex-col items-center justify-center py-16 gap-3">
                     <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
@@ -450,6 +452,7 @@ const GamesPortal = () => {
                 }>
                   <GameComponent onGameEnd={(score, isWin) => handleGameEnd(activeGame, score, isWin)} />
                 </Suspense>
+                </ChunkErrorBoundary>
               </div>
             </Card>
           </div>
