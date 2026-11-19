@@ -120,20 +120,31 @@ export async function notifyKgOrder(admin: any, orderId: string) {
 // Central account-field schema per VPS game slug (the VPS exposes no field metadata).
 // Only verified games are listed. Field order maps to orders.game_id / orders.server_id.
 export type KgField = { key: string; label: string; placeholder?: string };
+const MLBB_FIELDS: KgField[] = [
+  { key: "user_id", label: "User ID", placeholder: "12345678" },
+  { key: "zone_id", label: "Zone ID", placeholder: "1234" },
+];
+const MLA_FIELDS: KgField[] = [
+  { key: "user_id", label: "User ID", placeholder: "12345678" },
+  { key: "server_id", label: "Server ID", placeholder: "10001" },
+];
 export const KG_ACCOUNT_SCHEMAS: Record<string, KgField[]> = {
-  "mobile-legends": [
-    { key: "user_id", label: "User ID", placeholder: "12345678" },
-    { key: "zone_id", label: "Zone ID", placeholder: "1234" },
-  ],
-  "magic-chess": [
-    { key: "user_id", label: "User ID", placeholder: "12345678" },
-    { key: "zone_id", label: "Zone ID", placeholder: "1234" },
-  ],
+  "mobile-legends": MLBB_FIELDS,
+  "magic-chess": MLBB_FIELDS,
+  "k-mlbb-br": MLBB_FIELDS,
+  "k-mlbb-global": MLBB_FIELDS,
+  "k-mlbb-ph": MLBB_FIELDS,
+  "k-mlbb-ru": MLBB_FIELDS,
+  "k-mlbb-sgmy": MLBB_FIELDS,
+  "k-mlbb-us": MLBB_FIELDS,
+  "k-mla": MLA_FIELDS,
   "k-pubgm": [{ key: "player_id", label: "Player ID", placeholder: "5123456789" }],
 };
+// Any other Mobile Legends slug the VPS adds later (e.g. "k-mlbb-id") always needs ID + Zone ID.
+const isMobileLegendsSlug = (game: string) => /(^|[-_])mlbb([-_]|$)|mobile[-_]?legends?/i.test(game);
 // Unverified games keep the legacy single Player ID behaviour and are flagged verified:false.
 export const getAccountSchema = (game: string) => {
-  const fields = KG_ACCOUNT_SCHEMAS[game];
+  const fields = KG_ACCOUNT_SCHEMAS[game] ?? (isMobileLegendsSlug(game) ? MLBB_FIELDS : undefined);
   return fields
     ? { game, fields, verified: true }
     : { game, fields: [{ key: "player_id", label: "Player ID", placeholder: "12345678" }] as KgField[], verified: false };
