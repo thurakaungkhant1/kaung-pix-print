@@ -74,11 +74,12 @@ export const EventArtwork = ({ event, className }: { event: MlbbEvent; className
 interface CardProps {
   event: MlbbEvent;
   onDetails: (e: MlbbEvent) => void;
+  placement: "home_mobile" | "home_desktop" | "events_page";
   compact?: boolean;
   className?: string;
 }
 
-const MlbbEventCard = ({ event, onDetails, compact, className }: CardProps) => {
+const MlbbEventCard = ({ event, onDetails, placement, compact, className }: CardProps) => {
   const navigate = useNavigate();
   const status = eventStatus(event);
   return (
@@ -99,14 +100,20 @@ const MlbbEventCard = ({ event, onDetails, compact, className }: CardProps) => {
         <LiveCountdown event={event} />
         <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-2">
           <button
-            onClick={() => onDetails(event)}
+            onClick={() => {
+              window.__lovableEvents?.track?.("project.mlbb_event_clicked", { placement, action: "details", category: event.category });
+              onDetails(event);
+            }}
             className="inline-flex h-8 items-center gap-1 rounded-full bg-primary px-3 text-[11px] font-bold text-primary-foreground hover:bg-accent transition-colors"
           >
             <Info className="h-3.5 w-3.5" /> View Details
           </button>
           {event.show_topup && status !== "ended" && (
             <button
-              onClick={() => navigate(MLBB_TOPUP_ROUTE)}
+              onClick={() => {
+                window.__lovableEvents?.track?.("project.mlbb_event_clicked", { placement, action: "top_up", category: event.category });
+                navigate(MLBB_TOPUP_ROUTE);
+              }}
               className="inline-flex h-8 items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-3 text-[11px] font-bold text-primary hover:bg-primary/10 transition-colors"
             >
               <Gem className="h-3.5 w-3.5" /> Top Up
@@ -117,6 +124,7 @@ const MlbbEventCard = ({ event, onDetails, compact, className }: CardProps) => {
               href={event.source_url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => window.__lovableEvents?.track?.("project.mlbb_event_clicked", { placement, action: "source", category: event.category })}
               aria-label="Open source announcement"
               className="ml-auto inline-flex h-8 items-center gap-1 rounded-full px-2 text-[11px] font-semibold text-muted-foreground hover:text-primary"
             >

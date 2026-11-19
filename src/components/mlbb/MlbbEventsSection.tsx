@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarClock, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,10 +13,32 @@ const MlbbEventsSection = ({ variant }: { variant: "mobile" | "desktop" }) => {
   const events = (data ?? []).filter((e) => eventStatus(e) !== "ended").slice(0, variant === "mobile" ? 8 : 4);
   const openDetails = (e: MlbbEvent) => navigate(`/mlbb-events?event=${e.id}`);
   const desktop = variant === "desktop";
+  const placement = desktop ? "home_desktop" : "home_mobile";
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const viewedRef = useRef(false);
+  const swipedRef = useRef(false);
+
+  // Count one view per page visit, once the section with events is on screen.
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || events.length === 0 || viewedRef.current) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((x) => x.isIntersecting) && !viewedRef.current) {
+        viewedRef.current = true;
+        window.__lovableEvents?.track?.("project.mlbb_events_viewed", { placement, event_count: events.length });
+        io.disconnect();
+      }
+    }, { threshold: 0.5 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [events.length, placement]);
 
   const seeAll = (
     <button
-      onClick={() => navigate("/mlbb-events")}
+      onClick={() => {
+        window.__lovableEvents?.track?.("project.mlbb_event_clicked", { placement, action: "see_all", category: "all" });
+        navigate("/mlbb-events");
+      }}
       className={cn(
         "inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 font-semibold text-primary hover:bg-primary/10 transition",
         desktop ? "h-10 px-5 text-sm" : "h-8 px-3 text-xs",
@@ -49,17 +72,24 @@ const MlbbEventsSection = ({ variant }: { variant: "mobile" | "desktop" }) => {
     </button>
   ) : desktop ? (
     <div className="grid grid-cols-4 gap-5">
-      {events.map((e) => <MlbbEventCard key={e.id} event={e} onDetails={openDetails} />)}
+      {events.map((e) => <MlbbEventCard key={e.id} event={e} onDetails={openDetails} placement={placement} />)}
     </div>
   ) : (
-    <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 scrollbar-hide">
-      {events.map((e) => <MlbbEventCard key={e.id} event={e} onDetails={openDetails} compact className="w-[78%] max-w-[300px] shrink-0 snap-start" />)}
+    <div
+      className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 scrollbar-hide"
+      onScroll={(ev) => {
+        if (swipedRef.current || ev.currentTarget.scrollLeft < 40) return;
+        swipedRef.current = true;
+        window.__lovableEvents?.track?.("project.mlbb_events_swiped", { placement, event_count: events.length });
+      }}
+    >
+      {events.map((e) => <MlbbEventCard key={e.id} event={e} onDetails={openDetails} placement={placement} compact className="w-[78%] max-w-[300px] shrink-0 snap-start" />)}
     </div>
   );
 
   if (desktop) {
     return (
-      <section className="mx-auto mt-12 max-w-7xl px-8" aria-label="MLBB Events">
+      <section ref={sectionRef} className="mx-auto mt-12 max-w-7xl px-8" aria-label="MLBB Events">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="h-9 w-1.5 rounded-full bg-primary" />
@@ -75,7 +105,7 @@ const MlbbEventsSection = ({ variant }: { variant: "mobile" | "desktop" }) => {
     );
   }
   return (
-    <section className="px-5 pb-4" aria-label="MLBB Events">
+    <section ref={sectionRef} className="px-5 pb-4" aria-label="MLBB Events">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <span className="h-8 w-1 rounded-full bg-primary" />

@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "events": {
+    "project.mlbb_event_clicked": {
+      "event_schema_version": 1,
+      "description": "A button on an MLBB event card or section was clicked (details, top up, source, see all).",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "placement",
+          "action",
+          "category"
+        ],
+        "properties": {
+          "placement": {
+            "type": "string",
+            "enum": [
+              "home_mobile",
+              "home_desktop",
+              "events_page"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "details",
+              "top_up",
+              "source",
+              "see_all"
+            ]
+          },
+          "category": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "project.mlbb_events_swiped": {
+      "event_schema_version": 1,
+      "description": "A visitor swiped through the mobile Home MLBB events slider (once per page visit).",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "placement",
+          "event_count"
+        ],
+        "properties": {
+          "placement": {
+            "type": "string",
+            "enum": [
+              "home_mobile"
+            ]
+          },
+          "event_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "project.mlbb_events_viewed": {
+      "event_schema_version": 1,
+      "description": "The MLBB Events section with at least one event scrolled into view on Home (once per page visit).",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "placement",
+          "event_count"
+        ],
+        "properties": {
+          "placement": {
+            "type": "string",
+            "enum": [
+              "home_mobile",
+              "home_desktop"
+            ]
+          },
+          "event_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "project.mlbb_game_clicked": {
+      "event_schema_version": 1,
+      "description": "A Mobile Legends game card in the game list (Home or View All) was clicked.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "placement",
+          "game",
+          "position"
+        ],
+        "properties": {
+          "placement": {
+            "type": "string",
+            "enum": [
+              "home_mobile",
+              "home_desktop",
+              "view_all"
+            ]
+          },
+          "game": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}

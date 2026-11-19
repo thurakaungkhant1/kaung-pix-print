@@ -41,6 +41,7 @@ import { useGameCatalog } from "@/hooks/useGameCatalog";
 import { KGameShopProducts } from "@/components/KGameShopProducts";
 import MlbbEventsEntry from "@/components/mlbb/MlbbEventsEntry";
 import { MLBB_GAME_IDS } from "@/lib/mlbbEvents";
+import { isMobileLegendsGame } from "@/lib/gameOrder";
 
 
 import {
@@ -837,10 +838,13 @@ const GamePage = () => {
                   />
                 </div>
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-6 lg:gap-4 xl:grid-cols-7">
-                  {visibleGames.map((cat) => (
+                  {visibleGames.map((cat, i) => (
                     <button
                       key={cat.id}
-                      onClick={() => setSelectedGameCategory(cat.id)}
+                      onClick={() => {
+                        if (isMobileLegendsGame({ category_key: cat.id, name: cat.name })) window.__lovableEvents?.track?.("project.mlbb_game_clicked", { placement: "view_all", game: cat.id, position: i + 1 });
+                        setSelectedGameCategory(cat.id);
+                      }}
                       className="group flex min-w-0 flex-col items-center gap-1.5 rounded-xl bg-card border border-border/60 p-1.5 text-center hover:border-primary/40 hover:shadow-lg transition-all lg:rounded-2xl lg:p-2 lg:gap-2 lg:hover:-translate-y-1 lg:duration-300"
                     >
                       <div className="w-full aspect-square rounded-lg overflow-hidden bg-muted lg:rounded-xl">

@@ -102,7 +102,7 @@ const MlbbEvents = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
-              {list.map((e) => <MlbbEventCard key={e.id} event={e} onDetails={open} />)}
+              {list.map((e) => <MlbbEventCard key={e.id} event={e} onDetails={open} placement="events_page" />)}
             </div>
           )}
         </div>

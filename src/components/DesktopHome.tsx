@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import heroImage from "@/assets/desktop-hero.jpg";
 import type { GameCatalogItem } from "@/hooks/useGameCatalog";
 import MlbbEventsSection from "@/components/mlbb/MlbbEventsSection";
+import { isMobileLegendsGame } from "@/lib/gameOrder";
 
 interface Banner {
   id: string;
@@ -74,10 +75,13 @@ const DesktopHome = ({
   const popular = games.slice(0, 12);
   const current = slides ? banners[slide % slides] : null;
 
-  const renderTile = (g: GameCatalogItem) => (
+  const renderTile = (g: GameCatalogItem, i: number) => (
                   <button
                     key={g.category_key}
-                    onClick={() => navigate(`/game?g=${encodeURIComponent(g.category_key)}`)}
+                    onClick={() => {
+                      if (isMobileLegendsGame(g)) window.__lovableEvents?.track?.("project.mlbb_game_clicked", { placement: "home_desktop", game: g.category_key, position: i + 1 });
+                      navigate(`/game?g=${encodeURIComponent(g.category_key)}`);
+                    }}
                     className="group relative overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl"
                   >
                     <div className="aspect-[4/5] overflow-hidden bg-muted">
@@ -235,7 +239,7 @@ const DesktopHome = ({
 
       {!gamesError && popular.length > 6 && (
         <section className="mx-auto mt-10 max-w-7xl px-8" aria-label="More popular games">
-          <div className="grid grid-cols-6 gap-5">{popular.slice(6).map(renderTile)}</div>
+          <div className="grid grid-cols-6 gap-5">{popular.slice(6).map((g, i) => renderTile(g, i + 6))}</div>
         </section>
       )}
 

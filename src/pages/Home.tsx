@@ -22,6 +22,7 @@ import NotificationBell from "@/components/NotificationBell";
 import { useGameCatalog } from "@/hooks/useGameCatalog";
 import DesktopHome from "@/components/DesktopHome";
 import MlbbEventsSection from "@/components/mlbb/MlbbEventsSection";
+import { isMobileLegendsGame } from "@/lib/gameOrder";
 
 
 interface PromotionalBanner {
@@ -243,7 +244,10 @@ const Home = () => {
                     transition={{ delay: 0.05 + i * 0.05 }}
                     whileTap={{ scale: 0.96 }}
                     whileHover={{ y: -3 }}
-                    onClick={() => navigate(`/game?g=${encodeURIComponent(g.id)}`)}
+                    onClick={() => {
+                      if (isMobileLegendsGame(cg)) window.__lovableEvents?.track?.("project.mlbb_game_clicked", { placement: "home_mobile", game: cg.category_key, position: i + 1 });
+                      navigate(`/game?g=${encodeURIComponent(g.id)}`);
+                    }}
                     className="rounded-2xl overflow-hidden bg-card border border-border/60 hover:border-primary/40 hover:shadow-xl transition-all text-left"
                   >
                     <div className="aspect-square bg-muted overflow-hidden">
